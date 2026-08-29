@@ -1,9 +1,9 @@
 序号,Phase,名称,详情锚点,前置任务,验证命令,状态,备注
-1,P0:环境与模型基线,搭建仓库 monorepo 骨架,spec.md#task-1,无,pnpm install → 退出码 0 且 git status 干净,待开始,
-2,P0:环境与模型基线,搭建 env 调试环境(gb/3084),spec.md#task-2,1,dsh-rpc-who.sh 3084 → DSH_HOME=本仓 env,待开始,
-3,P0:环境与模型基线,接通 DSH 模型配置基线并冒烟,spec.md#task-3,2,dsh-rpc.sh 3084 session.history → provider/model 与配置一致且切换生效,待开始,消解 ASM-001/006
-4,P0:环境与模型基线,勘察校准 preset 默认/口占用/override 机制,spec.md#task-4,2,lsof -i :3084 + session.history 看 preset + 点名模型设置机制 → 结论回写 spec,待开始,消解 ASM-002/003/007
-5,P0:环境与模型基线,执行 Phase 0 回归验证,spec.md#task-5,3;4,重启 boot 复跑身份/冒烟 + git status 干净,待开始,
+1,P0:环境与模型基线,搭建仓库 monorepo 骨架,spec.md#task-1,无,pnpm install → 退出码 0 且 git status 干净,已完成,
+2,P0:环境与模型基线,搭建 env 调试环境(gb/3084),spec.md#task-2,1,dsh-rpc-who.sh 3084 → DSH_HOME=本仓 env,已完成,
+3,P0:环境与模型基线,接通 DSH 模型配置基线并冒烟,spec.md#task-3,2,dsh-rpc.sh 3084 session.history → provider/model 与配置一致且切换生效,已完成,消解 ASM-001/006
+4,P0:环境与模型基线,勘察校准 preset 默认/口占用/override 机制,spec.md#task-4,2,lsof -i :3084 + session.history 看 preset + 点名模型设置机制 → 结论回写 spec,已完成,消解 ASM-002/003/007
+5,P0:环境与模型基线,执行 Phase 0 回归验证,spec.md#task-5,3;4,重启 boot 复跑身份/冒烟 + git status 干净,已完成,
 6,P1:人设 preset,编写 dsh-bot agent preset,spec.md#task-6,5,dsh-rpc.sh 3084 agentPreset/list → 含 dsh-bot 非 broken,待开始,人设文本需用户过目
 7,P1:人设 preset,接线默认 preset 并在 GUI 验证,spec.md#task-7,6,session.history → 新会话 preset=dsh-bot,待开始,
 8,P1:人设 preset,执行 Phase 1 回归验证,spec.md#task-8,7,重启后 UF-001 主路径复现 + 官方栏正常,待开始,

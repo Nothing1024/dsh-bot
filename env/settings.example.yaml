@@ -1,0 +1,53 @@
+# Committed settings template for dsh-bot (profile gb / :3084).
+# Copy to env/settings.yaml (gitignored). Never put literal API keys here —
+# only apiKeyEnv references (BR-005).
+#
+# Live routing follows the user's existing DSH model config (copied from
+# session-tool env/settings.yaml by setup.sh). xAI direct is a commented
+# optional example, not an acceptance prerequisite (BR-001).
+
+ui-onboarding:
+  welcomeNoticeVersion: 2026-08-13.1
+llm-deepseek:
+  reasoningEffort: max
+  retryPolicy:
+    mode: normal
+    maxRetries: 5
+  baseURL: https://panpanpan.59188888.xyz/v1
+web-search-deepseek:
+  baseURL: https://panpanpan.59188888.xyz/v1
+  model: deepseek-v4-flash
+agent-default-model:
+  provider: anthropic
+  model: grok-4.6
+  reasoningEffort: xhigh
+llm-pi-ai:
+  providers:
+    anthropic:
+      displayName: Anthropic
+      apiKeyEnv: ANTHROPIC_API_KEY
+      api: anthropic-messages
+      baseURL: https://panpanpan.59188888.xyz
+      reasoning: xhigh
+      models:
+        - id: grok-4.6
+          name: grok-4.6
+          contextWindow: 2000000
+          maxTokens: 128000
+          input:
+            - text
+            - image
+          reasoningEfforts:
+            off: null
+            low: low
+            medium: medium
+            high: high
+            xhigh: xhigh
+    # Optional xAI direct example (disabled). Uncomment to enable a native
+    # xAI route. Requires XAI_API_KEY in env/.env. Not an acceptance
+    # prerequisite (BR-001). Catalog: grok-4.5 / grok-4.3 at https://api.x.ai/v1.
+    # xai:
+    #   displayName: xAI
+    #   apiKeyEnv: XAI_API_KEY
+    #   api: openai-completions
+    #   baseURL: https://api.x.ai/v1

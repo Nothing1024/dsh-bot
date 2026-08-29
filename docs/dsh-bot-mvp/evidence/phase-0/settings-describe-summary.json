@@ -1,0 +1,75 @@
+{
+  "dsh_bot_present": false,
+  "namespaces": [
+    {
+      "ns": "agent-default-model",
+      "applies": "live",
+      "revision": 0,
+      "value": {
+        "provider": "anthropic",
+        "model": "grok-4.6",
+        "reasoningEffort": "xhigh"
+      },
+      "user": {
+        "provider": "anthropic",
+        "model": "grok-4.6",
+        "reasoningEffort": "xhigh"
+      }
+    },
+    {
+      "ns": "web-search-deepseek",
+      "applies": "live",
+      "revision": 0
+    },
+    {
+      "ns": "llm-deepseek",
+      "applies": "live",
+      "revision": 0
+    },
+    {
+      "ns": "ui-theme",
+      "applies": "live",
+      "revision": 0
+    },
+    {
+      "ns": "locale",
+      "applies": "live",
+      "revision": 0
+    },
+    {
+      "ns": "ui-onboarding",
+      "applies": "live",
+      "revision": 0
+    },
+    {
+      "ns": "ui-conversation",
+      "applies": "live",
+      "revision": 0
+    },
+    {
+      "ns": "agent-presets",
+      "applies": "live",
+      "revision": 0
+    },
+    {
+      "ns": "agent-loop",
+      "applies": "live",
+      "revision": 0
+    },
+    {
+      "ns": "shell",
+      "applies": "live",
+      "revision": 0
+    },
+    {
+      "ns": "permission",
+      "applies": "live",
+      "revision": 0
+    },
+    {
+      "ns": "llm-pi-ai",
+      "applies": "live",
+      "revision": 0
+    }
+  ]
+}

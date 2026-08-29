@@ -1,0 +1,21 @@
+{
+  "name": "dsh-profile-gb",
+  "private": true,
+  "dependencies": {
+    "@deepseek-ai/dsh-base": "0.1.1-rc.2",
+    "@deepseek-ai/dsh-web-app": "0.1.1-rc.2",
+    "session-tool": "link:../../../../../session-tool/plugin/packages/session-tool",
+    "session-tool-local": "link:../../../../../session-tool/plugin/packages/session-tool-local",
+    "session-marks": "link:../../../../../session-tool/plugin/packages/session-marks",
+    "tool-session": "link:../../../../../session-tool/plugin/packages/tool-session"
+  },
+  "dsh": {
+    "profile": {
+      "bundles": [
+        "@deepseek-ai/dsh-base",
+        "@deepseek-ai/dsh-web-app",
+        "tool-session"
+      ]
+    }
+  }
+}

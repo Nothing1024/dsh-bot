@@ -1,0 +1,134 @@
+{
+  "type": "server-response",
+  "rpcId": "dbg",
+  "result": {
+    "ok": true,
+    "value": {
+      "current": {
+        "provider": "anthropic",
+        "model": "grok-4.6",
+        "reasoningEffort": "xhigh"
+      },
+      "routable": true,
+      "groups": [
+        {
+          "id": "deepseek-official",
+          "name": "DeepSeek",
+          "models": [
+            {
+              "id": "deepseek-v4-flash",
+              "name": "DeepSeek-V4-Flash",
+              "reasoning": {
+                "efforts": [
+                  {
+                    "id": "off",
+                    "name": "Off"
+                  },
+                  {
+                    "id": "low",
+                    "name": "Low"
+                  },
+                  {
+                    "id": "high",
+                    "name": "High"
+                  },
+                  {
+                    "id": "max",
+                    "name": "Max"
+                  }
+                ],
+                "defaultEffort": "max"
+              }
+            },
+            {
+              "id": "deepseek-v4-pro",
+              "name": "DeepSeek-V4-Pro",
+              "reasoning": {
+                "efforts": [
+                  {
+                    "id": "off",
+                    "name": "Off"
+                  },
+                  {
+                    "id": "low",
+                    "name": "Low"
+                  },
+                  {
+                    "id": "high",
+                    "name": "High"
+                  },
+                  {
+                    "id": "max",
+                    "name": "Max"
+                  }
+                ],
+                "defaultEffort": "max"
+              }
+            },
+            {
+              "id": "deepseek-v4-flash-vision-exp",
+              "name": "DeepSeek-V4-Flash-Vision-Exp",
+              "reasoning": {
+                "efforts": [
+                  {
+                    "id": "off",
+                    "name": "Off"
+                  },
+                  {
+                    "id": "low",
+                    "name": "Low"
+                  },
+                  {
+                    "id": "high",
+                    "name": "High"
+                  },
+                  {
+                    "id": "max",
+                    "name": "Max"
+                  }
+                ],
+                "defaultEffort": "max"
+              }
+            }
+          ]
+        },
+        {
+          "id": "anthropic",
+          "name": "Anthropic",
+          "models": [
+            {
+              "id": "grok-4.6",
+              "name": "grok-4.6",
+              "reasoning": {
+                "efforts": [
+                  {
+                    "id": "off",
+                    "name": "Off"
+                  },
+                  {
+                    "id": "low",
+                    "name": "Low"
+                  },
+                  {
+                    "id": "medium",
+                    "name": "Medium"
+                  },
+                  {
+                    "id": "high",
+                    "name": "High"
+                  },
+                  {
+                    "id": "xhigh",
+                    "name": "Xhigh"
+                  }
+                ],
+                "defaultEffort": "xhigh"
+              }
+            }
+          ]
+        }
+      ],
+      "failures": []
+    }
+  }
+}

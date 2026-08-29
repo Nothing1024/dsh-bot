@@ -1,0 +1,31 @@
+{
+  // Self-contained type-check plane for the dsh-bot plugin (npm-based).
+  // Platform @deepseek-ai/* resolve through the hoisted node_modules
+  // (pinned 0.1.1-rc.2); @deepseek-ai/cordis is the ecosystem Context/Service
+  // identity. allowImportingTsExtensions + rewriteRelativeImportExtensions
+  // keep src's real .ts import specifiers working while tsc still emits
+  // .js-suffixed d.ts.
+  "compilerOptions": {
+    "target": "es2022",
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "lib": ["es2023"],
+    "jsx": "react-jsx",
+    "declaration": true,
+    "declarationMap": true,
+    "sourceMap": true,
+    "skipLibCheck": true,
+    "esModuleInterop": true,
+    "allowImportingTsExtensions": true,
+    "rewriteRelativeImportExtensions": true,
+    "verbatimModuleSyntax": false,
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "exactOptionalPropertyTypes": true,
+    "noImplicitOverride": true,
+    "noFallthroughCasesInSwitch": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "types": ["node"]
+  }
+}

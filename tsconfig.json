@@ -1,0 +1,12 @@
+{
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "noEmit": true,
+    "paths": {
+      "session-marks": ["../../session-tool/plugin/packages/session-marks/src/index.ts"],
+      "session-tool": ["../../session-tool/plugin/packages/session-tool/src/index.ts"],
+      "session-tool-local": ["../../session-tool/plugin/packages/session-tool-local/src/index.ts"]
+    }
+  },
+  "include": ["packages/*/src", "packages/*/tests"]
+}

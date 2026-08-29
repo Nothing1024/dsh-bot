@@ -1,0 +1,13 @@
+# Task 2 boot.log
+time: 2026-08-29T18:58:54+08:00
+cwd: /Users/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin
+DSH_HOME will be /Users/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin/env
+
+npm warn deprecated node-domexception@1.0.0: Use your platform's native DOMException instead
+dsh web: http://127.0.0.1:3084
+
+## post-boot identity
+who: 127.0.0.1:3084  pid=26497  DSH_HOME=/Users/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin/env  cwd=/Users/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin
+
+## Task 5 restart 2026-08-29T19:21:30+08:00
+dsh web: http://127.0.0.1:3084

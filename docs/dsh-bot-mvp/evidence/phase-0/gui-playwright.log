@@ -1,0 +1,16 @@
+opened model trigger
+clicked 模型
+l2 body: 新会话 | 工作区 | plugin | 新会话 | 未分组 | 设置 | 探索未至之境 | 预览版 | plugin | 标准模式 | Workspace Write | grok-4.6 | Xhigh | DeepSeek | DeepSeek-V4-Flash | DeepSeek-V4-Pro | DeepSeek-V4-Flash-Vision-Exp | Anthropic | grok-4.6 | 详情 | 点击消息流中的工具行查看详情
+text DeepSeek-V4-Flash n=2
+text DeepSeek-V4-Pro n=1
+text deepseek-v4-flash n=2
+text DeepSeek n=1
+clicked DeepSeek group
+l3 body: 新会话 | 工作区 | plugin | 新会话 | 未分组 | 设置 | 探索未至之境 | 预览版 | plugin | 标准模式 | Workspace Write | grok-4.6 | Xhigh | DeepSeek | DeepSeek-V4-Flash | DeepSeek-V4-Pro | DeepSeek-V4-Flash-Vision-Exp | Anthropic | grok-4.6 | 详情 | 点击消息流中的工具行查看详情
+API session.selectModel {"type":"client-request","rpcId":"a7b98982-94e6-4157-a258-5965f95aa572","method":"session.selectModel","payload":{"sessionId":"session-bf460816-85ee-4492-a349-5c73e44c7919","provider":"deepseek-official","model":"deepseek-v4-flash"}}
+clicked DeepSeek-V4-Flash
+after select trigger: "DeepSeek-V4-Flash\nMax"
+API session.prompt {"type":"client-request","rpcId":"f871a5be-b5f3-4f9d-afae-f74858e22d39","method":"session.prompt","payload":{"sessionId":"session-bf460816-85ee-4492-a349-5c73e44c7919","mode":"queue","content":[{"type":"text","text":"Reply with exactly the three words: gui stream ok"}],"clientTimeZone":"Asia/Shanghai"}}
+sent
+saw reply at poll 1
+final body: 新会话 | 工作区 | plugin | gui stream ok | 刚刚 | 未分组 | 设置 | gui stream ok | 标准模式 | Session log | 对话 | 轨迹 | Reply with exactly the three words: gui stream ok | 19:38 | 上下文注入 | @deepseek-ai/dsh-system-prompt | 上下文注入 | skill-catalog | Think | The user asks to reply with exactly three words: "gui stream ok". Simple response. |  | gui stream ok |  | 19:38 · 用时 2秒 · 首 token 2.4秒 · 142 tok/s | Workspace Write | DeepSeek-V4-Flash | Max | 1 轮 · 1 步| LLM 2.5s| 首 token 平均 2.4s · 142 tok/s| 缓存命中 0%| 输入 11.2K tok · 输出 22 tok | 详情 | 点击消息流中的工具行查看详情

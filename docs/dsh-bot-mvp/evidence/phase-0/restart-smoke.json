@@ -1,0 +1,11 @@
+{
+  "sessionId": "session-d719ec96-159a-4945-abf7-6d75770645e5",
+  "agentPreset": "standard",
+  "header_config": {
+    "provider": "anthropic",
+    "model": "grok-4.6",
+    "reasoningEffort": "xhigh",
+    "maxTokens": 128000
+  },
+  "assistant_text": "phase0 restart ok"
+}

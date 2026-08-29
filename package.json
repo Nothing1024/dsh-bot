@@ -1,0 +1,28 @@
+{
+  "name": "dsh-bot",
+  "version": "0.1.0",
+  "private": true,
+  "description": "DSH Bot plugin: resident conversation agent (persona preset + model follows DSH config) plus dsh_bot_ask delegation and a better-sidebar tab",
+  "type": "module",
+  "packageManager": "pnpm@11.7.0",
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.json",
+    "build": "pnpm -r --filter './packages/*' run build",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "standard:check": "node -e \"console.log('standard:check placeholder until Task 17'); process.exit(0)\"",
+    "env:setup": "sh env/setup.sh",
+    "env:boot": "sh env/boot.sh"
+  },
+  "devDependencies": {
+    "@types/node": "^22.20.0",
+    "tsdown": "^0.22.2",
+    "tsx": "^4.22.4",
+    "typescript": "^6.0.3",
+    "vite-tsconfig-paths": "^6.1.1",
+    "vitest": "^4.1.8"
+  },
+  "dependencies": {
+    "cordis": "npm:@deepseek-ai/cordis@4.0.1"
+  }
+}

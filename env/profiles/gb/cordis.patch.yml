@@ -1,0 +1,20 @@
+# User overlay for profile `gb`.
+# tool-session already ships session-tool-local / tool-session
+# via its own bundle patch. Do not re-insert those rows here (double mount).
+#
+# Port is 3084 (not the bundle default 3080). Id-targeted patch replaces
+# the named entry's whole config — restate unchanged fields. Keep webUrl
+# in sync with env/boot.sh GW_PORT and env/cli.patch.yml.
+- id: session-tool-local
+  config:
+    allowAllScope: 'top-level'
+    cliAllowAll: true
+    readMaxBlocks: 500
+    listMaxRows: 100
+    webUrl: 'http://127.0.0.1:3084'
+    allowOthersToWrite: 'workspace'
+    showDelegated: true
+    # Plugin-side list hide (session-tool-local Config). Official 0.1.1-rc.2
+    # web rail does NOT honor this; see Task 4 calibration.
+    hiddenPrefixes:
+      - '~'

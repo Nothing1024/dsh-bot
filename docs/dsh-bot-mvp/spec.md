@@ -1,6 +1,6 @@
 # dsh-bot-mvp Spec
 
-> Version: 0.3.2 | Date: 2026-08-29 | Status: Ready 可执行(三轮决策已收敛;剩余 ASM 由 P0 校准消解)
+> Version: 0.3.4 | Date: 2026-08-29 | Status: Ready 可执行(P0 已消解 ASM-001/002/003/006/007;剩余 ASM-005;INV-002 官方栏隐藏改走 archiveSession)
 >
 > 本文件是本需求的**唯一事实源**:事实基线、业务合同、技术方案、任务计划、验收协议全部在此。
 > 其他文件(tasks.csv)只引用本文件,不复制内容。
@@ -72,6 +72,14 @@
 | web-app 组合把 agent 平面(tool-bash/fs/skill 等)移入 preset,host 平面保留注册表/沙箱/持久化/**模型路由** | `sed -n '290,380p' .../dsh-web-app/cordis.patch.yml` | preset 行 `default: standard`,随附根只读、可写根在 DSH_HOME |
 | 平台**无 MCP 支持包**(`@deepseek-ai/` 命名空间无 dsh-mcp) | `ls .../node_modules/@deepseek-ai/ \| rg -i mcp` | 空结果;MCP 列为非目标 |
 | PRD 校验闸门清单(18 项) | `python3 ~/.agents/skills/prd-workflow/scripts/validate_package.py --list` | 本包按其产出 |
+| gb env 复用 st 的 `agent-default-model` + `llm-pi-ai.providers.anthropic`(中转 `grok-4.6`)后,真实 `session.prompt` 流式回复;`request/header.config` = `{provider: anthropic, model: grok-4.6, reasoningEffort: xhigh}` | Task 3:`dsh-rpc-who.sh 3084`;`session.create` + `session.prompt` + `session.history`;证据 `evidence/phase-0/model-smoke.md` | ASM-001 证实;assistant 文本 `model smoke ok` |
+| `agent-default-model` 的 `settings.describe.applies = live`;`settings.update` 改 `reasoningEffort: high` 后**不重启**,新会话 `session.models.current` 与首轮 `request/header.config` 均为 high | Task 3:`settings.update` + 新 `session.create`/`session.history` | ASM-006 新建免重启 证实 |
+| 会话内切模型的官方 RPC 是 `session.selectModel {sessionId, provider, model, reasoningEffort?}`;GUI `dsh-client-ui-model-selection` 两入口都走它;`session.prompt` / `session.create` / durableCreate **都不带** model;preset 行无模型字段 | Read `dsh-host-apiproxy` schema(`sessionSelectModelRequestSchema`);Task 3 实测下一轮 header `medium`;Task 4 对照 `agentPreset.list` | ASM-007 点名 API;GUI 设置「模型」页可见 DeepSeek/Anthropic(`gui-settings-models.png`) |
+| `session.selectModel` **同时写入部署默认** `agent-default-model`(无 session-only 开关)。BR-010 应对插件会话 selectModel 后若全局被改写则 `settings.update` 恢复 | Task 3:selectModel 后 `settings.describe` 的 `agent-default-model.value.reasoningEffort` 变成 medium,再恢复 xhigh | Task 9 override 实现约束 |
+| `session.create`(及 session-tool CLI/`durableCreate`)不传 `agentPreset` 时,响应与 `session.list` 行的 `agentPreset` 均为 profile 默认(`standard.isDefault=true`) | Task 4:`dsh-session session create --title 校准`;`session.list`;`agentPreset.list`;CLI 空白会话 history 无 `agent-preset` 事件 | ASM-002 机制证实(人设仍是 standard,等 Task 7 改默认) |
+| loopback 3084 仅本仓 gb 网关;`DSH_HOME=<仓根>/env` | Task 4:`lsof -nP -iTCP:3084 -sTCP:LISTEN` + `dsh-rpc-who.sh 3084` | ASM-003 证实;口表保持 3084 |
+| `settings.describe` 无 `dsh-bot` namespace(P0 尚未注册);UF-006 图形入口依赖 Task 9 | Task 4:`dsh-rpc.sh 3084 settings.describe '{}'` | 摘要 `settings-describe-summary.json` |
+| session-tool list 的 `hiddenPrefixes=['~']` 生效(默认 list 丢掉 `~校准隐藏`,`--include-hidden` 可见);官方 0.1.1-rc.2 GUI **不按**标题 `~` 过滤(非 blank 的 `~校准隐藏` 出现在「未分组」);官方分组栏隐藏走 `workspace.archiveSession {sessionId}` | Task 4:CLI `~` 会话 + `gui-rail-after-tilde.png`;复查 `workspace.archiveSession` 后 `gui-rail-after-archive.png` 无该标题 | 插件 list 仍靠 hiddenPrefixes;UF-002 官方栏「不出现」的实现闸是 archiveSession(Task 9 接线) |
 
 ### 1.4 假设清单
 
@@ -79,12 +87,7 @@
 
 | 假设 ID | 内容 | 风险 | 确认方式 |
 |---|---|---|---|
-| ASM-001 | 用户现有 DSH 模型配置(st 环境的中转路由等)复制进本仓 gb env 后同样可用,bot 冒烟可直接复用;xAI 直连仅为可选示例,不是验收前提 | 低(该配置本机日常在用);不可用则换任一可用路由 | Task 3 冒烟 |
-| ASM-002 | session-tool 经网关 `session.durableCreate` 建的会话,agent 组装吃 profile 默认 preset(`agent-presets.default`),即 `dsh_bot_ask` 的后台会话也带 DSH Bot 人设 | 若不吃默认,委托会话人设缺失(功能仍通,答案风格退化) | Task 4:`sessionTool.create` 后经 `dsh-rpc.sh 3084 session.history` 看 header/`agent-preset` 事件 |
-| ASM-003 | 本机 loopback 3084 空闲可用(生态口表未登记) | 撞口则换 3082 并同步生态 README 口表 | Task 4:`dsh-rpc-who.sh 3084` + `lsof -i :3084` |
 | ASM-005 | `dsh-better-sidebar@0.13.0` 与 `@deepseek-ai/dsh@0.1.1-rc.2` 兼容(生态里 sidebar 只在 0.1.0-rc.7 上用过) | 不兼容则 UF-003 降级:改用官方 `conversation.view` slot 或等 sidebar 发兼容版 | Task 15:挂载后 `pluginInventory/list` 全 active + 页签实际渲染 |
-| ASM-006 | `agent-default-model` 设置变更对**其后新建**的会话/委托即时生效(免重启);会话内模型选择器对 bot preset 会话可用 | 若需重启才生效,UF-005 验收步骤加「重启 boot」注记,产品语义不变 | Task 3:改默认→建新会话看 `request/header`;GUI 选择器实操 |
-| ASM-007 | 平台存在对空白会话设置模型路由的官方入口(候选:GUI 会话内选择器背后的 RPC、`session.prompt`/durableCreate 可携带调用配置、或 preset 层模型行),可供 dsh-bot-host 在创建后应用 bot 专属模型(BR-010) | 若均不存在:BR-010 收缩(override 仅在能设置的路径生效,或整体降级为跟随全局),走变更协议 | Task 4:勘察点名具体机制并回写;实现路径按结论选 |
 
 ### 1.5 变更记录
 
@@ -94,6 +97,8 @@
 | 2026-08-29(v0.3) | 新增 BR-010(bot 专属默认模型)、UF-006/EVD-009、ASM-007;讨论-A 定案为「要做」、讨论-B 定案为「本机目录不动,GitHub 仓名 dsh-bot」并从 1.4 移除;完善:Task 6 改用 `agentPreset.copy` 创作正路、Task 2 增生态口表登记、Task 4 增 settings GUI 呈现勘察、Task 18 manual-test 补模型切换步骤 | 用户拍板:要 bot 专属默认模型(双模型日常);命名仓名定案;并要求审视完善空间 | Task 4/9/13/14/18/19 描述更新;5.2 矩阵增 UF-006 三行;状态板同步 |
 | 2026-08-29(v0.3.1) | 完整性终审落 5 项执行层修补:Task 2 补 `env/cli.patch.yml`;Task 6 RPC 方法名改点号域形态(`agentPreset.copy/list`);Task 4 增「~ 隐藏机制在官方组合在位」校验项;Task 14 增 client 挂载三件套勘察步骤与 locale 词条;Task 18 增 GitHub 建仓推送与生态清单登记。合同条目零变化 | 用户要求终审「是否完全」;审出执行层小洞 | 仅任务详情更新,无状态回退;拆包评估结论:单包不拆(见对话记录),Phase 即分期 |
 | 2026-08-29(v0.3.2) | oneclick 增量重跑收口:§3.3 锚点可执行化(去 `\|` 转义改单模式、`@`/`~` 路径与新建行改 `rg -F` 文档形式并写明约定)、首次通过 `--repo` 全量锚点真跑;5.2 矩阵补「UF-002 并发委托」行(封闭 2.7 场景到执行的缺口);evidence/README 的 phase-0 清单对齐(xai-smoke→model-smoke)。合同条目零变化 | 用户指令:走 prd-workflow oneclick 完善 | 仅 §3.3/5.2/evidence README 更新;包内首个 git commit 建立基线 |
+| 2026-08-29(v0.3.3) | P0 校准消解 ASM-001/002/003/006/007:事实回写 1.3(gb 冒烟 grok-4.6、默认 live 免重启、`session.selectModel` 点名且会写部署默认、durableCreate 吃默认 preset=standard、3084 本仓、官方 GUI 不藏 `~` 标题)。合同 BR/UF/INV 正文未改;INV-002 官方栏藏 `~` 记为后续风险(calibration.md) | Task 3/4 真跑网关 :3084 | 1.4 仅余 ASM-005;Task 9 必须按 selectModel+必要时恢复全局默认实现 BR-010 |
+| 2026-08-29(v0.3.4) | 变更协议 INV-002:0.1.1-rc.2 官方 GUI 不按 `hiddenPrefixes`/`~` 过滤标题(Task 4 证伪);官方分组栏隐藏的既有闸是 `workspace.archiveSession`。UF-002 Then「官方栏不出现」不变;BR-003 正例不变;Task 9 委托链补 archiveSession。复查 Task 3:GUI 选择器实切 DeepSeek-V4-Flash,`request/header` provider/model 变更并有流式回复截图 | P0 review p1(UF-005 GUI 未切模型;INV-002 合同与证据矛盾) | Task 9 接线;1.3 事实改写;证据 `gui-stream-reply.png` / `gui-rail-after-archive.png` |
 
 ---
 
@@ -171,7 +176,7 @@
 | 步骤 | 用户动作 | 界面即时反馈 | 系统行为 | 用户看到的结果 |
 |---|---|---|---|---|
 | 1 | 对当前会话说「用 dsh_bot_ask 问一下:量子纠缠是什么」 | 模型开始响应 | agent loop 产生 `dsh_bot_ask` tool-call | 会话里出现工具调用卡片 |
-| 2 | — | 工具卡片显示执行中 | dsh-bot-host:`sessionTool.create`(title `~dsh-bot: <摘要>`,marks 含 `kind:dsh-bot`+`kind:hidden`)→ `write(prompt)` → `wait(idle)` → `read` | — |
+| 2 | — | 工具卡片显示执行中 | dsh-bot-host:`sessionTool.create`(title `~dsh-bot: <摘要>`,marks 含 `kind:dsh-bot`+`kind:hidden`)→ 官方 `workspace.archiveSession`(分组栏隐藏)→ `write(prompt)` → `wait(idle)` → `read` | — |
 | 3 | — | 工具卡片完成 | 工具返回 bot 最终回答文本 + 后台会话 id | 主会话模型引用答案继续作答;官方会话栏**没有**新增 `~` 会话 |
 
 **失败分支**:
@@ -338,7 +343,7 @@ override 未设(跟随全局) → 写入 override → 其后经插件创建的�
 | 不变量 ID | 内容 | 关联 BR/UF | 验证方式 |
 |---|---|---|---|
 | INV-001 | 不修改官方 DSH npm 包与邻仓:session-tool / vibee / dsh-genoffice 三仓 `git status` 保持干净 | BR-001/003 | Task 20:`git -C ../../session-tool/plugin status --porcelain` 等三连为空 |
-| INV-002 | 官方会话栏对非 bot 会话行为不变;隐藏只经平台既有 `hiddenPrefixes`(`~`)机制作用于本插件自建的辅助会话(`~dsh-bot:`) | BR-003, UF-002 | 5.2 矩阵:普通会话照常显示,`~` 会话不显示 |
+| INV-002 | 官方会话栏对非 bot 会话行为不变;本插件自建辅助会话(`~dsh-bot:`)从官方分组栏消失走平台既有 `workspace.archiveSession`(0.1.1-rc.2 客户端不按标题 `~` 过滤;blank 会话默认不出现);插件 session-tool list 另经 `hiddenPrefixes`(`~`)+`kind:hidden` | BR-003, UF-002 | 5.2 矩阵:普通会话照常显示;委托辅助会话 archive 后官方栏不出现 |
 | INV-003 | 生态口表不被破坏:3080/3081/3083 归属不变,本仓只听 3084(或 ASM-003 证伪后的 3082,须同步生态 README) | BR-004 | `dsh-rpc-who.sh` 扫描输出 |
 | INV-004 | 凭据与会话数据不进 git:`env/.env`、`env/sessions/`、`env/storages/`、`env/settings.yaml` 均 gitignore(与 session-tool 同款纪律) | BR-005 | `git status --porcelain` + `.gitignore` 内容检查 |
 
@@ -688,7 +693,7 @@ P0 环境与模型基线 → P1 人设 preset → P2 委托工具(session-tool �
 
 1. `class DshBotService extends Service`,`super(ctx, 'dshBot')`,`static inject = ['sessionTool']`(`settings` 可选注入);`declare module '@deepseek-ai/cordis'` 挂 `ctx.dshBot` 类型。
 2. 注册 `dsh-bot` settings namespace(仿 llm-pi-ai 模式,以 bundle 行 config 为 base):`model?: {provider, model, reasoningEffort?}` + `askTimeoutMs` 等;每次操作时读取(热生效,BR-010)。
-3. `askBot(caller, {prompt, title?})`:`sessionTool.create(caller, { title: '~dsh-bot: <截断摘要>', tags: ['kind:dsh-bot','kind:hidden'], parentSessionId: caller })` → `session-marks.put` 兜底合并 → **若 `dsh-bot.model` 非空,按 Task 4 的 ASM-007 机制对该空白会话应用模型,失败 fail loud 不静默回落(BR-010)** → `write` → `wait {until:'idle', timeoutMs 可配}` → `read {maxBlocks}` 提取答案返回 `{sessionId, answer}`;全程错误透传(BR-007)。
+3. `askBot(caller, {prompt, title?})`:`sessionTool.create(caller, { title: '~dsh-bot: <截断摘要>', tags: ['kind:dsh-bot','kind:hidden'], parentSessionId: caller })` → `session-marks.put` 兜底合并 → 官方 `workspace.archiveSession` 将该辅助会话移出分组栏(INV-002;0.1.1-rc.2 不按 `~` 过滤标题)→ **若 `dsh-bot.model` 非空,按 Task 4 的 ASM-007 机制对该空白会话应用模型,失败 fail loud 不静默回落(BR-010)** → `write` → `wait {until:'idle', timeoutMs 可配}` → `read {maxBlocks}` 提取答案返回 `{sessionId, answer}`;全程错误透传(BR-007)。
 4. 答案提取规则:取最后一个 assistant 文本块序列聚合;若末轮无 assistant 文本(如以工具调用/失败收尾),返回明确错误并附会话 id,不返回空串。
 5. `createSession(caller, {title?})`(UF-003 用):可见 bot 会话——title 不带 `~`,tags 仅 `['kind:dsh-bot']`;同样应用 override;创建默认带调用方 cwd(session-tool 既有行为),使会话进 workspace 视图。
 6. `listSessions()`:`session-marks.listByKind('kind:dsh-bot')` 交 `sessionTool.list` 元数据(title/status/created_at),含 `includeHidden` 开关;marks 有而会话已删的条目从结果剔除(交集语义)。

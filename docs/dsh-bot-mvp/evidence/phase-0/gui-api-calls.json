@@ -1,0 +1,10 @@
+[
+  {
+    "method": "session.selectModel",
+    "post": "{\"type\":\"client-request\",\"rpcId\":\"a7b98982-94e6-4157-a258-5965f95aa572\",\"method\":\"session.selectModel\",\"payload\":{\"sessionId\":\"session-bf460816-85ee-4492-a349-5c73e44c7919\",\"provider\":\"deepseek-official\",\"model\":\"deepseek-v4-flash\"}}"
+  },
+  {
+    "method": "session.prompt",
+    "post": "{\"type\":\"client-request\",\"rpcId\":\"f871a5be-b5f3-4f9d-afae-f74858e22d39\",\"method\":\"session.prompt\",\"payload\":{\"sessionId\":\"session-bf460816-85ee-4492-a349-5c73e44c7919\",\"mode\":\"queue\",\"content\":[{\"type\":\"text\",\"text\":\"Reply with exactly the three words: gui stream ok\"}],\"clientTimeZone\":\"Asia/Shanghai\"}}"
+  }
+]
