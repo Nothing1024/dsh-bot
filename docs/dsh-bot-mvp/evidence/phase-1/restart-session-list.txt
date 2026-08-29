@@ -1,0 +1,11 @@
+dsh-bot blank= False title= 你是谁?
+dsh-bot blank= True title= None
+standard blank= False title= 询问你是谁
+dsh-bot blank= True title= None
+dsh-bot blank= False title= 询问人工智能身份
+standard blank= False title= gui stream ok
+standard blank= False title= Phase0 restart exact reply request
+standard blank= False title= ~校准隐藏
+standard blank= True title= 校准
+standard blank= False title= Reply with exactly the three
+standard blank= False title= Exact reply switch smoke ok

@@ -637,7 +637,7 @@ P0 环境与模型基线 → P1 人设 preset → P2 委托工具(session-tool �
 
 **Evidence**:`evidence/phase-1/preset-list.json`
 
-**注意事项**:preset 目录名即 id(`[a-z0-9-]`);组装文件里的服务行必须在 isolate realm 内(照 standard 底本即不会踩);人设是产品文案,措辞先过用户。
+**注意事项**:preset 目录名即 id(`[a-z0-9-]`);组装文件里的服务行必须在 isolate realm 内(照 standard 底本即不会踩);人设是产品文案,措辞先过用户。unattended 波若给出指定原文,以该原文落盘,并把副本写入 `evidence/phase-1/persona.md` 供事后改写——那不是完成门闩。
 
 ### Task 7: 接线默认 preset 并在 GUI 验证
 
@@ -650,17 +650,19 @@ P0 环境与模型基线 → P1 人设 preset → P2 委托工具(session-tool �
 **涉及文件与定位**:
 
 - 修改 `env/settings.example.yaml`(Task 3 建):追加 `agent-presets: { default: dsh-bot }`
+- 修改 `env/setup.sh`:邻仓 `settings.yaml` 种子后必须写入 `agent-presets.default: dsh-bot`(邻仓拷贝不含该键)
 
 **具体操作**:
 
 1. settings 追加默认 preset 分节;重启 boot。
 2. GUI 新建会话发「你是谁?」,核对人设口吻与 preset 指示;GUI 切换 preset 到 standard 再切回,确认选择器可用(空白会话)。
+3. `setup.sh` 无论从邻仓还是 example 种子 `settings.yaml`,都 stamp `agent-presets.default: dsh-bot`,使 clone + setup 的第一跑新会话仍是 dsh-bot(BR-002),而不是 standard。
 
 **验证**:`session.history` 显示新会话 preset=dsh-bot;回复体现人设 → 期望两点齐全
 
 **Evidence**:`evidence/UF-001/`(截图/回填 + history 导出,构成 EVD-003 主体)
 
-**注意事项**:切 preset 仅限空白会话(平台规则);已产出内容的会话报 `agent-preset-locked` 属预期。
+**注意事项**:切 preset 仅限空白会话(平台规则);已产出内容的会话报 `agent-preset-locked` 属预期。只改进 git 的 `settings.example.yaml` 不够——`setup.sh` 优先拷邻仓 settings,必须在种子后 stamp 默认 preset。
 
 ### Task 8: 执行 Phase 1 回归验证
 

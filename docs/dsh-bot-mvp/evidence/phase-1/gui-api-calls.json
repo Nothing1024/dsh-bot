@@ -1,0 +1,34 @@
+[
+  {
+    "method": "agentPreset.list",
+    "post": "{\"type\":\"client-request\",\"rpcId\":\"25f021af-5027-47af-9f77-e829079a225b\",\"method\":\"agentPreset.list\",\"payload\":{}}"
+  },
+  {
+    "method": "session.list",
+    "post": "{\"type\":\"client-request\",\"rpcId\":\"ab5296c5-b2ec-49e5-8abb-7cb988cb7203\",\"method\":\"session.list\",\"payload\":{}}"
+  },
+  {
+    "method": "agentPreset.list",
+    "post": "{\"type\":\"client-request\",\"rpcId\":\"11c8c696-2a8a-4c15-981a-cbf5061321c0\",\"method\":\"agentPreset.list\",\"payload\":{}}"
+  },
+  {
+    "method": "session.history",
+    "post": "{\"type\":\"client-request\",\"rpcId\":\"b89e8787-4b6c-45a8-87c1-a4355b8fe798\",\"method\":\"session.history\",\"payload\":{\"sessionId\":\"session-d16abe04-d0f6-4268-9e80-dbad6dcc3011\",\"maxMessages\":50}}"
+  },
+  {
+    "method": "session.models",
+    "post": "{\"type\":\"client-request\",\"rpcId\":\"c7f18f8a-b31f-4262-921a-4ab22df97da2\",\"method\":\"session.models\",\"payload\":{\"sessionId\":\"session-d16abe04-d0f6-4268-9e80-dbad6dcc3011\"}}"
+  },
+  {
+    "method": "agentPreset.select",
+    "post": "{\"type\":\"client-request\",\"rpcId\":\"b282946a-ad5d-4c4a-853a-3df6a6d78b73\",\"method\":\"agentPreset.select\",\"payload\":{\"sessionId\":\"session-d16abe04-d0f6-4268-9e80-dbad6dcc3011\",\"agentPreset\":\"dsh-bot\"}}"
+  },
+  {
+    "method": "session.prompt",
+    "post": "{\"type\":\"client-request\",\"rpcId\":\"23edadd2-7d0b-4178-95eb-62b7f4725ee1\",\"method\":\"session.prompt\",\"payload\":{\"sessionId\":\"session-d16abe04-d0f6-4268-9e80-dbad6dcc3011\",\"mode\":\"queue\",\"content\":[{\"type\":\"text\",\"text\":\"你是谁?\"}],\"clientTimeZone\":\"Asia/Shanghai\"}}"
+  },
+  {
+    "method": "agentPreset.list",
+    "post": "{\"type\":\"client-request\",\"rpcId\":\"78bbdcaa-6109-4038-b229-eb76f6c81fc2\",\"method\":\"agentPreset.list\",\"payload\":{}}"
+  }
+]

@@ -4,9 +4,9 @@
 3,P0:环境与模型基线,接通 DSH 模型配置基线并冒烟,spec.md#task-3,2,dsh-rpc.sh 3084 session.history → provider/model 与配置一致且切换生效,已完成,消解 ASM-001/006
 4,P0:环境与模型基线,勘察校准 preset 默认/口占用/override 机制,spec.md#task-4,2,lsof -i :3084 + session.history 看 preset + 点名模型设置机制 → 结论回写 spec,已完成,消解 ASM-002/003/007
 5,P0:环境与模型基线,执行 Phase 0 回归验证,spec.md#task-5,3;4,重启 boot 复跑身份/冒烟 + git status 干净,已完成,
-6,P1:人设 preset,编写 dsh-bot agent preset,spec.md#task-6,5,dsh-rpc.sh 3084 agentPreset/list → 含 dsh-bot 非 broken,待开始,人设文本需用户过目
-7,P1:人设 preset,接线默认 preset 并在 GUI 验证,spec.md#task-7,6,session.history → 新会话 preset=dsh-bot,待开始,
-8,P1:人设 preset,执行 Phase 1 回归验证,spec.md#task-8,7,重启后 UF-001 主路径复现 + 官方栏正常,待开始,
+6,P1:人设 preset,编写 dsh-bot agent preset,spec.md#task-6,5,dsh-rpc.sh 3084 agentPreset/list → 含 dsh-bot 非 broken,已完成,unattended 指定原文已落盘；persona.md 供事后改写
+7,P1:人设 preset,接线默认 preset 并在 GUI 验证,spec.md#task-7,6,session.history → 新会话 preset=dsh-bot,已完成,example+live+setup.sh stamp default=dsh-bot；GUI 你是谁?
+8,P1:人设 preset,执行 Phase 1 回归验证,spec.md#task-8,7,重启后 UF-001 主路径复现 + 官方栏正常,已完成,
 9,P2:委托工具,实现 dsh-bot-host 服务包,spec.md#task-9,8,pnpm --filter dsh-bot-host run build && pnpm --filter dsh-bot-host test → 全绿,待开始,依赖 Task4 的 ASM-002/007 结论;含 BR-010 override 与 settings namespace
 10,P2:委托工具,实现 tool-dsh-bot 工具包,spec.md#task-10,9,pnpm --filter tool-dsh-bot run build && pnpm --filter tool-dsh-bot test → 全绿,待开始,
 11,P2:委托工具,profile 接线并真实跑通委托链路,spec.md#task-11,10,marks list --kind kind:dsh-bot → ≥1 行且主会话得到答案,待开始,

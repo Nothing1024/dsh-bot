@@ -1,0 +1,10 @@
+$ vitest run
+
+ RUN  v4.1.11 /Users/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin
+
+No test files found, exiting with code 1
+
+include: packages/*/tests/**/*.spec.ts
+exclude:  **/node_modules/**, **/.git/**
+
+[ELIFECYCLE] Test failed. See above for more details.

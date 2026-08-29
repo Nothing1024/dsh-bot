@@ -13,7 +13,7 @@ env/
 └── profiles/gb/          bundles + 邻仓 link；overlay 把 webUrl 指到 :3084
 ```
 
-模型 key：`$DSH_HOME/.credentials.yaml` 优先于 `$DSH_HOME/.env`（官方 Models 页写前者）。都 git 忽略。`setup.sh` 若本地没有 `.env`，会从 `~/.dsh/.env` 拷一份并 chmod 600。`settings.yaml` 不存在时从邻仓 session-tool 的 env 拷贝（否则从 `settings.example.yaml`）。
+模型 key：`$DSH_HOME/.credentials.yaml` 优先于 `$DSH_HOME/.env`（官方 Models 页写前者）。都 git 忽略。`setup.sh` 若本地没有 `.env`，会从 `~/.dsh/.env` 拷一份并 chmod 600。`settings.yaml` 不存在时从邻仓 session-tool 的 env 拷贝（否则从 `settings.example.yaml`）。邻仓拷贝不含 `agent-presets.default`；`setup.sh` 种子后会写入 `agent-presets.default: dsh-bot`（BR-002），再 `chmod 600`。
 
 ```sh
 pnpm install
