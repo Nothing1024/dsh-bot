@@ -1,0 +1,32 @@
+# Task 10 tool-dsh-bot unit
+time: 2026-08-29T12:49:09Z
+cmd: pnpm --filter tool-dsh-bot run build && pnpm --filter tool-dsh-bot test && pnpm --filter tool-dsh-bot run typecheck
+$ tsdown
+ℹ tsdown v0.22.14 powered by rolldown v1.2.6
+ℹ config file: /Users/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin/packages/tool-dsh-bot/tsdown.config.ts 
+ℹ entry: src/index.ts
+ℹ target: es2024
+ℹ tsconfig: tsconfig.json
+
+ WARN  `external` is deprecated. Use `deps.neverBundle` instead.
+
+ℹ Build start
+ℹ lib/index.js        2.34 kB │ gzip: 1.06 kB
+ℹ lib/index.js.map    4.33 kB │ gzip: 1.75 kB
+ℹ lib/index.d.ts.map  0.12 kB │ gzip: 0.13 kB
+ℹ lib/index.d.ts      0.30 kB │ gzip: 0.23 kB
+ℹ 4 files, total: 7.09 kB
+✔ Build complete in 333ms
+$ vitest run --config ../../vitest.config.ts packages/tool-dsh-bot/tests
+
+ RUN  v4.1.11 /Users/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin
+
+ ✓ packages/tool-dsh-bot/tests/tools.spec.ts (5 tests) 6ms
+
+ Test Files  1 passed (1)
+      Tests  5 passed (5)
+   Start at  20:49:10
+   Duration  125ms (transform 33ms, setup 0ms, import 53ms, tests 6ms, environment 0ms)
+
+$ tsc -p tsconfig.json --noEmit
+exit: 0

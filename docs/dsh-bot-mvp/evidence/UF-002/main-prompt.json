@@ -1,0 +1,10 @@
+{
+  "type": "server-response",
+  "rpcId": "dbg",
+  "result": {
+    "ok": true,
+    "value": {
+      "accepted": true
+    }
+  }
+}

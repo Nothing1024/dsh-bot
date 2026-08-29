@@ -1,0 +1,43 @@
+file:///Users/nothing/.npm/_npx/de4831d60afe10da/node_modules/@deepseek-ai/dsh-app-boot/lib/index.js:1187
+		throw new Error(`${binName}: ${stage}: ${detail}${stack}`, { cause });
+		      ^
+
+Error: dsh: plugin tree failed to load: failed to apply loader entry dsh-bot-host (dsh-bot-host): invalid config:
+  - $.model.provider missing required value (at model.provider)
+ValidationError: invalid config:
+  - $.model.provider missing required value (at model.provider)
+    at resolveConfig (file:///Users/nothing/.npm/_npx/de4831d60afe10da/node_modules/@deepseek-ai/cordis/lib/index.js:959:27)
+    at Fiber._resolveConfig (file:///Users/nothing/.npm/_npx/de4831d60afe10da/node_modules/@deepseek-ai/cordis/lib/index.js:1346:25)
+    at Fiber._reload (file:///Users/nothing/.npm/_npx/de4831d60afe10da/node_modules/@deepseek-ai/cordis/lib/index.js:1354:24)
+    at boot (file:///Users/nothing/.npm/_npx/de4831d60afe10da/node_modules/@deepseek-ai/dsh-app-boot/lib/index.js:1187:9)
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at async runProfile (file:///Users/nothing/.npm/_npx/de4831d60afe10da/node_modules/@deepseek-ai/dsh/lib/profile-boot-DG5t9aNs.js:247:14)
+    at async file:///Users/nothing/.npm/_npx/de4831d60afe10da/node_modules/@deepseek-ai/dsh/lib/bin.js:133:3 {
+  [cause]: Error: failed to apply loader entry dsh-bot-host (dsh-bot-host): invalid config:
+    - $.model.provider missing required value (at model.provider)
+      at updateError (file:///Users/nothing/.npm/_npx/de4831d60afe10da/node_modules/@deepseek-ai/cordis-plugin-loader/lib/index.js:299:9)
+      at Entry._await (file:///Users/nothing/.npm/_npx/de4831d60afe10da/node_modules/@deepseek-ai/cordis-plugin-loader/lib/index.js:506:10)
+      at async Promise.allSettled (index 138)
+      at async Proxy.await (file:///Users/nothing/.npm/_npx/de4831d60afe10da/node_modules/@deepseek-ai/cordis-plugin-loader/lib/index.js:182:22)
+      at async boot (file:///Users/nothing/.npm/_npx/de4831d60afe10da/node_modules/@deepseek-ai/dsh-app-boot/lib/index.js:1177:3)
+      at async runProfile (file:///Users/nothing/.npm/_npx/de4831d60afe10da/node_modules/@deepseek-ai/dsh/lib/profile-boot-DG5t9aNs.js:247:14)
+      at async file:///Users/nothing/.npm/_npx/de4831d60afe10da/node_modules/@deepseek-ai/dsh/lib/bin.js:133:3 {
+    [cause]: ValidationError: invalid config:
+      - $.model.provider missing required value (at model.provider)
+        at resolveConfig (file:///Users/nothing/.npm/_npx/de4831d60afe10da/node_modules/@deepseek-ai/cordis/lib/index.js:959:27)
+        at Fiber._resolveConfig (file:///Users/nothing/.npm/_npx/de4831d60afe10da/node_modules/@deepseek-ai/cordis/lib/index.js:1346:25)
+        at Fiber._reload (file:///Users/nothing/.npm/_npx/de4831d60afe10da/node_modules/@deepseek-ai/cordis/lib/index.js:1354:24)
+  }
+}
+
+Node.js v22.23.0
+
+===== retry after optional model schema =====
+time: 2026-08-29T12:56:29Z
+env/boot: already up pid=32559 http://127.0.0.1:3084
+
+===== review-fix restart 2026-08-29T13:26:13Z =====
+dsh web: http://127.0.0.1:3084
+
+===== after gateway-down drill restart 2026-08-29T13:28:01Z =====
+dsh web: http://127.0.0.1:3084

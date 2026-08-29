@@ -1,0 +1,14 @@
+# Task 9 dsh-bot-host unit (review-fix)
+time: 2026-08-29T13:28:24Z
+$ vitest run --config ../../vitest.config.ts packages/dsh-bot-host/tests
+
+ RUN  v4.1.11 /Users/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin
+
+ ✓ packages/dsh-bot-host/tests/ask.spec.ts (17 tests) 73ms
+
+ Test Files  1 passed (1)
+      Tests  17 passed (17)
+   Start at  21:28:25
+   Duration  240ms (transform 54ms, setup 0ms, import 81ms, tests 73ms, environment 0ms)
+
+$ tsc -p tsconfig.json --noEmit

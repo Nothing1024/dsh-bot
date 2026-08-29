@@ -1,0 +1,15 @@
+# tool-dsh-bot bundle patch: mounts ctx.dshBot then the dsh_bot_ask tool.
+#
+# dsh-bot-host injects sessionTool (provided by session-tool-local from the
+# tool-session bundle). Do not re-insert session-tool-local here.
+#
+# Profile overlay must not insert these same ids again (double mount).
+- insert:
+    - id: dsh-bot-host
+      name: 'dsh-bot-host'
+      config:
+        webUrl: 'http://127.0.0.1:3084'
+        askTimeoutMs: 180000
+
+    - id: tool-dsh-bot
+      name: 'tool-dsh-bot'

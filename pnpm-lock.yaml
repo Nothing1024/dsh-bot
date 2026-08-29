@@ -90,6 +90,47 @@ importers:
         specifier: ^4.4.3
         version: 4.4.3
 
+  packages/dsh-bot-host:
+    dependencies:
+      session-marks:
+        specifier: workspace:*
+        version: link:../../../../session-tool/plugin/packages/session-marks
+      session-tool:
+        specifier: workspace:*
+        version: link:../../../../session-tool/plugin/packages/session-tool
+    devDependencies:
+      '@deepseek-ai/cordis':
+        specifier: 4.0.1
+        version: 4.0.1(@deepseek-ai/cordis-plugin-include@1.0.6)(@deepseek-ai/cordis-plugin-loader@1.0.2)
+      '@deepseek-ai/dsh-session':
+        specifier: 0.1.1-rc.2
+        version: 0.1.1-rc.2(a4e4bb24a1f3580ac25e11cfa3c6b8cc)
+      '@deepseek-ai/dsh-settings':
+        specifier: 0.1.1-rc.2
+        version: 0.1.1-rc.2(@deepseek-ai/cordis@4.0.1)(@deepseek-ai/dsh-brand@0.1.1-rc.2(@deepseek-ai/cordis@4.0.1)(@deepseek-ai/dsh-invariants@0.1.1-rc.2(@deepseek-ai/cordis@4.0.1)))(@deepseek-ai/dsh-invariants@0.1.1-rc.2(@deepseek-ai/cordis@4.0.1))(@deepseek-ai/schemastery@3.18.1)
+      '@deepseek-ai/schemastery':
+        specifier: 3.18.1
+        version: 3.18.1
+
+  packages/tool-dsh-bot:
+    dependencies:
+      dsh-bot-host:
+        specifier: workspace:*
+        version: link:../dsh-bot-host
+      session-tool:
+        specifier: workspace:*
+        version: link:../../../../session-tool/plugin/packages/session-tool
+    devDependencies:
+      '@deepseek-ai/cordis':
+        specifier: 4.0.1
+        version: 4.0.1(@deepseek-ai/cordis-plugin-include@1.0.6)(@deepseek-ai/cordis-plugin-loader@1.0.2)
+      '@deepseek-ai/dsh-session':
+        specifier: 0.1.1-rc.2
+        version: 0.1.1-rc.2(a4e4bb24a1f3580ac25e11cfa3c6b8cc)
+      '@deepseek-ai/dsh-tools':
+        specifier: 0.1.1-rc.2
+        version: 0.1.1-rc.2(119bc70f73f8eddebfaa6b47561adeb3)
+
 packages:
 
   '@deepseek-ai/cordis-plugin-include@1.0.6':

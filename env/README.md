@@ -29,7 +29,9 @@ sh env/boot.sh            # :3084；已起且身份对本仓则直接退出
 |---|---|---|
 | `@deepseek-ai/dsh-base` / `dsh-web-app` | npm 正式包 0.1.1-rc.2 | 是 |
 | `tool-session` | `../../session-tool/plugin/packages/tool-session` | 是 |
+| `tool-dsh-bot` | `packages/tool-dsh-bot` | 是（patch 同时 insert `dsh-bot-host`） |
 | `session-tool-local` / `session-tool` / `session-marks` | 邻仓 `packages/*` | 否（给 loader resolve） |
+| `dsh-bot-host` | `packages/dsh-bot-host` | 否（给 loader resolve；不要在 overlay 再 insert） |
 
 只 `add tool-session` 不够：邻包不会提升到 profile 根。
 

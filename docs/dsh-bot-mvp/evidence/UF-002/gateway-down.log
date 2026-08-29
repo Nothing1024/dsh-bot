@@ -1,0 +1,17 @@
+===== BEFORE STOP =====
+127.0.0.1:3084  pid=66036  DSH_HOME=/Users/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin/env  cwd=/Users/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin
+kill pid=66036
+3084 free after 1s
+===== WHO AFTER STOP (expect no listener) =====
+127.0.0.1:3084  (没人监听)
+===== CLI headless session create against dead 3084 =====
+cli exit=1
+--- stdout ---
+--- stderr ---
+dsh-session: [web-unreachable] web gateway unreachable for session.create: fetch failed
+===== DshBotService.askBot via sessionTool HTTP to dead 3084 =====
+===== DshBotService.askBot via sessionTool HTTP to dead 3084 =====
+CODE=web-unreachable
+MSG=web-unreachable: fetch failed (http://127.0.0.1:3084)
+===== port still free? =====
+3084 still free

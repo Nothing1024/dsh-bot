@@ -7,14 +7,17 @@
     "session-tool": "link:../../../../../session-tool/plugin/packages/session-tool",
     "session-tool-local": "link:../../../../../session-tool/plugin/packages/session-tool-local",
     "session-marks": "link:../../../../../session-tool/plugin/packages/session-marks",
-    "tool-session": "link:../../../../../session-tool/plugin/packages/tool-session"
+    "tool-session": "link:../../../../../session-tool/plugin/packages/tool-session",
+    "dsh-bot-host": "link:../../../packages/dsh-bot-host",
+    "tool-dsh-bot": "link:../../../packages/tool-dsh-bot"
   },
   "dsh": {
     "profile": {
       "bundles": [
         "@deepseek-ai/dsh-base",
         "@deepseek-ai/dsh-web-app",
-        "tool-session"
+        "tool-session",
+        "tool-dsh-bot"
       ]
     }
   }

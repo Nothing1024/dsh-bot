@@ -1,0 +1,13 @@
+{
+  "id": "dsh-external/tool-dsh-bot",
+  "version": "0.1.0",
+  "main": "./lib/index.js",
+  "description": "Delegate a question to DSH Bot: dsh_bot_ask over ctx.dshBot.askBot.",
+  "engines": {
+    "dsh": ">=0.1.1-rc.2"
+  },
+  "contributes": {
+    "tools": [],
+    "skills": []
+  }
+}
