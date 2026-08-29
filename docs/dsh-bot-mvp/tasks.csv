@@ -1,0 +1,21 @@
+序号,Phase,名称,详情锚点,前置任务,验证命令,状态,备注
+1,P0:环境与模型基线,搭建仓库 monorepo 骨架,spec.md#task-1,无,pnpm install → 退出码 0 且 git status 干净,待开始,
+2,P0:环境与模型基线,搭建 env 调试环境(gb/3084),spec.md#task-2,1,dsh-rpc-who.sh 3084 → DSH_HOME=本仓 env,待开始,
+3,P0:环境与模型基线,接通 DSH 模型配置基线并冒烟,spec.md#task-3,2,dsh-rpc.sh 3084 session.history → provider/model 与配置一致且切换生效,待开始,消解 ASM-001/006
+4,P0:环境与模型基线,勘察校准 preset 默认/口占用/override 机制,spec.md#task-4,2,lsof -i :3084 + session.history 看 preset + 点名模型设置机制 → 结论回写 spec,待开始,消解 ASM-002/003/007
+5,P0:环境与模型基线,执行 Phase 0 回归验证,spec.md#task-5,3;4,重启 boot 复跑身份/冒烟 + git status 干净,待开始,
+6,P1:人设 preset,编写 dsh-bot agent preset,spec.md#task-6,5,dsh-rpc.sh 3084 agentPreset/list → 含 dsh-bot 非 broken,待开始,人设文本需用户过目
+7,P1:人设 preset,接线默认 preset 并在 GUI 验证,spec.md#task-7,6,session.history → 新会话 preset=dsh-bot,待开始,
+8,P1:人设 preset,执行 Phase 1 回归验证,spec.md#task-8,7,重启后 UF-001 主路径复现 + 官方栏正常,待开始,
+9,P2:委托工具,实现 dsh-bot-host 服务包,spec.md#task-9,8,pnpm --filter dsh-bot-host run build && pnpm --filter dsh-bot-host test → 全绿,待开始,依赖 Task4 的 ASM-002/007 结论;含 BR-010 override 与 settings namespace
+10,P2:委托工具,实现 tool-dsh-bot 工具包,spec.md#task-10,9,pnpm --filter tool-dsh-bot run build && pnpm --filter tool-dsh-bot test → 全绿,待开始,
+11,P2:委托工具,profile 接线并真实跑通委托链路,spec.md#task-11,10,marks list --kind kind:dsh-bot → ≥1 行且主会话得到答案,待开始,
+12,P2:委托工具,执行 Phase 2 回归验证,spec.md#task-12,11,pnpm -r run build && pnpm -r test + UF-001/002 复现,待开始,
+13,P3:侧栏 UI,实现 host RPC 面(/dsh-bot/*),spec.md#task-13,12,curl POST /dsh-bot/listSessions → {"ok":true},待开始,
+14,P3:侧栏 UI,实现 ui-dsh-bot 侧栏页签,spec.md#task-14,13,pnpm --filter ui-dsh-bot run build && pnpm --filter ui-dsh-bot test → 全绿,待开始,
+15,P3:侧栏 UI,页签接线与 sidebar 兼容校准,spec.md#task-15,14,pluginInventory 全 active + UF-003 三步真实通过,待开始,消解 ASM-005
+16,P3:侧栏 UI,执行 Phase 3 回归验证,spec.md#task-16,15,pnpm -r run build && pnpm -r test + UF-001/002/003 复现,待开始,
+17,P4:标准面与验收,建 standards 标准面并过检,spec.md#task-17,16,pnpm run standard:check → 0 FAIL,待开始,
+18,P4:标准面与验收,manual-test 脚本与 README 文档,spec.md#task-18,16,bash scripts/manual-test.sh --no-write → 全步通过,待开始,
+19,P4:标准面与验收,执行 spec 5.2 真实场景全套测试,spec.md#task-19,17;18,5.2 执行矩阵逐行回放全部通过 + 二次跑包校验,待开始,含 UF-005/006 模型切换与 override 六行
+20,P4:标准面与验收,执行 Phase 4 回归验证(总收尾),spec.md#task-20,19,全量命令级 + 邻仓零 diff + BR-006 红线 rg 为空,待开始,
