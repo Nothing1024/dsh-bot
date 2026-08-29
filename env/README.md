@@ -25,6 +25,29 @@ sh env/boot.sh            # :3084；已起且身份对本仓则直接退出
 
 前台：http://127.0.0.1:3084
 
+半自动矩阵（先核身份再 RPC/CLI）：
+
+```sh
+bash scripts/manual-test.sh --no-write
+```
+
+记录写在本目录 `manual-test-last.txt`（gitignore）。
+
+调试两行（`dsh-plugin-debug` skill）：
+
+```sh
+~/.agents/skills/dsh-plugin-debug/scripts/dsh-rpc-who.sh 3084
+~/.agents/skills/dsh-plugin-debug/scripts/dsh-rpc.sh 3084 pluginInventory/list
+```
+
+UF-004 标记查询（不 boot，直读本目录 `session-tool/marks.jsonl`）：
+
+```sh
+DSH_HOME=$PWD node ../../session-tool/plugin/packages/session-tool-cli/lib/bin.js marks list --kind kind:dsh-bot
+```
+
+`dsh-bot.model` 只作用于经本插件创建的会话；GUI 直建会话跟随全局默认（见仓根 README）。
+
 | 依赖 | 去哪 | bundle 层 |
 |---|---|---|
 | `@deepseek-ai/dsh-base` / `dsh-web-app` | npm 正式包 0.1.1-rc.2 | 是 |

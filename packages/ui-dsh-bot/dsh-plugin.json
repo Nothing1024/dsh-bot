@@ -1,0 +1,11 @@
+{
+  "$schema": "https://dsh-std.example/schemas/dsh-plugin/v0.15.json",
+  "id": "io.github.nothing1024.ui-dsh-bot",
+  "name": "DSH Bot Sidebar",
+  "version": "0.1.0",
+  "manifestVersion": "0.15",
+  "facets": {
+    "host": { "entry": "lib/index.js", "apiVersion": "v1alpha1" }
+  },
+  "permissions": []
+}

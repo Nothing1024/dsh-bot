@@ -22,7 +22,8 @@
     "lib/index.js",
     "lib/client.js",
     "lib/types/**/*.d.ts",
-    "cordis.patch.yml"
+    "cordis.patch.yml",
+    "dsh-plugin.json"
   ],
   "scripts": {
     "typecheck": "tsc -p tsconfig.json --noEmit",

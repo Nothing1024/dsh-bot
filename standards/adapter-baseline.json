@@ -1,0 +1,21 @@
+{
+  "$comment": "上游触点基线：packages/*/src 中 import 的上游说明符（@deepseek-ai/*、cordis、schemastery）以及邻仓 session-tool / session-marks。新增触点属于耦合面扩张，须评审后用 --update-baseline 更新；目标是把触点收敛进未来的版本化 adapter 层（对齐 dsh-community-standard 原则⑤）。",
+  "packages": {
+    "dsh-bot-host": [
+      "@deepseek-ai/cordis",
+      "@deepseek-ai/dsh-session",
+      "@deepseek-ai/dsh-settings",
+      "@deepseek-ai/schemastery",
+      "session-marks",
+      "session-tool"
+    ],
+    "tool-dsh-bot": [
+      "@deepseek-ai/cordis",
+      "@deepseek-ai/dsh-tools",
+      "session-tool"
+    ],
+    "ui-dsh-bot": [
+      "@deepseek-ai/cordis"
+    ]
+  }
+}

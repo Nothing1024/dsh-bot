@@ -11,6 +11,8 @@ env/.env
 env/.credentials.yaml
 env/.anonymous-user-id
 env/session-tool/
+env/manual-test-last.txt
+env/manual-test-*.txt
 pnpm-debug.log
 
 # tsdown/tsc emit belongs in lib/; keep src/ as TypeScript only
