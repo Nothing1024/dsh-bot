@@ -1,0 +1,6 @@
+# ui-dsh-bot bundle patch: empty host apply so Loader sees the row; the
+# browser half is discovered via package.json dsh.client (ui-vibee mount).
+# Client facet community-manifest declaration waits on RFC 0002 (BR-009).
+- insert:
+    - id: ui-dsh-bot
+      name: 'ui-dsh-bot'

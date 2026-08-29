@@ -14,6 +14,7 @@ import {
   askBot,
   createBotSession,
   listBotSessions,
+  resolveOverride,
 } from './ask.ts'
 import type {
   AskBotRequest,
@@ -26,6 +27,8 @@ import type {
 } from './ask.ts'
 import { createPlatform } from './platform.ts'
 import type { DshBotModelRef, DshBotPlatform } from './platform.ts'
+import { attachDshBotHttp } from './routes.ts'
+import type { DshBotModelInfo } from './routes.ts'
 
 export { DshBotError } from './errors.ts'
 export type { DshBotErrorCode } from './errors.ts'
@@ -54,6 +57,8 @@ export {
   mergeBotMarks,
 } from './marks.ts'
 export type { DshBotModelRef, DshBotPlatform } from './platform.ts'
+export { attachDshBotHttp, handleDshBotHttp } from './routes.ts'
+export type { DshBotHttpFace, DshBotModelInfo, ListSessionsRpcValue } from './routes.ts'
 
 /** Settings namespace for bot-owned defaults (hot, live). */
 export const DSH_BOT_SETTINGS_NAMESPACE = settingsNamespace('dsh-bot')
@@ -113,9 +118,9 @@ class DshBotService extends Service {
       },
       onChange: () => {},
     })
-    // HTTP `/dsh-bot/*` routes land in Task 13; keep the optional inject so
-    // a composition without webServer still loads this service.
-    ctx.inject(['webServer'], () => {})
+    ctx.inject(['webServer'], (webCtx) => {
+      attachDshBotHttp(webCtx, this)
+    })
   }
 
   /** Current resolved config (settings overlay, read on every call). */
@@ -142,6 +147,22 @@ class DshBotService extends Service {
    */
   listSessions(request: ListBotSessionsRequest = {}): Promise<readonly DshBotSessionRow[]> {
     return listBotSessions(this.ctx.sessionTool, request)
+  }
+
+  /**
+   * Current bot model + source for the sidebar footer (UF-006).
+   */
+  currentBotModel(): DshBotModelInfo {
+    const override = resolveOverride(this.source())
+    if (override !== undefined) {
+      return { provider: override.provider, model: override.model, source: 'override' }
+    }
+    const global = this.platform.snapshotGlobalDefault()
+    return {
+      provider: global?.provider ?? '',
+      model: global?.model ?? '',
+      source: 'global-default',
+    }
   }
 }
 

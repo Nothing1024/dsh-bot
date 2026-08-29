@@ -1,0 +1,1 @@
+ok True n 10 model {'provider': 'anthropic', 'model': 'grok-4.6', 'source': 'global-default'}

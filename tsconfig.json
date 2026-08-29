@@ -2,6 +2,7 @@
   "extends": "./tsconfig.base.json",
   "compilerOptions": {
     "noEmit": true,
+    "lib": ["es2023", "dom", "dom.iterable"],
     "paths": {
       "session-marks": ["../../session-tool/plugin/packages/session-marks/src/index.ts"],
       "session-tool": ["../../session-tool/plugin/packages/session-tool/src/index.ts"],

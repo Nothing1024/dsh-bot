@@ -56,6 +56,8 @@ export interface AskBotResult {
 export interface CreateBotSessionRequest {
   readonly title?: string
   readonly cwd?: string
+  /** Bind the new session to this workspace (session-tool addWorkspace). */
+  readonly workspacePath?: string
 }
 
 /** Result of {@link createBotSession}. */
@@ -305,10 +307,14 @@ export async function createBotSession(
   let sessionId: SessionId | undefined
   try {
     const cwd = resolveCallerCwd(ctx, caller, request.cwd)
+    const workspacePath = request.workspacePath !== undefined && request.workspacePath.trim() !== ''
+      ? request.workspacePath.trim()
+      : undefined
     const created = await sessionTool.create(caller, {
       title,
       tags: [DSH_BOT_KIND],
       ...cwd === undefined ? {} : { cwd },
+      ...workspacePath === undefined ? {} : { workspacePath },
     })
     sessionId = created.sessionId
     await mergeBotMarks(sessionId)

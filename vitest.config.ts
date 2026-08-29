@@ -20,6 +20,6 @@ export default defineConfig({
   },
   test: {
     environment: 'node',
-    include: ['packages/*/tests/**/*.spec.ts'],
+    include: ['packages/*/tests/**/*.spec.ts', 'packages/*/tests/**/*.spec.tsx'],
   },
 })

@@ -1,0 +1,32 @@
+{
+    "ok": true,
+    "value": {
+        "sessions": [
+            {
+                "sessionId": "session-c3f06b07-fd28-4ec5-9e6f-1bc52cffa8f9",
+                "title": "Phase3 tab",
+                "tags": [
+                    "kind:dsh-bot"
+                ],
+                "status": "idle",
+                "createdAt": 1788012016591,
+                "hidden": false
+            },
+            {
+                "sessionId": "session-dddc4011-1a20-4899-9b69-a173efce0ddf",
+                "title": "DSH Bot",
+                "tags": [
+                    "kind:dsh-bot"
+                ],
+                "status": "idle",
+                "createdAt": 1788012647049,
+                "hidden": false
+            }
+        ],
+        "botModel": {
+            "provider": "anthropic",
+            "model": "grok-4.6",
+            "source": "global-default"
+        }
+    }
+}

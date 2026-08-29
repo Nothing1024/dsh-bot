@@ -1,6 +1,6 @@
 # dsh-bot-mvp Spec
 
-> Version: 0.3.4 | Date: 2026-08-29 | Status: Ready 可执行(P0 已消解 ASM-001/002/003/006/007;剩余 ASM-005;INV-002 官方栏隐藏改走 archiveSession)
+> Version: 0.3.5 | Date: 2026-08-29 | Status: Ready 可执行(P0–P3 已消解 ASM-001/002/003/005/006/007;INV-002 官方栏隐藏改走 archiveSession)
 >
 > 本文件是本需求的**唯一事实源**:事实基线、业务合同、技术方案、任务计划、验收协议全部在此。
 > 其他文件(tasks.csv)只引用本文件,不复制内容。
@@ -80,6 +80,7 @@
 | loopback 3084 仅本仓 gb 网关;`DSH_HOME=<仓根>/env` | Task 4:`lsof -nP -iTCP:3084 -sTCP:LISTEN` + `dsh-rpc-who.sh 3084` | ASM-003 证实;口表保持 3084 |
 | `settings.describe` 无 `dsh-bot` namespace(P0 尚未注册);UF-006 图形入口依赖 Task 9 | Task 4:`dsh-rpc.sh 3084 settings.describe '{}'` | 摘要 `settings-describe-summary.json` |
 | session-tool list 的 `hiddenPrefixes=['~']` 生效(默认 list 丢掉 `~校准隐藏`,`--include-hidden` 可见);官方 0.1.1-rc.2 GUI **不按**标题 `~` 过滤(非 blank 的 `~校准隐藏` 出现在「未分组」);官方分组栏隐藏走 `workspace.archiveSession {sessionId}` | Task 4:CLI `~` 会话 + `gui-rail-after-tilde.png`;复查 `workspace.archiveSession` 后 `gui-rail-after-archive.png` 无该标题 | 插件 list 仍靠 hiddenPrefixes;UF-002 官方栏「不出现」的实现闸是 archiveSession(Task 9 接线) |
+| `dsh-better-sidebar@0.13.0` 与 `@deepseek-ai/dsh@0.1.1-rc.2` 兼容:gb 挂载后 `pluginInventory/list` 中 `include:better-sidebar`/`include:ui-dsh-bot`/`include:dsh-bot-host`/`include:tool-dsh-bot` 均为 `fiberPhase=active`;右侧 + 菜单可开「DSH Bot」页签并渲染列表 | Task 15:boot gb + Playwright UF-003;`evidence/phase-3/plugin-inventory.json` + `evidence/UF-003/tab-list.png` | ASM-005 证实;无需 conversation.view 降级 |
 
 ### 1.4 假设清单
 
@@ -87,7 +88,7 @@
 
 | 假设 ID | 内容 | 风险 | 确认方式 |
 |---|---|---|---|
-| ASM-005 | `dsh-better-sidebar@0.13.0` 与 `@deepseek-ai/dsh@0.1.1-rc.2` 兼容(生态里 sidebar 只在 0.1.0-rc.7 上用过) | 不兼容则 UF-003 降级:改用官方 `conversation.view` slot 或等 sidebar 发兼容版 | Task 15:挂载后 `pluginInventory/list` 全 active + 页签实际渲染 |
+| （无） | P0–P3 假设已全部回写 1.3(ASM-001/002/003/005/006/007) | — | — |
 
 ### 1.5 变更记录
 
@@ -99,6 +100,7 @@
 | 2026-08-29(v0.3.2) | oneclick 增量重跑收口:§3.3 锚点可执行化(去 `\|` 转义改单模式、`@`/`~` 路径与新建行改 `rg -F` 文档形式并写明约定)、首次通过 `--repo` 全量锚点真跑;5.2 矩阵补「UF-002 并发委托」行(封闭 2.7 场景到执行的缺口);evidence/README 的 phase-0 清单对齐(xai-smoke→model-smoke)。合同条目零变化 | 用户指令:走 prd-workflow oneclick 完善 | 仅 §3.3/5.2/evidence README 更新;包内首个 git commit 建立基线 |
 | 2026-08-29(v0.3.3) | P0 校准消解 ASM-001/002/003/006/007:事实回写 1.3(gb 冒烟 grok-4.6、默认 live 免重启、`session.selectModel` 点名且会写部署默认、durableCreate 吃默认 preset=standard、3084 本仓、官方 GUI 不藏 `~` 标题)。合同 BR/UF/INV 正文未改;INV-002 官方栏藏 `~` 记为后续风险(calibration.md) | Task 3/4 真跑网关 :3084 | 1.4 仅余 ASM-005;Task 9 必须按 selectModel+必要时恢复全局默认实现 BR-010 |
 | 2026-08-29(v0.3.4) | 变更协议 INV-002:0.1.1-rc.2 官方 GUI 不按 `hiddenPrefixes`/`~` 过滤标题(Task 4 证伪);官方分组栏隐藏的既有闸是 `workspace.archiveSession`。UF-002 Then「官方栏不出现」不变;BR-003 正例不变;Task 9 委托链补 archiveSession。复查 Task 3:GUI 选择器实切 DeepSeek-V4-Flash,`request/header` provider/model 变更并有流式回复截图 | P0 review p1(UF-005 GUI 未切模型;INV-002 合同与证据矛盾) | Task 9 接线;1.3 事实改写;证据 `gui-stream-reply.png` / `gui-rail-after-archive.png` |
+| 2026-08-29(v0.3.5) | P3 消解 ASM-005:`dsh-better-sidebar@0.13.0` 在 `@deepseek-ai/dsh@0.1.1-rc.2` gb 组合中 `pluginInventory` 全 active,UF-003 页签实渲染。合同 BR/UF/INV 正文未改 | Task 15 真跑网关 :3084 + Playwright | 1.4 无剩余假设;无需 conversation.view 降级 |
 
 ---
 

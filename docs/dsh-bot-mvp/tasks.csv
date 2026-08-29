@@ -11,10 +11,10 @@
 10,P2:委托工具,实现 tool-dsh-bot 工具包,spec.md#task-10,9,pnpm --filter tool-dsh-bot run build && pnpm --filter tool-dsh-bot test → 全绿,已完成,
 11,P2:委托工具,profile 接线并真实跑通委托链路,spec.md#task-11,10,marks list --kind kind:dsh-bot → ≥1 行且主会话得到答案,已完成,真停 :3084 CLI headless web-unreachable；工具卡点名 MISSING_CREDENTIAL；override 互斥
 12,P2:委托工具,执行 Phase 2 回归验证,spec.md#task-12,11,pnpm -r run build && pnpm -r test + UF-001/002 复现,已完成,regression.log + UF-001/002 复放 history
-13,P3:侧栏 UI,实现 host RPC 面(/dsh-bot/*),spec.md#task-13,12,curl POST /dsh-bot/listSessions → {"ok":true},待开始,
-14,P3:侧栏 UI,实现 ui-dsh-bot 侧栏页签,spec.md#task-14,13,pnpm --filter ui-dsh-bot run build && pnpm --filter ui-dsh-bot test → 全绿,待开始,
-15,P3:侧栏 UI,页签接线与 sidebar 兼容校准,spec.md#task-15,14,pluginInventory 全 active + UF-003 三步真实通过,待开始,消解 ASM-005
-16,P3:侧栏 UI,执行 Phase 3 回归验证,spec.md#task-16,15,pnpm -r run build && pnpm -r test + UF-001/002/003 复现,待开始,
+13,P3:侧栏 UI,实现 host RPC 面(/dsh-bot/*),spec.md#task-13,12,curl POST /dsh-bot/listSessions → {"ok":true},已完成,
+14,P3:侧栏 UI,实现 ui-dsh-bot 侧栏页签,spec.md#task-14,13,pnpm --filter ui-dsh-bot run build && pnpm --filter ui-dsh-bot test → 全绿,已完成,
+15,P3:侧栏 UI,页签接线与 sidebar 兼容校准,spec.md#task-15,14,pluginInventory 全 active + UF-003 三步真实通过,已完成,消解 ASM-005; create 带 cwd; 列表行跳转
+16,P3:侧栏 UI,执行 Phase 3 回归验证,spec.md#task-16,15,pnpm -r run build && pnpm -r test + UF-001/002/003 复现,已完成,history 等到 assistant/tool
 17,P4:标准面与验收,建 standards 标准面并过检,spec.md#task-17,16,pnpm run standard:check → 0 FAIL,待开始,
 18,P4:标准面与验收,manual-test 脚本与 README 文档,spec.md#task-18,16,bash scripts/manual-test.sh --no-write → 全步通过,待开始,
 19,P4:标准面与验收,执行 spec 5.2 真实场景全套测试,spec.md#task-19,17;18,5.2 执行矩阵逐行回放全部通过 + 二次跑包校验,待开始,含 UF-005/006 模型切换与 override 六行

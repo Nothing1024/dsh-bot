@@ -1,0 +1,12 @@
+$ vitest run --config ../../vitest.config.ts packages/dsh-bot-host/tests
+
+ RUN  v4.1.11 /Users/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin
+
+ ✓ packages/dsh-bot-host/tests/ask.spec.ts (19 tests) 85ms
+ ✓ packages/dsh-bot-host/tests/routes.spec.ts (8 tests) 372ms
+
+ Test Files  2 passed (2)
+      Tests  27 passed (27)
+   Start at  22:48:26
+   Duration  545ms (transform 113ms, setup 0ms, import 179ms, tests 457ms, environment 0ms)
+

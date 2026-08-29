@@ -9,15 +9,19 @@
     "session-marks": "link:../../../../../session-tool/plugin/packages/session-marks",
     "tool-session": "link:../../../../../session-tool/plugin/packages/tool-session",
     "dsh-bot-host": "link:../../../packages/dsh-bot-host",
-    "tool-dsh-bot": "link:../../../packages/tool-dsh-bot"
+    "tool-dsh-bot": "link:../../../packages/tool-dsh-bot",
+    "dsh-better-sidebar": "0.13.0",
+    "ui-dsh-bot": "link:../../../packages/ui-dsh-bot"
   },
   "dsh": {
     "profile": {
       "bundles": [
         "@deepseek-ai/dsh-base",
         "@deepseek-ai/dsh-web-app",
+        "dsh-better-sidebar",
         "tool-session",
-        "tool-dsh-bot"
+        "tool-dsh-bot",
+        "ui-dsh-bot"
       ]
     }
   }

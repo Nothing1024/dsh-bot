@@ -1,0 +1,53 @@
+Scope: 6 of 7 workspace projects
+.../plugin/packages/session-marks test$ vitest run --config ../../vitest.config.ts packages/session-marks/tests
+packages/ui-dsh-bot test$ vitest run --config ../../vitest.config.ts packages/ui-dsh-bot/tests
+packages/ui-dsh-bot test:  RUN  v4.1.11 /Users/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin
+.../plugin/packages/session-marks test:  RUN  v4.1.11 /Users/nothing/workspace/dsh/plugin/session-tool/plugin
+packages/ui-dsh-bot test:  ✓ packages/ui-dsh-bot/tests/apply-sidebar.spec.ts (2 tests) 3ms
+.../plugin/packages/session-marks test:  ✓ packages/session-marks/tests/marks.spec.ts (9 tests) 14ms
+.../plugin/packages/session-marks test:  Test Files  1 passed (1)
+.../plugin/packages/session-marks test:       Tests  9 passed (9)
+.../plugin/packages/session-marks test:    Start at  22:48:46
+.../plugin/packages/session-marks test:    Duration  130ms (transform 22ms, setup 0ms, import 33ms, tests 14ms, environment 0ms)
+.../plugin/packages/session-marks test: Done
+packages/ui-dsh-bot test:  ✓ packages/ui-dsh-bot/tests/rpc.spec.ts (4 tests) 158ms
+packages/ui-dsh-bot test:  ✓ packages/ui-dsh-bot/tests/tab.spec.tsx (8 tests) 95ms
+packages/ui-dsh-bot test:  Test Files  3 passed (3)
+packages/ui-dsh-bot test:       Tests  14 passed (14)
+packages/ui-dsh-bot test:    Start at  22:48:46
+packages/ui-dsh-bot test:    Duration  611ms (transform 83ms, setup 0ms, import 208ms, tests 256ms, environment 282ms)
+packages/ui-dsh-bot test: Done
+packages/dsh-bot-host test$ vitest run --config ../../vitest.config.ts packages/dsh-bot-host/tests
+.../plugin/packages/session-tool-local test$ vitest run --config ../../vitest.config.ts packages/session-tool-local/tests
+packages/dsh-bot-host test:  RUN  v4.1.11 /Users/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin
+.../plugin/packages/session-tool-local test:  RUN  v4.1.11 /Users/nothing/workspace/dsh/plugin/session-tool/plugin
+.../plugin/packages/session-tool-local test:  ✓ packages/session-tool-local/tests/collect.spec.ts (6 tests) 2ms
+packages/dsh-bot-host test:  ✓ packages/dsh-bot-host/tests/ask.spec.ts (19 tests) 83ms
+.../plugin/packages/session-tool-local test:  ✓ packages/session-tool-local/tests/delegation-projection.spec.ts (9 tests) 5ms
+.../plugin/packages/session-tool-local test:  ✓ packages/session-tool-local/tests/workspace-client.spec.ts (11 tests) 21ms
+.../plugin/packages/session-tool-local test:  ✓ packages/session-tool-local/tests/session-client.spec.ts (22 tests) 50ms
+.../plugin/packages/session-tool-local test:  ✓ packages/session-tool-local/tests/workspace.spec.ts (12 tests) 44ms
+packages/dsh-bot-host test:  ✓ packages/dsh-bot-host/tests/routes.spec.ts (8 tests) 368ms
+packages/dsh-bot-host test:  Test Files  2 passed (2)
+packages/dsh-bot-host test:       Tests  27 passed (27)
+packages/dsh-bot-host test:    Start at  22:48:46
+packages/dsh-bot-host test:    Duration  517ms (transform 90ms, setup 0ms, import 147ms, tests 451ms, environment 0ms)
+packages/dsh-bot-host test: Done
+.../plugin/packages/session-tool-local test:  ✓ packages/session-tool-local/tests/service.spec.ts (50 tests) 1738ms
+.../plugin/packages/session-tool-local test:        ✓ wait-all aggregates when every member is terminal  333ms
+.../plugin/packages/session-tool-local test:        ✓ returns a timeout snapshot without error when the deadline passes  342ms
+.../plugin/packages/session-tool-local test:        ✓ resolves a tag aggregation and reports an empty set as unsatisfied  514ms
+.../plugin/packages/session-tool-local test:  Test Files  6 passed (6)
+.../plugin/packages/session-tool-local test:       Tests  110 passed (110)
+.../plugin/packages/session-tool-local test:    Start at  22:48:46
+.../plugin/packages/session-tool-local test:    Duration  2.00s (transform 498ms, setup 0ms, import 849ms, tests 1.86s, environment 0ms)
+.../plugin/packages/session-tool-local test: Done
+packages/tool-dsh-bot test$ vitest run --config ../../vitest.config.ts packages/tool-dsh-bot/tests
+packages/tool-dsh-bot test:  RUN  v4.1.11 /Users/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin
+packages/tool-dsh-bot test:  ✓ packages/tool-dsh-bot/tests/tools.spec.ts (5 tests) 7ms
+packages/tool-dsh-bot test:  Test Files  1 passed (1)
+packages/tool-dsh-bot test:       Tests  5 passed (5)
+packages/tool-dsh-bot test:    Start at  22:48:49
+packages/tool-dsh-bot test:    Duration  158ms (transform 46ms, setup 0ms, import 71ms, tests 7ms, environment 0ms)
+packages/tool-dsh-bot test: Done
+EXIT:0

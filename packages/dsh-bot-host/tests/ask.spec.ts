@@ -195,8 +195,8 @@ describe('extractAssistantAnswer', () => {
       { seq: 1, role: 'assistant', blocks: [{ type: 'text', text: 'a' }, { type: 'text', text: 'b' }] },
     ])).toBe('a\nb')
     expect(extractAssistantAnswer([
-      { seq: 1, role: 'assistant', blocks: [{ type: 'tool-call', text: '' }] },
-    ])).toBeUndefined()
+      { seq: 1, role: 'assistant', blocks: [{ type: 'tool-call' }] },
+    ] as unknown as SessionToolMessageRow[])).toBeUndefined()
   })
 })
 
@@ -411,6 +411,17 @@ describe('DshBotService.createSession / listSessions', () => {
     expect(await get(created.sessionId)).toEqual(['kind:dsh-bot'])
   })
 
+  it('passes workspacePath through to sessionTool.create', async () => {
+    const { bot, sessionTool, platform } = boot()
+    await bot.createSession(CLI, { title: 'Bound', workspacePath: '/work/plugin' })
+    expect(sessionTool.createCalls[0]!.options).toEqual({
+      title: 'Bound',
+      tags: ['kind:dsh-bot'],
+      workspacePath: '/work/plugin',
+    })
+    expect(platform.archiveCalls).toHaveLength(0)
+  })
+
   it('lists by kind intersection and drops marks whose session is gone', async () => {
     const sessionTool = new StubSessionTool()
     await put('session-live', ['kind:dsh-bot'])
@@ -440,5 +451,22 @@ describe('DshBotService.createSession / listSessions', () => {
     const hiddenOn = await bot.listSessions({ includeHidden: true })
     expect(hiddenOn.map(row => row.sessionId).sort()).toEqual(['session-hidden', 'session-live'])
     expect(hiddenOn.find(row => row.sessionId === 'session-gone')).toBeUndefined()
+  })
+
+  it('reports override vs global-default as botModel source', () => {
+    const { bot } = boot()
+    expect(bot.currentBotModel()).toEqual({
+      provider: 'anthropic',
+      model: 'grok-4.6',
+      source: 'global-default',
+    })
+    const override = boot({
+      config: { ...BASE_CONFIG, model: { provider: 'deepseek', model: 'deepseek-v4-flash' } },
+    })
+    expect(override.bot.currentBotModel()).toEqual({
+      provider: 'deepseek',
+      model: 'deepseek-v4-flash',
+      source: 'override',
+    })
   })
 })
