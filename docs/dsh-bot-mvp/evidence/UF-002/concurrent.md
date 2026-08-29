@@ -1,20 +1,36 @@
 # UF-002 并发委托
 
-时间: 2026-08-29  
-两笔 `session.prompt` 同时要求调用 `dsh_bot_ask`（tag A / tag B）。
+时间: 2026-08-29T15:27:06.869Z
+网关: `127.0.0.1:3084  pid=55792  DSH_HOME=/Users/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin/env  cwd=/Users/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin`
 
-## 结果
+
+两笔 `session.prompt` 同时要求调用 `dsh_bot_ask`（tag A / tag B）。
 
 | 主会话 | 工具答案 | 串扰 |
 |---|---|---|
-| `session-31895962-2802-46d7-b56f-0a18ea770a4d` | `concurrent A`（isError false） | 不含 B |
-| `session-38fa804e-83b3-485f-ad41-5d25dad9adc9` | `concurrent B`（isError false） | 不含 A |
+| `session-6edbb151-4695-4be6-a4a7-cadecc8f1156` | concurrent A = true | 不含 B = true |
+| `session-6caa66fc-26f8-4eb7-baab-db47516c50b5` | concurrent B = true | 不含 A = true |
 
-marks 新增两行（各自独立会话，不复用）：
+marks 摘录：
 
 ```
+session-9690590f-6953-4d68-bbcd-ab31cb7bba88 kind:delegated,kind:dsh-bot,kind:hidden
+session-71e5d33c-7ff5-48c2-b8fe-b95460d8c24e kind:delegated,kind:dsh-bot,kind:hidden
 session-747f1342-5c76-4d9a-9cea-cd8913318e28 kind:delegated,kind:dsh-bot,kind:hidden
 session-be2f46a2-7b03-4fd9-b949-3a3f0383c3ce kind:delegated,kind:dsh-bot,kind:hidden
+session-a95ca6c4-c52d-4b25-8808-6798aef81b88 kind:delegated,kind:dsh-bot,kind:hidden
+session-32fba176-9cfa-4e43-b6aa-f9f60055ef44 kind:delegated,kind:dsh-bot,kind:hidden
+session-c15b2d4f-c252-487b-9c04-22324afa2496 kind:delegated,kind:dsh-bot,kind:hidden
+session-8ee512c7-c26d-4d4f-8509-1532944b5267 kind:delegated,kind:dsh-bot,kind:hidden
+session-c3f06b07-fd28-4ec5-9e6f-1bc52cffa8f9 kind:dsh-bot
+session-dddc4011-1a20-4899-9b69-a173efce0ddf kind:dsh-bot
+session-88a1b386-957c-4e22-98a2-c1f972f2541e kind:delegated,kind:dsh-bot,kind:hidden
+session-cb74c0e8-651f-49d0-b1a8-32303d119088 kind:dsh-bot
+session-ec196f3b-0d96-4e05-afb7-1d6fed6de927 kind:dsh-bot
+session-fd3b472a-9a71-4f13-821f-d1dafaf838a2 kind:delegated,kind:dsh-bot,kind:hidden
+session-5a0ca88e-49dc-4397-afd6-3e56e81b9e7a kind:dsh-bot
+session-91293f51-624b-4826-9144-b82cd32c3f67 kind:dsh-bot
+session-4cac60d2-bbc2-48f9-85fe-b0a8653c27c3 kind:dsh-bot
+
 ```
 
-原始历史：`concurrent-raw.json`。

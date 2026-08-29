@@ -1,24 +1,44 @@
 # UF-002 等待超时分支
 
-时间: 2026-08-29  
-设置：`settings.update` `dsh-bot.askTimeoutMs = 200`（live，未重启），演练后恢复 `180000`。
+时间: 2026-08-29T15:27:06.869Z
+网关: `127.0.0.1:3084  pid=55792  DSH_HOME=/Users/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin/env  cwd=/Users/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin`
 
-## 操作
 
-主会话 `session-d7c15291-a7ab-4b0a-9710-72fa16a15800` 调用 `dsh_bot_ask`（prompt「Write two sentences about water」）。
+`settings.update` `dsh-bot.askTimeoutMs = 200`（live），主会话 `session-e53c5413-29ed-4ce3-a4b2-9d77cbc9385f` 调用 `dsh_bot_ask`。
 
-## 结果
+历史含 wait-timeout：true
 
-工具卡片 `isError: true`，错误文本：
-
-```
-Error: wait-timeout: dsh_bot_ask timed out waiting for session-71e5d33c-7ff5-48c2-b8fe-b95460d8c24e (session kept) (session session-71e5d33c-7ff5-48c2-b8fe-b95460d8c24e)
-```
-
-marks 仍登记该会话（未被杀）：
+marks 仍在（会话未杀）：
 
 ```
+session-9690590f-6953-4d68-bbcd-ab31cb7bba88 kind:delegated,kind:dsh-bot,kind:hidden
 session-71e5d33c-7ff5-48c2-b8fe-b95460d8c24e kind:delegated,kind:dsh-bot,kind:hidden
+session-747f1342-5c76-4d9a-9cea-cd8913318e28 kind:delegated,kind:dsh-bot,kind:hidden
+session-be2f46a2-7b03-4fd9-b949-3a3f0383c3ce kind:delegated,kind:dsh-bot,kind:hidden
+session-a95ca6c4-c52d-4b25-8808-6798aef81b88 kind:delegated,kind:dsh-bot,kind:hidden
+session-32fba176-9cfa-4e43-b6aa-f9f60055ef44 kind:delegated,kind:dsh-bot,kind:hidden
+session-c15b2d4f-c252-487b-9c04-22324afa2496 kind:delegated,kind:dsh-bot,kind:hidden
+session-8ee512c7-c26d-4d4f-8509-1532944b5267 kind:delegated,kind:dsh-bot,kind:hidden
+session-c3f06b07-fd28-4ec5-9e6f-1bc52cffa8f9 kind:dsh-bot
+session-dddc4011-1a20-4899-9b69-a173efce0ddf kind:dsh-bot
+session-88a1b386-957c-4e22-98a2-c1f972f2541e kind:delegated,kind:dsh-bot,kind:hidden
+session-cb74c0e8-651f-49d0-b1a8-32303d119088 kind:dsh-bot
+session-ec196f3b-0d96-4e05-afb7-1d6fed6de927 kind:dsh-bot
+session-fd3b472a-9a71-4f13-821f-d1dafaf838a2 kind:delegated,kind:dsh-bot,kind:hidden
+session-5a0ca88e-49dc-4397-afd6-3e56e81b9e7a kind:dsh-bot
+session-91293f51-624b-4826-9144-b82cd32c3f67 kind:dsh-bot
+session-4cac60d2-bbc2-48f9-85fe-b0a8653c27c3 kind:dsh-bot
+session-3547ba86-a71d-419e-bc2e-f9313f46670e kind:dsh-bot
+session-73cd91e8-4682-408b-b328-2eeb29586e80 kind:delegated,kind:dsh-bot,kind:hidden
+session-7536feeb-3710-48e8-ac11-8acecfe45da8 kind:delegated,kind:dsh-bot,kind:hidden
+session-69d25432-cab5-42b6-bd0f-0a6f6b210aa1 kind:dsh-bot
+session-63e5e637-fce6-453c-aa82-4e8d4922c247 kind:delegated,kind:dsh-bot,kind:hidden
+session-269180a7-1860-4f94-a0af-850adf455c03 kind:delegated,kind:dsh-bot,kind:hidden
+session-1ff44ae2-3d81-442d-8e17-b4548b62533f kind:dsh-bot
+session-a7a05c6f-f13b-42b4-9cdb-80412f1b1f98 kind:dsh-bot
+session-f4915e9e-4c61-47fd-877e-8b44e6977631 kind:delegated,kind:dsh-bot,kind:hidden
+
 ```
 
-历史：`timeout-history.json`。
+演练后恢复 askTimeoutMs=180000。
+

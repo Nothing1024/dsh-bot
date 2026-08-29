@@ -1,1 +1,41 @@
-{"type":"server-response","rpcId":"dbg","result":{"ok":true,"value":{"items":[{"workspaceId":"57f26887-a5b4-4e73-81ee-e502f266b8ff","path":"/Users/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin","title":"plugin","sessionIds":["session-05601033-098e-41f5-8510-58c89514db09","session-d16abe04-d0f6-4268-9e80-dbad6dcc3011","session-bf460816-85ee-4492-a349-5c73e44c7919"],"createdAt":"2026-08-29T11:35:44.010Z","updatedAt":"2026-08-29T11:57:17.356Z"}],"archivedSessionIds":["session-39f2022a-6781-4de7-bd9c-6772061742ce","session-9690590f-6953-4d68-bbcd-ab31cb7bba88"]}}}
+{
+  "type": "server-response",
+  "rpcId": "dbg",
+  "result": {
+    "ok": true,
+    "value": {
+      "items": [
+        {
+          "workspaceId": "57f26887-a5b4-4e73-81ee-e502f266b8ff",
+          "path": "/Users/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin",
+          "title": "plugin",
+          "sessionIds": [
+            "session-4cac60d2-bbc2-48f9-85fe-b0a8653c27c3",
+            "session-91293f51-624b-4826-9144-b82cd32c3f67",
+            "session-5a0ca88e-49dc-4397-afd6-3e56e81b9e7a",
+            "session-ec196f3b-0d96-4e05-afb7-1d6fed6de927",
+            "session-cb74c0e8-651f-49d0-b1a8-32303d119088",
+            "session-05601033-098e-41f5-8510-58c89514db09",
+            "session-d16abe04-d0f6-4268-9e80-dbad6dcc3011",
+            "session-bf460816-85ee-4492-a349-5c73e44c7919"
+          ],
+          "createdAt": "2026-08-29T11:35:44.010Z",
+          "updatedAt": "2026-08-29T15:13:11.347Z"
+        }
+      ],
+      "archivedSessionIds": [
+        "session-39f2022a-6781-4de7-bd9c-6772061742ce",
+        "session-9690590f-6953-4d68-bbcd-ab31cb7bba88",
+        "session-71e5d33c-7ff5-48c2-b8fe-b95460d8c24e",
+        "session-747f1342-5c76-4d9a-9cea-cd8913318e28",
+        "session-be2f46a2-7b03-4fd9-b949-3a3f0383c3ce",
+        "session-a95ca6c4-c52d-4b25-8808-6798aef81b88",
+        "session-32fba176-9cfa-4e43-b6aa-f9f60055ef44",
+        "session-c15b2d4f-c252-487b-9c04-22324afa2496",
+        "session-8ee512c7-c26d-4d4f-8509-1532944b5267",
+        "session-88a1b386-957c-4e22-98a2-c1f972f2541e",
+        "session-fd3b472a-9a71-4f13-821f-d1dafaf838a2"
+      ]
+    }
+  }
+}

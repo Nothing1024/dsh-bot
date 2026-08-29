@@ -179,18 +179,22 @@ function withOverrideGate<T>(fn: () => Promise<T>): Promise<T> {
 }
 
 /**
- * Apply bot-owned model override to a blank plugin-created session, then
- * restore the deployment default that `session.selectModel` would otherwise
- * rewrite (Task 4 ASM-007). Serialized against other override applies.
+ * Pin a plugin-created session to the intended model, then restore the
+ * deployment default that `session.selectModel` would otherwise rewrite
+ * (Task 4 ASM-007). `override` set ⇒ BR-010 bot-owned model; omitted ⇒
+ * live `agent-default-model` (UF-005 次路径). session-tool durableCreate
+ * does not take a model and can miss a live settings.update, so follow-
+ * global still selectModel's the snapshot. Serialized against other applies.
  */
 export async function applyModelOverride(
   platform: DshBotPlatform,
   sessionId: string,
   override: DshBotModelRef | undefined,
 ): Promise<void> {
-  if (override === undefined) return
   await withOverrideGate(async () => {
     const snapshot = platform.snapshotGlobalDefault()
+    const target = override ?? snapshot
+    if (target === undefined) return
     if (snapshot === undefined) {
       throw new DshBotError(
         'override-restore-failed',
@@ -199,7 +203,7 @@ export async function applyModelOverride(
       )
     }
     try {
-      await platform.selectModel(sessionId, override)
+      await platform.selectModel(sessionId, target)
     } catch (error) {
       try {
         await platform.restoreGlobalDefault(snapshot)

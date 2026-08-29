@@ -1,9 +1,14 @@
-# UF-004 marks list --kind kind:dsh-bot
-时间: 2026-08-29 23:13:50
-DSH_HOME=/Users/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin/env
+# UF-004 CLI marks
 
-$ DSH_HOME="$PWD/env" node ../../session-tool/plugin/packages/session-tool-cli/lib/bin.js marks list --kind kind:dsh-bot
+时间: 2026-08-29T15:27:06.869Z
+网关: `127.0.0.1:3084  pid=55792  DSH_HOME=/Users/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin/env  cwd=/Users/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin`
 
+
+## 主路径
+
+```
+DSH_HOME=/Users/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin/env node /Users/nothing/workspace/dsh/plugin/session-tool/plugin/packages/session-tool-cli/lib/bin.js marks list --kind kind:dsh-bot
+exit 0
 session-9690590f-6953-4d68-bbcd-ab31cb7bba88 kind:delegated,kind:dsh-bot,kind:hidden
 session-71e5d33c-7ff5-48c2-b8fe-b95460d8c24e kind:delegated,kind:dsh-bot,kind:hidden
 session-747f1342-5c76-4d9a-9cea-cd8913318e28 kind:delegated,kind:dsh-bot,kind:hidden
@@ -21,7 +26,16 @@ session-fd3b472a-9a71-4f13-821f-d1dafaf838a2 kind:delegated,kind:dsh-bot,kind:hi
 session-5a0ca88e-49dc-4397-afd6-3e56e81b9e7a kind:dsh-bot
 session-91293f51-624b-4826-9144-b82cd32c3f67 kind:dsh-bot
 session-4cac60d2-bbc2-48f9-85fe-b0a8653c27c3 kind:dsh-bot
+session-3547ba86-a71d-419e-bc2e-f9313f46670e kind:dsh-bot
 
-$ DSH_HOME="$PWD/env" node ../../session-tool/plugin/packages/session-tool-cli/lib/bin.js marks list --kind kind:dsh-bot-no-such
+```
 
+## 空分支
+
+```
+DSH_HOME=/Users/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin/env node /Users/nothing/workspace/dsh/plugin/session-tool/plugin/packages/session-tool-cli/lib/bin.js marks list --kind kind:dsh-bot-no-such
+exit 0
 (no marks)
+
+```
+

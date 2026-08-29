@@ -1,0 +1,92 @@
+{
+  "ok": true,
+  "value": {
+    "sessions": [
+      {
+        "sessionId": "session-c3f06b07-fd28-4ec5-9e6f-1bc52cffa8f9",
+        "title": "Phase3 tab",
+        "tags": [
+          "kind:dsh-bot"
+        ],
+        "status": "idle",
+        "createdAt": 1788012016591,
+        "hidden": false
+      },
+      {
+        "sessionId": "session-dddc4011-1a20-4899-9b69-a173efce0ddf",
+        "title": "DSH Bot",
+        "tags": [
+          "kind:dsh-bot"
+        ],
+        "status": "idle",
+        "createdAt": 1788012647049,
+        "hidden": false
+      },
+      {
+        "sessionId": "session-cb74c0e8-651f-49d0-b1a8-32303d119088",
+        "title": "UF-003 jump",
+        "tags": [
+          "kind:dsh-bot"
+        ],
+        "status": "idle",
+        "createdAt": 1788014673580,
+        "hidden": false
+      },
+      {
+        "sessionId": "session-ec196f3b-0d96-4e05-afb7-1d6fed6de927",
+        "title": "DSH Bot",
+        "tags": [
+          "kind:dsh-bot"
+        ],
+        "status": "idle",
+        "createdAt": 1788014827562,
+        "hidden": false
+      },
+      {
+        "sessionId": "session-5a0ca88e-49dc-4397-afd6-3e56e81b9e7a",
+        "title": "dsh-bot-manual-20260829-231307-plugin",
+        "tags": [
+          "kind:dsh-bot"
+        ],
+        "status": "idle",
+        "createdAt": 1788016389241,
+        "hidden": false
+      },
+      {
+        "sessionId": "session-91293f51-624b-4826-9144-b82cd32c3f67",
+        "title": "dsh-bot-manual-20260829-231307-override-on",
+        "tags": [
+          "kind:dsh-bot"
+        ],
+        "status": "idle",
+        "createdAt": 1788016390181,
+        "hidden": false
+      },
+      {
+        "sessionId": "session-4cac60d2-bbc2-48f9-85fe-b0a8653c27c3",
+        "title": "dsh-bot-manual-20260829-231307-override-off",
+        "tags": [
+          "kind:dsh-bot"
+        ],
+        "status": "idle",
+        "createdAt": 1788016391342,
+        "hidden": false
+      },
+      {
+        "sessionId": "session-3547ba86-a71d-419e-bc2e-f9313f46670e",
+        "title": "UF-003 jump t19",
+        "tags": [
+          "kind:dsh-bot"
+        ],
+        "status": "idle",
+        "createdAt": 1788017235325,
+        "hidden": false
+      }
+    ],
+    "botModel": {
+      "provider": "anthropic",
+      "model": "grok-4.6",
+      "source": "global-default"
+    }
+  }
+}

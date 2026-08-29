@@ -215,7 +215,13 @@ describe('DshBotService.askBot', () => {
     expect(sessionTool.writeCalls[0]).toEqual({ sessionId: 'session-bot-1', content: '量子纠缠是什么' })
     expect(sessionTool.waitCalls[0]!.options).toEqual({ until: 'idle', timeoutMs: 30_000 })
     expect(platform.archiveCalls).toEqual(['session-bot-1'])
-    expect(platform.selectCalls).toHaveLength(0)
+    expect(platform.selectCalls).toEqual([{
+      sessionId: 'session-bot-1',
+      model: { provider: 'anthropic', model: 'grok-4.6', reasoningEffort: 'xhigh' },
+    }])
+    expect(platform.restoreCalls).toEqual([
+      { provider: 'anthropic', model: 'grok-4.6', reasoningEffort: 'xhigh' },
+    ])
     const tags = await get('session-bot-1')
     expect(tags).toEqual(expect.arrayContaining(['kind:dsh-bot', 'kind:hidden']))
   })
@@ -394,6 +400,21 @@ describe('applyModelOverride mutex', () => {
     expect(platform.selectCalls.map(call => call.model.model).sort()).toEqual(['flash', 'pro'])
     expect(platform.restoreCalls).toHaveLength(2)
     expect(platform.restoreCalls.every(call => call.model === original.model)).toBe(true)
+  })
+
+  it('pins follow-global sessions to the live snapshot (UF-005 default switch)', async () => {
+    const platform = new StubPlatform()
+    platform.global = { provider: 'deepseek', model: 'deepseek-v4-flash', reasoningEffort: 'max' }
+    await applyModelOverride(platform, 's-follow', undefined)
+    expect(platform.selectCalls).toEqual([{
+      sessionId: 's-follow',
+      model: { provider: 'deepseek', model: 'deepseek-v4-flash', reasoningEffort: 'max' },
+    }])
+    expect(platform.global).toEqual({
+      provider: 'deepseek',
+      model: 'deepseek-v4-flash',
+      reasoningEffort: 'max',
+    })
   })
 })
 

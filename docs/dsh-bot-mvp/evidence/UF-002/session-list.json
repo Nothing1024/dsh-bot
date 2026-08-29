@@ -1,1 +1,4062 @@
-{"type":"server-response","rpcId":"dbg","result":{"ok":true,"value":{"items":[{"sessionId":"session-9690590f-6953-4d68-bbcd-ab31cb7bba88","updatedAt":1788008275276,"running":false,"blank":false,"cwd":"/Users/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin","agentPreset":"dsh-bot","projections":{"asOfSeq":45,"values":{"sessionStats":{"turns":1,"steps":1,"llmMs":3118,"toolMs":0,"ttftMs":2577,"ttftSteps":1,"decodeMs":541,"decodeTokens":40},"title":"~dsh-bot: uf002","goal":null,"tokenUsage":{"uncachedInputTokens":11342,"outputTokens":40,"cacheReadTokens":128,"cacheWriteTokens":0},"contextPressure":{"pressureTokens":11470,"projectedTokens":11501,"contextWindow":2000000},"contextBreakdown":{"systemTokens":1601,"toolsTokens":8570,"messageTokens":1729},"subagentTiming":{"settledMs":0},"subagent":null,"permissions":{"options":[{"value":"read-only","name":"read-only"},{"value":"workspace-write","name":"workspace-write"},{"value":"danger-full-access","name":"danger-full-access"}],"currentValue":"workspace-write"},"delegation":{"status":"completed","lastTurnEnd":"completed","promptCount":3,"lastAssistantSeq":43},"sessionListMetadata":{"blank":false,"lastPromptAt":1788008275276},"imageLimits":{"maxImageBytes":20971520,"maxImagesPerMessage":20,"maxMessageImageBytes":209715200,"maxImagePixels":64000000,"maxImageDimension":8192,"mediaTypes":["image/png","image/jpeg","image/webp","image/gif"]},"todos":null,"plan":{"active":false,"pending":false}}}},{"sessionId":"session-c8cf1b3a-d154-4d34-bed9-f8f03135100c","updatedAt":1788008270760,"running":false,"blank":false,"cwd":"/Users/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin","agentPreset":"dsh-bot","projections":{"asOfSeq":76,"values":{"sessionStats":{"turns":1,"steps":2,"llmMs":6591,"toolMs":3384,"ttftMs":5722,"ttftSteps":2,"decodeMs":869,"decodeTokens":73},"title":"Call dsh_bot_ask tool once","goal":null,"tokenUsage":{"uncachedInputTokens":22807,"outputTokens":73,"cacheReadTokens":128,"cacheWriteTokens":0},"contextPressure":{"pressureTokens":11551,"projectedTokens":11563,"contextWindow":2000000},"contextBreakdown":{"systemTokens":1601,"toolsTokens":8570,"messageTokens":1845},"subagentTiming":{"settledMs":0},"subagent":null,"permissions":{"options":[{"value":"read-only","name":"read-only"},{"value":"workspace-write","name":"workspace-write"},{"value":"danger-full-access","name":"danger-full-access"}],"currentValue":"workspace-write"},"delegation":{"status":"completed","lastTurnEnd":"completed","promptCount":3,"lastAssistantSeq":74},"sessionListMetadata":{"blank":false,"lastPromptAt":1788008270760},"imageLimits":{"maxImageBytes":20971520,"maxImagesPerMessage":20,"maxMessageImageBytes":209715200,"maxImagePixels":64000000,"maxImageDimension":8192,"mediaTypes":["image/png","image/jpeg","image/webp","image/gif"]},"todos":null,"plan":{"active":false,"pending":false}}}},{"sessionId":"session-7fea7b21-7b39-4284-a8ce-ade847679a82","updatedAt":1788005914718,"running":false,"blank":true,"cwd":"/Users/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin","agentPreset":"dsh-bot","projections":{"asOfSeq":2,"values":{"sessionStats":{"turns":0,"steps":0,"llmMs":0,"toolMs":0,"ttftMs":0,"ttftSteps":0,"decodeMs":0,"decodeTokens":0},"title":null,"goal":null,"tokenUsage":{"uncachedInputTokens":0,"outputTokens":0,"cacheReadTokens":0,"cacheWriteTokens":0},"contextPressure":{},"contextBreakdown":{"systemTokens":0,"toolsTokens":0,"messageTokens":0},"subagentTiming":{"settledMs":0},"subagent":null,"permissions":{"options":[{"value":"read-only","name":"read-only"},{"value":"workspace-write","name":"workspace-write"},{"value":"danger-full-access","name":"danger-full-access"}],"currentValue":"workspace-write"},"delegation":{"status":"idle","promptCount":0},"sessionListMetadata":{"blank":true,"lastPromptAt":null},"imageLimits":{"maxImageBytes":20971520,"maxImagesPerMessage":20,"maxMessageImageBytes":209715200,"maxImagePixels":64000000,"maxImageDimension":8192,"mediaTypes":["image/png","image/jpeg","image/webp","image/gif"]},"todos":null,"plan":{"active":false,"pending":false}}}},{"sessionId":"session-974d85e9-fb4b-4eed-9eaa-7eb5e9915806","updatedAt":1788004800746,"running":false,"blank":false,"cwd":"/Users/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin","agentPreset":"dsh-bot","projections":{"asOfSeq":161,"values":{"sessionStats":{"turns":1,"steps":1,"llmMs":7241,"toolMs":0,"ttftMs":3625,"ttftSteps":1,"decodeMs":3616,"decodeTokens":263},"title":"询问AI身份","goal":null,"tokenUsage":{"uncachedInputTokens":11203,"outputTokens":263,"cacheReadTokens":11136,"cacheWriteTokens":0},"contextPressure":{"pressureTokens":22339,"projectedTokens":22426,"contextWindow":2000000},"contextBreakdown":{"systemTokens":1601,"toolsTokens":8438,"messageTokens":1777},"subagentTiming":{"settledMs":0},"subagent":null,"permissions":{"options":[{"value":"read-only","name":"read-only"},{"value":"workspace-write","name":"workspace-write"},{"value":"danger-full-access","name":"danger-full-access"}],"currentValue":"workspace-write"},"delegation":{"status":"completed","lastTurnEnd":"completed","promptCount":3,"lastAssistantSeq":158},"sessionListMetadata":{"blank":false,"lastPromptAt":1788004800746},"imageLimits":{"maxImageBytes":20971520,"maxImagesPerMessage":20,"maxMessageImageBytes":209715200,"maxImagePixels":64000000,"maxImageDimension":8192,"mediaTypes":["image/png","image/jpeg","image/webp","image/gif"]},"todos":null,"plan":{"active":false,"pending":false}}}},{"sessionId":"session-05601033-098e-41f5-8510-58c89514db09","updatedAt":1788004637350,"running":false,"blank":true,"cwd":"/Users/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin","agentPreset":"dsh-bot","projections":{"asOfSeq":2,"values":{"sessionStats":{"turns":0,"steps":0,"llmMs":0,"toolMs":0,"ttftMs":0,"ttftSteps":0,"decodeMs":0,"decodeTokens":0},"title":null,"goal":null,"tokenUsage":{"uncachedInputTokens":0,"outputTokens":0,"cacheReadTokens":0,"cacheWriteTokens":0},"contextPressure":{},"contextBreakdown":{"systemTokens":0,"toolsTokens":0,"messageTokens":0},"subagentTiming":{"settledMs":0},"subagent":null,"permissions":{"options":[{"value":"read-only","name":"read-only"},{"value":"workspace-write","name":"workspace-write"},{"value":"danger-full-access","name":"danger-full-access"}],"currentValue":"workspace-write"},"delegation":{"status":"idle","promptCount":0},"sessionListMetadata":{"blank":true,"lastPromptAt":null},"imageLimits":{"maxImageBytes":20971520,"maxImagesPerMessage":20,"maxMessageImageBytes":209715200,"maxImagePixels":64000000,"maxImageDimension":8192,"mediaTypes":["image/png","image/jpeg","image/webp","image/gif"]},"todos":null,"plan":{"active":false,"pending":false}}}},{"sessionId":"session-d16abe04-d0f6-4268-9e80-dbad6dcc3011","updatedAt":1788004577113,"running":false,"blank":false,"cwd":"/Users/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin","agentPreset":"standard","projections":{"asOfSeq":182,"values":{"sessionStats":{"turns":1,"steps":1,"llmMs":10403,"toolMs":0,"ttftMs":6709,"ttftSteps":1,"decodeMs":3694,"decodeTokens":275},"title":"询问你是谁","goal":null,"tokenUsage":{"uncachedInputTokens":11203,"outputTokens":275,"cacheReadTokens":11136,"cacheWriteTokens":0},"contextPressure":{"pressureTokens":22339,"projectedTokens":22433,"contextWindow":2000000},"contextBreakdown":{"systemTokens":1601,"toolsTokens":8438,"messageTokens":1784},"subagentTiming":{"settledMs":0},"subagent":null,"permissions":{"options":[{"value":"read-only","name":"read-only"},{"value":"workspace-write","name":"workspace-write"},{"value":"danger-full-access","name":"danger-full-access"}],"currentValue":"workspace-write"},"delegation":{"status":"completed","lastTurnEnd":"completed","promptCount":3,"lastAssistantSeq":179},"sessionListMetadata":{"blank":false,"lastPromptAt":1788004577113},"imageLimits":{"maxImageBytes":20971520,"maxImagesPerMessage":20,"maxMessageImageBytes":209715200,"maxImagePixels":64000000,"maxImageDimension":8192,"mediaTypes":["image/png","image/jpeg","image/webp","image/gif"]},"todos":null,"plan":{"active":false,"pending":false}}}},{"sessionId":"session-9dde0639-7b3e-405c-9687-9a7633bd8a26","updatedAt":1788004380428,"running":false,"blank":true,"cwd":"/Users/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin","agentPreset":"dsh-bot","projections":{"asOfSeq":4,"values":{"sessionStats":{"turns":0,"steps":0,"llmMs":0,"toolMs":0,"ttftMs":0,"ttftSteps":0,"decodeMs":0,"decodeTokens":0},"title":null,"goal":null,"tokenUsage":{"uncachedInputTokens":0,"outputTokens":0,"cacheReadTokens":0,"cacheWriteTokens":0},"contextPressure":{},"contextBreakdown":{"systemTokens":0,"toolsTokens":0,"messageTokens":0},"subagentTiming":{"settledMs":0},"subagent":null,"permissions":{"options":[{"value":"read-only","name":"read-only"},{"value":"workspace-write","name":"workspace-write"},{"value":"danger-full-access","name":"danger-full-access"}],"currentValue":"workspace-write"},"delegation":{"status":"idle","promptCount":0},"sessionListMetadata":{"blank":true,"lastPromptAt":null},"imageLimits":{"maxImageBytes":20971520,"maxImagesPerMessage":20,"maxMessageImageBytes":209715200,"maxImagePixels":64000000,"maxImageDimension":8192,"mediaTypes":["image/png","image/jpeg","image/webp","image/gif"]},"todos":null,"plan":{"active":false,"pending":false}}}},{"sessionId":"session-acf3c86d-943b-4c10-8a7f-2f5025c9ae0d","updatedAt":1788004348927,"running":false,"blank":false,"cwd":"/Users/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin","agentPreset":"dsh-bot","projections":{"asOfSeq":160,"values":{"sessionStats":{"turns":1,"steps":1,"llmMs":7136,"toolMs":0,"ttftMs":3765,"ttftSteps":1,"decodeMs":3371,"decodeTokens":244},"title":"询问人工智能身份","goal":null,"tokenUsage":{"uncachedInputTokens":11203,"outputTokens":244,"cacheReadTokens":128,"cacheWriteTokens":0},"contextPressure":{"pressureTokens":11331,"projectedTokens":11418,"contextWindow":2000000},"contextBreakdown":{"systemTokens":1601,"toolsTokens":8438,"messageTokens":1777},"subagentTiming":{"settledMs":0},"subagent":null,"permissions":{"options":[{"value":"read-only","name":"read-only"},{"value":"workspace-write","name":"workspace-write"},{"value":"danger-full-access","name":"danger-full-access"}],"currentValue":"workspace-write"},"delegation":{"status":"completed","lastTurnEnd":"completed","promptCount":3,"lastAssistantSeq":157},"sessionListMetadata":{"blank":false,"lastPromptAt":1788004348927},"imageLimits":{"maxImageBytes":20971520,"maxImagesPerMessage":20,"maxMessageImageBytes":209715200,"maxImagePixels":64000000,"maxImageDimension":8192,"mediaTypes":["image/png","image/jpeg","image/webp","image/gif"]},"todos":null,"plan":{"active":false,"pending":false}}}},{"sessionId":"session-bf460816-85ee-4492-a349-5c73e44c7919","updatedAt":1788003493682,"running":false,"blank":false,"cwd":"/Users/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin","agentPreset":"standard","projections":{"asOfSeq":44,"values":{"sessionStats":{"turns":1,"steps":1,"llmMs":2516,"toolMs":0,"ttftMs":2361,"ttftSteps":1,"decodeMs":155,"decodeTokens":22},"title":"gui stream ok","goal":null,"tokenUsage":{"uncachedInputTokens":11247,"outputTokens":22,"cacheReadTokens":0,"cacheWriteTokens":0},"contextPressure":{"pressureTokens":11247,"projectedTokens":11284,"contextWindow":1000000},"contextBreakdown":{"systemTokens":1594,"toolsTokens":8438,"messageTokens":1739},"subagentTiming":{"settledMs":0},"subagent":null,"permissions":{"options":[{"value":"read-only","name":"read-only"},{"value":"workspace-write","name":"workspace-write"},{"value":"danger-full-access","name":"danger-full-access"}],"currentValue":"workspace-write"},"delegation":{"status":"completed","lastTurnEnd":"completed","promptCount":3,"lastAssistantSeq":42},"sessionListMetadata":{"blank":false,"lastPromptAt":1788003493682},"imageLimits":{"maxImageBytes":20971520,"maxImagesPerMessage":20,"maxMessageImageBytes":209715200,"maxImagePixels":64000000,"maxImageDimension":8192,"mediaTypes":["image/png","image/jpeg","image/webp","image/gif"]},"todos":null,"plan":{"active":false,"pending":false}}}},{"sessionId":"session-d719ec96-159a-4945-abf7-6d75770645e5","updatedAt":1788002570812,"running":false,"blank":false,"cwd":"/Users/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin","agentPreset":"standard","projections":{"asOfSeq":43,"values":{"sessionStats":{"turns":1,"steps":1,"llmMs":3989,"toolMs":0,"ttftMs":3642,"ttftSteps":1,"decodeMs":347,"decodeTokens":33},"title":"Phase0 restart exact reply request","goal":null,"tokenUsage":{"uncachedInputTokens":11147,"outputTokens":33,"cacheReadTokens":128,"cacheWriteTokens":0},"contextPressure":{"pressureTokens":11275,"projectedTokens":11308,"contextWindow":2000000},"contextBreakdown":{"systemTokens":1592,"toolsTokens":8438,"messageTokens":1732},"subagentTiming":{"settledMs":0},"subagent":null,"permissions":{"options":[{"value":"read-only","name":"read-only"},{"value":"workspace-write","name":"workspace-write"},{"value":"danger-full-access","name":"danger-full-access"}],"currentValue":"workspace-write"},"delegation":{"status":"completed","lastTurnEnd":"completed","promptCount":3,"lastAssistantSeq":40},"sessionListMetadata":{"blank":false,"lastPromptAt":1788002570812},"imageLimits":{"maxImageBytes":20971520,"maxImagesPerMessage":20,"maxMessageImageBytes":209715200,"maxImagePixels":64000000,"maxImageDimension":8192,"mediaTypes":["image/png","image/jpeg","image/webp","image/gif"]},"todos":null,"plan":{"active":false,"pending":false}}}},{"sessionId":"session-39f2022a-6781-4de7-bd9c-6772061742ce","updatedAt":1788002281749,"running":false,"blank":false,"cwd":"/Users/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin","agentPreset":"standard","projections":{"asOfSeq":37,"values":{"sessionStats":{"turns":1,"steps":1,"llmMs":10842,"toolMs":0,"ttftMs":10396,"ttftSteps":1,"decodeMs":446,"decodeTokens":33},"title":"~校准隐藏","goal":null,"tokenUsage":{"uncachedInputTokens":11145,"outputTokens":33,"cacheReadTokens":128,"cacheWriteTokens":0},"contextPressure":{"pressureTokens":11273,"projectedTokens":11303,"contextWindow":2000000},"contextBreakdown":{"systemTokens":1592,"toolsTokens":8438,"messageTokens":1727},"subagentTiming":{"settledMs":0},"subagent":null,"permissions":{"options":[{"value":"read-only","name":"read-only"},{"value":"workspace-write","name":"workspace-write"},{"value":"danger-full-access","name":"danger-full-access"}],"currentValue":"workspace-write"},"delegation":{"status":"completed","lastTurnEnd":"completed","promptCount":3,"lastAssistantSeq":35},"sessionListMetadata":{"blank":false,"lastPromptAt":1788002281749},"imageLimits":{"maxImageBytes":20971520,"maxImagesPerMessage":20,"maxMessageImageBytes":209715200,"maxImagePixels":64000000,"maxImageDimension":8192,"mediaTypes":["image/png","image/jpeg","image/webp","image/gif"]},"todos":null,"plan":{"active":false,"pending":false}}}},{"sessionId":"session-7a020d5b-9129-469c-bbf9-5e73f0b458fe","updatedAt":1788002234108,"running":false,"blank":true,"cwd":"/Users/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin","agentPreset":"standard","projections":{"asOfSeq":3,"values":{"sessionStats":{"turns":0,"steps":0,"llmMs":0,"toolMs":0,"ttftMs":0,"ttftSteps":0,"decodeMs":0,"decodeTokens":0},"title":"校准","goal":null,"tokenUsage":{"uncachedInputTokens":0,"outputTokens":0,"cacheReadTokens":0,"cacheWriteTokens":0},"contextPressure":{},"contextBreakdown":{"systemTokens":0,"toolsTokens":0,"messageTokens":0},"subagentTiming":{"settledMs":0},"subagent":null,"permissions":{"options":[{"value":"read-only","name":"read-only"},{"value":"workspace-write","name":"workspace-write"},{"value":"danger-full-access","name":"danger-full-access"}],"currentValue":"workspace-write"},"delegation":{"status":"idle","promptCount":0},"sessionListMetadata":{"blank":true,"lastPromptAt":null},"imageLimits":{"maxImageBytes":20971520,"maxImagesPerMessage":20,"maxMessageImageBytes":209715200,"maxImagePixels":64000000,"maxImageDimension":8192,"mediaTypes":["image/png","image/jpeg","image/webp","image/gif"]},"todos":null,"plan":{"active":false,"pending":false}}}},{"sessionId":"session-d7e02ad6-a600-4877-a88b-1766be2214e5","updatedAt":1788001974591,"running":false,"blank":false,"cwd":"/Users/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin","agentPreset":"standard","projections":{"asOfSeq":127,"values":{"sessionStats":{"turns":2,"steps":4,"llmMs":13384,"toolMs":23,"ttftMs":11216,"ttftSteps":4,"decodeMs":2168,"decodeTokens":161},"title":"Reply with exactly the three","goal":null,"tokenUsage":{"uncachedInputTokens":44849,"outputTokens":161,"cacheReadTokens":22400,"cacheWriteTokens":0},"contextPressure":{"pressureTokens":22417,"projectedTokens":22430,"contextWindow":2000000},"contextBreakdown":{"systemTokens":1592,"toolsTokens":8438,"messageTokens":1930},"subagentTiming":{"settledMs":0},"subagent":null,"permissions":{"options":[{"value":"read-only","name":"read-only"},{"value":"workspace-write","name":"workspace-write"},{"value":"danger-full-access","name":"danger-full-access"}],"currentValue":"workspace-write"},"delegation":{"status":"completed","lastTurnEnd":"completed","promptCount":4,"lastAssistantSeq":125},"sessionListMetadata":{"blank":false,"lastPromptAt":1788001974591},"imageLimits":{"maxImageBytes":20971520,"maxImagesPerMessage":20,"maxMessageImageBytes":209715200,"maxImagePixels":64000000,"maxImageDimension":8192,"mediaTypes":["image/png","image/jpeg","image/webp","image/gif"]},"todos":[{"content":"Reply with exact phrase","status":"completed"}],"plan":{"active":false,"pending":false}}}},{"sessionId":"session-e8d3c83e-751c-4afe-b3f7-7dd28c6a2013","updatedAt":1788001973009,"running":false,"blank":false,"cwd":"/Users/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin","agentPreset":"standard","projections":{"asOfSeq":41,"values":{"sessionStats":{"turns":1,"steps":1,"llmMs":4255,"toolMs":0,"ttftMs":3920,"ttftSteps":1,"decodeMs":335,"decodeTokens":34},"title":"Exact reply switch smoke ok","goal":null,"tokenUsage":{"uncachedInputTokens":11146,"outputTokens":34,"cacheReadTokens":128,"cacheWriteTokens":0},"contextPressure":{"pressureTokens":11274,"projectedTokens":11306,"contextWindow":2000000},"contextBreakdown":{"systemTokens":1592,"toolsTokens":8438,"messageTokens":1730},"subagentTiming":{"settledMs":0},"subagent":null,"permissions":{"options":[{"value":"read-only","name":"read-only"},{"value":"workspace-write","name":"workspace-write"},{"value":"danger-full-access","name":"danger-full-access"}],"currentValue":"workspace-write"},"delegation":{"status":"completed","lastTurnEnd":"completed","promptCount":3,"lastAssistantSeq":38},"sessionListMetadata":{"blank":false,"lastPromptAt":1788001973009},"imageLimits":{"maxImageBytes":20971520,"maxImagesPerMessage":20,"maxMessageImageBytes":209715200,"maxImagePixels":64000000,"maxImageDimension":8192,"mediaTypes":["image/png","image/jpeg","image/webp","image/gif"]},"todos":null,"plan":{"active":false,"pending":false}}}}]}}}
+{
+  "type": "server-response",
+  "rpcId": "dbg",
+  "result": {
+    "ok": true,
+    "value": {
+      "items": [
+        {
+          "sessionId": "session-aaaf4884-4f05-40df-9ba7-6e6cc25ee6d3",
+          "updatedAt": 1788017234800,
+          "running": true,
+          "blank": false,
+          "cwd": "/Users/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin",
+          "agentPreset": "dsh-bot",
+          "projections": {
+            "asOfSeq": 13,
+            "values": {
+              "sessionStats": {
+                "turns": 0,
+                "steps": 0,
+                "llmMs": 0,
+                "toolMs": 0,
+                "ttftMs": 0,
+                "ttftSteps": 0,
+                "decodeMs": 0,
+                "decodeTokens": 0
+              },
+              "title": "Call dsh_bot_ask exactly once with",
+              "goal": null,
+              "tokenUsage": {
+                "uncachedInputTokens": 0,
+                "outputTokens": 0,
+                "cacheReadTokens": 0,
+                "cacheWriteTokens": 0
+              },
+              "contextPressure": {
+                "contextWindow": 2000000
+              },
+              "contextBreakdown": {
+                "systemTokens": 1601,
+                "toolsTokens": 8570,
+                "messageTokens": 1731
+              },
+              "subagentTiming": {
+                "settledMs": 0
+              },
+              "subagent": null,
+              "permissions": {
+                "options": [
+                  {
+                    "value": "read-only",
+                    "name": "read-only"
+                  },
+                  {
+                    "value": "workspace-write",
+                    "name": "workspace-write"
+                  },
+                  {
+                    "value": "danger-full-access",
+                    "name": "danger-full-access"
+                  }
+                ],
+                "currentValue": "workspace-write"
+              },
+              "delegation": {
+                "status": "running",
+                "promptCount": 3
+              },
+              "sessionListMetadata": {
+                "blank": false,
+                "lastPromptAt": 1788017234800
+              },
+              "imageLimits": {
+                "maxImageBytes": 20971520,
+                "maxImagesPerMessage": 20,
+                "maxMessageImageBytes": 209715200,
+                "maxImagePixels": 64000000,
+                "maxImageDimension": 8192,
+                "mediaTypes": [
+                  "image/png",
+                  "image/jpeg",
+                  "image/webp",
+                  "image/gif"
+                ]
+              },
+              "todos": null,
+              "plan": {
+                "active": false,
+                "pending": false
+              }
+            }
+          }
+        },
+        {
+          "sessionId": "session-e0d98567-34de-46bc-903f-8f331852245e",
+          "updatedAt": 1788017227156,
+          "running": false,
+          "blank": false,
+          "cwd": "/Users/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin",
+          "agentPreset": "dsh-bot",
+          "projections": {
+            "asOfSeq": 159,
+            "values": {
+              "sessionStats": {
+                "turns": 1,
+                "steps": 1,
+                "llmMs": 6837,
+                "toolMs": 0,
+                "ttftMs": 3401,
+                "ttftSteps": 1,
+                "decodeMs": 3436,
+                "decodeTokens": 253
+              },
+              "title": "你是谁?",
+              "goal": null,
+              "tokenUsage": {
+                "uncachedInputTokens": 11336,
+                "outputTokens": 253,
+                "cacheReadTokens": 128,
+                "cacheWriteTokens": 0
+              },
+              "contextPressure": {
+                "pressureTokens": 11464,
+                "projectedTokens": 11560,
+                "contextWindow": 2000000
+              },
+              "contextBreakdown": {
+                "systemTokens": 1601,
+                "toolsTokens": 8570,
+                "messageTokens": 1786
+              },
+              "subagentTiming": {
+                "settledMs": 0
+              },
+              "subagent": null,
+              "permissions": {
+                "options": [
+                  {
+                    "value": "read-only",
+                    "name": "read-only"
+                  },
+                  {
+                    "value": "workspace-write",
+                    "name": "workspace-write"
+                  },
+                  {
+                    "value": "danger-full-access",
+                    "name": "danger-full-access"
+                  }
+                ],
+                "currentValue": "workspace-write"
+              },
+              "delegation": {
+                "status": "completed",
+                "lastTurnEnd": "completed",
+                "promptCount": 3,
+                "lastAssistantSeq": 157
+              },
+              "sessionListMetadata": {
+                "blank": false,
+                "lastPromptAt": 1788017227156
+              },
+              "imageLimits": {
+                "maxImageBytes": 20971520,
+                "maxImagesPerMessage": 20,
+                "maxMessageImageBytes": 209715200,
+                "maxImagePixels": 64000000,
+                "maxImageDimension": 8192,
+                "mediaTypes": [
+                  "image/png",
+                  "image/jpeg",
+                  "image/webp",
+                  "image/gif"
+                ]
+              },
+              "todos": null,
+              "plan": {
+                "active": false,
+                "pending": false
+              }
+            }
+          }
+        },
+        {
+          "sessionId": "session-4cac60d2-bbc2-48f9-85fe-b0a8653c27c3",
+          "updatedAt": 1788016391342,
+          "running": false,
+          "blank": true,
+          "cwd": "/Users/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin",
+          "agentPreset": "dsh-bot",
+          "projections": {
+            "asOfSeq": 3,
+            "values": {
+              "sessionStats": {
+                "turns": 0,
+                "steps": 0,
+                "llmMs": 0,
+                "toolMs": 0,
+                "ttftMs": 0,
+                "ttftSteps": 0,
+                "decodeMs": 0,
+                "decodeTokens": 0
+              },
+              "title": "dsh-bot-manual-20260829-231307-override-off",
+              "goal": null,
+              "tokenUsage": {
+                "uncachedInputTokens": 0,
+                "outputTokens": 0,
+                "cacheReadTokens": 0,
+                "cacheWriteTokens": 0
+              },
+              "contextPressure": {},
+              "contextBreakdown": {
+                "systemTokens": 0,
+                "toolsTokens": 0,
+                "messageTokens": 0
+              },
+              "subagentTiming": {
+                "settledMs": 0
+              },
+              "subagent": null,
+              "permissions": {
+                "options": [
+                  {
+                    "value": "read-only",
+                    "name": "read-only"
+                  },
+                  {
+                    "value": "workspace-write",
+                    "name": "workspace-write"
+                  },
+                  {
+                    "value": "danger-full-access",
+                    "name": "danger-full-access"
+                  }
+                ],
+                "currentValue": "workspace-write"
+              },
+              "delegation": {
+                "status": "idle",
+                "promptCount": 0
+              },
+              "sessionListMetadata": {
+                "blank": true,
+                "lastPromptAt": null
+              },
+              "imageLimits": {
+                "maxImageBytes": 20971520,
+                "maxImagesPerMessage": 20,
+                "maxMessageImageBytes": 209715200,
+                "maxImagePixels": 64000000,
+                "maxImageDimension": 8192,
+                "mediaTypes": [
+                  "image/png",
+                  "image/jpeg",
+                  "image/webp",
+                  "image/gif"
+                ]
+              },
+              "todos": null,
+              "plan": {
+                "active": false,
+                "pending": false
+              }
+            }
+          }
+        },
+        {
+          "sessionId": "session-70f607dc-53fc-42a5-a14c-911c71b05a43",
+          "updatedAt": 1788016390611,
+          "running": false,
+          "blank": true,
+          "cwd": "/Users/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin",
+          "agentPreset": "dsh-bot",
+          "projections": {
+            "asOfSeq": 2,
+            "values": {
+              "sessionStats": {
+                "turns": 0,
+                "steps": 0,
+                "llmMs": 0,
+                "toolMs": 0,
+                "ttftMs": 0,
+                "ttftSteps": 0,
+                "decodeMs": 0,
+                "decodeTokens": 0
+              },
+              "title": null,
+              "goal": null,
+              "tokenUsage": {
+                "uncachedInputTokens": 0,
+                "outputTokens": 0,
+                "cacheReadTokens": 0,
+                "cacheWriteTokens": 0
+              },
+              "contextPressure": {},
+              "contextBreakdown": {
+                "systemTokens": 0,
+                "toolsTokens": 0,
+                "messageTokens": 0
+              },
+              "subagentTiming": {
+                "settledMs": 0
+              },
+              "subagent": null,
+              "permissions": {
+                "options": [
+                  {
+                    "value": "read-only",
+                    "name": "read-only"
+                  },
+                  {
+                    "value": "workspace-write",
+                    "name": "workspace-write"
+                  },
+                  {
+                    "value": "danger-full-access",
+                    "name": "danger-full-access"
+                  }
+                ],
+                "currentValue": "workspace-write"
+              },
+              "delegation": {
+                "status": "idle",
+                "promptCount": 0
+              },
+              "sessionListMetadata": {
+                "blank": true,
+                "lastPromptAt": null
+              },
+              "imageLimits": {
+                "maxImageBytes": 20971520,
+                "maxImagesPerMessage": 20,
+                "maxMessageImageBytes": 209715200,
+                "maxImagePixels": 64000000,
+                "maxImageDimension": 8192,
+                "mediaTypes": [
+                  "image/png",
+                  "image/jpeg",
+                  "image/webp",
+                  "image/gif"
+                ]
+              },
+              "todos": null,
+              "plan": {
+                "active": false,
+                "pending": false
+              }
+            }
+          }
+        },
+        {
+          "sessionId": "session-91293f51-624b-4826-9144-b82cd32c3f67",
+          "updatedAt": 1788016390181,
+          "running": false,
+          "blank": true,
+          "cwd": "/Users/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin",
+          "agentPreset": "dsh-bot",
+          "projections": {
+            "asOfSeq": 3,
+            "values": {
+              "sessionStats": {
+                "turns": 0,
+                "steps": 0,
+                "llmMs": 0,
+                "toolMs": 0,
+                "ttftMs": 0,
+                "ttftSteps": 0,
+                "decodeMs": 0,
+                "decodeTokens": 0
+              },
+              "title": "dsh-bot-manual-20260829-231307-override-on",
+              "goal": null,
+              "tokenUsage": {
+                "uncachedInputTokens": 0,
+                "outputTokens": 0,
+                "cacheReadTokens": 0,
+                "cacheWriteTokens": 0
+              },
+              "contextPressure": {},
+              "contextBreakdown": {
+                "systemTokens": 0,
+                "toolsTokens": 0,
+                "messageTokens": 0
+              },
+              "subagentTiming": {
+                "settledMs": 0
+              },
+              "subagent": null,
+              "permissions": {
+                "options": [
+                  {
+                    "value": "read-only",
+                    "name": "read-only"
+                  },
+                  {
+                    "value": "workspace-write",
+                    "name": "workspace-write"
+                  },
+                  {
+                    "value": "danger-full-access",
+                    "name": "danger-full-access"
+                  }
+                ],
+                "currentValue": "workspace-write"
+              },
+              "delegation": {
+                "status": "idle",
+                "promptCount": 0
+              },
+              "sessionListMetadata": {
+                "blank": true,
+                "lastPromptAt": null
+              },
+              "imageLimits": {
+                "maxImageBytes": 20971520,
+                "maxImagesPerMessage": 20,
+                "maxMessageImageBytes": 209715200,
+                "maxImagePixels": 64000000,
+                "maxImageDimension": 8192,
+                "mediaTypes": [
+                  "image/png",
+                  "image/jpeg",
+                  "image/webp",
+                  "image/gif"
+                ]
+              },
+              "todos": null,
+              "plan": {
+                "active": false,
+                "pending": false
+              }
+            }
+          }
+        },
+        {
+          "sessionId": "session-5a0ca88e-49dc-4397-afd6-3e56e81b9e7a",
+          "updatedAt": 1788016389241,
+          "running": false,
+          "blank": true,
+          "cwd": "/Users/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin",
+          "agentPreset": "dsh-bot",
+          "projections": {
+            "asOfSeq": 3,
+            "values": {
+              "sessionStats": {
+                "turns": 0,
+                "steps": 0,
+                "llmMs": 0,
+                "toolMs": 0,
+                "ttftMs": 0,
+                "ttftSteps": 0,
+                "decodeMs": 0,
+                "decodeTokens": 0
+              },
+              "title": "dsh-bot-manual-20260829-231307-plugin",
+              "goal": null,
+              "tokenUsage": {
+                "uncachedInputTokens": 0,
+                "outputTokens": 0,
+                "cacheReadTokens": 0,
+                "cacheWriteTokens": 0
+              },
+              "contextPressure": {},
+              "contextBreakdown": {
+                "systemTokens": 0,
+                "toolsTokens": 0,
+                "messageTokens": 0
+              },
+              "subagentTiming": {
+                "settledMs": 0
+              },
+              "subagent": null,
+              "permissions": {
+                "options": [
+                  {
+                    "value": "read-only",
+                    "name": "read-only"
+                  },
+                  {
+                    "value": "workspace-write",
+                    "name": "workspace-write"
+                  },
+                  {
+                    "value": "danger-full-access",
+                    "name": "danger-full-access"
+                  }
+                ],
+                "currentValue": "workspace-write"
+              },
+              "delegation": {
+                "status": "idle",
+                "promptCount": 0
+              },
+              "sessionListMetadata": {
+                "blank": true,
+                "lastPromptAt": null
+              },
+              "imageLimits": {
+                "maxImageBytes": 20971520,
+                "maxImagesPerMessage": 20,
+                "maxMessageImageBytes": 209715200,
+                "maxImagePixels": 64000000,
+                "maxImageDimension": 8192,
+                "mediaTypes": [
+                  "image/png",
+                  "image/jpeg",
+                  "image/webp",
+                  "image/gif"
+                ]
+              },
+              "todos": null,
+              "plan": {
+                "active": false,
+                "pending": false
+              }
+            }
+          }
+        },
+        {
+          "sessionId": "session-8aee925d-cf47-429e-aeb7-1f9a9c60df02",
+          "updatedAt": 1788016388617,
+          "running": false,
+          "blank": true,
+          "cwd": "/Users/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin",
+          "agentPreset": "dsh-bot",
+          "projections": {
+            "asOfSeq": 2,
+            "values": {
+              "sessionStats": {
+                "turns": 0,
+                "steps": 0,
+                "llmMs": 0,
+                "toolMs": 0,
+                "ttftMs": 0,
+                "ttftSteps": 0,
+                "decodeMs": 0,
+                "decodeTokens": 0
+              },
+              "title": null,
+              "goal": null,
+              "tokenUsage": {
+                "uncachedInputTokens": 0,
+                "outputTokens": 0,
+                "cacheReadTokens": 0,
+                "cacheWriteTokens": 0
+              },
+              "contextPressure": {},
+              "contextBreakdown": {
+                "systemTokens": 0,
+                "toolsTokens": 0,
+                "messageTokens": 0
+              },
+              "subagentTiming": {
+                "settledMs": 0
+              },
+              "subagent": null,
+              "permissions": {
+                "options": [
+                  {
+                    "value": "read-only",
+                    "name": "read-only"
+                  },
+                  {
+                    "value": "workspace-write",
+                    "name": "workspace-write"
+                  },
+                  {
+                    "value": "danger-full-access",
+                    "name": "danger-full-access"
+                  }
+                ],
+                "currentValue": "workspace-write"
+              },
+              "delegation": {
+                "status": "idle",
+                "promptCount": 0
+              },
+              "sessionListMetadata": {
+                "blank": true,
+                "lastPromptAt": null
+              },
+              "imageLimits": {
+                "maxImageBytes": 20971520,
+                "maxImagesPerMessage": 20,
+                "maxMessageImageBytes": 209715200,
+                "maxImagePixels": 64000000,
+                "maxImageDimension": 8192,
+                "mediaTypes": [
+                  "image/png",
+                  "image/jpeg",
+                  "image/webp",
+                  "image/gif"
+                ]
+              },
+              "todos": null,
+              "plan": {
+                "active": false,
+                "pending": false
+              }
+            }
+          }
+        },
+        {
+          "sessionId": "session-fd3b472a-9a71-4f13-821f-d1dafaf838a2",
+          "updatedAt": 1788014886479,
+          "running": false,
+          "blank": false,
+          "cwd": "/Users/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin",
+          "agentPreset": "dsh-bot",
+          "projections": {
+            "asOfSeq": 43,
+            "values": {
+              "sessionStats": {
+                "turns": 1,
+                "steps": 1,
+                "llmMs": 2767,
+                "toolMs": 0,
+                "ttftMs": 2237,
+                "ttftSteps": 1,
+                "decodeMs": 530,
+                "decodeTokens": 35
+              },
+              "title": "~dsh-bot: uf003-replay",
+              "goal": null,
+              "tokenUsage": {
+                "uncachedInputTokens": 11341,
+                "outputTokens": 35,
+                "cacheReadTokens": 128,
+                "cacheWriteTokens": 0
+              },
+              "contextPressure": {
+                "pressureTokens": 11469,
+                "projectedTokens": 11499,
+                "contextWindow": 2000000
+              },
+              "contextBreakdown": {
+                "systemTokens": 1601,
+                "toolsTokens": 8570,
+                "messageTokens": 1727
+              },
+              "subagentTiming": {
+                "settledMs": 0
+              },
+              "subagent": null,
+              "permissions": {
+                "options": [
+                  {
+                    "value": "read-only",
+                    "name": "read-only"
+                  },
+                  {
+                    "value": "workspace-write",
+                    "name": "workspace-write"
+                  },
+                  {
+                    "value": "danger-full-access",
+                    "name": "danger-full-access"
+                  }
+                ],
+                "currentValue": "workspace-write"
+              },
+              "delegation": {
+                "status": "completed",
+                "lastTurnEnd": "completed",
+                "promptCount": 3,
+                "lastAssistantSeq": 41
+              },
+              "sessionListMetadata": {
+                "blank": false,
+                "lastPromptAt": 1788014886479
+              },
+              "imageLimits": {
+                "maxImageBytes": 20971520,
+                "maxImagesPerMessage": 20,
+                "maxMessageImageBytes": 209715200,
+                "maxImagePixels": 64000000,
+                "maxImageDimension": 8192,
+                "mediaTypes": [
+                  "image/png",
+                  "image/jpeg",
+                  "image/webp",
+                  "image/gif"
+                ]
+              },
+              "todos": null,
+              "plan": {
+                "active": false,
+                "pending": false
+              }
+            }
+          }
+        },
+        {
+          "sessionId": "session-757c7963-761d-45fc-9ee8-9b3d44e07a8d",
+          "updatedAt": 1788014882894,
+          "running": false,
+          "blank": false,
+          "cwd": "/Users/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin",
+          "agentPreset": "dsh-bot",
+          "projections": {
+            "asOfSeq": 144,
+            "values": {
+              "sessionStats": {
+                "turns": 1,
+                "steps": 2,
+                "llmMs": 17125,
+                "toolMs": 2973,
+                "ttftMs": 15542,
+                "ttftSteps": 2,
+                "decodeMs": 1583,
+                "decodeTokens": 137
+              },
+              "title": "Call dsh_bot_ask phase3 pong",
+              "goal": null,
+              "tokenUsage": {
+                "uncachedInputTokens": 22781,
+                "outputTokens": 137,
+                "cacheReadTokens": 22656,
+                "cacheWriteTokens": 0
+              },
+              "contextPressure": {
+                "pressureTokens": 22802,
+                "projectedTokens": 22868,
+                "contextWindow": 2000000
+              },
+              "contextBreakdown": {
+                "systemTokens": 1601,
+                "toolsTokens": 8570,
+                "messageTokens": 1894
+              },
+              "subagentTiming": {
+                "settledMs": 0
+              },
+              "subagent": null,
+              "permissions": {
+                "options": [
+                  {
+                    "value": "read-only",
+                    "name": "read-only"
+                  },
+                  {
+                    "value": "workspace-write",
+                    "name": "workspace-write"
+                  },
+                  {
+                    "value": "danger-full-access",
+                    "name": "danger-full-access"
+                  }
+                ],
+                "currentValue": "workspace-write"
+              },
+              "delegation": {
+                "status": "completed",
+                "lastTurnEnd": "completed",
+                "promptCount": 3,
+                "lastAssistantSeq": 141
+              },
+              "sessionListMetadata": {
+                "blank": false,
+                "lastPromptAt": 1788014882894
+              },
+              "imageLimits": {
+                "maxImageBytes": 20971520,
+                "maxImagesPerMessage": 20,
+                "maxMessageImageBytes": 209715200,
+                "maxImagePixels": 64000000,
+                "maxImageDimension": 8192,
+                "mediaTypes": [
+                  "image/png",
+                  "image/jpeg",
+                  "image/webp",
+                  "image/gif"
+                ]
+              },
+              "todos": null,
+              "plan": {
+                "active": false,
+                "pending": false
+              }
+            }
+          }
+        },
+        {
+          "sessionId": "session-38f8223e-49d8-4370-882b-f7e137cb7719",
+          "updatedAt": 1788014876737,
+          "running": false,
+          "blank": false,
+          "cwd": "/Users/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin",
+          "agentPreset": "dsh-bot",
+          "projections": {
+            "asOfSeq": 65,
+            "values": {
+              "sessionStats": {
+                "turns": 1,
+                "steps": 1,
+                "llmMs": 4271,
+                "toolMs": 0,
+                "ttftMs": 3674,
+                "ttftSteps": 1,
+                "decodeMs": 597,
+                "decodeTokens": 41
+              },
+              "title": "Request exact three-word reply",
+              "goal": null,
+              "tokenUsage": {
+                "uncachedInputTokens": 11344,
+                "outputTokens": 41,
+                "cacheReadTokens": 128,
+                "cacheWriteTokens": 0
+              },
+              "contextPressure": {
+                "pressureTokens": 11472,
+                "projectedTokens": 11530,
+                "contextWindow": 2000000
+              },
+              "contextBreakdown": {
+                "systemTokens": 1601,
+                "toolsTokens": 8570,
+                "messageTokens": 1760
+              },
+              "subagentTiming": {
+                "settledMs": 0
+              },
+              "subagent": null,
+              "permissions": {
+                "options": [
+                  {
+                    "value": "read-only",
+                    "name": "read-only"
+                  },
+                  {
+                    "value": "workspace-write",
+                    "name": "workspace-write"
+                  },
+                  {
+                    "value": "danger-full-access",
+                    "name": "danger-full-access"
+                  }
+                ],
+                "currentValue": "workspace-write"
+              },
+              "delegation": {
+                "status": "completed",
+                "lastTurnEnd": "completed",
+                "promptCount": 3,
+                "lastAssistantSeq": 62
+              },
+              "sessionListMetadata": {
+                "blank": false,
+                "lastPromptAt": 1788014876737
+              },
+              "imageLimits": {
+                "maxImageBytes": 20971520,
+                "maxImagesPerMessage": 20,
+                "maxMessageImageBytes": 209715200,
+                "maxImagePixels": 64000000,
+                "maxImageDimension": 8192,
+                "mediaTypes": [
+                  "image/png",
+                  "image/jpeg",
+                  "image/webp",
+                  "image/gif"
+                ]
+              },
+              "todos": null,
+              "plan": {
+                "active": false,
+                "pending": false
+              }
+            }
+          }
+        },
+        {
+          "sessionId": "session-ec196f3b-0d96-4e05-afb7-1d6fed6de927",
+          "updatedAt": 1788014827562,
+          "running": false,
+          "blank": true,
+          "cwd": "/Users/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin",
+          "agentPreset": "dsh-bot",
+          "projections": {
+            "asOfSeq": 3,
+            "values": {
+              "sessionStats": {
+                "turns": 0,
+                "steps": 0,
+                "llmMs": 0,
+                "toolMs": 0,
+                "ttftMs": 0,
+                "ttftSteps": 0,
+                "decodeMs": 0,
+                "decodeTokens": 0
+              },
+              "title": "DSH Bot",
+              "goal": null,
+              "tokenUsage": {
+                "uncachedInputTokens": 0,
+                "outputTokens": 0,
+                "cacheReadTokens": 0,
+                "cacheWriteTokens": 0
+              },
+              "contextPressure": {},
+              "contextBreakdown": {
+                "systemTokens": 0,
+                "toolsTokens": 0,
+                "messageTokens": 0
+              },
+              "subagentTiming": {
+                "settledMs": 0
+              },
+              "subagent": null,
+              "permissions": {
+                "options": [
+                  {
+                    "value": "read-only",
+                    "name": "read-only"
+                  },
+                  {
+                    "value": "workspace-write",
+                    "name": "workspace-write"
+                  },
+                  {
+                    "value": "danger-full-access",
+                    "name": "danger-full-access"
+                  }
+                ],
+                "currentValue": "workspace-write"
+              },
+              "delegation": {
+                "status": "idle",
+                "promptCount": 0
+              },
+              "sessionListMetadata": {
+                "blank": true,
+                "lastPromptAt": null
+              },
+              "imageLimits": {
+                "maxImageBytes": 20971520,
+                "maxImagesPerMessage": 20,
+                "maxMessageImageBytes": 209715200,
+                "maxImagePixels": 64000000,
+                "maxImageDimension": 8192,
+                "mediaTypes": [
+                  "image/png",
+                  "image/jpeg",
+                  "image/webp",
+                  "image/gif"
+                ]
+              },
+              "todos": null,
+              "plan": {
+                "active": false,
+                "pending": false
+              }
+            }
+          }
+        },
+        {
+          "sessionId": "session-cb74c0e8-651f-49d0-b1a8-32303d119088",
+          "updatedAt": 1788014673580,
+          "running": false,
+          "blank": true,
+          "cwd": "/Users/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin",
+          "agentPreset": "dsh-bot",
+          "projections": {
+            "asOfSeq": 3,
+            "values": {
+              "sessionStats": {
+                "turns": 0,
+                "steps": 0,
+                "llmMs": 0,
+                "toolMs": 0,
+                "ttftMs": 0,
+                "ttftSteps": 0,
+                "decodeMs": 0,
+                "decodeTokens": 0
+              },
+              "title": "UF-003 jump",
+              "goal": null,
+              "tokenUsage": {
+                "uncachedInputTokens": 0,
+                "outputTokens": 0,
+                "cacheReadTokens": 0,
+                "cacheWriteTokens": 0
+              },
+              "contextPressure": {},
+              "contextBreakdown": {
+                "systemTokens": 0,
+                "toolsTokens": 0,
+                "messageTokens": 0
+              },
+              "subagentTiming": {
+                "settledMs": 0
+              },
+              "subagent": null,
+              "permissions": {
+                "options": [
+                  {
+                    "value": "read-only",
+                    "name": "read-only"
+                  },
+                  {
+                    "value": "workspace-write",
+                    "name": "workspace-write"
+                  },
+                  {
+                    "value": "danger-full-access",
+                    "name": "danger-full-access"
+                  }
+                ],
+                "currentValue": "workspace-write"
+              },
+              "delegation": {
+                "status": "idle",
+                "promptCount": 0
+              },
+              "sessionListMetadata": {
+                "blank": true,
+                "lastPromptAt": null
+              },
+              "imageLimits": {
+                "maxImageBytes": 20971520,
+                "maxImagesPerMessage": 20,
+                "maxMessageImageBytes": 209715200,
+                "maxImagePixels": 64000000,
+                "maxImageDimension": 8192,
+                "mediaTypes": [
+                  "image/png",
+                  "image/jpeg",
+                  "image/webp",
+                  "image/gif"
+                ]
+              },
+              "todos": null,
+              "plan": {
+                "active": false,
+                "pending": false
+              }
+            }
+          }
+        },
+        {
+          "sessionId": "session-88a1b386-957c-4e22-98a2-c1f972f2541e",
+          "updatedAt": 1788013194856,
+          "running": false,
+          "blank": false,
+          "cwd": "/Users/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin",
+          "agentPreset": "dsh-bot",
+          "projections": {
+            "asOfSeq": 43,
+            "values": {
+              "sessionStats": {
+                "turns": 1,
+                "steps": 1,
+                "llmMs": 2954,
+                "toolMs": 0,
+                "ttftMs": 2617,
+                "ttftSteps": 1,
+                "decodeMs": 337,
+                "decodeTokens": 38
+              },
+              "title": "~dsh-bot: uf003-replay",
+              "goal": null,
+              "tokenUsage": {
+                "uncachedInputTokens": 11341,
+                "outputTokens": 38,
+                "cacheReadTokens": 128,
+                "cacheWriteTokens": 0
+              },
+              "contextPressure": {
+                "pressureTokens": 11469,
+                "projectedTokens": 11499,
+                "contextWindow": 2000000
+              },
+              "contextBreakdown": {
+                "systemTokens": 1601,
+                "toolsTokens": 8570,
+                "messageTokens": 1727
+              },
+              "subagentTiming": {
+                "settledMs": 0
+              },
+              "subagent": null,
+              "permissions": {
+                "options": [
+                  {
+                    "value": "read-only",
+                    "name": "read-only"
+                  },
+                  {
+                    "value": "workspace-write",
+                    "name": "workspace-write"
+                  },
+                  {
+                    "value": "danger-full-access",
+                    "name": "danger-full-access"
+                  }
+                ],
+                "currentValue": "workspace-write"
+              },
+              "delegation": {
+                "status": "completed",
+                "lastTurnEnd": "completed",
+                "promptCount": 3,
+                "lastAssistantSeq": 41
+              },
+              "sessionListMetadata": {
+                "blank": false,
+                "lastPromptAt": 1788013194856
+              },
+              "imageLimits": {
+                "maxImageBytes": 20971520,
+                "maxImagesPerMessage": 20,
+                "maxMessageImageBytes": 209715200,
+                "maxImagePixels": 64000000,
+                "maxImageDimension": 8192,
+                "mediaTypes": [
+                  "image/png",
+                  "image/jpeg",
+                  "image/webp",
+                  "image/gif"
+                ]
+              },
+              "todos": null,
+              "plan": {
+                "active": false,
+                "pending": false
+              }
+            }
+          }
+        },
+        {
+          "sessionId": "session-88d174f6-111b-48a8-85ac-9e0d3a8c3898",
+          "updatedAt": 1788013190135,
+          "running": false,
+          "blank": false,
+          "cwd": "/Users/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin",
+          "agentPreset": "dsh-bot",
+          "projections": {
+            "asOfSeq": 141,
+            "values": {
+              "sessionStats": {
+                "turns": 1,
+                "steps": 2,
+                "llmMs": 7414,
+                "toolMs": 3245,
+                "ttftMs": 5873,
+                "ttftSteps": 2,
+                "decodeMs": 1541,
+                "decodeTokens": 143
+              },
+              "title": "Call dsh_bot_ask for phase3 pong",
+              "goal": null,
+              "tokenUsage": {
+                "uncachedInputTokens": 22781,
+                "outputTokens": 143,
+                "cacheReadTokens": 11392,
+                "cacheWriteTokens": 0
+              },
+              "contextPressure": {
+                "pressureTokens": 22674,
+                "projectedTokens": 22731,
+                "contextWindow": 2000000
+              },
+              "contextBreakdown": {
+                "systemTokens": 1601,
+                "toolsTokens": 8570,
+                "messageTokens": 1888
+              },
+              "subagentTiming": {
+                "settledMs": 0
+              },
+              "subagent": null,
+              "permissions": {
+                "options": [
+                  {
+                    "value": "read-only",
+                    "name": "read-only"
+                  },
+                  {
+                    "value": "workspace-write",
+                    "name": "workspace-write"
+                  },
+                  {
+                    "value": "danger-full-access",
+                    "name": "danger-full-access"
+                  }
+                ],
+                "currentValue": "workspace-write"
+              },
+              "delegation": {
+                "status": "completed",
+                "lastTurnEnd": "completed",
+                "promptCount": 3,
+                "lastAssistantSeq": 138
+              },
+              "sessionListMetadata": {
+                "blank": false,
+                "lastPromptAt": 1788013190135
+              },
+              "imageLimits": {
+                "maxImageBytes": 20971520,
+                "maxImagesPerMessage": 20,
+                "maxMessageImageBytes": 209715200,
+                "maxImagePixels": 64000000,
+                "maxImageDimension": 8192,
+                "mediaTypes": [
+                  "image/png",
+                  "image/jpeg",
+                  "image/webp",
+                  "image/gif"
+                ]
+              },
+              "todos": null,
+              "plan": {
+                "active": false,
+                "pending": false
+              }
+            }
+          }
+        },
+        {
+          "sessionId": "session-50c7d0c5-c536-4c5a-a676-de68b9ea8ef7",
+          "updatedAt": 1788013170074,
+          "running": false,
+          "blank": false,
+          "cwd": "/Users/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin",
+          "agentPreset": "dsh-bot",
+          "projections": {
+            "asOfSeq": 47,
+            "values": {
+              "sessionStats": {
+                "turns": 1,
+                "steps": 1,
+                "llmMs": 4654,
+                "toolMs": 0,
+                "ttftMs": 4178,
+                "ttftSteps": 1,
+                "decodeMs": 476,
+                "decodeTokens": 39
+              },
+              "title": "Request exact three-word reply",
+              "goal": null,
+              "tokenUsage": {
+                "uncachedInputTokens": 11344,
+                "outputTokens": 39,
+                "cacheReadTokens": 128,
+                "cacheWriteTokens": 0
+              },
+              "contextPressure": {
+                "pressureTokens": 11472,
+                "projectedTokens": 11507,
+                "contextWindow": 2000000
+              },
+              "contextBreakdown": {
+                "systemTokens": 1601,
+                "toolsTokens": 8570,
+                "messageTokens": 1737
+              },
+              "subagentTiming": {
+                "settledMs": 0
+              },
+              "subagent": null,
+              "permissions": {
+                "options": [
+                  {
+                    "value": "read-only",
+                    "name": "read-only"
+                  },
+                  {
+                    "value": "workspace-write",
+                    "name": "workspace-write"
+                  },
+                  {
+                    "value": "danger-full-access",
+                    "name": "danger-full-access"
+                  }
+                ],
+                "currentValue": "workspace-write"
+              },
+              "delegation": {
+                "status": "completed",
+                "lastTurnEnd": "completed",
+                "promptCount": 3,
+                "lastAssistantSeq": 44
+              },
+              "sessionListMetadata": {
+                "blank": false,
+                "lastPromptAt": 1788013170074
+              },
+              "imageLimits": {
+                "maxImageBytes": 20971520,
+                "maxImagesPerMessage": 20,
+                "maxMessageImageBytes": 209715200,
+                "maxImagePixels": 64000000,
+                "maxImageDimension": 8192,
+                "mediaTypes": [
+                  "image/png",
+                  "image/jpeg",
+                  "image/webp",
+                  "image/gif"
+                ]
+              },
+              "todos": null,
+              "plan": {
+                "active": false,
+                "pending": false
+              }
+            }
+          }
+        },
+        {
+          "sessionId": "session-dddc4011-1a20-4899-9b69-a173efce0ddf",
+          "updatedAt": 1788012647049,
+          "running": false,
+          "blank": true,
+          "cwd": "/Users/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin",
+          "agentPreset": "dsh-bot",
+          "projections": {
+            "asOfSeq": 3,
+            "values": {
+              "sessionStats": {
+                "turns": 0,
+                "steps": 0,
+                "llmMs": 0,
+                "toolMs": 0,
+                "ttftMs": 0,
+                "ttftSteps": 0,
+                "decodeMs": 0,
+                "decodeTokens": 0
+              },
+              "title": "DSH Bot",
+              "goal": null,
+              "tokenUsage": {
+                "uncachedInputTokens": 0,
+                "outputTokens": 0,
+                "cacheReadTokens": 0,
+                "cacheWriteTokens": 0
+              },
+              "contextPressure": {},
+              "contextBreakdown": {
+                "systemTokens": 0,
+                "toolsTokens": 0,
+                "messageTokens": 0
+              },
+              "subagentTiming": {
+                "settledMs": 0
+              },
+              "subagent": null,
+              "permissions": {
+                "options": [
+                  {
+                    "value": "read-only",
+                    "name": "read-only"
+                  },
+                  {
+                    "value": "workspace-write",
+                    "name": "workspace-write"
+                  },
+                  {
+                    "value": "danger-full-access",
+                    "name": "danger-full-access"
+                  }
+                ],
+                "currentValue": "workspace-write"
+              },
+              "delegation": {
+                "status": "idle",
+                "promptCount": 0
+              },
+              "sessionListMetadata": {
+                "blank": true,
+                "lastPromptAt": null
+              },
+              "imageLimits": {
+                "maxImageBytes": 20971520,
+                "maxImagesPerMessage": 20,
+                "maxMessageImageBytes": 209715200,
+                "maxImagePixels": 64000000,
+                "maxImageDimension": 8192,
+                "mediaTypes": [
+                  "image/png",
+                  "image/jpeg",
+                  "image/webp",
+                  "image/gif"
+                ]
+              },
+              "todos": null,
+              "plan": {
+                "active": false,
+                "pending": false
+              }
+            }
+          }
+        },
+        {
+          "sessionId": "session-c3f06b07-fd28-4ec5-9e6f-1bc52cffa8f9",
+          "updatedAt": 1788012016591,
+          "running": false,
+          "blank": true,
+          "cwd": "/Users/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin",
+          "agentPreset": "dsh-bot",
+          "projections": {
+            "asOfSeq": 3,
+            "values": {
+              "sessionStats": {
+                "turns": 0,
+                "steps": 0,
+                "llmMs": 0,
+                "toolMs": 0,
+                "ttftMs": 0,
+                "ttftSteps": 0,
+                "decodeMs": 0,
+                "decodeTokens": 0
+              },
+              "title": "Phase3 tab",
+              "goal": null,
+              "tokenUsage": {
+                "uncachedInputTokens": 0,
+                "outputTokens": 0,
+                "cacheReadTokens": 0,
+                "cacheWriteTokens": 0
+              },
+              "contextPressure": {},
+              "contextBreakdown": {
+                "systemTokens": 0,
+                "toolsTokens": 0,
+                "messageTokens": 0
+              },
+              "subagentTiming": {
+                "settledMs": 0
+              },
+              "subagent": null,
+              "permissions": {
+                "options": [
+                  {
+                    "value": "read-only",
+                    "name": "read-only"
+                  },
+                  {
+                    "value": "workspace-write",
+                    "name": "workspace-write"
+                  },
+                  {
+                    "value": "danger-full-access",
+                    "name": "danger-full-access"
+                  }
+                ],
+                "currentValue": "workspace-write"
+              },
+              "delegation": {
+                "status": "idle",
+                "promptCount": 0
+              },
+              "sessionListMetadata": {
+                "blank": true,
+                "lastPromptAt": null
+              },
+              "imageLimits": {
+                "maxImageBytes": 20971520,
+                "maxImagesPerMessage": 20,
+                "maxMessageImageBytes": 209715200,
+                "maxImagePixels": 64000000,
+                "maxImageDimension": 8192,
+                "mediaTypes": [
+                  "image/png",
+                  "image/jpeg",
+                  "image/webp",
+                  "image/gif"
+                ]
+              },
+              "todos": null,
+              "plan": {
+                "active": false,
+                "pending": false
+              }
+            }
+          }
+        },
+        {
+          "sessionId": "session-8ee512c7-c26d-4d4f-8509-1532944b5267",
+          "updatedAt": 1788010011229,
+          "running": false,
+          "blank": false,
+          "cwd": "/Users/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin",
+          "agentPreset": "dsh-bot",
+          "projections": {
+            "asOfSeq": 15,
+            "values": {
+              "sessionStats": {
+                "turns": 1,
+                "steps": 1,
+                "llmMs": 0,
+                "toolMs": 0,
+                "ttftMs": 0,
+                "ttftSteps": 0,
+                "decodeMs": 0,
+                "decodeTokens": 0
+              },
+              "title": "~dsh-bot: missing-key",
+              "goal": null,
+              "tokenUsage": {
+                "uncachedInputTokens": 0,
+                "outputTokens": 0,
+                "cacheReadTokens": 0,
+                "cacheWriteTokens": 0
+              },
+              "contextPressure": {
+                "contextWindow": 128000
+              },
+              "contextBreakdown": {
+                "systemTokens": 1601,
+                "toolsTokens": 8570,
+                "messageTokens": 1690
+              },
+              "subagentTiming": {
+                "settledMs": 0
+              },
+              "subagent": null,
+              "permissions": {
+                "options": [
+                  {
+                    "value": "read-only",
+                    "name": "read-only"
+                  },
+                  {
+                    "value": "workspace-write",
+                    "name": "workspace-write"
+                  },
+                  {
+                    "value": "danger-full-access",
+                    "name": "danger-full-access"
+                  }
+                ],
+                "currentValue": "workspace-write"
+              },
+              "delegation": {
+                "status": "failed",
+                "lastTurnEnd": "error",
+                "promptCount": 3
+              },
+              "sessionListMetadata": {
+                "blank": false,
+                "lastPromptAt": 1788010011229
+              },
+              "imageLimits": {
+                "maxImageBytes": 20971520,
+                "maxImagesPerMessage": 20,
+                "maxMessageImageBytes": 209715200,
+                "maxImagePixels": 64000000,
+                "maxImageDimension": 8192,
+                "mediaTypes": [
+                  "image/png",
+                  "image/jpeg",
+                  "image/webp",
+                  "image/gif"
+                ]
+              },
+              "todos": null,
+              "plan": {
+                "active": false,
+                "pending": false
+              }
+            }
+          }
+        },
+        {
+          "sessionId": "session-05363849-2c31-47ff-a6dc-5efeb5dce722",
+          "updatedAt": 1788010001792,
+          "running": false,
+          "blank": false,
+          "cwd": "/Users/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin",
+          "agentPreset": "dsh-bot",
+          "projections": {
+            "asOfSeq": 237,
+            "values": {
+              "sessionStats": {
+                "turns": 1,
+                "steps": 2,
+                "llmMs": 14062,
+                "toolMs": 393,
+                "ttftMs": 11399,
+                "ttftSteps": 2,
+                "decodeMs": 2663,
+                "decodeTokens": 228
+              },
+              "title": "Call dsh_bot_ask ping missing-key",
+              "goal": null,
+              "tokenUsage": {
+                "uncachedInputTokens": 22857,
+                "outputTokens": 228,
+                "cacheReadTokens": 22528,
+                "cacheWriteTokens": 0
+              },
+              "contextPressure": {
+                "pressureTokens": 22763,
+                "projectedTokens": 22935,
+                "contextWindow": 2000000
+              },
+              "contextBreakdown": {
+                "systemTokens": 1601,
+                "toolsTokens": 8570,
+                "messageTokens": 2063
+              },
+              "subagentTiming": {
+                "settledMs": 0
+              },
+              "subagent": null,
+              "permissions": {
+                "options": [
+                  {
+                    "value": "read-only",
+                    "name": "read-only"
+                  },
+                  {
+                    "value": "workspace-write",
+                    "name": "workspace-write"
+                  },
+                  {
+                    "value": "danger-full-access",
+                    "name": "danger-full-access"
+                  }
+                ],
+                "currentValue": "workspace-write"
+              },
+              "delegation": {
+                "status": "completed",
+                "lastTurnEnd": "completed",
+                "promptCount": 3,
+                "lastAssistantSeq": 235
+              },
+              "sessionListMetadata": {
+                "blank": false,
+                "lastPromptAt": 1788010001792
+              },
+              "imageLimits": {
+                "maxImageBytes": 20971520,
+                "maxImagesPerMessage": 20,
+                "maxMessageImageBytes": 209715200,
+                "maxImagePixels": 64000000,
+                "maxImageDimension": 8192,
+                "mediaTypes": [
+                  "image/png",
+                  "image/jpeg",
+                  "image/webp",
+                  "image/gif"
+                ]
+              },
+              "todos": null,
+              "plan": {
+                "active": false,
+                "pending": false
+              }
+            }
+          }
+        },
+        {
+          "sessionId": "session-c15b2d4f-c252-487b-9c04-22324afa2496",
+          "updatedAt": 1788008785960,
+          "running": false,
+          "blank": false,
+          "cwd": "/Users/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin",
+          "agentPreset": "dsh-bot",
+          "projections": {
+            "asOfSeq": 57,
+            "values": {
+              "sessionStats": {
+                "turns": 1,
+                "steps": 1,
+                "llmMs": 2572,
+                "toolMs": 0,
+                "ttftMs": 2002,
+                "ttftSteps": 1,
+                "decodeMs": 570,
+                "decodeTokens": 35
+              },
+              "title": "~dsh-bot: p2",
+              "goal": null,
+              "tokenUsage": {
+                "uncachedInputTokens": 11340,
+                "outputTokens": 35,
+                "cacheReadTokens": 128,
+                "cacheWriteTokens": 0
+              },
+              "contextPressure": {
+                "pressureTokens": 11468,
+                "projectedTokens": 11518,
+                "contextWindow": 2000000
+              },
+              "contextBreakdown": {
+                "systemTokens": 1601,
+                "toolsTokens": 8570,
+                "messageTokens": 1747
+              },
+              "subagentTiming": {
+                "settledMs": 0
+              },
+              "subagent": null,
+              "permissions": {
+                "options": [
+                  {
+                    "value": "read-only",
+                    "name": "read-only"
+                  },
+                  {
+                    "value": "workspace-write",
+                    "name": "workspace-write"
+                  },
+                  {
+                    "value": "danger-full-access",
+                    "name": "danger-full-access"
+                  }
+                ],
+                "currentValue": "workspace-write"
+              },
+              "delegation": {
+                "status": "completed",
+                "lastTurnEnd": "completed",
+                "promptCount": 3,
+                "lastAssistantSeq": 55
+              },
+              "sessionListMetadata": {
+                "blank": false,
+                "lastPromptAt": 1788008785960
+              },
+              "imageLimits": {
+                "maxImageBytes": 20971520,
+                "maxImagesPerMessage": 20,
+                "maxMessageImageBytes": 209715200,
+                "maxImagePixels": 64000000,
+                "maxImageDimension": 8192,
+                "mediaTypes": [
+                  "image/png",
+                  "image/jpeg",
+                  "image/webp",
+                  "image/gif"
+                ]
+              },
+              "todos": null,
+              "plan": {
+                "active": false,
+                "pending": false
+              }
+            }
+          }
+        },
+        {
+          "sessionId": "session-27c4c050-c102-4940-b61e-8e942d892832",
+          "updatedAt": 1788008772513,
+          "running": false,
+          "blank": false,
+          "cwd": "/Users/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin",
+          "agentPreset": "dsh-bot",
+          "projections": {
+            "asOfSeq": 89,
+            "values": {
+              "sessionStats": {
+                "turns": 1,
+                "steps": 2,
+                "llmMs": 23014,
+                "toolMs": 2838,
+                "ttftMs": 22117,
+                "ttftSteps": 2,
+                "decodeMs": 897,
+                "decodeTokens": 82
+              },
+              "title": "Call dsh_bot_ask phase2 pong",
+              "goal": null,
+              "tokenUsage": {
+                "uncachedInputTokens": 22761,
+                "outputTokens": 82,
+                "cacheReadTokens": 11392,
+                "cacheWriteTokens": 0
+              },
+              "contextPressure": {
+                "pressureTokens": 22662,
+                "projectedTokens": 22674,
+                "contextWindow": 2000000
+              },
+              "contextBreakdown": {
+                "systemTokens": 1601,
+                "toolsTokens": 8570,
+                "messageTokens": 1826
+              },
+              "subagentTiming": {
+                "settledMs": 0
+              },
+              "subagent": null,
+              "permissions": {
+                "options": [
+                  {
+                    "value": "read-only",
+                    "name": "read-only"
+                  },
+                  {
+                    "value": "workspace-write",
+                    "name": "workspace-write"
+                  },
+                  {
+                    "value": "danger-full-access",
+                    "name": "danger-full-access"
+                  }
+                ],
+                "currentValue": "workspace-write"
+              },
+              "delegation": {
+                "status": "completed",
+                "lastTurnEnd": "completed",
+                "promptCount": 3,
+                "lastAssistantSeq": 87
+              },
+              "sessionListMetadata": {
+                "blank": false,
+                "lastPromptAt": 1788008772513
+              },
+              "imageLimits": {
+                "maxImageBytes": 20971520,
+                "maxImagesPerMessage": 20,
+                "maxMessageImageBytes": 209715200,
+                "maxImagePixels": 64000000,
+                "maxImageDimension": 8192,
+                "mediaTypes": [
+                  "image/png",
+                  "image/jpeg",
+                  "image/webp",
+                  "image/gif"
+                ]
+              },
+              "todos": null,
+              "plan": {
+                "active": false,
+                "pending": false
+              }
+            }
+          }
+        },
+        {
+          "sessionId": "session-673bfc8b-9cff-4b9c-9820-054923bd3203",
+          "updatedAt": 1788008764330,
+          "running": false,
+          "blank": false,
+          "cwd": "/Users/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin",
+          "agentPreset": "dsh-bot",
+          "projections": {
+            "asOfSeq": 151,
+            "values": {
+              "sessionStats": {
+                "turns": 1,
+                "steps": 1,
+                "llmMs": 7322,
+                "toolMs": 0,
+                "ttftMs": 3775,
+                "ttftSteps": 1,
+                "decodeMs": 3547,
+                "decodeTokens": 250
+              },
+              "title": "询问助手身份",
+              "goal": null,
+              "tokenUsage": {
+                "uncachedInputTokens": 11336,
+                "outputTokens": 250,
+                "cacheReadTokens": 128,
+                "cacheWriteTokens": 0
+              },
+              "contextPressure": {
+                "pressureTokens": 11464,
+                "projectedTokens": 11549,
+                "contextWindow": 2000000
+              },
+              "contextBreakdown": {
+                "systemTokens": 1601,
+                "toolsTokens": 8570,
+                "messageTokens": 1775
+              },
+              "subagentTiming": {
+                "settledMs": 0
+              },
+              "subagent": null,
+              "permissions": {
+                "options": [
+                  {
+                    "value": "read-only",
+                    "name": "read-only"
+                  },
+                  {
+                    "value": "workspace-write",
+                    "name": "workspace-write"
+                  },
+                  {
+                    "value": "danger-full-access",
+                    "name": "danger-full-access"
+                  }
+                ],
+                "currentValue": "workspace-write"
+              },
+              "delegation": {
+                "status": "completed",
+                "lastTurnEnd": "completed",
+                "promptCount": 3,
+                "lastAssistantSeq": 148
+              },
+              "sessionListMetadata": {
+                "blank": false,
+                "lastPromptAt": 1788008764330
+              },
+              "imageLimits": {
+                "maxImageBytes": 20971520,
+                "maxImagesPerMessage": 20,
+                "maxMessageImageBytes": 209715200,
+                "maxImagePixels": 64000000,
+                "maxImageDimension": 8192,
+                "mediaTypes": [
+                  "image/png",
+                  "image/jpeg",
+                  "image/webp",
+                  "image/gif"
+                ]
+              },
+              "todos": null,
+              "plan": {
+                "active": false,
+                "pending": false
+              }
+            }
+          }
+        },
+        {
+          "sessionId": "session-32fba176-9cfa-4e43-b6aa-f9f60055ef44",
+          "updatedAt": 1788008643509,
+          "running": false,
+          "blank": false,
+          "cwd": "/Users/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin",
+          "agentPreset": "dsh-bot",
+          "projections": {
+            "asOfSeq": 15,
+            "values": {
+              "sessionStats": {
+                "turns": 1,
+                "steps": 1,
+                "llmMs": 0,
+                "toolMs": 0,
+                "ttftMs": 0,
+                "ttftSteps": 0,
+                "decodeMs": 0,
+                "decodeTokens": 0
+              },
+              "title": "~dsh-bot: missing-key",
+              "goal": null,
+              "tokenUsage": {
+                "uncachedInputTokens": 0,
+                "outputTokens": 0,
+                "cacheReadTokens": 0,
+                "cacheWriteTokens": 0
+              },
+              "contextPressure": {
+                "contextWindow": 128000
+              },
+              "contextBreakdown": {
+                "systemTokens": 1601,
+                "toolsTokens": 8570,
+                "messageTokens": 1690
+              },
+              "subagentTiming": {
+                "settledMs": 0
+              },
+              "subagent": null,
+              "permissions": {
+                "options": [
+                  {
+                    "value": "read-only",
+                    "name": "read-only"
+                  },
+                  {
+                    "value": "workspace-write",
+                    "name": "workspace-write"
+                  },
+                  {
+                    "value": "danger-full-access",
+                    "name": "danger-full-access"
+                  }
+                ],
+                "currentValue": "workspace-write"
+              },
+              "delegation": {
+                "status": "failed",
+                "lastTurnEnd": "error",
+                "promptCount": 3
+              },
+              "sessionListMetadata": {
+                "blank": false,
+                "lastPromptAt": 1788008643509
+              },
+              "imageLimits": {
+                "maxImageBytes": 20971520,
+                "maxImagesPerMessage": 20,
+                "maxMessageImageBytes": 209715200,
+                "maxImagePixels": 64000000,
+                "maxImageDimension": 8192,
+                "mediaTypes": [
+                  "image/png",
+                  "image/jpeg",
+                  "image/webp",
+                  "image/gif"
+                ]
+              },
+              "todos": null,
+              "plan": {
+                "active": false,
+                "pending": false
+              }
+            }
+          }
+        },
+        {
+          "sessionId": "session-c90530be-cc5d-4f18-8a51-682e54bbe4fc",
+          "updatedAt": 1788008639049,
+          "running": false,
+          "blank": false,
+          "cwd": "/Users/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin",
+          "agentPreset": "dsh-bot",
+          "projections": {
+            "asOfSeq": 143,
+            "values": {
+              "sessionStats": {
+                "turns": 1,
+                "steps": 2,
+                "llmMs": 7169,
+                "toolMs": 356,
+                "ttftMs": 5842,
+                "ttftSteps": 2,
+                "decodeMs": 1327,
+                "decodeTokens": 138
+              },
+              "title": "Call dsh_bot_ask with ping",
+              "goal": null,
+              "tokenUsage": {
+                "uncachedInputTokens": 22815,
+                "outputTokens": 138,
+                "cacheReadTokens": 11392,
+                "cacheWriteTokens": 0
+              },
+              "contextPressure": {
+                "pressureTokens": 22721,
+                "projectedTokens": 22776,
+                "contextWindow": 2000000
+              },
+              "contextBreakdown": {
+                "systemTokens": 1601,
+                "toolsTokens": 8570,
+                "messageTokens": 1883
+              },
+              "subagentTiming": {
+                "settledMs": 0
+              },
+              "subagent": null,
+              "permissions": {
+                "options": [
+                  {
+                    "value": "read-only",
+                    "name": "read-only"
+                  },
+                  {
+                    "value": "workspace-write",
+                    "name": "workspace-write"
+                  },
+                  {
+                    "value": "danger-full-access",
+                    "name": "danger-full-access"
+                  }
+                ],
+                "currentValue": "workspace-write"
+              },
+              "delegation": {
+                "status": "completed",
+                "lastTurnEnd": "completed",
+                "promptCount": 3,
+                "lastAssistantSeq": 140
+              },
+              "sessionListMetadata": {
+                "blank": false,
+                "lastPromptAt": 1788008639049
+              },
+              "imageLimits": {
+                "maxImageBytes": 20971520,
+                "maxImagesPerMessage": 20,
+                "maxMessageImageBytes": 209715200,
+                "maxImagePixels": 64000000,
+                "maxImageDimension": 8192,
+                "mediaTypes": [
+                  "image/png",
+                  "image/jpeg",
+                  "image/webp",
+                  "image/gif"
+                ]
+              },
+              "todos": null,
+              "plan": {
+                "active": false,
+                "pending": false
+              }
+            }
+          }
+        },
+        {
+          "sessionId": "session-a95ca6c4-c52d-4b25-8808-6798aef81b88",
+          "updatedAt": 1788008583244,
+          "running": false,
+          "blank": true,
+          "cwd": "/Users/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin",
+          "agentPreset": "dsh-bot",
+          "projections": {
+            "asOfSeq": 3,
+            "values": {
+              "sessionStats": {
+                "turns": 0,
+                "steps": 0,
+                "llmMs": 0,
+                "toolMs": 0,
+                "ttftMs": 0,
+                "ttftSteps": 0,
+                "decodeMs": 0,
+                "decodeTokens": 0
+              },
+              "title": "~dsh-bot: bad-override",
+              "goal": null,
+              "tokenUsage": {
+                "uncachedInputTokens": 0,
+                "outputTokens": 0,
+                "cacheReadTokens": 0,
+                "cacheWriteTokens": 0
+              },
+              "contextPressure": {},
+              "contextBreakdown": {
+                "systemTokens": 0,
+                "toolsTokens": 0,
+                "messageTokens": 0
+              },
+              "subagentTiming": {
+                "settledMs": 0
+              },
+              "subagent": null,
+              "permissions": {
+                "options": [
+                  {
+                    "value": "read-only",
+                    "name": "read-only"
+                  },
+                  {
+                    "value": "workspace-write",
+                    "name": "workspace-write"
+                  },
+                  {
+                    "value": "danger-full-access",
+                    "name": "danger-full-access"
+                  }
+                ],
+                "currentValue": "workspace-write"
+              },
+              "delegation": {
+                "status": "idle",
+                "promptCount": 0
+              },
+              "sessionListMetadata": {
+                "blank": true,
+                "lastPromptAt": null
+              },
+              "imageLimits": {
+                "maxImageBytes": 20971520,
+                "maxImagesPerMessage": 20,
+                "maxMessageImageBytes": 209715200,
+                "maxImagePixels": 64000000,
+                "maxImageDimension": 8192,
+                "mediaTypes": [
+                  "image/png",
+                  "image/jpeg",
+                  "image/webp",
+                  "image/gif"
+                ]
+              },
+              "todos": null,
+              "plan": {
+                "active": false,
+                "pending": false
+              }
+            }
+          }
+        },
+        {
+          "sessionId": "session-fa07d396-5d9e-4ee9-bdec-f979403ac002",
+          "updatedAt": 1788008578345,
+          "running": false,
+          "blank": false,
+          "cwd": "/Users/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin",
+          "agentPreset": "dsh-bot",
+          "projections": {
+            "asOfSeq": 211,
+            "values": {
+              "sessionStats": {
+                "turns": 1,
+                "steps": 2,
+                "llmMs": 14410,
+                "toolMs": 42,
+                "ttftMs": 12942,
+                "ttftSteps": 2,
+                "decodeMs": 1468,
+                "decodeTokens": 228
+              },
+              "title": "Call dsh_bot_ask with ping",
+              "goal": null,
+              "tokenUsage": {
+                "uncachedInputTokens": 22809,
+                "outputTokens": 228,
+                "cacheReadTokens": 256,
+                "cacheWriteTokens": 0
+              },
+              "contextPressure": {
+                "pressureTokens": 11579,
+                "projectedTokens": 11697,
+                "contextWindow": 2000000
+              },
+              "contextBreakdown": {
+                "systemTokens": 1601,
+                "toolsTokens": 8570,
+                "messageTokens": 1969
+              },
+              "subagentTiming": {
+                "settledMs": 0
+              },
+              "subagent": null,
+              "permissions": {
+                "options": [
+                  {
+                    "value": "read-only",
+                    "name": "read-only"
+                  },
+                  {
+                    "value": "workspace-write",
+                    "name": "workspace-write"
+                  },
+                  {
+                    "value": "danger-full-access",
+                    "name": "danger-full-access"
+                  }
+                ],
+                "currentValue": "workspace-write"
+              },
+              "delegation": {
+                "status": "completed",
+                "lastTurnEnd": "completed",
+                "promptCount": 3,
+                "lastAssistantSeq": 209
+              },
+              "sessionListMetadata": {
+                "blank": false,
+                "lastPromptAt": 1788008578345
+              },
+              "imageLimits": {
+                "maxImageBytes": 20971520,
+                "maxImagesPerMessage": 20,
+                "maxMessageImageBytes": 209715200,
+                "maxImagePixels": 64000000,
+                "maxImageDimension": 8192,
+                "mediaTypes": [
+                  "image/png",
+                  "image/jpeg",
+                  "image/webp",
+                  "image/gif"
+                ]
+              },
+              "todos": null,
+              "plan": {
+                "active": false,
+                "pending": false
+              }
+            }
+          }
+        },
+        {
+          "sessionId": "session-be2f46a2-7b03-4fd9-b949-3a3f0383c3ce",
+          "updatedAt": 1788008555023,
+          "running": false,
+          "blank": false,
+          "cwd": "/Users/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin",
+          "agentPreset": "dsh-bot",
+          "projections": {
+            "asOfSeq": 36,
+            "values": {
+              "sessionStats": {
+                "turns": 1,
+                "steps": 1,
+                "llmMs": 2979,
+                "toolMs": 0,
+                "ttftMs": 2330,
+                "ttftSteps": 1,
+                "decodeMs": 649,
+                "decodeTokens": 29
+              },
+              "title": "~dsh-bot: conc-A",
+              "goal": null,
+              "tokenUsage": {
+                "uncachedInputTokens": 11338,
+                "outputTokens": 29,
+                "cacheReadTokens": 0,
+                "cacheWriteTokens": 0
+              },
+              "contextPressure": {
+                "pressureTokens": 11338,
+                "projectedTokens": 11367,
+                "contextWindow": 2000000
+              },
+              "contextBreakdown": {
+                "systemTokens": 1601,
+                "toolsTokens": 8570,
+                "messageTokens": 1726
+              },
+              "subagentTiming": {
+                "settledMs": 0
+              },
+              "subagent": null,
+              "permissions": {
+                "options": [
+                  {
+                    "value": "read-only",
+                    "name": "read-only"
+                  },
+                  {
+                    "value": "workspace-write",
+                    "name": "workspace-write"
+                  },
+                  {
+                    "value": "danger-full-access",
+                    "name": "danger-full-access"
+                  }
+                ],
+                "currentValue": "workspace-write"
+              },
+              "delegation": {
+                "status": "completed",
+                "lastTurnEnd": "completed",
+                "promptCount": 3,
+                "lastAssistantSeq": 34
+              },
+              "sessionListMetadata": {
+                "blank": false,
+                "lastPromptAt": 1788008555023
+              },
+              "imageLimits": {
+                "maxImageBytes": 20971520,
+                "maxImagesPerMessage": 20,
+                "maxMessageImageBytes": 209715200,
+                "maxImagePixels": 64000000,
+                "maxImageDimension": 8192,
+                "mediaTypes": [
+                  "image/png",
+                  "image/jpeg",
+                  "image/webp",
+                  "image/gif"
+                ]
+              },
+              "todos": null,
+              "plan": {
+                "active": false,
+                "pending": false
+              }
+            }
+          }
+        },
+        {
+          "sessionId": "session-747f1342-5c76-4d9a-9cea-cd8913318e28",
+          "updatedAt": 1788008554242,
+          "running": false,
+          "blank": false,
+          "cwd": "/Users/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin",
+          "agentPreset": "dsh-bot",
+          "projections": {
+            "asOfSeq": 51,
+            "values": {
+              "sessionStats": {
+                "turns": 1,
+                "steps": 1,
+                "llmMs": 2674,
+                "toolMs": 0,
+                "ttftMs": 2382,
+                "ttftSteps": 1,
+                "decodeMs": 292,
+                "decodeTokens": 29
+              },
+              "title": "~dsh-bot: conc-B",
+              "goal": null,
+              "tokenUsage": {
+                "uncachedInputTokens": 11338,
+                "outputTokens": 29,
+                "cacheReadTokens": 128,
+                "cacheWriteTokens": 0
+              },
+              "contextPressure": {
+                "pressureTokens": 11466,
+                "projectedTokens": 11514,
+                "contextWindow": 2000000
+              },
+              "contextBreakdown": {
+                "systemTokens": 1601,
+                "toolsTokens": 8570,
+                "messageTokens": 1745
+              },
+              "subagentTiming": {
+                "settledMs": 0
+              },
+              "subagent": null,
+              "permissions": {
+                "options": [
+                  {
+                    "value": "read-only",
+                    "name": "read-only"
+                  },
+                  {
+                    "value": "workspace-write",
+                    "name": "workspace-write"
+                  },
+                  {
+                    "value": "danger-full-access",
+                    "name": "danger-full-access"
+                  }
+                ],
+                "currentValue": "workspace-write"
+              },
+              "delegation": {
+                "status": "completed",
+                "lastTurnEnd": "completed",
+                "promptCount": 3,
+                "lastAssistantSeq": 49
+              },
+              "sessionListMetadata": {
+                "blank": false,
+                "lastPromptAt": 1788008554242
+              },
+              "imageLimits": {
+                "maxImageBytes": 20971520,
+                "maxImagesPerMessage": 20,
+                "maxMessageImageBytes": 209715200,
+                "maxImagePixels": 64000000,
+                "maxImageDimension": 8192,
+                "mediaTypes": [
+                  "image/png",
+                  "image/jpeg",
+                  "image/webp",
+                  "image/gif"
+                ]
+              },
+              "todos": null,
+              "plan": {
+                "active": false,
+                "pending": false
+              }
+            }
+          }
+        },
+        {
+          "sessionId": "session-38fa804e-83b3-485f-ad41-5d25dad9adc9",
+          "updatedAt": 1788008549256,
+          "running": false,
+          "blank": false,
+          "cwd": "/Users/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin",
+          "agentPreset": "dsh-bot",
+          "projections": {
+            "asOfSeq": 132,
+            "values": {
+              "sessionStats": {
+                "turns": 1,
+                "steps": 2,
+                "llmMs": 7100,
+                "toolMs": 3077,
+                "ttftMs": 5742,
+                "ttftSteps": 2,
+                "decodeMs": 1358,
+                "decodeTokens": 121
+              },
+              "title": "Call dsh_bot_ask concurrent B",
+              "goal": null,
+              "tokenUsage": {
+                "uncachedInputTokens": 22768,
+                "outputTokens": 121,
+                "cacheReadTokens": 11392,
+                "cacheWriteTokens": 0
+              },
+              "contextPressure": {
+                "pressureTokens": 22664,
+                "projectedTokens": 22725,
+                "contextWindow": 2000000
+              },
+              "contextBreakdown": {
+                "systemTokens": 1601,
+                "toolsTokens": 8570,
+                "messageTokens": 1891
+              },
+              "subagentTiming": {
+                "settledMs": 0
+              },
+              "subagent": null,
+              "permissions": {
+                "options": [
+                  {
+                    "value": "read-only",
+                    "name": "read-only"
+                  },
+                  {
+                    "value": "workspace-write",
+                    "name": "workspace-write"
+                  },
+                  {
+                    "value": "danger-full-access",
+                    "name": "danger-full-access"
+                  }
+                ],
+                "currentValue": "workspace-write"
+              },
+              "delegation": {
+                "status": "completed",
+                "lastTurnEnd": "completed",
+                "promptCount": 3,
+                "lastAssistantSeq": 130
+              },
+              "sessionListMetadata": {
+                "blank": false,
+                "lastPromptAt": 1788008549256
+              },
+              "imageLimits": {
+                "maxImageBytes": 20971520,
+                "maxImagesPerMessage": 20,
+                "maxMessageImageBytes": 209715200,
+                "maxImagePixels": 64000000,
+                "maxImageDimension": 8192,
+                "mediaTypes": [
+                  "image/png",
+                  "image/jpeg",
+                  "image/webp",
+                  "image/gif"
+                ]
+              },
+              "todos": null,
+              "plan": {
+                "active": false,
+                "pending": false
+              }
+            }
+          }
+        },
+        {
+          "sessionId": "session-31895962-2802-46d7-b56f-0a18ea770a4d",
+          "updatedAt": 1788008549254,
+          "running": false,
+          "blank": false,
+          "cwd": "/Users/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin",
+          "agentPreset": "dsh-bot",
+          "projections": {
+            "asOfSeq": 123,
+            "values": {
+              "sessionStats": {
+                "turns": 1,
+                "steps": 2,
+                "llmMs": 8283,
+                "toolMs": 3096,
+                "ttftMs": 6884,
+                "ttftSteps": 2,
+                "decodeMs": 1399,
+                "decodeTokens": 125
+              },
+              "title": "Call dsh_bot_ask concurrent A",
+              "goal": null,
+              "tokenUsage": {
+                "uncachedInputTokens": 22768,
+                "outputTokens": 125,
+                "cacheReadTokens": 11392,
+                "cacheWriteTokens": 0
+              },
+              "contextPressure": {
+                "pressureTokens": 22664,
+                "projectedTokens": 22715,
+                "contextWindow": 2000000
+              },
+              "contextBreakdown": {
+                "systemTokens": 1601,
+                "toolsTokens": 8570,
+                "messageTokens": 1882
+              },
+              "subagentTiming": {
+                "settledMs": 0
+              },
+              "subagent": null,
+              "permissions": {
+                "options": [
+                  {
+                    "value": "read-only",
+                    "name": "read-only"
+                  },
+                  {
+                    "value": "workspace-write",
+                    "name": "workspace-write"
+                  },
+                  {
+                    "value": "danger-full-access",
+                    "name": "danger-full-access"
+                  }
+                ],
+                "currentValue": "workspace-write"
+              },
+              "delegation": {
+                "status": "completed",
+                "lastTurnEnd": "completed",
+                "promptCount": 3,
+                "lastAssistantSeq": 120
+              },
+              "sessionListMetadata": {
+                "blank": false,
+                "lastPromptAt": 1788008549254
+              },
+              "imageLimits": {
+                "maxImageBytes": 20971520,
+                "maxImagesPerMessage": 20,
+                "maxMessageImageBytes": 209715200,
+                "maxImagePixels": 64000000,
+                "maxImageDimension": 8192,
+                "mediaTypes": [
+                  "image/png",
+                  "image/jpeg",
+                  "image/webp",
+                  "image/gif"
+                ]
+              },
+              "todos": null,
+              "plan": {
+                "active": false,
+                "pending": false
+              }
+            }
+          }
+        },
+        {
+          "sessionId": "session-71e5d33c-7ff5-48c2-b8fe-b95460d8c24e",
+          "updatedAt": 1788008478124,
+          "running": false,
+          "blank": false,
+          "cwd": "/Users/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin",
+          "agentPreset": "dsh-bot",
+          "projections": {
+            "asOfSeq": 120,
+            "values": {
+              "sessionStats": {
+                "turns": 1,
+                "steps": 1,
+                "llmMs": 4235,
+                "toolMs": 0,
+                "ttftMs": 2200,
+                "ttftSteps": 1,
+                "decodeMs": 2035,
+                "decodeTokens": 98
+              },
+              "title": "~dsh-bot: timeout",
+              "goal": null,
+              "tokenUsage": {
+                "uncachedInputTokens": 11337,
+                "outputTokens": 98,
+                "cacheReadTokens": 128,
+                "cacheWriteTokens": 0
+              },
+              "contextPressure": {
+                "pressureTokens": 11465,
+                "projectedTokens": 11595,
+                "contextWindow": 2000000
+              },
+              "contextBreakdown": {
+                "systemTokens": 1601,
+                "toolsTokens": 8570,
+                "messageTokens": 1827
+              },
+              "subagentTiming": {
+                "settledMs": 0
+              },
+              "subagent": null,
+              "permissions": {
+                "options": [
+                  {
+                    "value": "read-only",
+                    "name": "read-only"
+                  },
+                  {
+                    "value": "workspace-write",
+                    "name": "workspace-write"
+                  },
+                  {
+                    "value": "danger-full-access",
+                    "name": "danger-full-access"
+                  }
+                ],
+                "currentValue": "workspace-write"
+              },
+              "delegation": {
+                "status": "completed",
+                "lastTurnEnd": "completed",
+                "promptCount": 3,
+                "lastAssistantSeq": 118
+              },
+              "sessionListMetadata": {
+                "blank": false,
+                "lastPromptAt": 1788008478124
+              },
+              "imageLimits": {
+                "maxImageBytes": 20971520,
+                "maxImagesPerMessage": 20,
+                "maxMessageImageBytes": 209715200,
+                "maxImagePixels": 64000000,
+                "maxImageDimension": 8192,
+                "mediaTypes": [
+                  "image/png",
+                  "image/jpeg",
+                  "image/webp",
+                  "image/gif"
+                ]
+              },
+              "todos": null,
+              "plan": {
+                "active": false,
+                "pending": false
+              }
+            }
+          }
+        },
+        {
+          "sessionId": "session-d7c15291-a7ab-4b0a-9710-72fa16a15800",
+          "updatedAt": 1788008473486,
+          "running": false,
+          "blank": false,
+          "cwd": "/Users/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin",
+          "agentPreset": "dsh-bot",
+          "projections": {
+            "asOfSeq": 180,
+            "values": {
+              "sessionStats": {
+                "turns": 1,
+                "steps": 2,
+                "llmMs": 8652,
+                "toolMs": 258,
+                "ttftMs": 6665,
+                "ttftSteps": 2,
+                "decodeMs": 1987,
+                "decodeTokens": 169
+              },
+              "title": "Call dsh_bot_ask with timeout",
+              "goal": null,
+              "tokenUsage": {
+                "uncachedInputTokens": 22840,
+                "outputTokens": 169,
+                "cacheReadTokens": 11392,
+                "cacheWriteTokens": 0
+              },
+              "contextPressure": {
+                "pressureTokens": 22738,
+                "projectedTokens": 22798,
+                "contextWindow": 2000000
+              },
+              "contextBreakdown": {
+                "systemTokens": 1601,
+                "toolsTokens": 8570,
+                "messageTokens": 1937
+              },
+              "subagentTiming": {
+                "settledMs": 0
+              },
+              "subagent": null,
+              "permissions": {
+                "options": [
+                  {
+                    "value": "read-only",
+                    "name": "read-only"
+                  },
+                  {
+                    "value": "workspace-write",
+                    "name": "workspace-write"
+                  },
+                  {
+                    "value": "danger-full-access",
+                    "name": "danger-full-access"
+                  }
+                ],
+                "currentValue": "workspace-write"
+              },
+              "delegation": {
+                "status": "completed",
+                "lastTurnEnd": "completed",
+                "promptCount": 3,
+                "lastAssistantSeq": 178
+              },
+              "sessionListMetadata": {
+                "blank": false,
+                "lastPromptAt": 1788008473486
+              },
+              "imageLimits": {
+                "maxImageBytes": 20971520,
+                "maxImagesPerMessage": 20,
+                "maxMessageImageBytes": 209715200,
+                "maxImagePixels": 64000000,
+                "maxImageDimension": 8192,
+                "mediaTypes": [
+                  "image/png",
+                  "image/jpeg",
+                  "image/webp",
+                  "image/gif"
+                ]
+              },
+              "todos": null,
+              "plan": {
+                "active": false,
+                "pending": false
+              }
+            }
+          }
+        },
+        {
+          "sessionId": "session-9690590f-6953-4d68-bbcd-ab31cb7bba88",
+          "updatedAt": 1788008275276,
+          "running": false,
+          "blank": false,
+          "cwd": "/Users/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin",
+          "agentPreset": "dsh-bot",
+          "projections": {
+            "asOfSeq": 45,
+            "values": {
+              "sessionStats": {
+                "turns": 1,
+                "steps": 1,
+                "llmMs": 3118,
+                "toolMs": 0,
+                "ttftMs": 2577,
+                "ttftSteps": 1,
+                "decodeMs": 541,
+                "decodeTokens": 40
+              },
+              "title": "~dsh-bot: uf002",
+              "goal": null,
+              "tokenUsage": {
+                "uncachedInputTokens": 11342,
+                "outputTokens": 40,
+                "cacheReadTokens": 128,
+                "cacheWriteTokens": 0
+              },
+              "contextPressure": {
+                "pressureTokens": 11470,
+                "projectedTokens": 11501,
+                "contextWindow": 2000000
+              },
+              "contextBreakdown": {
+                "systemTokens": 1601,
+                "toolsTokens": 8570,
+                "messageTokens": 1729
+              },
+              "subagentTiming": {
+                "settledMs": 0
+              },
+              "subagent": null,
+              "permissions": {
+                "options": [
+                  {
+                    "value": "read-only",
+                    "name": "read-only"
+                  },
+                  {
+                    "value": "workspace-write",
+                    "name": "workspace-write"
+                  },
+                  {
+                    "value": "danger-full-access",
+                    "name": "danger-full-access"
+                  }
+                ],
+                "currentValue": "workspace-write"
+              },
+              "delegation": {
+                "status": "completed",
+                "lastTurnEnd": "completed",
+                "promptCount": 3,
+                "lastAssistantSeq": 43
+              },
+              "sessionListMetadata": {
+                "blank": false,
+                "lastPromptAt": 1788008275276
+              },
+              "imageLimits": {
+                "maxImageBytes": 20971520,
+                "maxImagesPerMessage": 20,
+                "maxMessageImageBytes": 209715200,
+                "maxImagePixels": 64000000,
+                "maxImageDimension": 8192,
+                "mediaTypes": [
+                  "image/png",
+                  "image/jpeg",
+                  "image/webp",
+                  "image/gif"
+                ]
+              },
+              "todos": null,
+              "plan": {
+                "active": false,
+                "pending": false
+              }
+            }
+          }
+        },
+        {
+          "sessionId": "session-c8cf1b3a-d154-4d34-bed9-f8f03135100c",
+          "updatedAt": 1788008270760,
+          "running": false,
+          "blank": false,
+          "cwd": "/Users/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin",
+          "agentPreset": "dsh-bot",
+          "projections": {
+            "asOfSeq": 76,
+            "values": {
+              "sessionStats": {
+                "turns": 1,
+                "steps": 2,
+                "llmMs": 6591,
+                "toolMs": 3384,
+                "ttftMs": 5722,
+                "ttftSteps": 2,
+                "decodeMs": 869,
+                "decodeTokens": 73
+              },
+              "title": "Call dsh_bot_ask tool once",
+              "goal": null,
+              "tokenUsage": {
+                "uncachedInputTokens": 22807,
+                "outputTokens": 73,
+                "cacheReadTokens": 128,
+                "cacheWriteTokens": 0
+              },
+              "contextPressure": {
+                "pressureTokens": 11551,
+                "projectedTokens": 11563,
+                "contextWindow": 2000000
+              },
+              "contextBreakdown": {
+                "systemTokens": 1601,
+                "toolsTokens": 8570,
+                "messageTokens": 1845
+              },
+              "subagentTiming": {
+                "settledMs": 0
+              },
+              "subagent": null,
+              "permissions": {
+                "options": [
+                  {
+                    "value": "read-only",
+                    "name": "read-only"
+                  },
+                  {
+                    "value": "workspace-write",
+                    "name": "workspace-write"
+                  },
+                  {
+                    "value": "danger-full-access",
+                    "name": "danger-full-access"
+                  }
+                ],
+                "currentValue": "workspace-write"
+              },
+              "delegation": {
+                "status": "completed",
+                "lastTurnEnd": "completed",
+                "promptCount": 3,
+                "lastAssistantSeq": 74
+              },
+              "sessionListMetadata": {
+                "blank": false,
+                "lastPromptAt": 1788008270760
+              },
+              "imageLimits": {
+                "maxImageBytes": 20971520,
+                "maxImagesPerMessage": 20,
+                "maxMessageImageBytes": 209715200,
+                "maxImagePixels": 64000000,
+                "maxImageDimension": 8192,
+                "mediaTypes": [
+                  "image/png",
+                  "image/jpeg",
+                  "image/webp",
+                  "image/gif"
+                ]
+              },
+              "todos": null,
+              "plan": {
+                "active": false,
+                "pending": false
+              }
+            }
+          }
+        },
+        {
+          "sessionId": "session-7fea7b21-7b39-4284-a8ce-ade847679a82",
+          "updatedAt": 1788005914718,
+          "running": false,
+          "blank": true,
+          "cwd": "/Users/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin",
+          "agentPreset": "dsh-bot",
+          "projections": {
+            "asOfSeq": 2,
+            "values": {
+              "sessionStats": {
+                "turns": 0,
+                "steps": 0,
+                "llmMs": 0,
+                "toolMs": 0,
+                "ttftMs": 0,
+                "ttftSteps": 0,
+                "decodeMs": 0,
+                "decodeTokens": 0
+              },
+              "title": null,
+              "goal": null,
+              "tokenUsage": {
+                "uncachedInputTokens": 0,
+                "outputTokens": 0,
+                "cacheReadTokens": 0,
+                "cacheWriteTokens": 0
+              },
+              "contextPressure": {},
+              "contextBreakdown": {
+                "systemTokens": 0,
+                "toolsTokens": 0,
+                "messageTokens": 0
+              },
+              "subagentTiming": {
+                "settledMs": 0
+              },
+              "subagent": null,
+              "permissions": {
+                "options": [
+                  {
+                    "value": "read-only",
+                    "name": "read-only"
+                  },
+                  {
+                    "value": "workspace-write",
+                    "name": "workspace-write"
+                  },
+                  {
+                    "value": "danger-full-access",
+                    "name": "danger-full-access"
+                  }
+                ],
+                "currentValue": "workspace-write"
+              },
+              "delegation": {
+                "status": "idle",
+                "promptCount": 0
+              },
+              "sessionListMetadata": {
+                "blank": true,
+                "lastPromptAt": null
+              },
+              "imageLimits": {
+                "maxImageBytes": 20971520,
+                "maxImagesPerMessage": 20,
+                "maxMessageImageBytes": 209715200,
+                "maxImagePixels": 64000000,
+                "maxImageDimension": 8192,
+                "mediaTypes": [
+                  "image/png",
+                  "image/jpeg",
+                  "image/webp",
+                  "image/gif"
+                ]
+              },
+              "todos": null,
+              "plan": {
+                "active": false,
+                "pending": false
+              }
+            }
+          }
+        },
+        {
+          "sessionId": "session-974d85e9-fb4b-4eed-9eaa-7eb5e9915806",
+          "updatedAt": 1788004800746,
+          "running": false,
+          "blank": false,
+          "cwd": "/Users/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin",
+          "agentPreset": "dsh-bot",
+          "projections": {
+            "asOfSeq": 161,
+            "values": {
+              "sessionStats": {
+                "turns": 1,
+                "steps": 1,
+                "llmMs": 7241,
+                "toolMs": 0,
+                "ttftMs": 3625,
+                "ttftSteps": 1,
+                "decodeMs": 3616,
+                "decodeTokens": 263
+              },
+              "title": "询问AI身份",
+              "goal": null,
+              "tokenUsage": {
+                "uncachedInputTokens": 11203,
+                "outputTokens": 263,
+                "cacheReadTokens": 11136,
+                "cacheWriteTokens": 0
+              },
+              "contextPressure": {
+                "pressureTokens": 22339,
+                "projectedTokens": 22426,
+                "contextWindow": 2000000
+              },
+              "contextBreakdown": {
+                "systemTokens": 1601,
+                "toolsTokens": 8438,
+                "messageTokens": 1777
+              },
+              "subagentTiming": {
+                "settledMs": 0
+              },
+              "subagent": null,
+              "permissions": {
+                "options": [
+                  {
+                    "value": "read-only",
+                    "name": "read-only"
+                  },
+                  {
+                    "value": "workspace-write",
+                    "name": "workspace-write"
+                  },
+                  {
+                    "value": "danger-full-access",
+                    "name": "danger-full-access"
+                  }
+                ],
+                "currentValue": "workspace-write"
+              },
+              "delegation": {
+                "status": "completed",
+                "lastTurnEnd": "completed",
+                "promptCount": 3,
+                "lastAssistantSeq": 158
+              },
+              "sessionListMetadata": {
+                "blank": false,
+                "lastPromptAt": 1788004800746
+              },
+              "imageLimits": {
+                "maxImageBytes": 20971520,
+                "maxImagesPerMessage": 20,
+                "maxMessageImageBytes": 209715200,
+                "maxImagePixels": 64000000,
+                "maxImageDimension": 8192,
+                "mediaTypes": [
+                  "image/png",
+                  "image/jpeg",
+                  "image/webp",
+                  "image/gif"
+                ]
+              },
+              "todos": null,
+              "plan": {
+                "active": false,
+                "pending": false
+              }
+            }
+          }
+        },
+        {
+          "sessionId": "session-05601033-098e-41f5-8510-58c89514db09",
+          "updatedAt": 1788004637350,
+          "running": false,
+          "blank": true,
+          "cwd": "/Users/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin",
+          "agentPreset": "dsh-bot",
+          "projections": {
+            "asOfSeq": 2,
+            "values": {
+              "sessionStats": {
+                "turns": 0,
+                "steps": 0,
+                "llmMs": 0,
+                "toolMs": 0,
+                "ttftMs": 0,
+                "ttftSteps": 0,
+                "decodeMs": 0,
+                "decodeTokens": 0
+              },
+              "title": null,
+              "goal": null,
+              "tokenUsage": {
+                "uncachedInputTokens": 0,
+                "outputTokens": 0,
+                "cacheReadTokens": 0,
+                "cacheWriteTokens": 0
+              },
+              "contextPressure": {},
+              "contextBreakdown": {
+                "systemTokens": 0,
+                "toolsTokens": 0,
+                "messageTokens": 0
+              },
+              "subagentTiming": {
+                "settledMs": 0
+              },
+              "subagent": null,
+              "permissions": {
+                "options": [
+                  {
+                    "value": "read-only",
+                    "name": "read-only"
+                  },
+                  {
+                    "value": "workspace-write",
+                    "name": "workspace-write"
+                  },
+                  {
+                    "value": "danger-full-access",
+                    "name": "danger-full-access"
+                  }
+                ],
+                "currentValue": "workspace-write"
+              },
+              "delegation": {
+                "status": "idle",
+                "promptCount": 0
+              },
+              "sessionListMetadata": {
+                "blank": true,
+                "lastPromptAt": null
+              },
+              "imageLimits": {
+                "maxImageBytes": 20971520,
+                "maxImagesPerMessage": 20,
+                "maxMessageImageBytes": 209715200,
+                "maxImagePixels": 64000000,
+                "maxImageDimension": 8192,
+                "mediaTypes": [
+                  "image/png",
+                  "image/jpeg",
+                  "image/webp",
+                  "image/gif"
+                ]
+              },
+              "todos": null,
+              "plan": {
+                "active": false,
+                "pending": false
+              }
+            }
+          }
+        },
+        {
+          "sessionId": "session-d16abe04-d0f6-4268-9e80-dbad6dcc3011",
+          "updatedAt": 1788004577113,
+          "running": false,
+          "blank": false,
+          "cwd": "/Users/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin",
+          "agentPreset": "standard",
+          "projections": {
+            "asOfSeq": 182,
+            "values": {
+              "sessionStats": {
+                "turns": 1,
+                "steps": 1,
+                "llmMs": 10403,
+                "toolMs": 0,
+                "ttftMs": 6709,
+                "ttftSteps": 1,
+                "decodeMs": 3694,
+                "decodeTokens": 275
+              },
+              "title": "询问你是谁",
+              "goal": null,
+              "tokenUsage": {
+                "uncachedInputTokens": 11203,
+                "outputTokens": 275,
+                "cacheReadTokens": 11136,
+                "cacheWriteTokens": 0
+              },
+              "contextPressure": {
+                "pressureTokens": 22339,
+                "projectedTokens": 22433,
+                "contextWindow": 2000000
+              },
+              "contextBreakdown": {
+                "systemTokens": 1601,
+                "toolsTokens": 8438,
+                "messageTokens": 1784
+              },
+              "subagentTiming": {
+                "settledMs": 0
+              },
+              "subagent": null,
+              "permissions": {
+                "options": [
+                  {
+                    "value": "read-only",
+                    "name": "read-only"
+                  },
+                  {
+                    "value": "workspace-write",
+                    "name": "workspace-write"
+                  },
+                  {
+                    "value": "danger-full-access",
+                    "name": "danger-full-access"
+                  }
+                ],
+                "currentValue": "workspace-write"
+              },
+              "delegation": {
+                "status": "completed",
+                "lastTurnEnd": "completed",
+                "promptCount": 3,
+                "lastAssistantSeq": 179
+              },
+              "sessionListMetadata": {
+                "blank": false,
+                "lastPromptAt": 1788004577113
+              },
+              "imageLimits": {
+                "maxImageBytes": 20971520,
+                "maxImagesPerMessage": 20,
+                "maxMessageImageBytes": 209715200,
+                "maxImagePixels": 64000000,
+                "maxImageDimension": 8192,
+                "mediaTypes": [
+                  "image/png",
+                  "image/jpeg",
+                  "image/webp",
+                  "image/gif"
+                ]
+              },
+              "todos": null,
+              "plan": {
+                "active": false,
+                "pending": false
+              }
+            }
+          }
+        },
+        {
+          "sessionId": "session-9dde0639-7b3e-405c-9687-9a7633bd8a26",
+          "updatedAt": 1788004380428,
+          "running": false,
+          "blank": true,
+          "cwd": "/Users/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin",
+          "agentPreset": "dsh-bot",
+          "projections": {
+            "asOfSeq": 4,
+            "values": {
+              "sessionStats": {
+                "turns": 0,
+                "steps": 0,
+                "llmMs": 0,
+                "toolMs": 0,
+                "ttftMs": 0,
+                "ttftSteps": 0,
+                "decodeMs": 0,
+                "decodeTokens": 0
+              },
+              "title": null,
+              "goal": null,
+              "tokenUsage": {
+                "uncachedInputTokens": 0,
+                "outputTokens": 0,
+                "cacheReadTokens": 0,
+                "cacheWriteTokens": 0
+              },
+              "contextPressure": {},
+              "contextBreakdown": {
+                "systemTokens": 0,
+                "toolsTokens": 0,
+                "messageTokens": 0
+              },
+              "subagentTiming": {
+                "settledMs": 0
+              },
+              "subagent": null,
+              "permissions": {
+                "options": [
+                  {
+                    "value": "read-only",
+                    "name": "read-only"
+                  },
+                  {
+                    "value": "workspace-write",
+                    "name": "workspace-write"
+                  },
+                  {
+                    "value": "danger-full-access",
+                    "name": "danger-full-access"
+                  }
+                ],
+                "currentValue": "workspace-write"
+              },
+              "delegation": {
+                "status": "idle",
+                "promptCount": 0
+              },
+              "sessionListMetadata": {
+                "blank": true,
+                "lastPromptAt": null
+              },
+              "imageLimits": {
+                "maxImageBytes": 20971520,
+                "maxImagesPerMessage": 20,
+                "maxMessageImageBytes": 209715200,
+                "maxImagePixels": 64000000,
+                "maxImageDimension": 8192,
+                "mediaTypes": [
+                  "image/png",
+                  "image/jpeg",
+                  "image/webp",
+                  "image/gif"
+                ]
+              },
+              "todos": null,
+              "plan": {
+                "active": false,
+                "pending": false
+              }
+            }
+          }
+        },
+        {
+          "sessionId": "session-acf3c86d-943b-4c10-8a7f-2f5025c9ae0d",
+          "updatedAt": 1788004348927,
+          "running": false,
+          "blank": false,
+          "cwd": "/Users/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin",
+          "agentPreset": "dsh-bot",
+          "projections": {
+            "asOfSeq": 160,
+            "values": {
+              "sessionStats": {
+                "turns": 1,
+                "steps": 1,
+                "llmMs": 7136,
+                "toolMs": 0,
+                "ttftMs": 3765,
+                "ttftSteps": 1,
+                "decodeMs": 3371,
+                "decodeTokens": 244
+              },
+              "title": "询问人工智能身份",
+              "goal": null,
+              "tokenUsage": {
+                "uncachedInputTokens": 11203,
+                "outputTokens": 244,
+                "cacheReadTokens": 128,
+                "cacheWriteTokens": 0
+              },
+              "contextPressure": {
+                "pressureTokens": 11331,
+                "projectedTokens": 11418,
+                "contextWindow": 2000000
+              },
+              "contextBreakdown": {
+                "systemTokens": 1601,
+                "toolsTokens": 8438,
+                "messageTokens": 1777
+              },
+              "subagentTiming": {
+                "settledMs": 0
+              },
+              "subagent": null,
+              "permissions": {
+                "options": [
+                  {
+                    "value": "read-only",
+                    "name": "read-only"
+                  },
+                  {
+                    "value": "workspace-write",
+                    "name": "workspace-write"
+                  },
+                  {
+                    "value": "danger-full-access",
+                    "name": "danger-full-access"
+                  }
+                ],
+                "currentValue": "workspace-write"
+              },
+              "delegation": {
+                "status": "completed",
+                "lastTurnEnd": "completed",
+                "promptCount": 3,
+                "lastAssistantSeq": 157
+              },
+              "sessionListMetadata": {
+                "blank": false,
+                "lastPromptAt": 1788004348927
+              },
+              "imageLimits": {
+                "maxImageBytes": 20971520,
+                "maxImagesPerMessage": 20,
+                "maxMessageImageBytes": 209715200,
+                "maxImagePixels": 64000000,
+                "maxImageDimension": 8192,
+                "mediaTypes": [
+                  "image/png",
+                  "image/jpeg",
+                  "image/webp",
+                  "image/gif"
+                ]
+              },
+              "todos": null,
+              "plan": {
+                "active": false,
+                "pending": false
+              }
+            }
+          }
+        },
+        {
+          "sessionId": "session-bf460816-85ee-4492-a349-5c73e44c7919",
+          "updatedAt": 1788003493682,
+          "running": false,
+          "blank": false,
+          "cwd": "/Users/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin",
+          "agentPreset": "standard",
+          "projections": {
+            "asOfSeq": 44,
+            "values": {
+              "sessionStats": {
+                "turns": 1,
+                "steps": 1,
+                "llmMs": 2516,
+                "toolMs": 0,
+                "ttftMs": 2361,
+                "ttftSteps": 1,
+                "decodeMs": 155,
+                "decodeTokens": 22
+              },
+              "title": "gui stream ok",
+              "goal": null,
+              "tokenUsage": {
+                "uncachedInputTokens": 11247,
+                "outputTokens": 22,
+                "cacheReadTokens": 0,
+                "cacheWriteTokens": 0
+              },
+              "contextPressure": {
+                "pressureTokens": 11247,
+                "projectedTokens": 11284,
+                "contextWindow": 1000000
+              },
+              "contextBreakdown": {
+                "systemTokens": 1594,
+                "toolsTokens": 8438,
+                "messageTokens": 1739
+              },
+              "subagentTiming": {
+                "settledMs": 0
+              },
+              "subagent": null,
+              "permissions": {
+                "options": [
+                  {
+                    "value": "read-only",
+                    "name": "read-only"
+                  },
+                  {
+                    "value": "workspace-write",
+                    "name": "workspace-write"
+                  },
+                  {
+                    "value": "danger-full-access",
+                    "name": "danger-full-access"
+                  }
+                ],
+                "currentValue": "workspace-write"
+              },
+              "delegation": {
+                "status": "completed",
+                "lastTurnEnd": "completed",
+                "promptCount": 3,
+                "lastAssistantSeq": 42
+              },
+              "sessionListMetadata": {
+                "blank": false,
+                "lastPromptAt": 1788003493682
+              },
+              "imageLimits": {
+                "maxImageBytes": 20971520,
+                "maxImagesPerMessage": 20,
+                "maxMessageImageBytes": 209715200,
+                "maxImagePixels": 64000000,
+                "maxImageDimension": 8192,
+                "mediaTypes": [
+                  "image/png",
+                  "image/jpeg",
+                  "image/webp",
+                  "image/gif"
+                ]
+              },
+              "todos": null,
+              "plan": {
+                "active": false,
+                "pending": false
+              }
+            }
+          }
+        },
+        {
+          "sessionId": "session-d719ec96-159a-4945-abf7-6d75770645e5",
+          "updatedAt": 1788002570812,
+          "running": false,
+          "blank": false,
+          "cwd": "/Users/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin",
+          "agentPreset": "standard",
+          "projections": {
+            "asOfSeq": 43,
+            "values": {
+              "sessionStats": {
+                "turns": 1,
+                "steps": 1,
+                "llmMs": 3989,
+                "toolMs": 0,
+                "ttftMs": 3642,
+                "ttftSteps": 1,
+                "decodeMs": 347,
+                "decodeTokens": 33
+              },
+              "title": "Phase0 restart exact reply request",
+              "goal": null,
+              "tokenUsage": {
+                "uncachedInputTokens": 11147,
+                "outputTokens": 33,
+                "cacheReadTokens": 128,
+                "cacheWriteTokens": 0
+              },
+              "contextPressure": {
+                "pressureTokens": 11275,
+                "projectedTokens": 11308,
+                "contextWindow": 2000000
+              },
+              "contextBreakdown": {
+                "systemTokens": 1592,
+                "toolsTokens": 8438,
+                "messageTokens": 1732
+              },
+              "subagentTiming": {
+                "settledMs": 0
+              },
+              "subagent": null,
+              "permissions": {
+                "options": [
+                  {
+                    "value": "read-only",
+                    "name": "read-only"
+                  },
+                  {
+                    "value": "workspace-write",
+                    "name": "workspace-write"
+                  },
+                  {
+                    "value": "danger-full-access",
+                    "name": "danger-full-access"
+                  }
+                ],
+                "currentValue": "workspace-write"
+              },
+              "delegation": {
+                "status": "completed",
+                "lastTurnEnd": "completed",
+                "promptCount": 3,
+                "lastAssistantSeq": 40
+              },
+              "sessionListMetadata": {
+                "blank": false,
+                "lastPromptAt": 1788002570812
+              },
+              "imageLimits": {
+                "maxImageBytes": 20971520,
+                "maxImagesPerMessage": 20,
+                "maxMessageImageBytes": 209715200,
+                "maxImagePixels": 64000000,
+                "maxImageDimension": 8192,
+                "mediaTypes": [
+                  "image/png",
+                  "image/jpeg",
+                  "image/webp",
+                  "image/gif"
+                ]
+              },
+              "todos": null,
+              "plan": {
+                "active": false,
+                "pending": false
+              }
+            }
+          }
+        },
+        {
+          "sessionId": "session-39f2022a-6781-4de7-bd9c-6772061742ce",
+          "updatedAt": 1788002281749,
+          "running": false,
+          "blank": false,
+          "cwd": "/Users/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin",
+          "agentPreset": "standard",
+          "projections": {
+            "asOfSeq": 37,
+            "values": {
+              "sessionStats": {
+                "turns": 1,
+                "steps": 1,
+                "llmMs": 10842,
+                "toolMs": 0,
+                "ttftMs": 10396,
+                "ttftSteps": 1,
+                "decodeMs": 446,
+                "decodeTokens": 33
+              },
+              "title": "~校准隐藏",
+              "goal": null,
+              "tokenUsage": {
+                "uncachedInputTokens": 11145,
+                "outputTokens": 33,
+                "cacheReadTokens": 128,
+                "cacheWriteTokens": 0
+              },
+              "contextPressure": {
+                "pressureTokens": 11273,
+                "projectedTokens": 11303,
+                "contextWindow": 2000000
+              },
+              "contextBreakdown": {
+                "systemTokens": 1592,
+                "toolsTokens": 8438,
+                "messageTokens": 1727
+              },
+              "subagentTiming": {
+                "settledMs": 0
+              },
+              "subagent": null,
+              "permissions": {
+                "options": [
+                  {
+                    "value": "read-only",
+                    "name": "read-only"
+                  },
+                  {
+                    "value": "workspace-write",
+                    "name": "workspace-write"
+                  },
+                  {
+                    "value": "danger-full-access",
+                    "name": "danger-full-access"
+                  }
+                ],
+                "currentValue": "workspace-write"
+              },
+              "delegation": {
+                "status": "completed",
+                "lastTurnEnd": "completed",
+                "promptCount": 3,
+                "lastAssistantSeq": 35
+              },
+              "sessionListMetadata": {
+                "blank": false,
+                "lastPromptAt": 1788002281749
+              },
+              "imageLimits": {
+                "maxImageBytes": 20971520,
+                "maxImagesPerMessage": 20,
+                "maxMessageImageBytes": 209715200,
+                "maxImagePixels": 64000000,
+                "maxImageDimension": 8192,
+                "mediaTypes": [
+                  "image/png",
+                  "image/jpeg",
+                  "image/webp",
+                  "image/gif"
+                ]
+              },
+              "todos": null,
+              "plan": {
+                "active": false,
+                "pending": false
+              }
+            }
+          }
+        },
+        {
+          "sessionId": "session-7a020d5b-9129-469c-bbf9-5e73f0b458fe",
+          "updatedAt": 1788002234108,
+          "running": false,
+          "blank": true,
+          "cwd": "/Users/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin",
+          "agentPreset": "standard",
+          "projections": {
+            "asOfSeq": 3,
+            "values": {
+              "sessionStats": {
+                "turns": 0,
+                "steps": 0,
+                "llmMs": 0,
+                "toolMs": 0,
+                "ttftMs": 0,
+                "ttftSteps": 0,
+                "decodeMs": 0,
+                "decodeTokens": 0
+              },
+              "title": "校准",
+              "goal": null,
+              "tokenUsage": {
+                "uncachedInputTokens": 0,
+                "outputTokens": 0,
+                "cacheReadTokens": 0,
+                "cacheWriteTokens": 0
+              },
+              "contextPressure": {},
+              "contextBreakdown": {
+                "systemTokens": 0,
+                "toolsTokens": 0,
+                "messageTokens": 0
+              },
+              "subagentTiming": {
+                "settledMs": 0
+              },
+              "subagent": null,
+              "permissions": {
+                "options": [
+                  {
+                    "value": "read-only",
+                    "name": "read-only"
+                  },
+                  {
+                    "value": "workspace-write",
+                    "name": "workspace-write"
+                  },
+                  {
+                    "value": "danger-full-access",
+                    "name": "danger-full-access"
+                  }
+                ],
+                "currentValue": "workspace-write"
+              },
+              "delegation": {
+                "status": "idle",
+                "promptCount": 0
+              },
+              "sessionListMetadata": {
+                "blank": true,
+                "lastPromptAt": null
+              },
+              "imageLimits": {
+                "maxImageBytes": 20971520,
+                "maxImagesPerMessage": 20,
+                "maxMessageImageBytes": 209715200,
+                "maxImagePixels": 64000000,
+                "maxImageDimension": 8192,
+                "mediaTypes": [
+                  "image/png",
+                  "image/jpeg",
+                  "image/webp",
+                  "image/gif"
+                ]
+              },
+              "todos": null,
+              "plan": {
+                "active": false,
+                "pending": false
+              }
+            }
+          }
+        },
+        {
+          "sessionId": "session-d7e02ad6-a600-4877-a88b-1766be2214e5",
+          "updatedAt": 1788001974591,
+          "running": false,
+          "blank": false,
+          "cwd": "/Users/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin",
+          "agentPreset": "standard",
+          "projections": {
+            "asOfSeq": 127,
+            "values": {
+              "sessionStats": {
+                "turns": 2,
+                "steps": 4,
+                "llmMs": 13384,
+                "toolMs": 23,
+                "ttftMs": 11216,
+                "ttftSteps": 4,
+                "decodeMs": 2168,
+                "decodeTokens": 161
+              },
+              "title": "Reply with exactly the three",
+              "goal": null,
+              "tokenUsage": {
+                "uncachedInputTokens": 44849,
+                "outputTokens": 161,
+                "cacheReadTokens": 22400,
+                "cacheWriteTokens": 0
+              },
+              "contextPressure": {
+                "pressureTokens": 22417,
+                "projectedTokens": 22430,
+                "contextWindow": 2000000
+              },
+              "contextBreakdown": {
+                "systemTokens": 1592,
+                "toolsTokens": 8438,
+                "messageTokens": 1930
+              },
+              "subagentTiming": {
+                "settledMs": 0
+              },
+              "subagent": null,
+              "permissions": {
+                "options": [
+                  {
+                    "value": "read-only",
+                    "name": "read-only"
+                  },
+                  {
+                    "value": "workspace-write",
+                    "name": "workspace-write"
+                  },
+                  {
+                    "value": "danger-full-access",
+                    "name": "danger-full-access"
+                  }
+                ],
+                "currentValue": "workspace-write"
+              },
+              "delegation": {
+                "status": "completed",
+                "lastTurnEnd": "completed",
+                "promptCount": 4,
+                "lastAssistantSeq": 125
+              },
+              "sessionListMetadata": {
+                "blank": false,
+                "lastPromptAt": 1788001974591
+              },
+              "imageLimits": {
+                "maxImageBytes": 20971520,
+                "maxImagesPerMessage": 20,
+                "maxMessageImageBytes": 209715200,
+                "maxImagePixels": 64000000,
+                "maxImageDimension": 8192,
+                "mediaTypes": [
+                  "image/png",
+                  "image/jpeg",
+                  "image/webp",
+                  "image/gif"
+                ]
+              },
+              "todos": [
+                {
+                  "content": "Reply with exact phrase",
+                  "status": "completed"
+                }
+              ],
+              "plan": {
+                "active": false,
+                "pending": false
+              }
+            }
+          }
+        },
+        {
+          "sessionId": "session-e8d3c83e-751c-4afe-b3f7-7dd28c6a2013",
+          "updatedAt": 1788001973009,
+          "running": false,
+          "blank": false,
+          "cwd": "/Users/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin",
+          "agentPreset": "standard",
+          "projections": {
+            "asOfSeq": 41,
+            "values": {
+              "sessionStats": {
+                "turns": 1,
+                "steps": 1,
+                "llmMs": 4255,
+                "toolMs": 0,
+                "ttftMs": 3920,
+                "ttftSteps": 1,
+                "decodeMs": 335,
+                "decodeTokens": 34
+              },
+              "title": "Exact reply switch smoke ok",
+              "goal": null,
+              "tokenUsage": {
+                "uncachedInputTokens": 11146,
+                "outputTokens": 34,
+                "cacheReadTokens": 128,
+                "cacheWriteTokens": 0
+              },
+              "contextPressure": {
+                "pressureTokens": 11274,
+                "projectedTokens": 11306,
+                "contextWindow": 2000000
+              },
+              "contextBreakdown": {
+                "systemTokens": 1592,
+                "toolsTokens": 8438,
+                "messageTokens": 1730
+              },
+              "subagentTiming": {
+                "settledMs": 0
+              },
+              "subagent": null,
+              "permissions": {
+                "options": [
+                  {
+                    "value": "read-only",
+                    "name": "read-only"
+                  },
+                  {
+                    "value": "workspace-write",
+                    "name": "workspace-write"
+                  },
+                  {
+                    "value": "danger-full-access",
+                    "name": "danger-full-access"
+                  }
+                ],
+                "currentValue": "workspace-write"
+              },
+              "delegation": {
+                "status": "completed",
+                "lastTurnEnd": "completed",
+                "promptCount": 3,
+                "lastAssistantSeq": 38
+              },
+              "sessionListMetadata": {
+                "blank": false,
+                "lastPromptAt": 1788001973009
+              },
+              "imageLimits": {
+                "maxImageBytes": 20971520,
+                "maxImagesPerMessage": 20,
+                "maxMessageImageBytes": 209715200,
+                "maxImagePixels": 64000000,
+                "maxImageDimension": 8192,
+                "mediaTypes": [
+                  "image/png",
+                  "image/jpeg",
+                  "image/webp",
+                  "image/gif"
+                ]
+              },
+              "todos": null,
+              "plan": {
+                "active": false,
+                "pending": false
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

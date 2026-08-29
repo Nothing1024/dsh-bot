@@ -1,0 +1,8 @@
+## 完成总结
+
+- 完成范围: P0–P4 Task 1–20 全链落地，不是部分收口。空仓建成 DSH Bot：gb/:3084 网关、dsh-bot preset、host `dsh_bot_ask` 委托（session-tool + marks `kind:dsh-bot` + archive 隐藏辅助会话）、better-sidebar「DSH Bot」页签、standards/manual-test/README、GitHub `Nothing1024/dsh-bot`。Task 19 补 follow-global pin（空 override 时把插件会话 `selectModel` 钉到 live `agent-default-model` 再 restore），对齐 UF-005 次路径。Task 20 closer 重跑 5.1、核 5.2 21 路径、写 review 与本总结。
+- 修改文件: 本波（Task 19-20）相对 `9b894e4`：`packages/dsh-bot-host/src/platform.ts`、`packages/dsh-bot-host/tests/ask.spec.ts`；`docs/dsh-bot-mvp/tasks.csv`；`docs/dsh-bot-mvp/review-report.md`；`docs/dsh-bot-mvp/evidence/UF-001|002|003|004|005|006/` 与 `evidence/phase-4/`（含 `final-regression.log`、`final-summary.md`、`task19-matrix.md`）。前序语义单元已在 `0b82aba`…`9b894e4`（P0–P3 + T17-18）。未改邻仓；未改 spec 第 2 章合同。
+- 通过的 BR/UF: BR-001~010、UF-001~006（真实场景执行矩阵 **21/21** 行通过，证据路径均非空）。UF-005 默认切换在 pin 之后补跑通过。
+- 未破坏的不变量: INV-001 邻仓零改动（session-tool / genoffice porcelain 空；vibee 仅预存 `?? .vibee/`，非本仓写入）。INV-002 官方栏无 `~dsh-bot:` 标题（archiveSession）。INV-003 本仓只听 3084，未抢 3080/3081/3083。INV-004 / BR-005：`env/.env`、`settings.yaml`、sessions、storages、credentials 未入 git 且无历史记录。BR-006：`packages/` `env/` `scripts/` 无 `anysphere` / `sand://`。
+- Evidence: `docs/dsh-bot-mvp/evidence/phase-4/final-regression.log`（build/typecheck/test/standard:check 全 0）；`evidence/phase-4/task19-matrix.md`；`evidence/UF-001/`…`UF-006/` 共 21 条 5.2 路径；`evidence/phase-4/phase-summary.md`；包校验二次跑 0 FAIL。
+- 剩余风险: (P2) `session.history` 默认窗口可能截掉 preset 事件，核销应看 create/list。 (P3) follow-global pin 短暂改写部署默认，靠 mutex+restore。 (P3) 官方 GUI 不按 `~` 过滤，archive 失败会漏栏。 (P3) vibee 预存 `.vibee/`。平台钉 `0.1.1-rc.2`，与 vibee/genoffice 的 `0.1.0-rc.7` 并存。

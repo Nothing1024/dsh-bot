@@ -1,0 +1,105 @@
+who 127.0.0.1:3084  pid=55792  DSH_HOME=/Users/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin/env  cwd=/Users/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin
+playwright import failed Error [ERR_MODULE_NOT_FOUND]: Cannot find package 'playwright' imported from /Users/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin/docs/dsh-bot-mvp/evidence/phase-4/task19-realrun.mjs
+PASS UF-001 create — {
+  "sessionId": "session-e0d98567-34de-46bc-903f-8f331852245e",
+  "agentPreset": "dsh-bot"
+}
+PASS UF-001 prompt — {
+  "accepted": true
+}
+wait UF-001 session-e0d98567-34de-46bc-903f-8f331852245e #0
+wait UF-001 session-e0d98567-34de-46bc-903f-8f331852245e #1
+wait UF-001 session-e0d98567-34de-46bc-903f-8f331852245e #2
+FAIL UF-001 main — preset=undefined header=anthropic/grok-4.6 text=我是 **DSH Bot**，跑在本机 DSH 插件环境里的常驻对话助手。
+
+当前模型是 **grok-4.6**，工作区是 `/Users/nothing/w
+reuse existing UF-001 success.png (no live GUI this run)
+PASS UF-002 main — toolOk=true marks=18 noTildeJson=false
+PASS UF-002 concurrent — A=session-6edbb151-4695-4be6-a4a7-cadecc8f1156 B=session-6caa66fc-26f8-4eb7-baab-db47516c50b5
+PASS UF-003 createSession — {
+  "ok": true,
+  "value": {
+    "sessionId": "session-3547ba86-a71d-419e-bc2e-f9313f46670e",
+    "title": "UF-003 jump t19"
+  }
+}
+PASS UF-003 list — n=8
+PASS UF-004 main — session-9690590f-6953-4d68-bbcd-ab31cb7bba88 kind:delegated,kind:dsh-bot,kind:hidden
+PASS UF-004 empty — (no marks)
+wait uf005-before session-58e3ccb3-d287-4e7d-aa61-3e8750a21c9d #0
+wait uf005-before session-58e3ccb3-d287-4e7d-aa61-3e8750a21c9d #1
+wait uf005-before session-58e3ccb3-d287-4e7d-aa61-3e8750a21c9d #2
+wait uf005-before session-58e3ccb3-d287-4e7d-aa61-3e8750a21c9d #3
+FAIL UF-005 switch-in-session — anthropic/grok-4.6 → deepseek-official/deepseek-v4-flash preset=undefined
+FAIL UF-005 default-switch — anthropic/grok-4.6
+wait ov-on session-69d25432-cab5-42b6-bd0f-0a6f6b210aa1 #0
+PASS UF-006 override-on — botModel=override plugin=deepseek-official/deepseek-v4-flash gui=anthropic/grok-4.6
+wait ov-off session-1ff44ae2-3d81-442d-8e17-b4548b62533f #0
+PASS UF-006 override-off — anthropic/grok-4.6
+PASS UF-006 override-invalid — override-invalid: illegal dsh-bot.model override no-such-provider/no-such-model: no adapter registered for provider "no-such-provider"
+wait missing-key session-fc686803-b7b3-4809-bc20-4d62a0f1518d #0
+PASS UF-001 missing-key — named=true recovered=true
+wait upstream session-d0556073-e165-4c01-9c4e-75f536c6e121 #0
+PASS UF-001 upstream-error — session kept session-d0556073-e165-4c01-9c4e-75f536c6e121
+wait uf005-miss session-898fcbaa-964f-4620-9666-aa012cb46301 #0
+PASS UF-005 missing-cred — named credential
+wait timeout session-e53c5413-29ed-4ce3-a4b2-9d77cbc9385f #0
+wait timeout session-e53c5413-29ed-4ce3-a4b2-9d77cbc9385f #1
+wait timeout session-e53c5413-29ed-4ce3-a4b2-9d77cbc9385f #2
+wait timeout session-e53c5413-29ed-4ce3-a4b2-9d77cbc9385f #3
+PASS UF-002 timeout — ids=session-f4915e9e-4c61-47fd-877e-8b44e6977631,session-f4915e9e-4c61-47fd-877e-8b44e6977631
+PASS UF-003 empty rpc — {
+  "sessions": [],
+  "botModel": {
+    "provider": "anthropic",
+    "model": "grok-4.6",
+    "source": "global-default"
+  }
+}
+PASS UF-002 gateway-down — dsh-session: [web-unreachable] web gateway unreachable for session.create: fetch failed
+
+who after boot 127.0.0.1:3084  pid=9373  DSH_HOME=/Users/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin/env  cwd=/Users/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin
+PASS gateway restored — 127.0.0.1:3084  pid=9373  DSH_HOME=/Users/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin/env  cwd=/Users/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin
+- PASS UF-001 create: {
+  "sessionId": "session-e0d98567-34de-46bc-903f-8f331852245e",
+  "agentPreset": "dsh-bot"
+}
+- PASS UF-001 prompt: {
+  "accepted": true
+}
+- FAIL UF-001 main: preset=undefined header=anthropic/grok-4.6 text=我是 **DSH Bot**，跑在本机 DSH 插件环境里的常驻对话助手。
+
+当前模型是 **grok-4.6**，工作区是 `/Users/nothing/w
+- PASS UF-002 main: toolOk=true marks=18 noTildeJson=false
+- PASS UF-002 concurrent: A=session-6edbb151-4695-4be6-a4a7-cadecc8f1156 B=session-6caa66fc-26f8-4eb7-baab-db47516c50b5
+- PASS UF-003 createSession: {
+  "ok": true,
+  "value": {
+    "sessionId": "session-3547ba86-a71d-419e-bc2e-f9313f46670e",
+    "title": "UF-003 jump t19"
+  }
+}
+- PASS UF-003 list: n=8
+- PASS UF-004 main: session-9690590f-6953-4d68-bbcd-ab31cb7bba88 kind:delegated,kind:dsh-bot,kind:hidden
+- PASS UF-004 empty: (no marks)
+- FAIL UF-005 switch-in-session: anthropic/grok-4.6 → deepseek-official/deepseek-v4-flash preset=undefined
+- FAIL UF-005 default-switch: anthropic/grok-4.6
+- PASS UF-006 override-on: botModel=override plugin=deepseek-official/deepseek-v4-flash gui=anthropic/grok-4.6
+- PASS UF-006 override-off: anthropic/grok-4.6
+- PASS UF-006 override-invalid: override-invalid: illegal dsh-bot.model override no-such-provider/no-such-model: no adapter registered for provider "no-such-provider"
+- PASS UF-001 missing-key: named=true recovered=true
+- PASS UF-001 upstream-error: session kept session-d0556073-e165-4c01-9c4e-75f536c6e121
+- PASS UF-005 missing-cred: named credential
+- PASS UF-002 timeout: ids=session-f4915e9e-4c61-47fd-877e-8b44e6977631,session-f4915e9e-4c61-47fd-877e-8b44e6977631
+- PASS UF-003 empty rpc: {
+  "sessions": [],
+  "botModel": {
+    "provider": "anthropic",
+    "model": "grok-4.6",
+    "source": "global-default"
+  }
+}
+- PASS UF-002 gateway-down: dsh-session: [web-unreachable] web gateway unreachable for session.create: fetch failed
+
+- PASS gateway restored: 127.0.0.1:3084  pid=9373  DSH_HOME=/Users/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin/env  cwd=/Users/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin
+FAILS=3

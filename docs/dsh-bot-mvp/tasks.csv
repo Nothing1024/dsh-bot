@@ -17,5 +17,5 @@
 16,P3:侧栏 UI,执行 Phase 3 回归验证,spec.md#task-16,15,pnpm -r run build && pnpm -r test + UF-001/002/003 复现,已完成,history 等到 assistant/tool
 17,P4:标准面与验收,建 standards 标准面并过检,spec.md#task-17,16,pnpm run standard:check → 0 FAIL,已完成,standard-check.log 0 FAIL；host-descriptor gb/:3084；fixtures 含 tool-dsh-bot 正例
 18,P4:标准面与验收,manual-test 脚本与 README 文档,spec.md#task-18,16,bash scripts/manual-test.sh --no-write → 全步通过,已完成,manual-test --no-write 34/0；UF-004 marks-list.txt；GitHub Nothing1024/dsh-bot
-19,P4:标准面与验收,执行 spec 5.2 真实场景全套测试,spec.md#task-19,17;18,5.2 执行矩阵逐行回放全部通过 + 二次跑包校验,待开始,含 UF-005/006 模型切换与 override 六行
-20,P4:标准面与验收,执行 Phase 4 回归验证(总收尾),spec.md#task-20,19,全量命令级 + 邻仓零 diff + BR-006 红线 rg 为空,待开始,
+19,P4:标准面与验收,执行 spec 5.2 真实场景全套测试,spec.md#task-19,17;18,5.2 执行矩阵逐行回放全部通过 + 二次跑包校验,已完成,21/21 证据落盘；UF-005 follow-global pin；history preset 或被截断以 create 为准
+20,P4:标准面与验收,执行 Phase 4 回归验证(总收尾),spec.md#task-20,19,全量命令级 + 邻仓零 diff + BR-006 红线 rg 为空,已完成,final-regression 全绿；BR-006 空；邻仓 st/go 干净 vibee 预存 .vibee/；review-report + final-summary
