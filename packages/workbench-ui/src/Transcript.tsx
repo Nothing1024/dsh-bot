@@ -4,11 +4,14 @@
  */
 import { useEffect, useRef, type UIEvent } from 'react'
 import type { WorkbenchHistoryItem } from './api.ts'
+import { hashAvatarColor, nameInitial } from './avatar.ts'
 
 export interface TranscriptProps {
   readonly items: readonly WorkbenchHistoryItem[]
   readonly pending?: { readonly text: string; readonly failed?: boolean } | null
   readonly working: boolean
+  readonly speaking?: { readonly botId: string; readonly name: string } | null
+  readonly groupMode?: boolean
 }
 
 /**
@@ -53,7 +56,9 @@ export function Transcript(props: TranscriptProps) {
           <span className="dots" aria-hidden="true">
             <i /><i /><i />
           </span>
-          工作中
+          {props.speaking !== undefined && props.speaking !== null
+            ? `${props.speaking.name} 正在发言`
+            : '工作中'}
         </div>
       ) : null}
     </div>
@@ -78,13 +83,40 @@ function TranscriptRow(props: { item: WorkbenchHistoryItem }) {
     )
   }
   const role = item.role === 'user' ? 'user' : 'assistant'
+  const author = item.author
+  const showAuthor = author !== undefined && role === 'assistant'
+  const color = showAuthor
+    ? (author.avatar.color !== '' ? author.avatar.color : hashAvatarColor(author.botId))
+    : undefined
+  const glyph = showAuthor
+    ? (author.avatar.emoji !== undefined && author.avatar.emoji !== ''
+      ? author.avatar.emoji
+      : nameInitial(author.name))
+    : undefined
   return (
     <div
-      className={`bubbleWrap ${role}`}
+      className={`bubbleWrap ${role}${showAuthor ? ' hasAuthor' : ''}`}
       data-role={role}
+      data-author={showAuthor ? author.botId : undefined}
       data-testid={`transcript-msg-${item.seq}`}
     >
-      <div className={`bubble ${role}`}>{item.text}</div>
+      {showAuthor ? (
+        <span className="avatar sm" style={{ background: color }} data-testid={`transcript-author-avatar-${item.seq}`}>
+          {glyph}
+        </span>
+      ) : null}
+      <div className="bubbleCol">
+        {showAuthor ? (
+          <span className="authorName" data-testid={`transcript-author-${item.seq}`}>{author.name}</span>
+        ) : null}
+        {item.error !== undefined ? (
+          <div className="memberError" data-testid={`transcript-error-${item.seq}`}>
+            {item.error.code}: {item.error.message}
+          </div>
+        ) : (
+          <div className={`bubble ${role}`}>{item.text}</div>
+        )}
+      </div>
     </div>
   )
 }

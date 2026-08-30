@@ -106,6 +106,27 @@ function stub(overrides: Partial<DshBotHttpFace> = {}): DshBotHttpFace {
       skippedCached: 0,
       assigned: [],
     })),
+    listGroups: vi.fn(async () => ({ groups: [] })),
+    createGroup: vi.fn(async () => ({
+      id: 'bianjishi',
+      name: '编辑室',
+      memberIds: ['dsh-bot', 'shiren-xiaobei'],
+      createdAt: 1,
+    })),
+    updateGroup: vi.fn(async () => ({
+      id: 'bianjishi',
+      name: '编辑室',
+      memberIds: ['dsh-bot', 'shiren-xiaobei'],
+      createdAt: 1,
+    })),
+    deleteGroup: vi.fn(async () => ({ id: 'bianjishi', deleted: true as const })),
+    createGroupSession: vi.fn(async () => ({
+      roomId: 'room-1',
+      groupId: 'bianjishi',
+      createdAt: 1,
+      updatedAt: 1,
+    })),
+    listGroupSessions: vi.fn(async () => ({ rooms: [] })),
     ...overrides,
   }
 }
@@ -312,5 +333,28 @@ describe('dsh-bot HTTP face', () => {
       ok: true,
       value: { sessions: [ROW], botModel: MODEL },
     })
+  })
+
+  it('creates and lists groups on POST /dsh-bot/createGroup and listGroups', async () => {
+    const bot = stub()
+    const { handler } = attach(bot)
+    const created = await post(handler, '/dsh-bot/createGroup', {
+      args: { name: '编辑室', memberIds: ['dsh-bot', 'shiren-xiaobei'] },
+    })
+    expect(created.json).toEqual({
+      ok: true,
+      value: {
+        id: 'bianjishi',
+        name: '编辑室',
+        memberIds: ['dsh-bot', 'shiren-xiaobei'],
+        createdAt: 1,
+      },
+    })
+    expect(bot.createGroup).toHaveBeenCalledWith({
+      name: '编辑室',
+      memberIds: ['dsh-bot', 'shiren-xiaobei'],
+    })
+    await post(handler, '/dsh-bot/listGroups', { args: {} })
+    expect(bot.listGroups).toHaveBeenCalledTimes(1)
   })
 })

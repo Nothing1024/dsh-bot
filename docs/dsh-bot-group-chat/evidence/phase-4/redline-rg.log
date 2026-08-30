@@ -1,0 +1,1 @@
+packages/dsh-bot-host/tests/group-engine.spec.ts:253:    expect(prompt).not.toMatch(/anysphere/i)

@@ -1,0 +1,25 @@
+{
+  "listBots": [
+    {
+      "id": "dsh-bot",
+      "name": "DSH Bot",
+      "presetId": "dsh-bot"
+    },
+    {
+      "id": "shiren-xiaobei",
+      "name": "诗人小北",
+      "presetId": "dsh-bot--shiren-xiaobei"
+    },
+    {
+      "id": "xiaodui-aning",
+      "name": "校对阿宁",
+      "presetId": "dsh-bot--xiaodui-aning"
+    }
+  ],
+  "listGroups": {
+    "groups": []
+  }
+}
+preset-dsh-bot True
+preset-poet True
+room-gone True

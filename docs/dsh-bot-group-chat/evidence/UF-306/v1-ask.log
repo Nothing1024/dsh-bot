@@ -1,0 +1,30 @@
+who 127.0.0.1:3084  pid=94161  DSH_HOME=/Users/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin/env  cwd=/Users/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin
+create {"ok": true, "value": {"sessionId": "session-1b699b4c-8bc0-4645-a87e-13ef389aab5a", "agentPreset": "dsh-bot"}}
+sessionId session-1b699b4c-8bc0-4645-a87e-13ef389aab5a
+prompt {"ok": true, "value": {"accepted": true}}
+poll 0 bytes=60005 has_tool=True has_pong=True
+SUCCESS
+projections {"status": "running", "promptCount": 3}
+approval/policy {'type': 'approval/policy', 'seq': 2, 'time': 1788100350796, 'data': {'policy': 'ask'}}
+agent/inbox/spliced {'type': 'agent/inbox/spliced', 'seq': 3, 'time': 1788100350813, 'data': {'target': 'next-turn', 'start': 0, 'inserted': [{'content': [{'type': 'text', 'text': 'Use the dsh_bot_ask tool exactly once. 
+turn/start {'type': 'turn/start', 'seq': 4, 'time': 1788100350813, 'data': {'turn': 1}}
+agent/inbox/spliced {'type': 'agent/inbox/spliced', 'seq': 5, 'time': 1788100350813, 'data': {'target': 'next-turn', 'start': 0, 'removedCount': 1, 'inserted': []}}
+step/start {'type': 'step/start', 'seq': 6, 'time': 1788100350857, 'data': {'turn': 1, 'step': 1}}
+user/message {'type': 'user/message', 'seq': 7, 'time': 1788100350857, 'data': {'content': [{'type': 'text', 'text': 'Use the dsh_bot_ask tool exactly once. prompt: Reply with exactly: dsh bot pong. title: group-c
+user/message {'type': 'user/message', 'seq': 8, 'time': 1788100350858, 'data': {'content': [{'type': 'text', 'text': 'Current runtime context. This snapshot supersedes earlier runtime-context snapshots.\n\nCurrent
+user/message {'type': 'user/message', 'seq': 9, 'time': 1788100350858, 'data': {'content': [{'type': 'text', 'text': '<system-reminder>\nA skill is a reusable set of task-specific instructions. The following skill
+session/title {'type': 'session/title', 'seq': 10, 'time': 1788100350858, 'data': {'title': 'Use the dsh_bot_ask tool exactly', 'messageSeqs': [7], 'source': {'kind': 'fallback'}}}
+request/header {'type': 'request/header', 'seq': 11, 'time': 1788100350859, 'data': {'header': {'config': {'provider': 'anthropic', 'model': 'grok-4.6', 'reasoningEffort': 'xhigh', 'maxTokens': 128000}, 'adapterDefa
+request/context {'type': 'request/context', 'seq': 12, 'time': 1788100350859, 'data': {'provider': 'anthropic', 'model': 'grok-4.6', 'contextWindow': 2000000}}
+session/title-llm-request {'type': 'session/title-llm-request', 'seq': 13, 'time': 1788100350860, 'data': {'titleProvider': 'session-title-first-prompt-llm', 'messageSeqs': [7], 'route': {'provider': 'anthropic', 'model': 'gro
+poll 0 events=96 tool_events=2 last=['step/end', 'turn/end', 'session/title']
+hits 15
+assistant/chunk {"type": "assistant/chunk", "seq": 73, "time": 1788100355579, "data": {"turn": 1, "step": 1, "chunk": {"type": "tool-call-delta", "index": 2, "id": "call-e42af802-bfe2-4052-b041-ea2eee6610d3-0", "name": "dsh_bot_ask", "argumentsDelta": "{\"
+assistant/chunk {"type": "assistant/chunk", "seq": 74, "time": 1788100355580, "data": {"turn": 1, "step": 1, "chunk": {"type": "block-end", "index": 2, "block": {"type": "tool-call", "id": "call-e42af802-bfe2-4052-b041-ea2eee6610d3-0", "name": "dsh_bot_ask
+assistant/message {"type": "assistant/message", "seq": 77, "time": 1788100355598, "data": {"turn": 1, "step": 1, "message": {"role": "assistant", "content": [{"type": "reasoning", "text": "The user wants me to use the dsh_bot_ask tool exactly once with a spe
+tool/call {"type": "tool/call", "seq": 78, "time": 1788100355599, "data": {"turn": 1, "step": 1, "callId": "call-e42af802-bfe2-4052-b041-ea2eee6610d3-0", "name": "dsh_bot_ask", "arguments": "{\"prompt\":\"Reply with exactly: dsh bot pong.\",\"title\"
+tool/result {"type": "tool/result", "seq": 79, "time": 1788100358963, "data": {"turn": 1, "step": 1, "message": {"source": {"kind": "tool", "callId": "call-e42af802-bfe2-4052-b041-ea2eee6610d3-0"}, "content": [{"type": "tool-result", "toolCallId": "cal
+assistant/chunk {"type": "assistant/chunk", "seq": 89, "time": 1788100361142, "data": {"turn": 1, "step": 2, "chunk": {"type": "block-end", "index": 0, "block": {"type": "text", "text": "dsh bot pong."}}}}
+assistant/message {"type": "assistant/message", "seq": 92, "time": 1788100361147, "data": {"turn": 1, "step": 2, "message": {"role": "assistant", "content": [{"type": "text", "text": "dsh bot pong."}], "source": {"kind": "model", "provider": "anthropic", "mo
+session/title {"type": "session/title", "seq": 95, "time": 1788100363763, "data": {"title": "Call dsh_bot_ask exactly once", "messageSeqs": [7], "source": {"kind": "provider", "provider": "session-title-first-prompt-llm", "model": {"provider": "anthropic
+DONE

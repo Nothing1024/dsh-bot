@@ -14,6 +14,8 @@ export const DSH_BOT_KIND = 'kind:dsh-bot'
 export const DSH_BOT_HIDDEN_KIND = 'kind:hidden'
 /** Title prefix for delegated auxiliary sessions (session-tool hiddenPrefixes). */
 export const DSH_BOT_HIDDEN_TITLE_PREFIX = '~dsh-bot: '
+/** Title prefix for group member-turn hidden sessions (BR-305). */
+export const DSH_BOT_GROUP_HIDDEN_TITLE_PREFIX = '~dsh-bot-group: '
 
 /**
  * Workbench ownership token `bot:<id>` (BR-203). Ordinary marks token; not a
@@ -28,6 +30,8 @@ export function botMark(botId: string): string {
 }
 
 const BOT_MARK_PREFIX = 'bot:'
+const GROUP_MARK_PREFIX = 'group:'
+const GROUP_ROOM_MARK_PREFIX = 'group-room:'
 
 /**
  * First `bot:<id>` token in a mark set, if any.
@@ -36,6 +40,53 @@ export function parseBotMark(tags: readonly string[]): string | undefined {
   for (const tag of tags) {
     if (!tag.startsWith(BOT_MARK_PREFIX)) continue
     const id = tag.slice(BOT_MARK_PREFIX.length).trim()
+    if (id !== '') return id
+  }
+  return undefined
+}
+
+/**
+ * Workbench group ownership token `group:<id>` (BR-305). Ordinary marks token.
+ */
+export function groupMark(groupId: string): string {
+  const id = groupId.trim()
+  if (id === '') {
+    throw new Error('group:<id> mark requires a non-empty group id')
+  }
+  return `${GROUP_MARK_PREFIX}${id}`
+}
+
+/**
+ * Room token `group-room:<roomId>` so (room, member) hidden sessions can be reused.
+ */
+export function groupRoomMark(roomId: string): string {
+  const id = roomId.trim()
+  if (id === '') {
+    throw new Error('group-room:<id> mark requires a non-empty room id')
+  }
+  return `${GROUP_ROOM_MARK_PREFIX}${id}`
+}
+
+/**
+ * First `group:<id>` token that is not a `group-room:` token.
+ */
+export function parseGroupMark(tags: readonly string[]): string | undefined {
+  for (const tag of tags) {
+    if (tag.startsWith(GROUP_ROOM_MARK_PREFIX)) continue
+    if (!tag.startsWith(GROUP_MARK_PREFIX)) continue
+    const id = tag.slice(GROUP_MARK_PREFIX.length).trim()
+    if (id !== '') return id
+  }
+  return undefined
+}
+
+/**
+ * First `group-room:<id>` token in a mark set, if any.
+ */
+export function parseGroupRoomMark(tags: readonly string[]): string | undefined {
+  for (const tag of tags) {
+    if (!tag.startsWith(GROUP_ROOM_MARK_PREFIX)) continue
+    const id = tag.slice(GROUP_ROOM_MARK_PREFIX.length).trim()
     if (id !== '') return id
   }
   return undefined

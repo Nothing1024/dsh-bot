@@ -59,6 +59,38 @@ describe('Roster', () => {
     expect(screen.getByTestId('roster-preview-shiren-xiaobei').textContent).toBe('未发送草稿')
   })
 
+  it('renders a group mosaic row and the new-group control', () => {
+    const onCreateGroup = vi.fn()
+    render(
+      <Roster
+        items={[
+          item(),
+          item({
+            id: 'bianji-shi',
+            name: '编辑室',
+            kind: 'group',
+            selected: false,
+            protected: false,
+            members: [
+              { id: 'dsh-bot', name: 'DSH Bot', color: '#5b8def' },
+              { id: 'shiren-xiaobei', name: '诗人小北', emoji: '📜', color: '#c9a227' },
+            ],
+          }),
+        ]}
+        onSelect={vi.fn()}
+        onCreate={vi.fn()}
+        onCreateGroup={onCreateGroup}
+        onEdit={vi.fn()}
+        onDelete={vi.fn()}
+        onRename={vi.fn()}
+      />,
+    )
+    expect(screen.getByTestId('roster-row-bianji-shi').getAttribute('data-kind')).toBe('group')
+    expect(screen.getByTestId('roster-avatar-bianji-shi').className).toMatch(/mosaic/)
+    fireEvent.click(screen.getByTestId('roster-new-group'))
+    expect(onCreateGroup).toHaveBeenCalledTimes(1)
+  })
+
   it('opens create from the new-bot button', () => {
     const onCreate = vi.fn()
     render(

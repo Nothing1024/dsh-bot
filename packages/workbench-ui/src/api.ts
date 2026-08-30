@@ -144,6 +144,12 @@ export interface CreateBotSessionValue {
   readonly presetId: string
 }
 
+export interface WorkbenchHistoryAuthor {
+  readonly botId: string
+  readonly name: string
+  readonly avatar: { readonly color: string; readonly emoji?: string }
+}
+
 export interface WorkbenchHistoryItem {
   readonly id: string
   readonly kind: 'message' | 'thinking' | 'tool'
@@ -152,16 +158,20 @@ export interface WorkbenchHistoryItem {
   readonly text?: string
   readonly name?: string
   readonly summary?: string
+  readonly author?: WorkbenchHistoryAuthor
+  readonly error?: { readonly code: string; readonly message: string }
 }
 
 export interface HistoryValue {
   readonly sessionId: string
   readonly items: readonly WorkbenchHistoryItem[]
   readonly working: boolean
+  readonly speaking?: { readonly botId: string; readonly name: string }
 }
 
 export interface PromptValue {
   readonly sessionId: string
+  readonly unmatchedMentions?: boolean
 }
 
 export function listBotSessions(botId: string, includeHidden = false): Promise<RpcResult<ListBotSessionsValue>> {
@@ -208,8 +218,64 @@ export function reconcile(): Promise<RpcResult<ReconcileValue>> {
   return workbenchCall<ReconcileValue>('reconcile', {})
 }
 
+export interface WorkbenchGroup {
+  readonly id: string
+  readonly name: string
+  readonly memberIds: readonly string[]
+  readonly createdAt: number
+}
+
+export interface ListGroupsValue {
+  readonly groups: readonly WorkbenchGroup[]
+}
+
+export interface GroupRoomRow {
+  readonly roomId: string
+  readonly groupId: string
+  readonly createdAt: number
+  readonly updatedAt: number
+}
+
+export function listGroups(): Promise<RpcResult<ListGroupsValue>> {
+  return workbenchCall<ListGroupsValue>('listGroups', {})
+}
+
+export function createGroup(args: {
+  readonly name: string
+  readonly memberIds: readonly string[]
+}): Promise<RpcResult<WorkbenchGroup>> {
+  return workbenchCall<WorkbenchGroup>('createGroup', { ...args })
+}
+
+export function updateGroup(args: {
+  readonly id: string
+  readonly name?: string
+  readonly memberIds?: readonly string[]
+}): Promise<RpcResult<WorkbenchGroup>> {
+  const body: Record<string, unknown> = { id: args.id }
+  if (args.name !== undefined) body.name = args.name
+  if (args.memberIds !== undefined) body.memberIds = args.memberIds
+  return workbenchCall<WorkbenchGroup>('updateGroup', body)
+}
+
+export function deleteGroup(id: string): Promise<RpcResult<{ id: string; deleted: true }>> {
+  return workbenchCall('deleteGroup', { id })
+}
+
+export function createGroupSession(groupId: string): Promise<RpcResult<GroupRoomRow>> {
+  return workbenchCall<GroupRoomRow>('createGroupSession', { groupId })
+}
+
+export function listGroupSessions(groupId: string): Promise<RpcResult<{ rooms: readonly GroupRoomRow[] }>> {
+  return workbenchCall('listGroupSessions', { groupId })
+}
+
 export function draftStorageKey(botId: string): string {
   return `dsh-bot:draft:${botId}`
+}
+
+export function groupDraftStorageKey(groupId: string): string {
+  return `dsh-bot:draft:group:${groupId}`
 }
 
 export function readDraft(botId: string): string {

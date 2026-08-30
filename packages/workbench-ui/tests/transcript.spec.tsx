@@ -16,6 +16,29 @@ describe('Transcript', () => {
     cleanup()
   })
 
+  it('shows member avatar and name in group mode', () => {
+    render(
+      <Transcript
+        items={[
+          { id: 'm-1', kind: 'message', seq: 1, role: 'user', text: '你们是谁?' },
+          {
+            id: 'm-2',
+            kind: 'message',
+            seq: 2,
+            role: 'assistant',
+            text: '我是诗人小北',
+            author: { botId: 'shiren-xiaobei', name: '诗人小北', avatar: { color: '#c9a227', emoji: '📜' } },
+          },
+        ]}
+        working={false}
+        groupMode
+      />,
+    )
+    expect(screen.getByTestId('transcript-author-2').textContent).toBe('诗人小北')
+    expect(screen.getByTestId('transcript-author-avatar-2').textContent).toBe('📜')
+    expect(screen.getByTestId('transcript-msg-2').getAttribute('data-author')).toBe('shiren-xiaobei')
+  })
+
   it('places user on the right and assistant on the left without a large avatar', () => {
     const { container } = render(<Transcript items={items} working={false} />)
     expect(screen.getByTestId('transcript-msg-1').getAttribute('data-role')).toBe('user')

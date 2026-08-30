@@ -40,7 +40,7 @@ manifest 本体在 `packages/<可挂载包>/dsh-plugin.json`（标准文件名�
 | `x-nothing1024.dsh.web-server/v1alpha1` | WebServer | `ctx.webServer`（挂 `/dsh-bot/*`） | DSH 宿主 |
 | `x-nothing1024.dsh.workspace/v1alpha1` | WorkspaceRegistry | `ctx.workspaceRegistry`（archiveSession） | DSH 宿主 |
 | `x-nothing1024.session-tool/v1alpha1` | SessionTool | `ctx.sessionTool` 服务契约 | 邻仓 session-tool 的 tool-session bundle |
-| `x-nothing1024.dsh-bot.workbench/v1alpha1` | WorkbenchUi | `GET /dsh-bot/ui` 静态工作台 + `POST /dsh-bot/{listBots,createBot,updateBot,deleteBot,listBotSessions,createBotSession,history,prompt,reconcile}` | 本仓 `dsh-bot-host` |
+| `x-nothing1024.dsh-bot.workbench/v1alpha1` | WorkbenchUi | `GET /dsh-bot/ui` 静态工作台 + `POST /dsh-bot/{listBots,createBot,updateBot,deleteBot,listBotSessions,createBotSession,history,prompt,reconcile,listGroups,createGroup,updateGroup,deleteGroup,createGroupSession,listGroupSessions}` | 本仓 `dsh-bot-host` |
 
 跨仓消费方：本仓 `dsh-bot-host` / `tool-dsh-bot` 以 required 契约声明 `SessionTool`（consumer 侧）。按 v0.15 规则 `provides` 被拒绝，所以提供关系只在 descriptor 侧表达（部署能力），等 RFC 0003（插件间 service 组合）定案后再迁移为 provides/requires.services。
 

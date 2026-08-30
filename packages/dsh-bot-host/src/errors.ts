@@ -20,6 +20,7 @@ export type DshBotErrorCode =
   | 'invalid-input'
   | 'bot-not-found'
   | 'bot-protected'
+  | 'group-not-found'
   | 'preset-broken'
   | 'registry-corrupt'
   | 'internal'

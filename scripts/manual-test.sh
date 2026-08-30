@@ -2,7 +2,7 @@
 # dsh-bot 半自动 CLI 矩阵：先 gateway_require(:3084)，再 UF-001 建会话冒烟、
 # UF-002 插件创建（--write 才走模型委托）、UF-006 override 开关核 header、
 # UF-004 marks 查询、工作台链 createBot → createBotSession → prompt(--write)
-# → history 有回复 → deleteBot 清理。记录写 env/manual-test-last.txt。
+# → history 有回复 → createGroup → listGroups → deleteGroup → deleteBot 清理。记录写 env/manual-test-last.txt。
 #
 # 需要 :3084 上本仓网关已起（sh env/boot.sh）。不要再 boot --profile gb。
 # 先核监听进程的 DSH_HOME 是本仓 env/，再打；别人的 :3084 直接失败。
@@ -485,6 +485,28 @@ if [ -n "$WB_BOT" ]; then
     check WB-history-有assistant stdout_has '"role":"assistant"'
   else
     say '工作台 --no-write：跳过 prompt / history 回复核'
+  fi
+
+  say '=== 工作台小组：createGroup → listGroups → createGroupSession → deleteGroup ==='
+  WB_GROUP=$(node --input-type=module -e 'process.stdout.write(JSON.stringify({name:process.argv[1],memberIds:[process.argv[2],"dsh-bot"]}))' "mtx-group-${STAMP}" "$WB_BOT")
+  run_http "WB createGroup" createGroup "$WB_GROUP"
+  check WB-createGroup-ok rpc_ok
+  WB_GID=$(rpc_value id)
+  check WB-createGroup-有id nempty "$WB_GID"
+  run_http "WB listGroups" listGroups '{}'
+  check WB-listGroups-含新组 stdout_has "$WB_GID"
+  if [ -n "$WB_GID" ]; then
+    WB_GROOM=$(node --input-type=module -e 'process.stdout.write(JSON.stringify({groupId:process.argv[1]}))' "$WB_GID")
+    run_http "WB createGroupSession" createGroupSession "$WB_GROOM"
+    check WB-createGroupSession-ok rpc_ok
+    check WB-createGroupSession-有room nempty "$(rpc_value roomId)"
+    WB_GDEL=$(node --input-type=module -e 'process.stdout.write(JSON.stringify({id:process.argv[1]}))' "$WB_GID")
+    run_http "WB deleteGroup" deleteGroup "$WB_GDEL"
+    check WB-deleteGroup-ok rpc_ok
+    run_http "WB listGroups（删组后）" listGroups '{}'
+    check WB-deleteGroup-零残留 stdout_lacks "$WB_GID"
+    run_http "WB listBots（删组后成员仍在）" listBots '{}'
+    check WB-deleteGroup-成员仍在 stdout_has "$WB_BOT"
   fi
 
   WB_DEL=$(node --input-type=module -e 'process.stdout.write(JSON.stringify({id:process.argv[1]}))' "$WB_BOT")

@@ -26,6 +26,7 @@ import {
   botMark,
   mergeBotMarks,
 } from './marks.ts'
+import type { RoomState } from './groups.ts'
 import { applyModelOverride } from './platform.ts'
 import type { DshBotPlatform } from './platform.ts'
 
@@ -87,6 +88,12 @@ export interface HistoryRequest {
   readonly sinceSeq?: number
 }
 
+export interface WorkbenchHistoryAuthor {
+  readonly botId: string
+  readonly name: string
+  readonly avatar: { readonly color: string; readonly emoji?: string }
+}
+
 export interface WorkbenchHistoryItem {
   readonly id: string
   readonly kind: 'message' | 'thinking' | 'tool'
@@ -95,12 +102,15 @@ export interface WorkbenchHistoryItem {
   readonly text?: string
   readonly name?: string
   readonly summary?: string
+  readonly author?: WorkbenchHistoryAuthor
+  readonly error?: { readonly code: string; readonly message: string }
 }
 
 export interface HistoryResult {
   readonly sessionId: string
   readonly items: readonly WorkbenchHistoryItem[]
   readonly working: boolean
+  readonly speaking?: { readonly botId: string; readonly name: string }
 }
 
 export interface PromptRequest {
@@ -110,6 +120,7 @@ export interface PromptRequest {
 
 export interface PromptResult {
   readonly sessionId: string
+  readonly unmatchedMentions?: boolean
 }
 
 function rethrow(error: unknown, sessionId?: string): never {
@@ -229,6 +240,58 @@ export function projectWorkbenchHistory(
         text,
       })
     }
+  }
+  return items
+}
+
+/**
+ * Project a group room jsonl onto workbench history items. 1:1 callers never
+ * go through this path, so they keep omitting `author`.
+ */
+export function projectRoomHistory(
+  room: RoomState,
+  members: ReadonlyMap<string, WorkbenchHistoryAuthor>,
+  sinceSeq?: number,
+): WorkbenchHistoryItem[] {
+  const items: WorkbenchHistoryItem[] = []
+  for (const line of room.messages) {
+    if (sinceSeq !== undefined && line.seq < sinceSeq) continue
+    if (line.speaker.kind === 'user') {
+      items.push({
+        id: line.id,
+        kind: 'message',
+        seq: line.seq,
+        role: 'user',
+        text: line.text,
+      })
+      continue
+    }
+    const stored = members.get(line.speaker.botId)
+    const author: WorkbenchHistoryAuthor = stored ?? {
+      botId: line.speaker.botId,
+      name: line.speaker.botId,
+      avatar: { color: '#5b8def' },
+    }
+    if (line.speaker.kind === 'error') {
+      items.push({
+        id: line.id,
+        kind: 'message',
+        seq: line.seq,
+        role: 'assistant',
+        text: line.text,
+        author,
+        error: { code: line.speaker.code, message: line.text },
+      })
+      continue
+    }
+    items.push({
+      id: line.id,
+      kind: 'message',
+      seq: line.seq,
+      role: 'assistant',
+      text: line.text,
+      author,
+    })
   }
   return items
 }

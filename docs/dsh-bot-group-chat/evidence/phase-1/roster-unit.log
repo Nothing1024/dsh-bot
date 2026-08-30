@@ -1,0 +1,21 @@
+$ vitest run --config ../../vitest.config.ts packages/workbench-ui/tests
+
+ RUN  v4.1.11 /Users/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin
+
+ ✓ packages/workbench-ui/tests/mentions.spec.ts (3 tests) 2ms
+ ✓ packages/workbench-ui/tests/avatar.spec.ts (4 tests) 3ms
+ ✓ packages/workbench-ui/tests/api.spec.ts (5 tests) 4ms
+ ✓ packages/workbench-ui/tests/session-poll.spec.tsx (3 tests) 23ms
+ ✓ packages/workbench-ui/tests/transcript.spec.tsx (4 tests) 33ms
+ ✓ packages/workbench-ui/tests/group-form.spec.tsx (2 tests) 36ms
+ ✓ packages/workbench-ui/tests/roster.spec.tsx (5 tests) 45ms
+ ✓ packages/workbench-ui/tests/bot-form.spec.tsx (4 tests) 44ms
+ ✓ packages/workbench-ui/tests/composer.spec.tsx (5 tests) 80ms
+ ✓ packages/workbench-ui/tests/app.spec.tsx (8 tests) 103ms
+ ✓ packages/workbench-ui/tests/conversation.spec.tsx (7 tests) 133ms
+
+ Test Files  11 passed (11)
+      Tests  50 passed (50)
+   Start at  22:11:38
+   Duration  626ms (transform 374ms, setup 0ms, import 1.12s, tests 506ms, environment 2.20s)
+

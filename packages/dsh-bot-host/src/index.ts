@@ -6,6 +6,7 @@
  * @module dsh-bot-host
  */
 
+import { dirname } from 'node:path'
 import { Context, Service } from '@deepseek-ai/cordis'
 import { installSettingsSection, settingsNamespace } from '@deepseek-ai/dsh-settings'
 import z from '@deepseek-ai/schemastery'
@@ -47,15 +48,30 @@ import { attachWorkbenchHttp } from './workbench-routes.ts'
 import {
   createOwnedSession,
   listOwnedSessions,
+  projectRoomHistory,
   promptOwnedSession,
   readOwnedHistory,
 } from './workbench-sessions.ts'
 import type {
   CreateOwnedSessionRequest,
   HistoryRequest,
+  HistoryResult,
   ListOwnedSessionsRequest,
   PromptRequest,
+  PromptResult,
+  WorkbenchHistoryAuthor,
 } from './workbench-sessions.ts'
+import { createGroupsRuntime } from './groups.ts'
+import type {
+  CreateGroupInput,
+  GroupsRuntime,
+  UpdateGroupInput,
+} from './groups.ts'
+import {
+  createRoundTracker,
+  runGroupRound,
+} from './group-engine.ts'
+import type { RoundTracker } from './group-engine.ts'
 
 export { DshBotError } from './errors.ts'
 export type { DshBotErrorCode } from './errors.ts'
@@ -78,12 +94,17 @@ export type {
   ListBotSessionsRequest,
 } from './ask.ts'
 export {
+  DSH_BOT_GROUP_HIDDEN_TITLE_PREFIX,
   DSH_BOT_HIDDEN_KIND,
   DSH_BOT_HIDDEN_TITLE_PREFIX,
   DSH_BOT_KIND,
   botMark,
+  groupMark,
+  groupRoomMark,
   mergeBotMarks,
   parseBotMark,
+  parseGroupMark,
+  parseGroupRoomMark,
 } from './marks.ts'
 export type { DshBotModelRef, DshBotPlatform } from './platform.ts'
 export { attachDshBotHttp, handleDshBotHttp } from './routes.ts'
@@ -93,6 +114,7 @@ export {
   createOwnedSession,
   listOwnedSessions,
   isPlatformInjection,
+  projectRoomHistory,
   projectWorkbenchHistory,
   promptOwnedSession,
   readOwnedHistory,
@@ -108,8 +130,35 @@ export type {
   OwnedSessionRow,
   PromptRequest,
   PromptResult,
+  WorkbenchHistoryAuthor,
   WorkbenchHistoryItem,
 } from './workbench-sessions.ts'
+export {
+  GROUP_MEMBER_MAX,
+  GROUP_MEMBER_MIN,
+  createGroupsRuntime,
+} from './groups.ts'
+export type {
+  CreateGroupInput,
+  DeleteGroupResult,
+  GroupRegistryRow,
+  GroupRoomRow,
+  GroupView,
+  GroupsRuntime,
+  ListGroupRoomsResult,
+  ListGroupsResult,
+  RoomMessage,
+  RoomSpeaker,
+  RoomState,
+  UpdateGroupInput,
+} from './groups.ts'
+export {
+  buildMemberTurnPrompt,
+  createRoundTracker,
+  isSkipReply,
+  parseMentions,
+  runGroupRound,
+} from './group-engine.ts'
 export {
   AVATAR_COLORS,
   MANAGED_PRESET_PREFIX,
@@ -189,10 +238,18 @@ class DshBotService extends Service {
   private source: () => DshBotRuntimeConfig
   private readonly platform: DshBotPlatform
   private readonly botsRuntime: BotsRuntime
+  private readonly groupsRuntime: GroupsRuntime
+  private readonly roundTracker: RoundTracker
   private readonly reconcileState = createReconcileState()
   private reconcileGate: Promise<void> = Promise.resolve()
 
-  constructor(ctx: Context, config: DshBotConfig, platform?: DshBotPlatform, botsRuntime?: BotsRuntime) {
+  constructor(
+    ctx: Context,
+    config: DshBotConfig,
+    platform?: DshBotPlatform,
+    botsRuntime?: BotsRuntime,
+    groupsRuntime?: GroupsRuntime,
+  ) {
     super(ctx, 'dshBot')
     const entry: DshBotRuntimeConfig = Object.freeze({
       webUrl: config.webUrl,
@@ -202,6 +259,13 @@ class DshBotService extends Service {
     this.source = () => entry
     this.platform = platform ?? createPlatform(ctx)
     this.botsRuntime = botsRuntime ?? createBotsRuntime({ gate: createPresetGate(ctx) })
+    this.groupsRuntime = groupsRuntime ?? createGroupsRuntime({
+      listBotIds: async () => {
+        const listed = await this.botsRuntime.listBots()
+        return listed.bots.map(row => row.id)
+      },
+    })
+    this.roundTracker = createRoundTracker()
     installSettingsSection(ctx, DSH_BOT_SETTINGS_NAMESPACE, DshBotService.Config, entry, {
       setSource: (current) => {
         this.source = current
@@ -292,12 +356,85 @@ class DshBotService extends Service {
     return listOwnedSessions(this.ctx.sessionTool, this.platform, this.botsRuntime, input)
   }
 
-  history(input: HistoryRequest) {
-    return readOwnedHistory(this.ctx, this.ctx.sessionTool, this.platform, input)
+  history(input: HistoryRequest): Promise<HistoryResult> {
+    return this.readHistory(input)
   }
 
-  prompt(input: PromptRequest) {
-    return promptOwnedSession(this.ctx.sessionTool, input)
+  prompt(input: PromptRequest): Promise<PromptResult> {
+    return this.promptSession(input)
+  }
+
+  listGroups() {
+    return this.groupsRuntime.listGroups()
+  }
+
+  createGroup(input: CreateGroupInput) {
+    return this.groupsRuntime.createGroup(input)
+  }
+
+  updateGroup(input: UpdateGroupInput) {
+    return this.groupsRuntime.updateGroup(input)
+  }
+
+  deleteGroup(input: { id: string }) {
+    return this.groupsRuntime.deleteGroup(input)
+  }
+
+  createGroupSession(input: { groupId: string }) {
+    return this.groupsRuntime.createGroupSession(input)
+  }
+
+  listGroupSessions(input: { groupId: string }) {
+    return this.groupsRuntime.listGroupSessions(input)
+  }
+
+  private async readHistory(input: HistoryRequest): Promise<HistoryResult> {
+    const room = await this.groupsRuntime.peekRoom(input.sessionId)
+    if (room === undefined) {
+      return await readOwnedHistory(this.ctx, this.ctx.sessionTool, this.platform, input)
+    }
+    const group = await this.groupsRuntime.getGroup(room.header.groupId)
+    const members = new Map<string, WorkbenchHistoryAuthor>()
+    for (const id of group.memberIds) {
+      const bot = await this.botsRuntime.getBot(id)
+      members.set(id, {
+        botId: bot.id,
+        name: bot.name,
+        avatar: bot.avatar,
+      })
+    }
+    const items = projectRoomHistory(room, members, input.sinceSeq)
+    const round = this.roundTracker.get(room.header.roomId)
+    return {
+      sessionId: room.header.roomId,
+      items,
+      working: round?.working === true,
+      ...round?.speaking === undefined ? {} : { speaking: round.speaking },
+    }
+  }
+
+  private async promptSession(input: PromptRequest): Promise<PromptResult> {
+    const room = await this.groupsRuntime.peekRoom(input.sessionId)
+    if (room === undefined) {
+      return await promptOwnedSession(this.ctx.sessionTool, input)
+    }
+    const result = await runGroupRound({
+      sessionTool: this.ctx.sessionTool,
+      platform: this.platform,
+      bots: this.botsRuntime,
+      groups: this.groupsRuntime,
+      config: this.source(),
+      tracker: this.roundTracker,
+      createCwd: () => {
+        const home = process.env.DSH_HOME?.trim()
+        if (home !== undefined && home !== '') return dirname(home)
+        return process.cwd()
+      },
+    }, { roomId: input.sessionId, text: input.text })
+    return {
+      sessionId: result.roomId,
+      ...result.unmatchedMentions ? { unmatchedMentions: true } : {},
+    }
   }
 
   /**

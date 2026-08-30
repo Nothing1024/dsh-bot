@@ -1,6 +1,6 @@
 # dsh-bot
 
-DSH 插件「**DSH Bot**」：常驻对话 agent（人设 preset + 模型跟随 DSH 自身配置，可 bot 专属 override）+ 任意 agent 可调的 `dsh_bot_ask` 委托工具 + **DSH Bot 工作台**（多人设 roster + 独立对话面）。better-sidebar「DSH Bot」页签（id `dsh-bot:sessions`）现在用同源 iframe 嵌入工作台，不再是 v1 的会话列表。
+DSH 插件「**DSH Bot**」：常驻对话 agent（人设 preset + 模型跟随 DSH 自身配置，可 bot 专属 override）+ 任意 agent 可调的 `dsh_bot_ask` 委托工具 + **DSH Bot 工作台**（多人设 roster + 独立 1:1 对话面 + **Grok Bot 式小组对话**）。better-sidebar「DSH Bot」页签（id `dsh-bot:sessions`）现在用同源 iframe 嵌入工作台，不再是 v1 的会话列表。
 
 本仓独占 loopback **3084**，profile **`gb`**，平台包钉 `@deepseek-ai/dsh@0.1.1-rc.2`（与 session-tool 同针，不是 vibee/genoffice 的 0.1.0-rc.7）。GitHub 仓名 `Nothing1024/dsh-bot`；本机目录仍是 `dsh-grok-bot/plugin`。
 
@@ -31,11 +31,11 @@ sh env/boot.sh                 # loopback :3084；已起且身份对本仓则直
 前台：http://127.0.0.1:3084  
 工作台：http://127.0.0.1:3084/dsh-bot/ui（也可从右栏「DSH Bot」页签进入）
 
-网关起来后半自动 CLI 矩阵（UF-001 建会话冒烟、UF-002 委托、UF-006 override、UF-004 marks、工作台 createBot → createBotSession → prompt(--write) → history → deleteBot）：
+网关起来后半自动 CLI 矩阵（UF-001 建会话冒烟、UF-002 委托、UF-006 override、UF-004 marks、工作台 createBot → createBotSession → prompt(--write) → history → createGroup → deleteGroup → deleteBot）：
 
 ```sh
 bash scripts/manual-test.sh                 # 含模型写入（走当前配置的路由）
-bash scripts/manual-test.sh --no-write      # 只建会话 / 设 override / 查 marks / 工作台建删；跳过 prompt
+bash scripts/manual-test.sh --no-write      # 只建会话 / 设 override / 查 marks / 工作台建删人设与小组；跳过 prompt
 # 或：pnpm env:test
 ```
 
@@ -64,7 +64,15 @@ bash scripts/manual-test.sh --no-write      # 只建会话 / 设 override / 查 
 
 **v1 页签行为变化**：v1 页签是会话列表（点行跳官方 conversation）。现在同一 tab id 改为 iframe 工作台；v1 HTTP `POST /dsh-bot/listSessions` 与 `POST /dsh-bot/createSession` 保留。`dsh_bot_ask`、`dsh-bot.model` override、marks CLI、默认 `dsh-bot` preset 会话链路不变。
 
-左栏是多人设 roster（头像 / 名字 / 预览 / 时间 / 工作中点），右侧是当前人设的对话面。首次打开会种子默认 bot（id `dsh-bot`，绑既有 bundled preset）。
+左栏是多人设 roster（头像 / 名字 / 预览 / 时间 / 工作中点），右侧是当前人设的对话面。首次打开会种子默认 bot（id `dsh-bot`，绑既有 bundled preset）。左栏也可以建**小组**（拼贴头像）：同一房间里多名成员按身份轮流回复。
+
+### 小组对话
+
+- **新建小组**：roster「+ 新建小组」，勾选 2–6 个已有 1:1 人设并命名。小组没有自己的 preset / 人设文件，只记成员名单（`$DSH_HOME/dsh-bot/groups.json`）。
+- **一轮语义**：用户发一条，默认全员按成员顺序各回一句；空回复或 `(pass)` 视为本轮跳过。再发一条才开下一轮。
+- **@点名**：composer 输入 `@` 弹出成员列表。`@诗人小北` 只让该成员开口；`@all` / `@everyone` 仍是全员。点名对不上现有成员时 toast「未匹配成员,已发给全员」。
+- **删组**：确认后只去掉小组行和房间记录。成员 bot、其 `dsh-bot--*` preset、1:1 私聊都保留。
+- **隐藏轮次会话**：成员发言走各自 preset 的隐藏会话（标题 `~dsh-bot-group:`，`kind:hidden`），默认不出现在该成员的 1:1 会话下拉。
 
 ### 人设管理
 

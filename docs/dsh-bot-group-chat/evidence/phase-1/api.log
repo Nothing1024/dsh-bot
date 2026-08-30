@@ -1,0 +1,9 @@
+===== createGroup =====
+{"ok":true,"value":{"id":"bianji-shi","name":"编辑室","memberIds":["dsh-bot","shiren-xiaobei"],"createdAt":1788099222129}}
+===== listGroups =====
+{"ok":true,"value":{"groups":[{"id":"bianji-shi","name":"编辑室","memberIds":["dsh-bot","shiren-xiaobei"],"createdAt":1788099222129}]}}
+===== createGroupSession =====
+===== createGroupSession =====
+{"ok": true, "value": {"roomId": "room-d27c47d6-5721-4746-8e7c-dbff4ad45615", "groupId": "bianji-shi", "createdAt": 1788099237729, "updatedAt": 1788099237729}}
+===== listGroupSessions =====
+{"ok": true, "value": {"rooms": [{"roomId": "room-d27c47d6-5721-4746-8e7c-dbff4ad45615", "groupId": "bianji-shi", "createdAt": 1788099237729, "updatedAt": 1788099237729}]}}

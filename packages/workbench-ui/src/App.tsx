@@ -4,24 +4,41 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
   createBot,
+  createGroup,
   deleteBot,
+  deleteGroup,
+  groupDraftStorageKey,
   listBots,
   listBotSessions,
+  listGroups,
+  listGroupSessions,
   listSessionsModel,
   readDraft,
   reconcile,
   updateBot,
+  updateGroup,
 } from './api.ts'
-import type { WorkbenchBot, WorkbenchBotModelInfo, WorkbenchModelOverride } from './api.ts'
+import type {
+  WorkbenchBot,
+  WorkbenchBotModelInfo,
+  WorkbenchGroup,
+  WorkbenchModelOverride,
+} from './api.ts'
 import { rowPreview } from './avatar.ts'
 import { BotForm } from './BotForm.tsx'
 import type { BotFormValues } from './BotForm.tsx'
 import { Conversation } from './Conversation.tsx'
+import { GroupForm } from './GroupForm.tsx'
+import type { GroupFormValues } from './GroupForm.tsx'
 import { Roster } from './Roster.tsx'
 import type { RosterItem } from './Roster.tsx'
 
 type ShellStatus = 'loading' | 'idle' | 'error'
-type FormMode = { kind: 'create' } | { kind: 'edit'; bot: WorkbenchBot }
+type FormMode =
+  | { kind: 'create' }
+  | { kind: 'edit'; bot: WorkbenchBot }
+  | { kind: 'create-group' }
+  | { kind: 'edit-group'; group: WorkbenchGroup }
 
 const RECONCILE_MS = 30_000
 
@@ -39,6 +56,7 @@ export function App() {
   const [status, setStatus] = useState<ShellStatus>('loading')
   const [error, setError] = useState<string | null>(null)
   const [bots, setBots] = useState<readonly WorkbenchBot[]>([])
+  const [groups, setGroups] = useState<readonly WorkbenchGroup[]>([])
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [drafts, setDrafts] = useState<Record<string, string>>({})
   const [lastMessages, setLastMessages] = useState<Record<string, string>>({})
@@ -57,8 +75,9 @@ export function App() {
   const load = useCallback(async (): Promise<void> => {
     setStatus('loading')
     setError(null)
-    const [botsOutcome, modelOutcome] = await Promise.all([
+    const [botsOutcome, groupsOutcome, modelOutcome] = await Promise.all([
       listBots(),
+      listGroups(),
       listSessionsModel(),
     ])
     if (!botsOutcome.ok) {
@@ -68,9 +87,15 @@ export function App() {
     }
     const rows = botsOutcome.value.bots
     setBots(rows)
+    const groupRows = groupsOutcome.ok && Array.isArray(groupsOutcome.value.groups)
+      ? groupsOutcome.value.groups
+      : []
+    setGroups(groupRows)
     setSelectedId(current => {
-      if (current !== null && rows.some(row => row.id === current)) return current
-      return rows[0]?.id ?? null
+      if (current !== null && (rows.some(row => row.id === current) || groupRows.some(row => row.id === current))) {
+        return current
+      }
+      return rows[0]?.id ?? groupRows[0]?.id ?? null
     })
     if (modelOutcome.ok) setBotModel(modelOutcome.value.botModel)
     setStatus('idle')
@@ -81,7 +106,7 @@ export function App() {
   }, [load])
 
   useEffect(() => {
-    if (bots.length === 0) return
+    if (bots.length === 0 && groups.length === 0) return
     setDrafts(current => {
       let changed = false
       const next = { ...current }
@@ -92,9 +117,21 @@ export function App() {
           changed = true
         }
       }
+      for (const group of groups) {
+        let draft = ''
+        try {
+          draft = localStorage.getItem(groupDraftStorageKey(group.id)) ?? ''
+        } catch {
+          draft = ''
+        }
+        if ((next[group.id] ?? '') !== draft) {
+          next[group.id] = draft
+          changed = true
+        }
+      }
       return changed ? next : current
     })
-  }, [bots])
+  }, [bots, groups])
 
   useEffect(() => {
     if (status !== 'idle') return
@@ -119,17 +156,29 @@ export function App() {
       if (typeof document !== 'undefined' && document.hidden) return
       const next = new Set<string>()
       const times: Record<string, number> = {}
-      await Promise.all(bots.map(async bot => {
-        const outcome = await listBotSessions(bot.id)
-        if (!outcome.ok) return
-        const sessions = outcome.value.sessions ?? []
-        if (sessions.some(row => row.working)) next.add(bot.id)
-        let latest = 0
-        for (const row of sessions) {
-          latest = Math.max(latest, row.updatedAt, row.createdAt)
-        }
-        if (latest > 0) times[bot.id] = latest
-      }))
+      await Promise.all([
+        ...bots.map(async bot => {
+          const outcome = await listBotSessions(bot.id)
+          if (!outcome.ok) return
+          const sessions = outcome.value.sessions ?? []
+          if (sessions.some(row => row.working)) next.add(bot.id)
+          let latest = 0
+          for (const row of sessions) {
+            latest = Math.max(latest, row.updatedAt, row.createdAt)
+          }
+          if (latest > 0) times[bot.id] = latest
+        }),
+        ...groups.map(async group => {
+          const outcome = await listGroupSessions(group.id)
+          if (!outcome.ok) return
+          const rooms = outcome.value.rooms ?? []
+          let latest = 0
+          for (const row of rooms) {
+            latest = Math.max(latest, row.updatedAt, row.createdAt)
+          }
+          if (latest > 0) times[group.id] = latest
+        }),
+      ])
       for (const [id, on] of workingOverlay.current) {
         if (on) next.add(id)
       }
@@ -162,23 +211,57 @@ export function App() {
       clearInterval(timer)
       document.removeEventListener('visibilitychange', onVis)
     }
-  }, [bots, status])
+  }, [bots, groups, status])
 
   const selected = useMemo(
     () => bots.find(bot => bot.id === selectedId) ?? null,
     [bots, selectedId],
   )
+  const selectedGroup = useMemo(
+    () => groups.find(group => group.id === selectedId) ?? null,
+    [groups, selectedId],
+  )
+  const groupMembers = useMemo(() => {
+    if (selectedGroup === null) return []
+    return selectedGroup.memberIds
+      .map(id => bots.find(bot => bot.id === id))
+      .filter((row): row is WorkbenchBot => row !== undefined)
+  }, [bots, selectedGroup])
 
-  const items: readonly RosterItem[] = useMemo(() => bots.map(bot => ({
-    id: bot.id,
-    name: bot.name,
-    avatar: bot.avatar,
-    preview: rowPreview(drafts[bot.id], lastMessages[bot.id]),
-    updatedAt: updatedAtById[bot.id] ?? bot.createdAt,
-    working: workingIds.has(bot.id),
-    selected: bot.id === selectedId,
-    protected: bot.protected,
-  })), [bots, drafts, lastMessages, selectedId, updatedAtById, workingIds])
+  const items: readonly RosterItem[] = useMemo(() => {
+    const botItems: RosterItem[] = bots.map(bot => ({
+      id: bot.id,
+      name: bot.name,
+      avatar: bot.avatar,
+      preview: rowPreview(drafts[bot.id], lastMessages[bot.id]),
+      updatedAt: updatedAtById[bot.id] ?? bot.createdAt,
+      working: workingIds.has(bot.id),
+      selected: selectedGroup === null && bot.id === selectedId,
+      protected: bot.protected,
+      kind: 'bot',
+    }))
+    const groupItems: RosterItem[] = groups.map(group => ({
+      id: group.id,
+      name: group.name,
+      avatar: {},
+      preview: rowPreview(drafts[group.id], lastMessages[group.id]),
+      updatedAt: updatedAtById[group.id] ?? group.createdAt,
+      working: workingIds.has(group.id),
+      selected: group.id === selectedId && selectedGroup !== null,
+      protected: false,
+      kind: 'group',
+      members: group.memberIds.map(id => {
+        const bot = bots.find(row => row.id === id)
+        return {
+          id,
+          name: bot?.name ?? id,
+          ...bot?.avatar.color === undefined ? {} : { color: bot.avatar.color },
+          ...bot?.avatar.emoji === undefined ? {} : { emoji: bot.avatar.emoji },
+        }
+      }),
+    }))
+    return [...botItems, ...groupItems].sort((a, b) => b.updatedAt - a.updatedAt)
+  }, [bots, drafts, groups, lastMessages, selectedGroup, selectedId, updatedAtById, workingIds])
 
   const submitForm = async (values: BotFormValues): Promise<void> => {
     if (submitLock.current || form === null) return
@@ -191,6 +274,9 @@ export function App() {
     }
     const modelOverride = overrideFromForm(values)
     try {
+      if (form.kind === 'create-group' || form.kind === 'edit-group') {
+        return
+      }
       if (form.kind === 'create') {
         const outcome = await createBot({
           name: values.name,
@@ -231,7 +317,53 @@ export function App() {
     }
   }
 
+  const submitGroupForm = async (values: GroupFormValues): Promise<void> => {
+    if (submitLock.current || form === null) return
+    if (form.kind !== 'create-group' && form.kind !== 'edit-group') return
+    submitLock.current = true
+    setFormBusy(true)
+    setFormError(null)
+    try {
+      if (form.kind === 'create-group') {
+        const outcome = await createGroup({ name: values.name, memberIds: values.memberIds })
+        if (!outcome.ok) {
+          setFormError(outcome.error.message)
+          return
+        }
+        setGroups(current => [...current.filter(row => row.id !== outcome.value.id), outcome.value])
+        setSelectedId(outcome.value.id)
+        setForm(null)
+        setEffectHint(null)
+        return
+      }
+      const outcome = await updateGroup({
+        id: form.group.id,
+        name: values.name,
+        memberIds: values.memberIds,
+      })
+      if (!outcome.ok) {
+        setFormError(outcome.error.message)
+        return
+      }
+      setGroups(current => current.map(row => row.id === outcome.value.id ? outcome.value : row))
+      setForm(null)
+    } finally {
+      submitLock.current = false
+      setFormBusy(false)
+    }
+  }
+
   const renameBot = async (id: string, name: string): Promise<void> => {
+    if (groups.some(row => row.id === id)) {
+      const outcome = await updateGroup({ id, name })
+      if (!outcome.ok) {
+        setActionError(outcome.error.message)
+        return
+      }
+      setActionError(null)
+      setGroups(current => current.map(row => row.id === outcome.value.id ? outcome.value : row))
+      return
+    }
     const outcome = await updateBot({ id, name })
     if (!outcome.ok) {
       setActionError(outcome.error.message)
@@ -239,6 +371,23 @@ export function App() {
     }
     setActionError(null)
     setBots(current => current.map(row => row.id === outcome.value.id ? outcome.value : row))
+  }
+
+  const removeGroup = async (id: string): Promise<void> => {
+    const outcome = await deleteGroup(id)
+    if (!outcome.ok) {
+      setActionError(outcome.error.message)
+      return
+    }
+    setActionError(null)
+    setGroups(current => current.filter(row => row.id !== id))
+    setSelectedId(current => current === id ? (bots[0]?.id ?? groups.find(row => row.id !== id)?.id ?? null) : current)
+    setDrafts(current => {
+      const next = { ...current }
+      delete next[id]
+      return next
+    })
+    if (form?.kind === 'edit-group' && form.group.id === id) setForm(null)
   }
 
   const removeBot = async (id: string): Promise<void> => {
@@ -319,6 +468,12 @@ export function App() {
               setEffectHint(null)
               setForm({ kind: 'create' })
             }}
+            onCreateGroup={() => {
+              setFormError(null)
+              setActionError(null)
+              setEffectHint(null)
+              setForm({ kind: 'create-group' })
+            }}
             onEdit={id => {
               const bot = bots.find(row => row.id === id)
               if (bot === undefined) return
@@ -327,11 +482,35 @@ export function App() {
               setForm({ kind: 'edit', bot })
               setSelectedId(id)
             }}
+            onEditMembers={id => {
+              const group = groups.find(row => row.id === id)
+              if (group === undefined) return
+              setFormError(null)
+              setEffectHint(null)
+              setForm({ kind: 'edit-group', group })
+              setSelectedId(id)
+            }}
             onDelete={id => { void removeBot(id) }}
+            onDeleteGroup={id => { void removeGroup(id) }}
             onRename={(id, name) => { void renameBot(id, name) }}
           />
           <main className="conversation" data-testid="workbench-conversation">
-            {form !== null ? (
+            {form !== null && (form.kind === 'create-group' || form.kind === 'edit-group') ? (
+              <GroupForm
+                key={form.kind === 'create-group' ? 'create-group' : form.group.id}
+                mode={form.kind === 'create-group' ? 'create' : 'edit'}
+                bots={bots}
+                {...form.kind === 'edit-group' ? { initial: form.group } : {}}
+                busy={formBusy}
+                error={formError}
+                roundLocked={form.kind === 'edit-group' && workingIds.has(form.group.id)}
+                onCancel={() => {
+                  if (formBusy) return
+                  setForm(null)
+                }}
+                onSubmit={values => { void submitGroupForm(values) }}
+              />
+            ) : form !== null && (form.kind === 'create' || form.kind === 'edit') ? (
               <BotForm
                 key={form.kind === 'create' ? 'create' : form.bot.id}
                 mode={form.kind}
@@ -345,6 +524,38 @@ export function App() {
                   setForm(null)
                 }}
                 onSubmit={values => { void submitForm(values) }}
+              />
+            ) : selectedGroup !== null ? (
+              <Conversation
+                key={`group:${selectedGroup.id}`}
+                group={selectedGroup}
+                members={groupMembers}
+                hint={effectHint}
+                refreshEpoch={refreshEpoch}
+                onEditMembers={() => {
+                  setFormError(null)
+                  setForm({ kind: 'edit-group', group: selectedGroup })
+                }}
+                onWorking={(id, working) => {
+                  workingOverlay.current.set(id, working)
+                  setWorkingIds(current => {
+                    const has = current.has(id)
+                    if (working === has) return current
+                    const next = new Set(current)
+                    if (working) next.add(id)
+                    else next.delete(id)
+                    return next
+                  })
+                }}
+                onWorkingDetach={id => {
+                  workingOverlay.current.delete(id)
+                }}
+                onPreview={(id, preview) => {
+                  setLastMessages(current => current[id] === preview ? current : { ...current, [id]: preview })
+                }}
+                onDraft={(id, text) => {
+                  setDrafts(current => current[id] === text ? current : { ...current, [id]: text })
+                }}
               />
             ) : selected === null ? (
               <>

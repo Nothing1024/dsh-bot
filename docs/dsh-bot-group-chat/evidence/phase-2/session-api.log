@@ -1,0 +1,45 @@
+{
+  "ok": true,
+  "value": {
+    "sessionId": "room-d27c47d6-5721-4746-8e7c-dbff4ad45615",
+    "items": [
+      {
+        "id": "m-1-9f4fdb47",
+        "kind": "message",
+        "seq": 1,
+        "role": "user",
+        "text": "你们是谁?"
+      },
+      {
+        "id": "m-2-569d939d",
+        "kind": "message",
+        "seq": 2,
+        "role": "assistant",
+        "text": "我是 DSH Bot，本机 DSH 插件里的常驻助手。说话直率，先查证再下结论，不确定就说不知道。当前模型 grok-4.6。不是别的品牌或桌面产品的复刻。诗人小北那边让他自己说。",
+        "author": {
+          "botId": "dsh-bot",
+          "name": "DSH Bot",
+          "avatar": {
+            "color": "#3db88a"
+          }
+        }
+      },
+      {
+        "id": "m-3-dd7c7b39",
+        "kind": "message",
+        "seq": 3,
+        "role": "assistant",
+        "text": "像灯盏边多出来的那一截烛芯，我叫诗人小北——专爱把话先绕成比喻，再直说。不是 DSH Bot，也不替他说话。",
+        "author": {
+          "botId": "shiren-xiaobei",
+          "name": "诗人小北",
+          "avatar": {
+            "color": "#d4537e",
+            "emoji": "📜"
+          }
+        }
+      }
+    ],
+    "working": false
+  }
+}

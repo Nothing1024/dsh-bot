@@ -53,6 +53,8 @@
 | `session.create` 仍无多 preset 参数(v1 勘察:`SessionToolCreateOptions` 无 agentPreset 以外的第二人设槽;工作台把 preset 经网关 `session.create` 单值传入) | Read `packages/dsh-bot-host/src/workbench-sessions.ts` L1-5;对照 v1 spec 1.3 | **不能**把两个 bot 装进同一个官方会话;成员发言必须各开(或复用)自己的 preset 会话 |
 | 委托链样板已在:`askBot` create→marks→write→wait idle→read,隐藏标题 `~dsh-bot:` + `kind:hidden` | Read `packages/dsh-bot-host/src/ask.ts`;`marks.ts` L12-16 | 成员轮次复用这条链,再把答案写入**房间 transcript** |
 | `listBotSessions` 默认排除 `kind:hidden` | Read `packages/dsh-bot-host/src/workbench-sessions.ts` L76-78 与 list 实现注释 | 成员轮次会话只要打 hidden,1:1 列表默认看不见 |
+| 实机:默认 `listBotSessions` 0 条 hidden; `includeHidden` 才见 19 条 askBot `~dsh-bot:` 会话。网关 `createBotSession` 后改 `~dsh-bot-group:` + `kind:hidden` 的校准会话(`session-822eeff1-…`)默认列表不含;查找应走 `session-marks` `group-room:` 而非 listBotSessions | Task 1:`dsh-rpc-who.sh 3084`; `POST /dsh-bot/listBotSessions` 默认 count=64 hidden=0, includeHidden count=83 hidden=19; `listByKind("group-room:calibration")` 命中校准 id | ASM-301 消解为**按 (房间,成员) 复用隐藏会话** |
+| 实机 1:1 `history` 项键为 `id/kind/role/seq/text`,**无 author**;加可选 `author` 不影响现投影 | Task 1:`POST /dsh-bot/history` session-5a0ca88e… 三项,`any author` false | 1:1 继续省略 author |
 | 运行数据 `env/dsh-bot/` 已 gitignore | Read `.gitignore` L14 | 小组文件放同一目录即可 |
 | 参考产品小组形状(只读):roster `isGroup`+`memberIds`;人数上限 6;禁止小组套小组;用户发言后按 @点名决定谁回,无点名则全员;成员轮次顺序按 round 旋转;成员可用 `(pass)` 跳过 | Read `../reference/.../source/host/groups/group-chat.ts` 与 `group-store.ts`(禁拷文案/实现) | 交互目标:同一房间、多作者、点名或全员、一轮接话 |
 | 参考产品删组文案形状:删的是组和房间历史,成员 bot 仍可单独用 | Read `../reference/.../frontend/src/production/AgentDeleteConfirmation.tsx` | 对应 BR-306 |
@@ -62,13 +64,16 @@
 
 | 假设 ID | 内容 | 风险 | 确认方式 |
 |---|---|---|---|
-| ASM-301 | 成员轮次用「每个(小组房间,成员)一对隐藏会话」复用,而不是每轮新建,以便同一房间内该成员有连续上下文 | 复用导致串房间 → 按房间 id 隔离;泄漏到 1:1 → hidden 标记失败则改每轮新建 | Task 1:create 后 `listBotSessions` 默认列表不含该 id |
 | ASM-302 | 不引入 SendMessage 工具:成员隐藏会话里的**最后一段 assistant 文本**即为房间可见回复;空串或仅 `(pass)` 视为本轮跳过 | 成员把工具过程说进房间 → 投影只取最终 assistant 文本,thinking/tool 不进房间 | Task 7 单测:tool 行不写入房间 jsonl |
 | ASM-303 | MVP **每个用户消息只跑一轮**(点名集合或全员各最多一句);不做参考产品的 3 round / 10 turn 上限循环 | 讨论不够来回 → 用户再发一条即可开下一轮 | 产品选择,Task 7 写死 1 round,README 说明 |
 
+ASM-301 已消解(见 1.3 实机行与 `evidence/phase-0/calibration.md`):按 (房间,成员) 复用隐藏会话;隔离键为 `group-room:<roomId>` + `bot:<memberId>`;默认 `listBotSessions` 不含 hidden。
+
 ### 1.5 变更记录
 
-(首次生成,暂无。)
+| 日期 | 条目 | 原因 | 影响任务 |
+|---|---|---|---|
+| 2026-08-30 | ASM-301 消解 | Task 1 实机:默认列表 0 hidden; marks `group-room:` 可找回校准会话 | Task 1/2 完成; Task 7 按复用实现 |
 
 ---
 

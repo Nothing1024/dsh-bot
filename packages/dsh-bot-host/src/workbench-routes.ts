@@ -18,6 +18,15 @@ import type {
   ListBotsResult,
   UpdateBotInput,
 } from './bots.ts'
+import type {
+  CreateGroupInput,
+  DeleteGroupResult,
+  GroupRoomRow,
+  GroupView,
+  ListGroupRoomsResult,
+  ListGroupsResult,
+  UpdateGroupInput,
+} from './groups.ts'
 import { DshBotError } from './errors.ts'
 import type { DshBotModelRef } from './platform.ts'
 import type { ReconcileResult } from './reconcile.ts'
@@ -63,6 +72,12 @@ export interface WorkbenchBotsFace {
   history(input: HistoryRequest): Promise<HistoryResult>
   prompt(input: PromptRequest): Promise<PromptResult>
   reconcile(): Promise<ReconcileResult>
+  listGroups(): Promise<ListGroupsResult>
+  createGroup(input: CreateGroupInput): Promise<GroupView>
+  updateGroup(input: UpdateGroupInput): Promise<GroupView>
+  deleteGroup(input: { id: string }): Promise<DeleteGroupResult>
+  createGroupSession(input: { groupId: string }): Promise<GroupRoomRow>
+  listGroupSessions(input: { groupId: string }): Promise<ListGroupRoomsResult>
 }
 
 function send(res: ServerResponse, status: number, body: string | Buffer, contentType: string): void {
@@ -186,8 +201,53 @@ export async function dispatchWorkbenchApi(
       return await bot.prompt(parsePrompt(args))
     case 'reconcile':
       return await bot.reconcile()
+    case 'listGroups':
+      return await bot.listGroups()
+    case 'createGroup':
+      return await bot.createGroup(parseCreateGroup(args))
+    case 'updateGroup':
+      return await bot.updateGroup(parseUpdateGroup(args))
+    case 'deleteGroup': {
+      const id = asString(args.id).trim()
+      if (id === '') throw new DshBotError('invalid-input', 'group id is required')
+      return await bot.deleteGroup({ id })
+    }
+    case 'createGroupSession': {
+      const groupId = asString(args.groupId).trim()
+      if (groupId === '') throw new DshBotError('invalid-input', 'groupId is required')
+      return await bot.createGroupSession({ groupId })
+    }
+    case 'listGroupSessions': {
+      const groupId = asString(args.groupId).trim()
+      if (groupId === '') throw new DshBotError('invalid-input', 'groupId is required')
+      return await bot.listGroupSessions({ groupId })
+    }
     default:
       return undefined
+  }
+}
+
+function asStringList(value: unknown): string[] {
+  if (!Array.isArray(value)) return []
+  return value.filter((item): item is string => typeof item === 'string')
+}
+
+function parseCreateGroup(args: Record<string, unknown>): CreateGroupInput {
+  return {
+    name: asString(args.name),
+    memberIds: asStringList(args.memberIds),
+  }
+}
+
+function parseUpdateGroup(args: Record<string, unknown>): UpdateGroupInput {
+  const id = asString(args.id).trim()
+  if (id === '') throw new DshBotError('invalid-input', 'group id is required')
+  const name = args.name === undefined ? undefined : asString(args.name)
+  const memberIds = args.memberIds === undefined ? undefined : asStringList(args.memberIds)
+  return {
+    id,
+    ...name === undefined ? {} : { name },
+    ...memberIds === undefined ? {} : { memberIds },
   }
 }
 

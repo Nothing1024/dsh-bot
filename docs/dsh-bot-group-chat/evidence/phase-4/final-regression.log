@@ -1,0 +1,123 @@
+=== typecheck ===
+Scope: 7 of 8 workspace projects
+packages/ui-dsh-bot typecheck$ tsc -p tsconfig.json --noEmit
+.../plugin/packages/session-marks typecheck$ tsc -p tsconfig.json
+packages/workbench-ui typecheck$ tsc -p tsconfig.json --noEmit
+.../plugin/packages/session-tool typecheck$ tsc -p tsconfig.json
+.../plugin/packages/session-marks typecheck: Done
+.../plugin/packages/session-tool typecheck: Done
+packages/ui-dsh-bot typecheck: Done
+packages/workbench-ui typecheck: Done
+packages/dsh-bot-host typecheck$ tsc -p tsconfig.json --noEmit
+.../plugin/packages/session-tool-local typecheck$ tsc -p tsconfig.json
+.../plugin/packages/session-tool-local typecheck: Done
+packages/dsh-bot-host typecheck: Done
+packages/tool-dsh-bot typecheck$ tsc -p tsconfig.json --noEmit
+packages/tool-dsh-bot typecheck: Done
+=== test ===
+Scope: 7 of 8 workspace projects
+packages/ui-dsh-bot test$ vitest run --config ../../vitest.config.ts packages/ui-dsh-bot/tests
+packages/workbench-ui test$ vitest run --config ../../vitest.config.ts packages/workbench-ui/tests
+.../plugin/packages/session-marks test$ vitest run --config ../../vitest.config.ts packages/session-marks/tests
+packages/ui-dsh-bot test:  RUN  v4.1.11 /Users/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin
+packages/workbench-ui test:  RUN  v4.1.11 /Users/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin
+.../plugin/packages/session-marks test:  RUN  v4.1.11 /Users/nothing/workspace/dsh/plugin/session-tool/plugin
+packages/workbench-ui test:  ✓ packages/workbench-ui/tests/api.spec.ts (5 tests) 6ms
+packages/ui-dsh-bot test:  ✓ packages/ui-dsh-bot/tests/apply-sidebar.spec.ts (2 tests) 5ms
+packages/workbench-ui test:  ✓ packages/workbench-ui/tests/mentions.spec.ts (3 tests) 2ms
+packages/workbench-ui test:  ✓ packages/workbench-ui/tests/avatar.spec.ts (4 tests) 3ms
+.../plugin/packages/session-marks test:  ✓ packages/session-marks/tests/marks.spec.ts (9 tests) 16ms
+.../plugin/packages/session-marks test:  Test Files  1 passed (1)
+.../plugin/packages/session-marks test:       Tests  9 passed (9)
+.../plugin/packages/session-marks test:    Start at  22:39:22
+.../plugin/packages/session-marks test:    Duration  168ms (transform 24ms, setup 0ms, import 36ms, tests 16ms, environment 0ms)
+packages/ui-dsh-bot test:  ✓ packages/ui-dsh-bot/tests/rpc.spec.ts (4 tests) 160ms
+.../plugin/packages/session-marks test: Done
+packages/workbench-ui test:  ✓ packages/workbench-ui/tests/session-poll.spec.tsx (3 tests) 27ms
+packages/workbench-ui test:  ✓ packages/workbench-ui/tests/transcript.spec.tsx (4 tests) 32ms
+packages/workbench-ui test:  ✓ packages/workbench-ui/tests/roster.spec.tsx (5 tests) 49ms
+packages/workbench-ui test:  ✓ packages/workbench-ui/tests/group-form.spec.tsx (2 tests) 37ms
+packages/workbench-ui test:  ✓ packages/workbench-ui/tests/bot-form.spec.tsx (4 tests) 48ms
+packages/workbench-ui test:  ✓ packages/workbench-ui/tests/composer.spec.tsx (5 tests) 85ms
+packages/workbench-ui test:  ✓ packages/workbench-ui/tests/app.spec.tsx (8 tests) 113ms
+packages/ui-dsh-bot test:  ✓ packages/ui-dsh-bot/tests/tab.spec.tsx (5 tests) 102ms
+packages/ui-dsh-bot test:  Test Files  3 passed (3)
+packages/ui-dsh-bot test:       Tests  11 passed (11)
+packages/ui-dsh-bot test:    Start at  22:39:22
+packages/ui-dsh-bot test:    Duration  720ms (transform 103ms, setup 0ms, import 232ms, tests 268ms, environment 344ms)
+packages/ui-dsh-bot test: Done
+packages/workbench-ui test:  ✓ packages/workbench-ui/tests/conversation.spec.tsx (7 tests) 137ms
+packages/workbench-ui test:  Test Files  11 passed (11)
+packages/workbench-ui test:       Tests  50 passed (50)
+packages/workbench-ui test:    Start at  22:39:22
+packages/workbench-ui test:    Duration  743ms (transform 261ms, setup 0ms, import 1.16s, tests 540ms, environment 2.71s)
+packages/workbench-ui test: Done
+packages/dsh-bot-host test$ vitest run --config ../../vitest.config.ts packages/dsh-bot-host/tests
+.../plugin/packages/session-tool-local test$ vitest run --config ../../vitest.config.ts packages/session-tool-local/tests
+packages/dsh-bot-host test:  RUN  v4.1.11 /Users/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin
+.../plugin/packages/session-tool-local test:  RUN  v4.1.11 /Users/nothing/workspace/dsh/plugin/session-tool/plugin
+packages/dsh-bot-host test:  ✓ packages/dsh-bot-host/tests/workbench-routes.spec.ts (5 tests) 13ms
+.../plugin/packages/session-tool-local test:  ✓ packages/session-tool-local/tests/collect.spec.ts (6 tests) 2ms
+.../plugin/packages/session-tool-local test:  ✓ packages/session-tool-local/tests/delegation-projection.spec.ts (9 tests) 5ms
+packages/dsh-bot-host test:  ✓ packages/dsh-bot-host/tests/groups.spec.ts (10 tests) 57ms
+.../plugin/packages/session-tool-local test:  ✓ packages/session-tool-local/tests/workspace-client.spec.ts (11 tests) 20ms
+packages/dsh-bot-host test:  ✓ packages/dsh-bot-host/tests/workbench-sessions.spec.ts (13 tests) 40ms
+packages/dsh-bot-host test:  ✓ packages/dsh-bot-host/tests/reconcile.spec.ts (7 tests) 51ms
+packages/dsh-bot-host test:  ✓ packages/dsh-bot-host/tests/bots.spec.ts (17 tests) 124ms
+.../plugin/packages/session-tool-local test:  ✓ packages/session-tool-local/tests/session-client.spec.ts (22 tests) 48ms
+packages/dsh-bot-host test:  ✓ packages/dsh-bot-host/tests/group-engine.spec.ts (12 tests) 108ms
+.../plugin/packages/session-tool-local test:  ✓ packages/session-tool-local/tests/workspace.spec.ts (12 tests) 43ms
+packages/dsh-bot-host test:  ✓ packages/dsh-bot-host/tests/ask.spec.ts (20 tests) 90ms
+packages/dsh-bot-host test:  ✓ packages/dsh-bot-host/tests/routes.spec.ts (15 tests) 787ms
+packages/dsh-bot-host test:  Test Files  8 passed (8)
+packages/dsh-bot-host test:       Tests  99 passed (99)
+packages/dsh-bot-host test:    Start at  22:39:23
+packages/dsh-bot-host test:    Duration  1.01s (transform 683ms, setup 0ms, import 1.15s, tests 1.27s, environment 0ms)
+packages/dsh-bot-host test: Done
+.../plugin/packages/session-tool-local test:  ✓ packages/session-tool-local/tests/service.spec.ts (50 tests) 1643ms
+.../plugin/packages/session-tool-local test:        ✓ wait-all aggregates when every member is terminal  328ms
+.../plugin/packages/session-tool-local test:        ✓ returns a timeout snapshot without error when the deadline passes  330ms
+.../plugin/packages/session-tool-local test:        ✓ resolves a tag aggregation and reports an empty set as unsatisfied  511ms
+.../plugin/packages/session-tool-local test:  Test Files  6 passed (6)
+.../plugin/packages/session-tool-local test:       Tests  110 passed (110)
+.../plugin/packages/session-tool-local test:    Start at  22:39:23
+.../plugin/packages/session-tool-local test:    Duration  1.94s (transform 434ms, setup 0ms, import 913ms, tests 1.76s, environment 0ms)
+.../plugin/packages/session-tool-local test: Done
+packages/tool-dsh-bot test$ vitest run --config ../../vitest.config.ts packages/tool-dsh-bot/tests
+packages/tool-dsh-bot test:  RUN  v4.1.11 /Users/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin
+packages/tool-dsh-bot test:  ✓ packages/tool-dsh-bot/tests/tools.spec.ts (5 tests) 7ms
+packages/tool-dsh-bot test:  Test Files  1 passed (1)
+packages/tool-dsh-bot test:       Tests  5 passed (5)
+packages/tool-dsh-bot test:    Start at  22:39:25
+packages/tool-dsh-bot test:    Duration  217ms (transform 77ms, setup 0ms, import 127ms, tests 7ms, environment 0ms)
+packages/tool-dsh-bot test: Done
+=== standard:check ===
+$ node standards/validate.mjs
+
+== manifest 校验（packages/*/dsh-plugin.json） ==
+✓ tool-dsh-bot (io.github.nothing1024.tool-dsh-bot)
+✓ ui-dsh-bot (io.github.nothing1024.ui-dsh-bot)
+
+== 协商（manifest × host-descriptor） ==
+✓ tool-dsh-bot: compatible
+✓ ui-dsh-bot: compatible
+
+== fixtures 自检 ==
+✓ valid/full.json
+✓ valid/minimal.json
+✓ valid/tool-dsh-bot.json
+✓ invalid/missing-schema.json → [missing-schema]
+✓ invalid/wrong-manifest-version.json → [wrong-manifest-version]
+✓ invalid/missing-facets.json → [missing-facets]
+✓ invalid/bad-id.json → [bad-id]
+✓ invalid/unknown-field.json → [unknown-field]
+✓ invalid/provides-rejected.json → [provides-rejected]
+✓ invalid/requires-services-rejected.json → [requires-services-rejected]
+✓ invalid/reserved-facet-client.json → [reserved-facet]
+✓ invalid/duplicate-contributes-id.json → [duplicate-contributes-id]
+✓ invalid/entry-outside-root.json → [entry-outside-root]
+
+== adapter 审计（上游触点基线） ==
+✓ 无未评审的新增上游触点
+
+结论：全部通过
