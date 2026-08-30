@@ -6,10 +6,10 @@
 5,P1:人设注册表,host 人设注册表与 preset 工厂,spec.md#task-5,4,pnpm --filter dsh-bot-host run build && pnpm --filter dsh-bot-host test → 全绿,已完成,broken 即回滚是硬验证项
 6,P1:人设注册表,roster UI 与人设表单,spec.md#task-6,5,pnpm --filter workbench-ui run build && pnpm --filter workbench-ui test → 全绿,已完成,
 7,P1:人设注册表,执行 Phase 1 回归验证,spec.md#task-7,6,新建/编辑/删除人设实操 + agentPreset.list 校验,已完成,
-8,P2:对话面,会话归属与创建链,spec.md#task-8,7,createBotSession 回显 id 且 marks 含 bot:<id>,待开始,
-9,P2:对话面,transcript 渲染与轮询,spec.md#task-9,8,pnpm --filter workbench-ui test → 全绿,待开始,
-10,P2:对话面,composer 与发送链,spec.md#task-10,9,pnpm --filter workbench-ui test → 全绿(草稿隔离/禁发/失败保留),待开始,
-11,P2:对话面,执行 Phase 2 回归验证,spec.md#task-11,10,浏览器实测 UF-202 主路径全程,待开始,
+8,P2:对话面,会话归属与创建链,spec.md#task-8,7,createBotSession 回显 id 且 marks 含 bot:<id>,已完成,session-api.log 含 createBotSession id 与 marks bot:dsh-bot
+9,P2:对话面,transcript 渲染与轮询,spec.md#task-9,8,pnpm --filter workbench-ui test → 全绿,已完成,transcript-unit.log
+10,P2:对话面,composer 与发送链,spec.md#task-10,9,pnpm --filter workbench-ui test → 全绿(草稿隔离/禁发/失败保留),已完成,composer-unit.log
+11,P2:对话面,执行 Phase 2 回归验证,spec.md#task-11,10,浏览器实测 UF-202 主路径全程,已完成,phase-summary.md + uf-202-chat.png
 12,P3:身份与对账,GUI 直建会话补标对账,spec.md#task-12,8,GUI 直建会话经对账出现在 marks(bot: 标),待开始,消解 v1 验收缺口
 13,P3:身份与对账,双人设隔离与身份打磨,spec.md#task-13,11;12,UF-203/204 脚本逐步一致 + export 口吻对比,待开始,串扰即 P0 缺陷
 14,P3:身份与对账,双入口等价与独立可用性,spec.md#task-14,11,UF-201 主路径+失败分支全过,待开始,

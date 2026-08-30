@@ -20,6 +20,16 @@ import type {
 } from './bots.ts'
 import { DshBotError } from './errors.ts'
 import type { DshBotModelRef } from './platform.ts'
+import type {
+  CreateOwnedSessionRequest,
+  CreateOwnedSessionResult,
+  HistoryRequest,
+  HistoryResult,
+  ListOwnedSessionsRequest,
+  ListOwnedSessionsResult,
+  PromptRequest,
+  PromptResult,
+} from './workbench-sessions.ts'
 
 interface WebServerLike {
   register(route: {
@@ -41,12 +51,16 @@ const CONTENT_TYPE: Record<string, string> = {
 
 const UI_PREFIX = '/dsh-bot/ui'
 
-/** Host methods the workbench bot CRUD face needs. */
+/** Host methods the workbench bot CRUD + session face needs. */
 export interface WorkbenchBotsFace {
   listBots(): Promise<ListBotsResult>
   createBot(input: CreateBotInput): Promise<BotView>
   updateBot(input: UpdateBotInput): Promise<BotView>
   deleteBot(input: { id: string }): Promise<DeleteBotResult>
+  createBotSession(input: CreateOwnedSessionRequest): Promise<CreateOwnedSessionResult>
+  listBotSessions(input: ListOwnedSessionsRequest): Promise<ListOwnedSessionsResult>
+  history(input: HistoryRequest): Promise<HistoryResult>
+  prompt(input: PromptRequest): Promise<PromptResult>
 }
 
 function send(res: ServerResponse, status: number, body: string | Buffer, contentType: string): void {
@@ -139,8 +153,9 @@ export async function handleWorkbenchStatic(
  * Mount GET `/dsh-bot/ui` when a webServer is present.
  */
 /**
- * Dispatch listBots / createBot / updateBot / deleteBot. Unknown methods
- * return undefined so the v1 listSessions/createSession switch stays intact.
+ * Dispatch listBots / createBot / updateBot / deleteBot plus workbench
+ * session methods. Unknown methods return undefined so the v1
+ * listSessions/createSession switch stays intact.
  */
 export async function dispatchWorkbenchApi(
   bot: WorkbenchBotsFace,
@@ -159,6 +174,14 @@ export async function dispatchWorkbenchApi(
       if (id === '') throw new DshBotError('invalid-input', 'bot id is required')
       return await bot.deleteBot({ id })
     }
+    case 'createBotSession':
+      return await bot.createBotSession(parseCreateBotSession(args))
+    case 'listBotSessions':
+      return await bot.listBotSessions(parseListBotSessions(args))
+    case 'history':
+      return await bot.history(parseHistory(args))
+    case 'prompt':
+      return await bot.prompt(parsePrompt(args))
     default:
       return undefined
   }
@@ -229,6 +252,48 @@ function parseModelOverride(value: unknown): DshBotModelRef | null | undefined {
 
 function asString(value: unknown): string {
   return typeof value === 'string' ? value : ''
+}
+
+function parseCreateBotSession(args: Record<string, unknown>): CreateOwnedSessionRequest {
+  const botId = asString(args.botId).trim()
+  if (botId === '') throw new DshBotError('invalid-input', 'botId is required')
+  const title = asString(args.title).trim()
+  const cwd = asString(args.cwd).trim()
+  return {
+    botId,
+    ...title === '' ? {} : { title },
+    ...cwd === '' ? {} : { cwd },
+  }
+}
+
+function parseListBotSessions(args: Record<string, unknown>): ListOwnedSessionsRequest {
+  const botId = asString(args.botId).trim()
+  if (botId === '') throw new DshBotError('invalid-input', 'botId is required')
+  return {
+    botId,
+    ...args.includeHidden === true ? { includeHidden: true } : {},
+  }
+}
+
+function parseHistory(args: Record<string, unknown>): HistoryRequest {
+  const sessionId = asString(args.sessionId).trim()
+  if (sessionId === '') throw new DshBotError('invalid-input', 'sessionId is required')
+  const sinceSeq = typeof args.sinceSeq === 'number' && Number.isFinite(args.sinceSeq)
+    ? args.sinceSeq
+    : undefined
+  return {
+    sessionId,
+    ...sinceSeq === undefined ? {} : { sinceSeq },
+  }
+}
+
+function parsePrompt(args: Record<string, unknown>): PromptRequest {
+  const sessionId = asString(args.sessionId).trim()
+  if (sessionId === '') throw new DshBotError('invalid-input', 'sessionId is required')
+  return {
+    sessionId,
+    text: asString(args.text),
+  }
 }
 
 export function attachWorkbenchHttp(ctx: Context, options: { root?: string } = {}): void {

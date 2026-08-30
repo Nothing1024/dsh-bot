@@ -16,6 +16,26 @@ export interface DshBotModelRef {
   readonly reasoningEffort?: string
 }
 
+/** Args for gateway `session.create` with an explicit agent preset. */
+export interface GatewayCreateSessionRequest {
+  readonly agentPreset: string
+  readonly cwd: string
+}
+
+/** Result of gateway `session.create`. */
+export interface GatewayCreateSessionResult {
+  readonly sessionId: string
+  readonly agentPreset?: string
+}
+
+/** One row of gateway `session.list` (working / updatedAt enrichment). */
+export interface GatewaySessionRow {
+  readonly sessionId: string
+  readonly running: boolean
+  readonly updatedAt: number
+  readonly agentPreset?: string
+}
+
 /**
  * Platform verbs the host needs beyond sessionTool. Tests stub this object;
  * production wiring is {@link createPlatform}.
@@ -25,6 +45,10 @@ export interface DshBotPlatform {
   selectModel(sessionId: string, model: DshBotModelRef): Promise<void>
   snapshotGlobalDefault(): DshBotModelRef | undefined
   restoreGlobalDefault(model: DshBotModelRef): Promise<void>
+  /** Gateway `session.create` with `agentPreset` (session-tool create cannot). */
+  createSession(request: GatewayCreateSessionRequest): Promise<GatewayCreateSessionResult>
+  renameSession(sessionId: string, title: string): Promise<void>
+  listSessions(): Promise<readonly GatewaySessionRow[]>
 }
 
 /** Duck-typed `ctx.apiProxy` unary result. */
@@ -40,6 +64,25 @@ interface RpcEnvelope<T> {
 
 interface ApiProxyDuck {
   readonly sessions?: {
+    create(request: {
+      rpcId: string
+      payload: { cwd?: string; agentPreset?: string; sessionId?: string }
+    }): Promise<RpcEnvelope<{ sessionId: string; agentPreset?: string }>>
+    rename(request: {
+      rpcId: string
+      payload: { sessionId: string; title: string }
+    }): Promise<RpcEnvelope<{ title: string; seq: number }>>
+    list(request: {
+      rpcId: string
+      payload: { cursor?: string }
+    }): Promise<RpcEnvelope<{
+      items?: ReadonlyArray<{
+        sessionId?: string
+        running?: boolean
+        updatedAt?: number
+        agentPreset?: string
+      }>
+    }>>
     selectModel(request: {
       rpcId: string
       payload: { sessionId: string; provider: string; model: string; reasoningEffort?: string }
@@ -159,6 +202,90 @@ export function createPlatform(ctx: Context): DshBotPlatform {
         model: model.model,
         ...model.reasoningEffort === undefined ? {} : { reasoningEffort: model.reasoningEffort },
       })
+    },
+
+    async createSession(request) {
+      const api = ctx.get('apiProxy') as ApiProxyDuck | undefined
+      if (api?.sessions?.create === undefined) {
+        throw new DshBotError(
+          'internal',
+          'session.create is unavailable in this composition',
+        )
+      }
+      const response = await api.sessions.create({
+        rpcId: mintRpcId(),
+        payload: {
+          cwd: request.cwd,
+          agentPreset: request.agentPreset,
+        },
+      })
+      if (response.result.ok === false) {
+        const wire = response.result.error?.code ?? ''
+        const message = response.result.error?.message ?? 'session.create failed'
+        if (wire === 'agent-preset-not-found' || wire === 'agent-preset-invalid') {
+          throw new DshBotError('preset-broken', message)
+        }
+        if (wire === 'web-unreachable') {
+          throw new DshBotError('web-unreachable', message)
+        }
+        throw new DshBotError('internal', message)
+      }
+      const value = response.result.value
+      const sessionId = typeof value?.sessionId === 'string' ? value.sessionId.trim() : ''
+      if (sessionId === '') {
+        throw new DshBotError('internal', 'session.create returned no sessionId')
+      }
+      const agentPreset = typeof value?.agentPreset === 'string' ? value.agentPreset : undefined
+      return {
+        sessionId,
+        ...agentPreset === undefined || agentPreset === '' ? {} : { agentPreset },
+      }
+    },
+
+    async renameSession(sessionId, title) {
+      const api = ctx.get('apiProxy') as ApiProxyDuck | undefined
+      if (api?.sessions?.rename === undefined) {
+        throw new DshBotError(
+          'internal',
+          `session.rename is unavailable in this composition (session ${sessionId})`,
+          { sessionId },
+        )
+      }
+      const response = await api.sessions.rename({
+        rpcId: mintRpcId(),
+        payload: { sessionId, title },
+      })
+      if (response.result.ok === false) {
+        throw new DshBotError(
+          'internal',
+          `session.rename failed for ${sessionId}: ${response.result.error?.message ?? 'unknown error'}`,
+          { sessionId },
+        )
+      }
+    },
+
+    async listSessions() {
+      const api = ctx.get('apiProxy') as ApiProxyDuck | undefined
+      if (api?.sessions?.list === undefined) return []
+      const response = await api.sessions.list({
+        rpcId: mintRpcId(),
+        payload: {},
+      })
+      if (response.result.ok === false) return []
+      const items = response.result.value?.items ?? []
+      const rows: GatewaySessionRow[] = []
+      for (const item of items) {
+        const sessionId = typeof item.sessionId === 'string' ? item.sessionId : ''
+        if (sessionId === '') continue
+        const agentPreset = typeof item.agentPreset === 'string' ? item.agentPreset : undefined
+        rows.push({
+          sessionId,
+          running: item.running === true,
+          updatedAt: typeof item.updatedAt === 'number' && Number.isFinite(item.updatedAt) ? item.updatedAt : 0,
+          ...agentPreset === undefined || agentPreset === '' ? {} : { agentPreset },
+        })
+      }
+      return rows
     },
   }
 }

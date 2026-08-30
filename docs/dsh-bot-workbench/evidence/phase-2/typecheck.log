@@ -1,0 +1,15 @@
+Scope: 7 of 8 workspace projects
+packages/ui-dsh-bot typecheck$ tsc -p tsconfig.json --noEmit
+packages/workbench-ui typecheck$ tsc -p tsconfig.json --noEmit
+.../plugin/packages/session-marks typecheck$ tsc -p tsconfig.json
+.../plugin/packages/session-tool typecheck$ tsc -p tsconfig.json
+.../plugin/packages/session-tool typecheck: Done
+.../plugin/packages/session-marks typecheck: Done
+packages/ui-dsh-bot typecheck: Done
+packages/workbench-ui typecheck: Done
+packages/dsh-bot-host typecheck$ tsc -p tsconfig.json --noEmit
+.../plugin/packages/session-tool-local typecheck$ tsc -p tsconfig.json
+packages/dsh-bot-host typecheck: Done
+.../plugin/packages/session-tool-local typecheck: Done
+packages/tool-dsh-bot typecheck$ tsc -p tsconfig.json --noEmit
+packages/tool-dsh-bot typecheck: Done

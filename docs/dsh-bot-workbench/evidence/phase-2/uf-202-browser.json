@@ -1,0 +1,17 @@
+{
+  "ok": true,
+  "created": true,
+  "header": "诗\n诗人小北",
+  "placeholder": "给 诗人小北 发消息",
+  "assistant": "我是诗人小北  \n夜雨敲窗急，灯前一字迟。",
+  "error": "",
+  "log": [
+    "launched /Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+    "console error: Failed to load resource: the server responded with a status of 404 (Not Found)",
+    "roster ready",
+    "bot created",
+    "header=诗\n诗人小北 placeholder=给 诗人小北 发消息",
+    "prompt sent",
+    "assistant=我是诗人小北  \n夜雨敲窗急，灯前一字迟。"
+  ]
+}

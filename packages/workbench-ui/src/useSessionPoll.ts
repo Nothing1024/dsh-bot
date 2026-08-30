@@ -1,0 +1,129 @@
+/**
+ * Transcript poll: 2s idle / 1s while working; pause when document.hidden.
+ */
+import { useCallback, useEffect, useRef, useState } from 'react'
+import type { HistoryValue, RpcResult, WorkbenchHistoryItem, WorkbenchWireError } from './api.ts'
+
+const IDLE_MS = 2000
+const WORKING_MS = 1000
+
+export interface SessionPollState {
+  readonly items: readonly WorkbenchHistoryItem[]
+  readonly working: boolean
+  readonly error: WorkbenchWireError | null
+}
+
+export interface UseSessionPollOptions {
+  readonly sessionId: string | null
+  readonly enabled: boolean
+  readonly load: (sessionId: string, sinceSeq?: number) => Promise<RpcResult<HistoryValue>>
+}
+
+function maxSeq(items: readonly WorkbenchHistoryItem[]): number | undefined {
+  let max = Number.NEGATIVE_INFINITY
+  for (const item of items) {
+    if (item.seq > max) max = item.seq
+  }
+  return Number.isFinite(max) ? max : undefined
+}
+
+/**
+ * Incremental pages are inclusive of `sinceSeq` (session-tool skips seq <
+ * sinceSeq). Replace every item whose seq appears in `incoming` so the last
+ * in-flight turn updates in place instead of duplicating.
+ */
+export function mergeHistoryItems(
+  current: readonly WorkbenchHistoryItem[],
+  incoming: readonly WorkbenchHistoryItem[],
+  incremental: boolean,
+): WorkbenchHistoryItem[] {
+  if (!incremental) return [...incoming]
+  if (incoming.length === 0) return [...current]
+  const replaced = new Set(incoming.map(item => item.seq))
+  const kept = current.filter(item => !replaced.has(item.seq))
+  return [...kept, ...incoming]
+}
+
+/**
+ * Poll `history` for one session. `sinceSeq` is used after the first page.
+ */
+export function useSessionPoll(options: UseSessionPollOptions): SessionPollState & { refresh: () => void } {
+  const { sessionId, enabled, load } = options
+  const [items, setItems] = useState<readonly WorkbenchHistoryItem[]>([])
+  const [working, setWorking] = useState(false)
+  const [error, setError] = useState<WorkbenchWireError | null>(null)
+  const itemsRef = useRef(items)
+  itemsRef.current = items
+  const loadRef = useRef(load)
+  loadRef.current = load
+  const workingRef = useRef(working)
+  workingRef.current = working
+  const tick = useRef(0)
+
+  const pull = useCallback(async (full: boolean): Promise<void> => {
+    const id = sessionId
+    if (id === null || !enabled) return
+    const sinceSeq = full ? undefined : maxSeq(itemsRef.current)
+    const outcome = await loadRef.current(id, sinceSeq)
+    if (!outcome.ok) {
+      setError(outcome.error)
+      return
+    }
+    setError(null)
+    const nextWorking = outcome.value.working === true
+    workingRef.current = nextWorking
+    setWorking(nextWorking)
+    const incoming = Array.isArray(outcome.value.items) ? outcome.value.items : []
+    setItems(current => mergeHistoryItems(current, incoming, sinceSeq !== undefined))
+  }, [enabled, sessionId])
+
+  /** Full snapshot without clearing first (avoids an empty-transcript flash). */
+  const refresh = useCallback((): void => {
+    tick.current += 1
+    void pull(true)
+  }, [pull])
+
+  useEffect(() => {
+    tick.current += 1
+    setItems([])
+    setWorking(false)
+    setError(null)
+    if (sessionId === null || !enabled) return
+    void pull(true)
+  }, [enabled, pull, sessionId])
+
+  useEffect(() => {
+    if (sessionId === null || !enabled) return
+    let cancelled = false
+    let timer: ReturnType<typeof setTimeout> | undefined
+    const delay = (): number => (workingRef.current ? WORKING_MS : IDLE_MS)
+    const schedule = (): void => {
+      timer = setTimeout(() => {
+        void (async () => {
+          if (cancelled) return
+          if (typeof document !== 'undefined' && document.hidden) {
+            schedule()
+            return
+          }
+          await pull(false)
+          if (!cancelled) schedule()
+        })()
+      }, delay())
+    }
+    const onVis = (): void => {
+      if (typeof document !== 'undefined' && !document.hidden) void pull(false)
+    }
+    document.addEventListener('visibilitychange', onVis)
+    schedule()
+    return () => {
+      cancelled = true
+      if (timer !== undefined) clearTimeout(timer)
+      document.removeEventListener('visibilitychange', onVis)
+    }
+  }, [enabled, pull, sessionId])
+
+  return { items, working, error, refresh }
+}
+
+export const POLL_IDLE_MS = IDLE_MS
+export const POLL_WORKING_MS = WORKING_MS

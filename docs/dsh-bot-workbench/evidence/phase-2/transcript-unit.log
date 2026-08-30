@@ -1,0 +1,20 @@
+# Task 9 transcript unit (post-review: inclusive sinceSeq merge + stable ids)
+date: 2026-08-30T09:12:05Z
+
+ RUN  v4.1.11 /Users/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin
+
+ ✓ packages/workbench-ui/tests/avatar.spec.ts (4 tests) 2ms
+ ✓ packages/workbench-ui/tests/api.spec.ts (4 tests) 3ms
+ ✓ packages/workbench-ui/tests/session-poll.spec.tsx (3 tests) 22ms
+ ✓ packages/workbench-ui/tests/transcript.spec.tsx (3 tests) 28ms
+ ✓ packages/workbench-ui/tests/roster.spec.tsx (4 tests) 43ms
+ ✓ packages/workbench-ui/tests/bot-form.spec.tsx (4 tests) 45ms
+ ✓ packages/workbench-ui/tests/conversation.spec.tsx (4 tests) 64ms
+ ✓ packages/workbench-ui/tests/app.spec.tsx (5 tests) 80ms
+ ✓ packages/workbench-ui/tests/composer.spec.tsx (4 tests) 81ms
+
+ Test Files  9 passed (9)
+      Tests  35 passed (35)
+   Start at  17:12:05
+   Duration  569ms (transform 313ms, setup 0ms, import 1000ms, tests 368ms, environment 1.85s)
+

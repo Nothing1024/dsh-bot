@@ -15,6 +15,18 @@ export const DSH_BOT_HIDDEN_KIND = 'kind:hidden'
 /** Title prefix for delegated auxiliary sessions (session-tool hiddenPrefixes). */
 export const DSH_BOT_HIDDEN_TITLE_PREFIX = '~dsh-bot: '
 
+/**
+ * Workbench ownership token `bot:<id>` (BR-203). Ordinary marks token; not a
+ * reserved name.
+ */
+export function botMark(botId: string): string {
+  const id = botId.trim()
+  if (id === '') {
+    throw new Error('bot:<id> mark requires a non-empty bot id')
+  }
+  return `bot:${id}`
+}
+
 const sessionLocks = new Map<string, Promise<void>>()
 
 function withSessionLock<T>(sessionId: string, fn: () => Promise<T>): Promise<T> {

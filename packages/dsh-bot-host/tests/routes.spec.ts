@@ -89,6 +89,15 @@ function stub(overrides: Partial<DshBotHttpFace> = {}): DshBotHttpFace {
     createBot: vi.fn(async () => BOT_VIEW),
     updateBot: vi.fn(async () => BOT_VIEW),
     deleteBot: vi.fn(async () => ({ id: 'x', deleted: true as const })),
+    createBotSession: vi.fn(async () => ({
+      sessionId: 'session-owned-1',
+      title: 'DSH Bot',
+      botId: 'dsh-bot',
+      presetId: 'dsh-bot',
+    })),
+    listBotSessions: vi.fn(async () => ({ sessions: [] })),
+    history: vi.fn(async () => ({ sessionId: 'session-owned-1', items: [], working: false })),
+    prompt: vi.fn(async () => ({ sessionId: 'session-owned-1' })),
     ...overrides,
   }
 }
@@ -206,5 +215,67 @@ describe('dsh-bot HTTP face', () => {
       args: { name: '诗人小北', persona: '你是一位诗人' },
     })
     expect(bot.createBot).toHaveBeenCalledWith({ name: '诗人小北', persona: '你是一位诗人' })
+  })
+
+  it('creates an owned bot session on POST /dsh-bot/createBotSession', async () => {
+    const bot = stub()
+    const { handler } = attach(bot)
+    const { json } = await post(handler, '/dsh-bot/createBotSession', {
+      args: { botId: 'dsh-bot', title: 'Plan' },
+    })
+    expect(json).toEqual({
+      ok: true,
+      value: {
+        sessionId: 'session-owned-1',
+        title: 'DSH Bot',
+        botId: 'dsh-bot',
+        presetId: 'dsh-bot',
+      },
+    })
+    expect(bot.createBotSession).toHaveBeenCalledWith({ botId: 'dsh-bot', title: 'Plan' })
+  })
+
+  it('lists owned sessions newest-first payload on POST /dsh-bot/listBotSessions', async () => {
+    const bot = stub({
+      listBotSessions: vi.fn(async () => ({
+        sessions: [{
+          sessionId: 'session-live',
+          title: 'Plan',
+          tags: ['kind:dsh-bot', 'bot:dsh-bot'],
+          status: 'idle' as const,
+          createdAt: 1,
+          updatedAt: 2,
+          hidden: false,
+          working: false,
+        }],
+      })),
+    })
+    const { handler } = attach(bot)
+    const { json } = await post(handler, '/dsh-bot/listBotSessions', { args: { botId: 'dsh-bot' } })
+    expect(json).toEqual({
+      ok: true,
+      value: {
+        sessions: [{
+          sessionId: 'session-live',
+          title: 'Plan',
+          tags: ['kind:dsh-bot', 'bot:dsh-bot'],
+          status: 'idle',
+          createdAt: 1,
+          updatedAt: 2,
+          hidden: false,
+          working: false,
+        }],
+      },
+    })
+  })
+
+  it('still serves v1 listSessions after workbench session methods exist', async () => {
+    const bot = stub()
+    const { handler } = attach(bot)
+    const { json } = await post(handler, '/dsh-bot/listSessions', { args: {} })
+    expect(json).toEqual({
+      ok: true,
+      value: { sessions: [ROW], botModel: MODEL },
+    })
   })
 })

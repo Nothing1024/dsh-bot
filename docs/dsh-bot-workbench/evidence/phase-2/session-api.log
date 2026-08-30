@@ -1,0 +1,29 @@
+# Task 8 dsh-bot-host session APIs (post-review)
+date: 2026-08-30T09:12:04Z
+$ vitest run --config ../../vitest.config.ts packages/dsh-bot-host/tests
+
+ RUN  v4.1.11 /Users/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin
+
+ ✓ packages/dsh-bot-host/tests/workbench-routes.spec.ts (5 tests) 11ms
+ ✓ packages/dsh-bot-host/tests/workbench-sessions.spec.ts (13 tests) 25ms
+ ✓ packages/dsh-bot-host/tests/bots.spec.ts (17 tests) 63ms
+ ✓ packages/dsh-bot-host/tests/ask.spec.ts (20 tests) 78ms
+ ✓ packages/dsh-bot-host/tests/routes.spec.ts (13 tests) 643ms
+
+ Test Files  5 passed (5)
+      Tests  68 passed (68)
+   Start at  17:12:04
+   Duration  804ms (transform 289ms, setup 0ms, import 475ms, tests 822ms, environment 0ms)
+
+
+## identity
+127.0.0.1:3084  pid=97010  DSH_HOME=/Users/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin/env  cwd=/Users/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin
+
+## history id stability (full vs sinceSeq=55 inclusive)
+full:
+['message-8-1', 'thinking-55-1', 'message-55-1']
+sinceSeq=55:
+['thinking-55-1', 'message-55-1']
+
+## v1 listSessions still works
+ok True n 15

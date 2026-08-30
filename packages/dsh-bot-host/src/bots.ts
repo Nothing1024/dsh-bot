@@ -99,6 +99,7 @@ export interface DeleteBotResult {
 
 export interface BotsRuntime {
   listBots(): Promise<ListBotsResult>
+  getBot(id: string): Promise<BotView>
   createBot(input: CreateBotInput): Promise<BotView>
   updateBot(input: UpdateBotInput): Promise<BotView>
   deleteBot(input: { id: string }): Promise<DeleteBotResult>
@@ -363,6 +364,18 @@ export function createBotsRuntime(options: BotsRuntimeOptions): BotsRuntime {
     return { bots }
   }
 
+  const getBot = async (id: string): Promise<BotView> => {
+    const trimmed = id.trim()
+    if (trimmed === '') throw new DshBotError('invalid-input', 'bot id is required')
+    const home = homeOf()
+    const rows = await loadRegistry(home, nowOf)
+    const row = rows.find(item => item.id === trimmed)
+    if (row === undefined) {
+      throw new DshBotError('bot-not-found', `bot ${JSON.stringify(trimmed)} is not in the registry`)
+    }
+    return toView(home, row)
+  }
+
   const createBot = async (input: CreateBotInput): Promise<BotView> => {
     const home = homeOf()
     const name = normalizeName(input.name)
@@ -469,6 +482,7 @@ export function createBotsRuntime(options: BotsRuntimeOptions): BotsRuntime {
 
   return {
     listBots: () => withLock(listBots),
+    getBot: id => withLock(() => getBot(id)),
     createBot: input => withLock(() => createBot(input)),
     updateBot: input => withLock(() => updateBot(input)),
     deleteBot: input => withLock(() => deleteBot(input)),

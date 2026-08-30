@@ -95,6 +95,45 @@ describe('App roster load', () => {
     expect(screen.queryByTestId('workbench-error')).toBeNull()
   })
 
+  it('lights the unselected roster working dot from listBotSessions.working', async () => {
+    const extra = {
+      id: 'shiren-xiaobei',
+      name: '诗人小北',
+      avatar: { color: '#c9a227' },
+      presetId: 'dsh-bot--shiren-xiaobei',
+      createdAt: 2,
+      persona: '人设',
+      protected: false,
+    }
+    vi.stubGlobal('fetch', vi.fn(async (url: string, init?: { body?: string }) => {
+      const path = String(url)
+      if (path.includes('listBots')) return jsonOk({ bots: [SEED, extra] })
+      if (path.includes('listBotSessions')) {
+        const args = JSON.parse(String(init?.body ?? '{}')) as { args?: { botId?: string } }
+        if (args.args?.botId === 'shiren-xiaobei') {
+          return jsonOk({
+            sessions: [{
+              sessionId: 's-b',
+              title: 'B',
+              tags: [],
+              status: 'live',
+              createdAt: 1,
+              updatedAt: 1,
+              hidden: false,
+              working: true,
+            }],
+          })
+        }
+        return jsonOk({ sessions: [] })
+      }
+      return jsonOk({ sessions: [], botModel: { provider: '', model: '', source: 'global-default' } })
+    }))
+    render(<App />)
+    await screen.findByTestId('roster-row-dsh-bot')
+    expect(await screen.findByTestId('roster-working-shiren-xiaobei')).toBeTruthy()
+    expect(screen.queryByTestId('roster-working-dsh-bot')).toBeNull()
+  })
+
   it('opens the create form from the roster', async () => {
     vi.stubGlobal('fetch', vi.fn(async (url: string) => {
       if (String(url).includes('listBots')) return jsonOk({ bots: [SEED] })

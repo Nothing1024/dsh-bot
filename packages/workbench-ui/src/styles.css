@@ -251,6 +251,8 @@ body,
   flex: none;
   display: flex;
   align-items: center;
+  justify-content: space-between;
+  gap: 12px;
   padding: 0 20px;
   border-bottom: 1px solid var(--wb-border);
   font-weight: 600;
@@ -261,6 +263,200 @@ body,
   min-height: 0;
   padding: 24px 20px;
   color: var(--wb-muted);
+}
+
+.conversationPane {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.headActions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.sessionPick select {
+  max-width: 180px;
+  border: 1px solid var(--wb-border);
+  background: var(--wb-bg);
+  color: var(--wb-text);
+  border-radius: 8px;
+  font: inherit;
+  padding: 4px 8px;
+}
+
+.workingBadge {
+  font-size: 11px;
+  font-weight: 500;
+  color: #3dd68c;
+  border: 1px solid #3dd68c55;
+  border-radius: 999px;
+  padding: 1px 8px;
+}
+
+.visuallyHidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+}
+
+.transcript {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  padding: 16px 20px 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.bubbleWrap {
+  display: flex;
+}
+
+.bubbleWrap.user,
+.bubbleWrap.user {
+  justify-content: flex-end;
+}
+
+.bubbleWrap.assistant {
+  justify-content: flex-start;
+}
+
+.bubble {
+  max-width: min(72%, 560px);
+  padding: 8px 12px;
+  border-radius: 14px;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.bubble.user {
+  background: #2c4a7c;
+  color: #fff;
+  border-bottom-right-radius: 4px;
+}
+
+.bubble.assistant {
+  background: #222830;
+  color: var(--wb-text);
+  border-bottom-left-radius: 4px;
+}
+
+.bubbleWrap.isPending .bubble {
+  opacity: 0.7;
+}
+
+.bubbleWrap.isFailed .bubble {
+  outline: 1px solid var(--wb-danger);
+}
+
+.foldRow,
+.toolRow,
+.workingRow {
+  align-self: flex-start;
+  max-width: min(72%, 560px);
+  color: var(--wb-muted);
+  font-size: 12px;
+}
+
+.foldRow {
+  background: #1b2027;
+  border-radius: 8px;
+  padding: 4px 8px;
+}
+
+.foldRow summary {
+  cursor: pointer;
+}
+
+.foldBody {
+  margin: 6px 0 0;
+  white-space: pre-wrap;
+  font: inherit;
+}
+
+.toolRow {
+  border: 1px solid var(--wb-border);
+  border-radius: 8px;
+  padding: 4px 8px;
+}
+
+.workingRow {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.dots {
+  display: inline-flex;
+  gap: 3px;
+}
+
+.dots i {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--wb-muted);
+  display: block;
+  animation: wb-dot 1s infinite ease-in-out;
+}
+
+.dots i:nth-child(2) { animation-delay: 0.15s; }
+.dots i:nth-child(3) { animation-delay: 0.3s; }
+
+@keyframes wb-dot {
+  0%, 80%, 100% { opacity: 0.3; }
+  40% { opacity: 1; }
+}
+
+.composer {
+  flex: none;
+  border-top: 1px solid var(--wb-border);
+  padding: 10px 16px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.composerRow {
+  display: flex;
+  gap: 8px;
+  align-items: flex-end;
+}
+
+.composerInput {
+  flex: 1;
+  min-height: 44px;
+  resize: vertical;
+  border: 1px solid var(--wb-border);
+  background: var(--wb-bg);
+  color: var(--wb-text);
+  border-radius: 10px;
+  font: inherit;
+  padding: 8px 10px;
+}
+
+.composerInput:disabled {
+  opacity: 0.5;
+}
+
+.composerSend {
+  flex: none;
+}
+
+.composerError {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  color: var(--wb-danger);
+  font-size: 12px;
 }
 
 .hint {

@@ -121,3 +121,92 @@ export interface WorkbenchBotModelInfo {
 export function listSessionsModel(): Promise<RpcResult<{ botModel: WorkbenchBotModelInfo }>> {
   return workbenchCall('listSessions', {})
 }
+
+export interface WorkbenchSessionRow {
+  readonly sessionId: string
+  readonly title?: string
+  readonly tags: readonly string[]
+  readonly status: 'live' | 'idle'
+  readonly createdAt: number
+  readonly updatedAt: number
+  readonly hidden: boolean
+  readonly working: boolean
+}
+
+export interface ListBotSessionsValue {
+  readonly sessions: readonly WorkbenchSessionRow[]
+}
+
+export interface CreateBotSessionValue {
+  readonly sessionId: string
+  readonly title: string
+  readonly botId: string
+  readonly presetId: string
+}
+
+export interface WorkbenchHistoryItem {
+  readonly id: string
+  readonly kind: 'message' | 'thinking' | 'tool'
+  readonly seq: number
+  readonly role?: 'user' | 'assistant'
+  readonly text?: string
+  readonly name?: string
+  readonly summary?: string
+}
+
+export interface HistoryValue {
+  readonly sessionId: string
+  readonly items: readonly WorkbenchHistoryItem[]
+  readonly working: boolean
+}
+
+export interface PromptValue {
+  readonly sessionId: string
+}
+
+export function listBotSessions(botId: string, includeHidden = false): Promise<RpcResult<ListBotSessionsValue>> {
+  return workbenchCall<ListBotSessionsValue>('listBotSessions', {
+    botId,
+    ...includeHidden ? { includeHidden: true } : {},
+  })
+}
+
+export function createBotSession(botId: string, title?: string): Promise<RpcResult<CreateBotSessionValue>> {
+  return workbenchCall<CreateBotSessionValue>('createBotSession', {
+    botId,
+    ...title === undefined || title.trim() === '' ? {} : { title },
+  })
+}
+
+export function history(sessionId: string, sinceSeq?: number): Promise<RpcResult<HistoryValue>> {
+  return workbenchCall<HistoryValue>('history', {
+    sessionId,
+    ...sinceSeq === undefined ? {} : { sinceSeq },
+  })
+}
+
+export function prompt(sessionId: string, text: string): Promise<RpcResult<PromptValue>> {
+  return workbenchCall<PromptValue>('prompt', { sessionId, text })
+}
+
+export function draftStorageKey(botId: string): string {
+  return `dsh-bot:draft:${botId}`
+}
+
+export function readDraft(botId: string): string {
+  try {
+    return localStorage.getItem(draftStorageKey(botId)) ?? ''
+  } catch {
+    return ''
+  }
+}
+
+export function writeDraft(botId: string, text: string): void {
+  try {
+    const key = draftStorageKey(botId)
+    if (text.trim() === '') localStorage.removeItem(key)
+    else localStorage.setItem(key, text)
+  } catch {
+    // private-mode / blocked storage must not break sending
+  }
+}

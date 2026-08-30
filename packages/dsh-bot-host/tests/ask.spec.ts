@@ -117,10 +117,14 @@ class StubPlatform implements DshBotPlatform {
   readonly archiveCalls: string[] = []
   readonly selectCalls: Array<{ sessionId: string; model: DshBotModelRef }> = []
   readonly restoreCalls: DshBotModelRef[] = []
+  readonly createCalls: Array<{ agentPreset: string; cwd: string }> = []
+  readonly renameCalls: Array<{ sessionId: string; title: string }> = []
   global: DshBotModelRef = { provider: 'anthropic', model: 'grok-4.6', reasoningEffort: 'xhigh' }
   selectError?: Error
   archiveError?: Error
   selectHold?: Promise<void>
+  private nextCreate = 0
+  gatewayRows: Array<{ sessionId: string; running: boolean; updatedAt: number; agentPreset?: string }> = []
 
   async archiveSession(sessionId: string) {
     if (this.archiveError !== undefined) throw this.archiveError
@@ -141,6 +145,20 @@ class StubPlatform implements DshBotPlatform {
   async restoreGlobalDefault(model: DshBotModelRef) {
     this.restoreCalls.push(model)
     this.global = { ...model }
+  }
+
+  async createSession(request: { agentPreset: string; cwd: string }) {
+    this.createCalls.push({ agentPreset: request.agentPreset, cwd: request.cwd })
+    this.nextCreate += 1
+    return { sessionId: `session-owned-${this.nextCreate}`, agentPreset: request.agentPreset }
+  }
+
+  async renameSession(sessionId: string, title: string) {
+    this.renameCalls.push({ sessionId, title })
+  }
+
+  async listSessions() {
+    return this.gatewayRows
   }
 }
 

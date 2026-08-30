@@ -6,13 +6,16 @@ import {
   createBot,
   deleteBot,
   listBots,
+  listBotSessions,
   listSessionsModel,
+  readDraft,
   updateBot,
 } from './api.ts'
 import type { WorkbenchBot, WorkbenchBotModelInfo, WorkbenchModelOverride } from './api.ts'
-import { hashAvatarColor, nameInitial, rowPreview } from './avatar.ts'
+import { rowPreview } from './avatar.ts'
 import { BotForm } from './BotForm.tsx'
 import type { BotFormValues } from './BotForm.tsx'
+import { Conversation } from './Conversation.tsx'
 import { Roster } from './Roster.tsx'
 import type { RosterItem } from './Roster.tsx'
 
@@ -35,8 +38,8 @@ export function App() {
   const [bots, setBots] = useState<readonly WorkbenchBot[]>([])
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [drafts, setDrafts] = useState<Record<string, string>>({})
-  const [lastMessages] = useState<Record<string, string>>({})
-  const [workingIds] = useState<ReadonlySet<string>>(() => new Set())
+  const [lastMessages, setLastMessages] = useState<Record<string, string>>({})
+  const [workingIds, setWorkingIds] = useState<ReadonlySet<string>>(() => new Set())
   const [form, setForm] = useState<FormMode | null>(null)
   const [formBusy, setFormBusy] = useState(false)
   const [formError, setFormError] = useState<string | null>(null)
@@ -44,6 +47,7 @@ export function App() {
   const [effectHint, setEffectHint] = useState<string | null>(null)
   const [botModel, setBotModel] = useState<WorkbenchBotModelInfo | null>(null)
   const submitLock = useRef(false)
+  const workingOverlay = useRef(new Map<string, boolean>())
 
   const load = useCallback(async (): Promise<void> => {
     setStatus('loading')
@@ -70,6 +74,40 @@ export function App() {
   useEffect(() => {
     void load()
   }, [load])
+
+  useEffect(() => {
+    if (status !== 'idle' || bots.length === 0) return
+    let cancelled = false
+    const tick = async (): Promise<void> => {
+      if (typeof document !== 'undefined' && document.hidden) return
+      const next = new Set<string>()
+      await Promise.all(bots.map(async bot => {
+        const outcome = await listBotSessions(bot.id)
+        if (outcome.ok && (outcome.value.sessions ?? []).some(row => row.working)) {
+          next.add(bot.id)
+        }
+      }))
+      for (const [id, on] of workingOverlay.current) {
+        if (on) next.add(id)
+      }
+      if (cancelled) return
+      setWorkingIds(current => {
+        if (current.size === next.size && [...next].every(id => current.has(id))) return current
+        return next
+      })
+    }
+    void tick()
+    const timer = setInterval(() => { void tick() }, 2000)
+    const onVis = (): void => {
+      if (typeof document !== 'undefined' && !document.hidden) void tick()
+    }
+    document.addEventListener('visibilitychange', onVis)
+    return () => {
+      cancelled = true
+      clearInterval(timer)
+      document.removeEventListener('visibilitychange', onVis)
+    }
+  }, [bots, status])
 
   const selected = useMemo(
     () => bots.find(bot => bot.id === selectedId) ?? null,
@@ -253,31 +291,40 @@ export function App() {
                 }}
                 onSubmit={values => { void submitForm(values) }}
               />
-            ) : (
+            ) : selected === null ? (
               <>
-                <header className="conversationHead">
-                  {selected === null ? (
-                    <span>对话</span>
-                  ) : (
-                    <span className="identity" data-testid="conversation-identity">
-                      <span className="avatar sm" style={{ background: selected.avatar.color || hashAvatarColor(selected.id) }}>
-                        {selected.avatar.emoji !== undefined && selected.avatar.emoji !== ''
-                          ? selected.avatar.emoji
-                          : nameInitial(selected.name)}
-                      </span>
-                      <span>{selected.name}</span>
-                    </span>
-                  )}
-                </header>
+                <header className="conversationHead"><span>对话</span></header>
                 <div className="conversationBody">
-                  {effectHint !== null ? (
-                    <p className="formHint" data-testid="take-effect-hint">{effectHint}</p>
-                  ) : null}
-                  <p className="hint">
-                    {selected === null ? '选择人设后在这里对话' : `给 ${selected.name} 发消息`}
-                  </p>
+                  <p className="hint">选择人设后在这里对话</p>
                 </div>
               </>
+            ) : (
+              <Conversation
+                key={selected.id}
+                bot={selected}
+                hint={effectHint}
+                onWorking={(id, working) => {
+                  workingOverlay.current.set(id, working)
+                  setWorkingIds(current => {
+                    const has = current.has(id)
+                    if (working === has) return current
+                    const next = new Set(current)
+                    if (working) next.add(id)
+                    else next.delete(id)
+                    return next
+                  })
+                }}
+                onWorkingDetach={id => {
+                  workingOverlay.current.delete(id)
+                }}
+                onPreview={(id, preview) => {
+                  setLastMessages(current => current[id] === preview ? current : { ...current, [id]: preview })
+                  setDrafts(current => {
+                    const draft = readDraft(id)
+                    return current[id] === draft ? current : { ...current, [id]: draft }
+                  })
+                }}
+              />
             )}
           </main>
         </>

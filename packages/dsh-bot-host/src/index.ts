@@ -12,8 +12,8 @@ import z from '@deepseek-ai/schemastery'
 import type { SessionToolCaller } from 'session-tool'
 import {
   askBot,
-  createBotSession,
-  listBotSessions,
+  createBotSession as createVisibleBotSession,
+  listBotSessions as listMarkedBotSessions,
   resolveOverride,
 } from './ask.ts'
 import type {
@@ -39,6 +39,18 @@ import type {
 import { attachDshBotHttp } from './routes.ts'
 import type { DshBotModelInfo } from './routes.ts'
 import { attachWorkbenchHttp } from './workbench-routes.ts'
+import {
+  createOwnedSession,
+  listOwnedSessions,
+  promptOwnedSession,
+  readOwnedHistory,
+} from './workbench-sessions.ts'
+import type {
+  CreateOwnedSessionRequest,
+  HistoryRequest,
+  ListOwnedSessionsRequest,
+  PromptRequest,
+} from './workbench-sessions.ts'
 
 export { DshBotError } from './errors.ts'
 export type { DshBotErrorCode } from './errors.ts'
@@ -64,12 +76,34 @@ export {
   DSH_BOT_HIDDEN_KIND,
   DSH_BOT_HIDDEN_TITLE_PREFIX,
   DSH_BOT_KIND,
+  botMark,
   mergeBotMarks,
 } from './marks.ts'
 export type { DshBotModelRef, DshBotPlatform } from './platform.ts'
 export { attachDshBotHttp, handleDshBotHttp } from './routes.ts'
 export type { DshBotHttpFace, DshBotModelInfo, ListSessionsRpcValue } from './routes.ts'
 export { attachWorkbenchHttp, handleWorkbenchStatic, dispatchWorkbenchApi } from './workbench-routes.ts'
+export {
+  createOwnedSession,
+  listOwnedSessions,
+  isPlatformInjection,
+  projectWorkbenchHistory,
+  promptOwnedSession,
+  readOwnedHistory,
+  turnIsOpen,
+} from './workbench-sessions.ts'
+export type {
+  CreateOwnedSessionRequest,
+  CreateOwnedSessionResult,
+  HistoryRequest,
+  HistoryResult,
+  ListOwnedSessionsRequest,
+  ListOwnedSessionsResult,
+  OwnedSessionRow,
+  PromptRequest,
+  PromptResult,
+  WorkbenchHistoryItem,
+} from './workbench-sessions.ts'
 export {
   AVATAR_COLORS,
   MANAGED_PRESET_PREFIX,
@@ -178,14 +212,14 @@ class DshBotService extends Service {
    * Visible bot session (sidebar create). Title has no `~` prefix.
    */
   createSession(caller: SessionToolCaller, request: CreateBotSessionRequest = {}): Promise<CreateBotSessionResult> {
-    return createBotSession(this.ctx, this.ctx.sessionTool, this.platform, this.source(), caller, request)
+    return createVisibleBotSession(this.ctx, this.ctx.sessionTool, this.platform, this.source(), caller, request)
   }
 
   /**
    * Marked bot sessions intersected with live session-tool metadata.
    */
   listSessions(request: ListBotSessionsRequest = {}): Promise<readonly DshBotSessionRow[]> {
-    return listBotSessions(this.ctx.sessionTool, request)
+    return listMarkedBotSessions(this.ctx.sessionTool, request)
   }
 
   /**
@@ -218,6 +252,34 @@ class DshBotService extends Service {
 
   deleteBot(input: { id: string }) {
     return this.botsRuntime.deleteBot(input)
+  }
+
+  /**
+   * Workbench: gateway session.create {agentPreset,cwd} + marks bot:<id>.
+   */
+  createBotSession(input: CreateOwnedSessionRequest) {
+    return createOwnedSession(
+      this.ctx.sessionTool,
+      this.platform,
+      this.botsRuntime,
+      this.source(),
+      input,
+    )
+  }
+
+  /**
+   * Workbench: marks `bot:<id>` ∩ session metadata, newest first.
+   */
+  listBotSessions(input: ListOwnedSessionsRequest) {
+    return listOwnedSessions(this.ctx.sessionTool, this.platform, this.botsRuntime, input)
+  }
+
+  history(input: HistoryRequest) {
+    return readOwnedHistory(this.ctx, this.ctx.sessionTool, this.platform, input)
+  }
+
+  prompt(input: PromptRequest) {
+    return promptOwnedSession(this.ctx.sessionTool, input)
   }
 }
 
