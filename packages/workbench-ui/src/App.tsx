@@ -9,6 +9,7 @@ import {
   listBotSessions,
   listSessionsModel,
   readDraft,
+  reconcile,
   updateBot,
 } from './api.ts'
 import type { WorkbenchBot, WorkbenchBotModelInfo, WorkbenchModelOverride } from './api.ts'
@@ -21,6 +22,8 @@ import type { RosterItem } from './Roster.tsx'
 
 type ShellStatus = 'loading' | 'idle' | 'error'
 type FormMode = { kind: 'create' } | { kind: 'edit'; bot: WorkbenchBot }
+
+const RECONCILE_MS = 30_000
 
 function overrideFromForm(values: BotFormValues): WorkbenchModelOverride | undefined {
   const provider = values.provider.trim()
@@ -46,6 +49,8 @@ export function App() {
   const [actionError, setActionError] = useState<string | null>(null)
   const [effectHint, setEffectHint] = useState<string | null>(null)
   const [botModel, setBotModel] = useState<WorkbenchBotModelInfo | null>(null)
+  const [refreshEpoch, setRefreshEpoch] = useState(0)
+  const [updatedAtById, setUpdatedAtById] = useState<Record<string, number>>({})
   const submitLock = useRef(false)
   const workingOverlay = useRef(new Map<string, boolean>())
 
@@ -76,16 +81,54 @@ export function App() {
   }, [load])
 
   useEffect(() => {
+    if (bots.length === 0) return
+    setDrafts(current => {
+      let changed = false
+      const next = { ...current }
+      for (const bot of bots) {
+        const draft = readDraft(bot.id)
+        if ((next[bot.id] ?? '') !== draft) {
+          next[bot.id] = draft
+          changed = true
+        }
+      }
+      return changed ? next : current
+    })
+  }, [bots])
+
+  useEffect(() => {
+    if (status !== 'idle') return
+    let cancelled = false
+    const run = async (): Promise<void> => {
+      const outcome = await reconcile()
+      if (cancelled || !outcome.ok) return
+      setRefreshEpoch(n => n + 1)
+    }
+    void run()
+    const timer = setInterval(() => { void run() }, RECONCILE_MS)
+    return () => {
+      cancelled = true
+      clearInterval(timer)
+    }
+  }, [status])
+
+  useEffect(() => {
     if (status !== 'idle' || bots.length === 0) return
     let cancelled = false
     const tick = async (): Promise<void> => {
       if (typeof document !== 'undefined' && document.hidden) return
       const next = new Set<string>()
+      const times: Record<string, number> = {}
       await Promise.all(bots.map(async bot => {
         const outcome = await listBotSessions(bot.id)
-        if (outcome.ok && (outcome.value.sessions ?? []).some(row => row.working)) {
-          next.add(bot.id)
+        if (!outcome.ok) return
+        const sessions = outcome.value.sessions ?? []
+        if (sessions.some(row => row.working)) next.add(bot.id)
+        let latest = 0
+        for (const row of sessions) {
+          latest = Math.max(latest, row.updatedAt, row.createdAt)
         }
+        if (latest > 0) times[bot.id] = latest
       }))
       for (const [id, on] of workingOverlay.current) {
         if (on) next.add(id)
@@ -94,6 +137,18 @@ export function App() {
       setWorkingIds(current => {
         if (current.size === next.size && [...next].every(id => current.has(id))) return current
         return next
+      })
+      setUpdatedAtById(current => {
+        const keys = Object.keys(times)
+        if (keys.length === 0) return current
+        let same = true
+        for (const key of keys) {
+          if (current[key] !== times[key]) {
+            same = false
+            break
+          }
+        }
+        return same ? current : { ...current, ...times }
       })
     }
     void tick()
@@ -119,11 +174,11 @@ export function App() {
     name: bot.name,
     avatar: bot.avatar,
     preview: rowPreview(drafts[bot.id], lastMessages[bot.id]),
-    updatedAt: bot.createdAt,
+    updatedAt: updatedAtById[bot.id] ?? bot.createdAt,
     working: workingIds.has(bot.id),
     selected: bot.id === selectedId,
     protected: bot.protected,
-  })), [bots, drafts, lastMessages, selectedId, workingIds])
+  })), [bots, drafts, lastMessages, selectedId, updatedAtById, workingIds])
 
   const submitForm = async (values: BotFormValues): Promise<void> => {
     if (submitLock.current || form === null) return
@@ -303,6 +358,11 @@ export function App() {
                 key={selected.id}
                 bot={selected}
                 hint={effectHint}
+                refreshEpoch={refreshEpoch}
+                onEdit={() => {
+                  setFormError(null)
+                  setForm({ kind: 'edit', bot: selected })
+                }}
                 onWorking={(id, working) => {
                   workingOverlay.current.set(id, working)
                   setWorkingIds(current => {
@@ -319,10 +379,9 @@ export function App() {
                 }}
                 onPreview={(id, preview) => {
                   setLastMessages(current => current[id] === preview ? current : { ...current, [id]: preview })
-                  setDrafts(current => {
-                    const draft = readDraft(id)
-                    return current[id] === draft ? current : { ...current, [id]: draft }
-                  })
+                }}
+                onDraft={(id, text) => {
+                  setDrafts(current => current[id] === text ? current : { ...current, [id]: text })
                 }}
               />
             )}

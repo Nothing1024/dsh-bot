@@ -189,6 +189,25 @@ export function prompt(sessionId: string, text: string): Promise<RpcResult<Promp
   return workbenchCall<PromptValue>('prompt', { sessionId, text })
 }
 
+export interface ReconcileAssigned {
+  readonly sessionId: string
+  readonly botId: string
+  readonly reason: 'preset' | 'v1-legacy' | 'ensure-kind'
+}
+
+export interface ReconcileValue {
+  readonly scanned: number
+  readonly labeled: number
+  readonly alreadyLabeled: number
+  readonly skippedNonBot: number
+  readonly skippedCached: number
+  readonly assigned: readonly ReconcileAssigned[]
+}
+
+export function reconcile(): Promise<RpcResult<ReconcileValue>> {
+  return workbenchCall<ReconcileValue>('reconcile', {})
+}
+
 export function draftStorageKey(botId: string): string {
   return `dsh-bot:draft:${botId}`
 }

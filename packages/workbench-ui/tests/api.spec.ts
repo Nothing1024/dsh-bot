@@ -72,4 +72,16 @@ describe('workbenchCall', () => {
     expect((await history('s1', 3)).ok).toBe(true)
     expect((await prompt('s1', 'hi')).ok).toBe(true)
   })
+
+  it('POSTs reconcile with {args}', async () => {
+    const { reconcile } = await import('../src/api.ts')
+    const fetchMock = vi.fn(async (url: string, init?: { body?: string; method?: string }) => {
+      expect(String(url)).toBe('/dsh-bot/reconcile')
+      expect(init?.method).toBe('POST')
+      expect(init?.body).toBe(JSON.stringify({ args: {} }))
+      return { json: async () => ({ ok: true, value: { scanned: 0, labeled: 0, alreadyLabeled: 0, skippedNonBot: 0, skippedCached: 0, assigned: [] } }) }
+    })
+    vi.stubGlobal('fetch', fetchMock)
+    expect((await reconcile()).ok).toBe(true)
+  })
 })

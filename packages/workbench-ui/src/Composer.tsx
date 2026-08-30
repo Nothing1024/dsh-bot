@@ -12,6 +12,7 @@ export interface ComposerProps {
   readonly error: string | null
   readonly errorCode?: string | null
   readonly onSend: (text: string) => Promise<boolean>
+  readonly onDraft?: (botId: string, text: string) => void
 }
 
 /**
@@ -21,26 +22,35 @@ export function Composer(props: ComposerProps) {
   const [text, setText] = useState(() => readDraft(props.botId))
   const botRef = useRef(props.botId)
   const textRef = useRef(text)
+  const onDraftRef = useRef(props.onDraft)
   textRef.current = text
+  onDraftRef.current = props.onDraft
 
   useEffect(() => {
     const previous = botRef.current
     if (previous !== props.botId) {
       writeDraft(previous, textRef.current)
+      onDraftRef.current?.(previous, textRef.current)
       botRef.current = props.botId
-      setText(readDraft(props.botId))
+      const next = readDraft(props.botId)
+      setText(next)
+      onDraftRef.current?.(props.botId, next)
+      return
     }
+    onDraftRef.current?.(props.botId, textRef.current)
   }, [props.botId])
 
   useEffect(() => {
     return () => {
       writeDraft(botRef.current, textRef.current)
+      onDraftRef.current?.(botRef.current, textRef.current)
     }
   }, [])
 
   const change = (value: string): void => {
     setText(value)
     writeDraft(props.botId, value)
+    onDraftRef.current?.(props.botId, value)
   }
 
   const send = async (): Promise<void> => {
@@ -50,6 +60,7 @@ export function Composer(props: ComposerProps) {
     if (ok) {
       setText('')
       writeDraft(props.botId, '')
+      onDraftRef.current?.(props.botId, '')
     }
   }
 

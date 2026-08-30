@@ -56,6 +56,7 @@ describe('Roster', () => {
     expect(screen.getByTestId('roster-row-dsh-bot').textContent).toMatch(/2m/)
     expect(screen.getByTestId('roster-avatar-shiren-xiaobei').textContent).toBe('📜')
     expect(screen.getByTestId('roster-row-shiren-xiaobei').textContent).toMatch(/1h/)
+    expect(screen.getByTestId('roster-preview-shiren-xiaobei').textContent).toBe('未发送草稿')
   })
 
   it('opens create from the new-bot button', () => {

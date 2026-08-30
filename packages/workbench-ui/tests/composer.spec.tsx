@@ -42,6 +42,23 @@ describe('Composer', () => {
     expect((screen.getByTestId('composer-input') as HTMLTextAreaElement).placeholder).toBe('给 乙 发消息')
   })
 
+  it('notifies onDraft as the composer text changes', () => {
+    const onDraft = vi.fn()
+    render(
+      <Composer
+        botId="bot-a"
+        botName="甲"
+        disabled={false}
+        sending={false}
+        error={null}
+        onSend={async () => true}
+        onDraft={onDraft}
+      />,
+    )
+    fireEvent.change(screen.getByTestId('composer-input'), { target: { value: '草稿给甲' } })
+    expect(onDraft).toHaveBeenCalledWith('bot-a', '草稿给甲')
+  })
+
   it('disables send while working/sending', () => {
     render(
       <Composer

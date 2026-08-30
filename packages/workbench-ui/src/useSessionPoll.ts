@@ -11,6 +11,7 @@ export interface SessionPollState {
   readonly items: readonly WorkbenchHistoryItem[]
   readonly working: boolean
   readonly error: WorkbenchWireError | null
+  readonly ready: boolean
 }
 
 export interface UseSessionPollOptions {
@@ -52,6 +53,7 @@ export function useSessionPoll(options: UseSessionPollOptions): SessionPollState
   const [items, setItems] = useState<readonly WorkbenchHistoryItem[]>([])
   const [working, setWorking] = useState(false)
   const [error, setError] = useState<WorkbenchWireError | null>(null)
+  const [ready, setReady] = useState(sessionId === null || !enabled)
   const itemsRef = useRef(items)
   itemsRef.current = items
   const loadRef = useRef(load)
@@ -67,6 +69,7 @@ export function useSessionPoll(options: UseSessionPollOptions): SessionPollState
     const outcome = await loadRef.current(id, sinceSeq)
     if (!outcome.ok) {
       setError(outcome.error)
+      setReady(true)
       return
     }
     setError(null)
@@ -75,6 +78,7 @@ export function useSessionPoll(options: UseSessionPollOptions): SessionPollState
     setWorking(nextWorking)
     const incoming = Array.isArray(outcome.value.items) ? outcome.value.items : []
     setItems(current => mergeHistoryItems(current, incoming, sinceSeq !== undefined))
+    setReady(true)
   }, [enabled, sessionId])
 
   /** Full snapshot without clearing first (avoids an empty-transcript flash). */
@@ -88,6 +92,7 @@ export function useSessionPoll(options: UseSessionPollOptions): SessionPollState
     setItems([])
     setWorking(false)
     setError(null)
+    setReady(sessionId === null || !enabled)
     if (sessionId === null || !enabled) return
     void pull(true)
   }, [enabled, pull, sessionId])
@@ -122,7 +127,7 @@ export function useSessionPoll(options: UseSessionPollOptions): SessionPollState
     }
   }, [enabled, pull, sessionId])
 
-  return { items, working, error, refresh }
+  return { items, working, error, ready, refresh }
 }
 
 export const POLL_IDLE_MS = IDLE_MS

@@ -1,0 +1,31 @@
+{
+  "ok": true,
+  "steps": [
+    "first-run rows=1 names=DSH Bot",
+    "draft-preview isolation",
+    "include-hidden toggle=1",
+    "iframe create-bot+chat 页签复核"
+  ],
+  "iframe": {
+    "ok": true,
+    "name": "页签复核",
+    "placeholder": "给 页签复核 发消息",
+    "reply": "页签复核"
+  },
+  "firstRun": {
+    "ok": true,
+    "extraRows": 1,
+    "names": [
+      "DSH Bot"
+    ],
+    "selectText": "新对话"
+  },
+  "errors": [],
+  "log": [
+    "2026-08-30T10:07:30.502Z first-run {\"ok\":true,\"extraRows\":1,\"names\":[\"DSH Bot\"],\"selectText\":\"新对话\"}",
+    "2026-08-30T10:07:32.198Z draft preview=\"草稿给DSH Bot不发送\"",
+    "2026-08-30T10:07:32.612Z after switch previewA=\"草稿给DSH Bot不发送\" composerB=\"\"",
+    "2026-08-30T10:07:37.715Z clicked menuitem DSH Bot",
+    "2026-08-30T10:07:46.825Z iframe reply=页签复核 name=页签复核 ph=给 页签复核 发消息"
+  ]
+}

@@ -38,6 +38,11 @@ import type {
 } from './bots.ts'
 import { attachDshBotHttp } from './routes.ts'
 import type { DshBotModelInfo } from './routes.ts'
+import {
+  createReconcileState,
+  reconcileBotSessions,
+} from './reconcile.ts'
+import type { ReconcileResult } from './reconcile.ts'
 import { attachWorkbenchHttp } from './workbench-routes.ts'
 import {
   createOwnedSession,
@@ -78,6 +83,7 @@ export {
   DSH_BOT_KIND,
   botMark,
   mergeBotMarks,
+  parseBotMark,
 } from './marks.ts'
 export type { DshBotModelRef, DshBotPlatform } from './platform.ts'
 export { attachDshBotHttp, handleDshBotHttp } from './routes.ts'
@@ -129,6 +135,16 @@ export type {
   PresetGate,
   UpdateBotInput,
 } from './bots.ts'
+export {
+  createReconcileState,
+  reconcileBotSessions,
+} from './reconcile.ts'
+export type {
+  ReconcileAssigned,
+  ReconcileReason,
+  ReconcileResult,
+  ReconcileState,
+} from './reconcile.ts'
 
 /** Settings namespace for bot-owned defaults (hot, live). */
 export const DSH_BOT_SETTINGS_NAMESPACE = settingsNamespace('dsh-bot')
@@ -173,6 +189,8 @@ class DshBotService extends Service {
   private source: () => DshBotRuntimeConfig
   private readonly platform: DshBotPlatform
   private readonly botsRuntime: BotsRuntime
+  private readonly reconcileState = createReconcileState()
+  private reconcileGate: Promise<void> = Promise.resolve()
 
   constructor(ctx: Context, config: DshBotConfig, platform?: DshBotPlatform, botsRuntime?: BotsRuntime) {
     super(ctx, 'dshBot')
@@ -280,6 +298,17 @@ class DshBotService extends Service {
 
   prompt(input: PromptRequest) {
     return promptOwnedSession(this.ctx.sessionTool, input)
+  }
+
+  /**
+   * Backfill GUI / v1 sessions onto registry bots (async; does not delete marks).
+   */
+  reconcile(): Promise<ReconcileResult> {
+    const run = this.reconcileGate.then(() => (
+      reconcileBotSessions(this.platform, this.botsRuntime, this.reconcileState)
+    ))
+    this.reconcileGate = run.then(() => undefined, () => undefined)
+    return run
   }
 }
 

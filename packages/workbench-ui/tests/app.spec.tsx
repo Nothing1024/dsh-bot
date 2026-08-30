@@ -21,6 +21,7 @@ describe('App roster load', () => {
   afterEach(() => {
     cleanup()
     vi.unstubAllGlobals()
+    localStorage.clear()
   })
 
   it('renders seeded bots after listBots', async () => {
@@ -132,6 +133,58 @@ describe('App roster load', () => {
     await screen.findByTestId('roster-row-dsh-bot')
     expect(await screen.findByTestId('roster-working-shiren-xiaobei')).toBeTruthy()
     expect(screen.queryByTestId('roster-working-dsh-bot')).toBeNull()
+  })
+
+  it('renders the roster before reconcile resolves', async () => {
+    let release!: () => void
+    const hold = new Promise<void>(resolve => { release = resolve })
+    const calls: string[] = []
+    vi.stubGlobal('fetch', vi.fn(async (url: string) => {
+      const path = String(url)
+      calls.push(path)
+      if (path.includes('listBots')) return jsonOk({ bots: [SEED] })
+      if (path.includes('reconcile')) {
+        await hold
+        return jsonOk({
+          scanned: 0,
+          labeled: 0,
+          alreadyLabeled: 0,
+          skippedNonBot: 0,
+          skippedCached: 0,
+          assigned: [],
+        })
+      }
+      return jsonOk({ sessions: [], botModel: { provider: '', model: '', source: 'global-default' } })
+    }))
+    render(<App />)
+    expect(await screen.findByTestId('roster-row-dsh-bot')).toBeTruthy()
+    expect(calls.some(path => path.includes('reconcile'))).toBe(true)
+    expect(screen.queryByTestId('workbench-error')).toBeNull()
+    release()
+  })
+
+  it('opens the edit form from the conversation identity', async () => {
+    vi.stubGlobal('fetch', vi.fn(async (url: string) => {
+      if (String(url).includes('listBots')) return jsonOk({ bots: [SEED] })
+      return jsonOk({ sessions: [], botModel: { provider: '', model: '', source: 'global-default' } })
+    }))
+    render(<App />)
+    await screen.findByTestId('conversation-identity')
+    fireEvent.click(screen.getByTestId('conversation-identity'))
+    expect(await screen.findByTestId('bot-form')).toBeTruthy()
+    expect(screen.getByTestId('bot-form').getAttribute('data-mode')).toBe('edit')
+    expect(screen.getByTestId('bot-form-hint').textContent).toMatch(/新对话生效/)
+  })
+
+  it('shows an unsent composer draft on the selected roster row', async () => {
+    vi.stubGlobal('fetch', vi.fn(async (url: string) => {
+      if (String(url).includes('listBots')) return jsonOk({ bots: [SEED] })
+      return jsonOk({ sessions: [], botModel: { provider: '', model: '', source: 'global-default' } })
+    }))
+    render(<App />)
+    const input = await screen.findByTestId('composer-input')
+    fireEvent.change(input, { target: { value: '草稿给DSH Bot不发送' } })
+    expect((await screen.findByTestId('roster-preview-dsh-bot')).textContent).toBe('草稿给DSH Bot不发送')
   })
 
   it('opens the create form from the roster', async () => {

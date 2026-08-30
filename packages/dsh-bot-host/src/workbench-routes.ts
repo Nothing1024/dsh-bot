@@ -20,6 +20,7 @@ import type {
 } from './bots.ts'
 import { DshBotError } from './errors.ts'
 import type { DshBotModelRef } from './platform.ts'
+import type { ReconcileResult } from './reconcile.ts'
 import type {
   CreateOwnedSessionRequest,
   CreateOwnedSessionResult,
@@ -61,6 +62,7 @@ export interface WorkbenchBotsFace {
   listBotSessions(input: ListOwnedSessionsRequest): Promise<ListOwnedSessionsResult>
   history(input: HistoryRequest): Promise<HistoryResult>
   prompt(input: PromptRequest): Promise<PromptResult>
+  reconcile(): Promise<ReconcileResult>
 }
 
 function send(res: ServerResponse, status: number, body: string | Buffer, contentType: string): void {
@@ -182,6 +184,8 @@ export async function dispatchWorkbenchApi(
       return await bot.history(parseHistory(args))
     case 'prompt':
       return await bot.prompt(parsePrompt(args))
+    case 'reconcile':
+      return await bot.reconcile()
     default:
       return undefined
   }

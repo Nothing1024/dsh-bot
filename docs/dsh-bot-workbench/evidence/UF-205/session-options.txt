@@ -1,0 +1,51 @@
+v1 leftover
+GUI直建补标
+workbench-task8
+询问你是谁并介绍自己
+DSH Bot
+UF005 PIN Query
+uf005-def-pin switch check
+DSH Bot
+UF-006 invalid t19
+uf005 default switch rerun check
+Call dsh_bot_ask exactly once with
+Reply with exactly: uf005 missing
+Reply with exactly: should fail
+Reply with exactly: should fail
+UF-006 override-off t19
+session-
+UF-006 override-on t19
+Call dsh_bot_ask with default switch ok
+Exact phrase reply request
+UF-003 jump t19
+Call dsh_bot_ask concurrent B
+Call dsh_bot_ask concurrent A
+Call dsh_bot_ask pong prompt
+询问AI助手身份
+dsh-bot-manual-20260829-231307-override-off
+session-
+dsh-bot-manual-20260829-231307-override-on
+dsh-bot-manual-20260829-231307-plugin
+session-
+Call dsh_bot_ask phase3 pong
+Request exact three-word reply
+DSH Bot
+UF-003 jump
+Call dsh_bot_ask for phase3 pong
+Request exact three-word reply
+DSH Bot
+Phase3 tab
+Call dsh_bot_ask ping missing-key
+Call dsh_bot_ask phase2 pong
+询问助手身份
+Call dsh_bot_ask with ping
+Call dsh_bot_ask with ping
+Call dsh_bot_ask concurrent B
+Call dsh_bot_ask concurrent A
+Call dsh_bot_ask with timeout
+Call dsh_bot_ask tool once
+session-
+询问AI身份
+session-
+session-
+询问人工智能身份

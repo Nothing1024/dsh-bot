@@ -145,7 +145,7 @@ export function Roster(props: RosterProps) {
                       ) : (
                         <span className="rosterName" data-testid={`roster-name-${item.id}`}>{item.name}</span>
                       )}
-                      <span className="rosterPreview">{item.preview}</span>
+                      <span className="rosterPreview" data-testid={`roster-preview-${item.id}`}>{item.preview}</span>
                     </span>
                     <span className="rosterMeta">
                       <span className="rosterTime">{relativeTime(item.updatedAt, props.nowMs)}</span>

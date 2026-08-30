@@ -10,10 +10,10 @@
 9,P2:对话面,transcript 渲染与轮询,spec.md#task-9,8,pnpm --filter workbench-ui test → 全绿,已完成,transcript-unit.log
 10,P2:对话面,composer 与发送链,spec.md#task-10,9,pnpm --filter workbench-ui test → 全绿(草稿隔离/禁发/失败保留),已完成,composer-unit.log
 11,P2:对话面,执行 Phase 2 回归验证,spec.md#task-11,10,浏览器实测 UF-202 主路径全程,已完成,phase-summary.md + uf-202-chat.png
-12,P3:身份与对账,GUI 直建会话补标对账,spec.md#task-12,8,GUI 直建会话经对账出现在 marks(bot: 标),待开始,消解 v1 验收缺口
-13,P3:身份与对账,双人设隔离与身份打磨,spec.md#task-13,11;12,UF-203/204 脚本逐步一致 + export 口吻对比,待开始,串扰即 P0 缺陷
-14,P3:身份与对账,双入口等价与独立可用性,spec.md#task-14,11,UF-201 主路径+失败分支全过,待开始,
-15,P3:身份与对账,执行 Phase 3 回归验证,spec.md#task-15,13;14,UF-201~205 主路径复现 + pnpm -r build/test,待开始,
+12,P3:身份与对账,GUI 直建会话补标对账,spec.md#task-12,8,GUI 直建会话经对账出现在 marks(bot: 标),已完成,消解 v1 验收缺口
+13,P3:身份与对账,双人设隔离与身份打磨,spec.md#task-13,11;12,UF-203/204 脚本逐步一致 + export 口吻对比,已完成,串扰即 P0 缺陷
+14,P3:身份与对账,双入口等价与独立可用性,spec.md#task-14,11,UF-201 主路径+失败分支全过,已完成,
+15,P3:身份与对账,执行 Phase 3 回归验证,spec.md#task-15,13;14,UF-201~205 主路径复现 + pnpm -r build/test,已完成,
 16,P4:收尾与验收,standards 与 manual-test 扩展,spec.md#task-16,15,standard:check 0 FAIL + manual-test --no-write 全步通过,待开始,
 17,P4:收尾与验收,文档更新,spec.md#task-17,15,README 四点边界齐全(人工核对),待开始,
 18,P4:收尾与验收,执行 spec 5.2 真实场景全套测试,spec.md#task-18,16;17,5.2 执行矩阵 15 行逐行回放全部通过 + 二次跑包校验,待开始,

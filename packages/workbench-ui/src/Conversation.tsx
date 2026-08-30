@@ -22,9 +22,12 @@ import { useSessionPoll } from './useSessionPoll.ts'
 export interface ConversationProps {
   readonly bot: WorkbenchBot
   readonly hint?: string | null
+  readonly refreshEpoch?: number
+  readonly onEdit?: () => void
   readonly onWorking?: (botId: string, working: boolean) => void
   readonly onWorkingDetach?: (botId: string) => void
   readonly onPreview?: (botId: string, preview: string) => void
+  readonly onDraft?: (botId: string, text: string) => void
 }
 
 function formatError(error: WorkbenchWireError): string {
@@ -53,11 +56,15 @@ export function Conversation(props: ConversationProps) {
   const [sendCode, setSendCode] = useState<string | null>(null)
   const [listError, setListError] = useState<string | null>(null)
   const [awaitingTurn, setAwaitingTurn] = useState(false)
+  const [includeHidden, setIncludeHidden] = useState(false)
   const sawWorkingRef = useRef(false)
   const sendSeqRef = useRef(-1)
+  const sessionIdRef = useRef(sessionId)
+  const includeHiddenRef = useRef(includeHidden)
+  sessionIdRef.current = sessionId
 
   const loadSessions = useCallback(async (prefer: string | null): Promise<string | null> => {
-    const outcome = await listBotSessions(bot.id)
+    const outcome = await listBotSessions(bot.id, includeHidden)
     if (!outcome.ok) {
       setListError(formatError(outcome.error))
       return prefer
@@ -70,7 +77,7 @@ export function Conversation(props: ConversationProps) {
       : rows[0]?.sessionId ?? null
     setSessionId(keep)
     return keep
-  }, [bot.id])
+  }, [bot.id, includeHidden])
 
   useEffect(() => {
     let cancelled = false
@@ -80,7 +87,7 @@ export function Conversation(props: ConversationProps) {
     setAwaitingTurn(false)
     sawWorkingRef.current = false
     setSessionId(null)
-    void listBotSessions(bot.id).then(outcome => {
+    void listBotSessions(bot.id, includeHiddenRef.current).then(outcome => {
       if (cancelled) return
       if (!outcome.ok) {
         setListError(formatError(outcome.error))
@@ -95,6 +102,17 @@ export function Conversation(props: ConversationProps) {
       cancelled = true
     }
   }, [bot.id])
+
+  useEffect(() => {
+    if (includeHiddenRef.current === includeHidden) return
+    includeHiddenRef.current = includeHidden
+    void loadSessions(sessionIdRef.current)
+  }, [includeHidden, loadSessions])
+
+  useEffect(() => {
+    if (props.refreshEpoch === undefined || props.refreshEpoch === 0) return
+    void loadSessions(sessionIdRef.current)
+  }, [loadSessions, props.refreshEpoch])
 
   const poll = useSessionPoll({
     sessionId,
@@ -195,17 +213,24 @@ export function Conversation(props: ConversationProps) {
   const glyph = bot.avatar.emoji !== undefined && bot.avatar.emoji !== ''
     ? bot.avatar.emoji
     : nameInitial(bot.name)
+  const empty = poll.ready && poll.items.length === 0 && pending === null && !working && poll.error === null && listError === null
 
   return (
     <div className="conversationPane" data-testid="conversation-pane">
       <header className="conversationHead">
-        <span className="identity" data-testid="conversation-identity">
+        <button
+          type="button"
+          className="identity identityBtn"
+          data-testid="conversation-identity"
+          title="编辑人设"
+          onClick={() => props.onEdit?.()}
+        >
           <span className="avatar sm" style={{ background: color }}>{glyph}</span>
           <span data-testid="conversation-name">{bot.name}</span>
           {working ? (
             <span className="workingBadge" data-testid="conversation-working">工作中</span>
           ) : null}
-        </span>
+        </button>
         <span className="headActions">
           <label className="sessionPick">
             <span className="visuallyHidden">对话</span>
@@ -219,12 +244,24 @@ export function Conversation(props: ConversationProps) {
               }}
             >
               {sessions.length === 0 ? <option value="">新对话</option> : null}
-              {sessions.map(row => (
-                <option key={row.sessionId} value={row.sessionId}>
-                  {row.title !== undefined && row.title !== '' ? row.title : row.sessionId.slice(0, 8)}
-                </option>
-              ))}
+              {sessions.map(row => {
+                const title = row.title !== undefined && row.title !== '' ? row.title : row.sessionId.slice(0, 8)
+                return (
+                  <option key={row.sessionId} value={row.sessionId}>
+                    {row.hidden ? `~ ${title}` : title}
+                  </option>
+                )
+              })}
             </select>
+          </label>
+          <label className="hiddenToggle">
+            <input
+              type="checkbox"
+              data-testid="include-hidden"
+              checked={includeHidden}
+              onChange={event => setIncludeHidden(event.target.checked)}
+            />
+            包含隐藏
           </label>
           <button
             type="button"
@@ -245,7 +282,14 @@ export function Conversation(props: ConversationProps) {
       {poll.error !== null ? (
         <p className="formError" data-testid="transcript-error">{formatError(poll.error)}</p>
       ) : null}
-      <Transcript items={poll.items} pending={pending} working={working} />
+      {empty ? (
+        <div className="emptyChat" data-testid="empty-chat-cta">
+          <p>还没有对话</p>
+          <p className="hint">给 {bot.name} 发一条消息开始，或点「新开对话」</p>
+        </div>
+      ) : (
+        <Transcript items={poll.items} pending={pending} working={working} />
+      )}
       <Composer
         botId={bot.id}
         botName={bot.name}
@@ -254,6 +298,7 @@ export function Conversation(props: ConversationProps) {
         error={sendError}
         errorCode={sendCode}
         onSend={send}
+        {...props.onDraft === undefined ? {} : { onDraft: props.onDraft }}
       />
     </div>
   )

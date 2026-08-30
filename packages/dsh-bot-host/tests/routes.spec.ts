@@ -98,6 +98,14 @@ function stub(overrides: Partial<DshBotHttpFace> = {}): DshBotHttpFace {
     listBotSessions: vi.fn(async () => ({ sessions: [] })),
     history: vi.fn(async () => ({ sessionId: 'session-owned-1', items: [], working: false })),
     prompt: vi.fn(async () => ({ sessionId: 'session-owned-1' })),
+    reconcile: vi.fn(async () => ({
+      scanned: 0,
+      labeled: 0,
+      alreadyLabeled: 0,
+      skippedNonBot: 0,
+      skippedCached: 0,
+      assigned: [],
+    })),
     ...overrides,
   }
 }
@@ -267,6 +275,33 @@ describe('dsh-bot HTTP face', () => {
         }],
       },
     })
+  })
+
+  it('runs POST /dsh-bot/reconcile with the {args} wire', async () => {
+    const bot = stub({
+      reconcile: vi.fn(async () => ({
+        scanned: 2,
+        labeled: 1,
+        alreadyLabeled: 0,
+        skippedNonBot: 1,
+        skippedCached: 0,
+        assigned: [{ sessionId: 'session-gui', botId: 'dsh-bot', reason: 'preset' as const }],
+      })),
+    })
+    const { handler } = attach(bot)
+    const { json } = await post(handler, '/dsh-bot/reconcile', { args: {} })
+    expect(json).toEqual({
+      ok: true,
+      value: {
+        scanned: 2,
+        labeled: 1,
+        alreadyLabeled: 0,
+        skippedNonBot: 1,
+        skippedCached: 0,
+        assigned: [{ sessionId: 'session-gui', botId: 'dsh-bot', reason: 'preset' }],
+      },
+    })
+    expect(bot.reconcile).toHaveBeenCalledTimes(1)
   })
 
   it('still serves v1 listSessions after workbench session methods exist', async () => {

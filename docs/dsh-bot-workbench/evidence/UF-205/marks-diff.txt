@@ -1,0 +1,53 @@
+# UF-205 marks diff — GUI 直建补标 (Task 12)
+
+Date: 2026-08-30
+Gateway: 127.0.0.1:3084 pid=21727 DSH_HOME=.../dsh-grok-bot/plugin/env
+who: this warehouse.
+
+## 0. Setup
+
+Simulated official GUI create: `session.create {cwd:仓根, agentPreset:dsh-bot}`
+(no plugin marks — the v1 验收缺口).
+
+```
+session.create → session-f626f8c1-a5fe-4df7-891d-f7f68cad1019 agentPreset=dsh-bot
+```
+
+## 1. Before reconcile
+
+`marks list --kind bot:dsh-bot` did **not** contain `session-f626f8c1-…`.
+`marks get --id session-f626f8c1-…` had no row (unlabeled).
+
+bot:dsh-bot row count before: 68 (workbench-owned + already-reconciled).
+
+## 2. POST /dsh-bot/reconcile (open-workbench equivalent)
+
+```
+POST /dsh-bot/reconcile {args:{}}
+{"ok":true,"value":{"scanned":78,"labeled":1,"alreadyLabeled":69,"skippedNonBot":0,"skippedCached":8,"assigned":[{"sessionId":"session-f626f8c1-a5fe-4df7-891d-f7f68cad1019","botId":"dsh-bot","reason":"preset"}]}}
+```
+
+## 3. After reconcile
+
+```
+marks get --id session-f626f8c1-a5fe-4df7-891d-f7f68cad1019
+session-f626f8c1-a5fe-4df7-891d-f7f68cad1019 bot:dsh-bot,kind:dsh-bot
+```
+
+`marks list --kind bot:dsh-bot` now includes that session.
+
+`POST /dsh-bot/listBotSessions {botId:dsh-bot}` n=51 includes:
+- session-f626f8c1-… (GUI 直建补标)
+- later v1 leftover session-470456ed-… (title "v1 leftover")
+
+## 4. Idempotent second pass
+
+```
+{"ok":true,"value":{"scanned":78,"labeled":0,"alreadyLabeled":70,"skippedNonBot":0,"skippedCached":8,"assigned":[]}}
+```
+
+labeled=0, alreadyLabeled 70 (68 previous + GUI + any ensure-kind). No mark-set inflation.
+
+## 5. Non-bot skip cache
+
+skippedCached=8 (standard/minimal GUI sessions). Unchanged across passes. Those sessions were not given kind:dsh-bot.

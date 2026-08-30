@@ -27,6 +27,20 @@ export function botMark(botId: string): string {
   return `bot:${id}`
 }
 
+const BOT_MARK_PREFIX = 'bot:'
+
+/**
+ * First `bot:<id>` token in a mark set, if any.
+ */
+export function parseBotMark(tags: readonly string[]): string | undefined {
+  for (const tag of tags) {
+    if (!tag.startsWith(BOT_MARK_PREFIX)) continue
+    const id = tag.slice(BOT_MARK_PREFIX.length).trim()
+    if (id !== '') return id
+  }
+  return undefined
+}
+
 const sessionLocks = new Map<string, Promise<void>>()
 
 function withSessionLock<T>(sessionId: string, fn: () => Promise<T>): Promise<T> {
