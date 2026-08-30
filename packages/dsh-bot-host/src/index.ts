@@ -29,6 +29,7 @@ import { createPlatform } from './platform.ts'
 import type { DshBotModelRef, DshBotPlatform } from './platform.ts'
 import { attachDshBotHttp } from './routes.ts'
 import type { DshBotModelInfo } from './routes.ts'
+import { attachWorkbenchHttp } from './workbench-routes.ts'
 
 export { DshBotError } from './errors.ts'
 export type { DshBotErrorCode } from './errors.ts'
@@ -59,6 +60,7 @@ export {
 export type { DshBotModelRef, DshBotPlatform } from './platform.ts'
 export { attachDshBotHttp, handleDshBotHttp } from './routes.ts'
 export type { DshBotHttpFace, DshBotModelInfo, ListSessionsRpcValue } from './routes.ts'
+export { attachWorkbenchHttp, handleWorkbenchStatic } from './workbench-routes.ts'
 
 /** Settings namespace for bot-owned defaults (hot, live). */
 export const DSH_BOT_SETTINGS_NAMESPACE = settingsNamespace('dsh-bot')
@@ -120,6 +122,7 @@ class DshBotService extends Service {
     })
     ctx.inject(['webServer'], (webCtx) => {
       attachDshBotHttp(webCtx, this)
+      attachWorkbenchHttp(webCtx)
     })
   }
 

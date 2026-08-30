@@ -63,18 +63,24 @@
 | 会话历史读取:`sessionTool.read` 本地投影(离线可用)与网关 `session.history`(事件+投影)都可用;working 判定可由 turn/start 未闭合推导 | v1 设计文档 + 本会话 `dsh-rpc.sh 3084 session.history` 实测(events 嵌套 `{"event":{…}}`) | transcript 数据源成立 |
 | 页签轮询模式已实证(vibee 2s 轮询 + 面板收起暂停;v1 页签同款) | v1 调研 runs-client.ts(L11 POLL_MS) | 工作台 MVP 用轮询,SSE 列为非目标 |
 | 网关口 3084/profile gb 运行中,身份属本仓;模型面 anthropic/grok-4.6(用户中转)可用 | `dsh-rpc-who.sh 3084`;本会话 GUI 实测回复 | 环境就绪 |
+| BR-203 反查通道 = `session.list` 行字段 `agentPreset`(string)。75 行均有该字段(`dsh-bot`/`standard`/`minimal`)。同行列顶层还有 `running:boolean`、`sessionId`、`updatedAt`、`blank`、`cwd`、`projections` | Task 1 `dsh-rpc.sh 3084 session.list '{}'`(who 后;证据 `evidence/phase-0/calibration.md`) | ASM-201 消解;对账不走逐会话 history |
+| `workspace.list` 无 preset 字段(仅 `items[].sessionIds` 等);`session.history {maxMessages:1}` 约 13ms、`projections` 不含 `agentPreset`(尾页 chunk 无 header) | Task 1 `workspace.list '{}'` + `session.history {sessionId,maxMessages:1}` | 候选②③否;①足够 |
+| working:roster 用 `session.list` 的 `running`;对话面用 history 事件 `turn/start`(`data.turn`)尚无匹配 `turn/end`(`data.turn`,`data.reason`)。`sessionStats` 无 running 字段;`delegation.status` 为 idle/completed | Task 1 `session.list` + 闭合会话 `session.history` 事件计数(`turn/start` 2 / `turn/end` 2) | BR-205 判定条件点名字段 |
+| iframe 内同源 `POST /dsh-bot/listSessions` `{args:{}}` 成功(`ok:true`)。页签 iframe `src=/dsh-bot/ui` 与直开骨架同为空 roster | Task 1 Playwright:临时 `/dsh-bot/calib` iframe + `/dsh-bot/ui` 嵌 iframe;`calib-iframe.json` / `tab-iframe.png` | ASM-203 消解;临时 calib 路由不入 git |
 
 ### 1.4 假设清单
 
 | 假设 ID | 内容 | 风险 | 确认方式 |
 |---|---|---|---|
-| ASM-201 | 存在可行的「会话 → agentPreset」反查通道供补标对账:候选 ① `session.list` RPC 行携带 preset 字段;② 对未知会话逐个 `session.history {maxMessages:1}` 读 header(有界:只对新增未标会话);③ `workspace.list`/其他投影携带 | 若 ①③ 均无,走 ②(成本可控,缓存已判会话);②也不可行则 GUI 直建会话仅按「未归属」列示,BR-203 相应收缩 | Task 1 勘察点名字段与调用形状 |
-| ASM-202 | host 程序化生成/改写 bot preset 文件安全可行:以本仓自有 `env/.agent-presets/dsh-bot/agent.cordis.yml` 为模板(整文件生成,persona 文本经 YAML 安全转义,不做原地 YAML surgery),roster 免重启发现新 preset | 生成文件不可加载 → roster 列 broken;由「写后立即 `agentPreset.list` 校验非 broken + 失败回滚删除目录」兜底 | Task 5 实现即验证(写后校验是任务验证项) |
-| ASM-203 | iframe 内页面对同源 `/dsh-bot/*` 的 fetch 不受页签沙箱限制(genoffice iframe 同款场景已跑通其 API) | 若受限,改为页签直开浏览器标签为主入口(BR-204 仍成立) | Task 2 骨架页在 iframe 内 fetch listBots 实测 |
+| ASM-202 | host 程序化生成/改写 bot preset 仍按整文件模板(源=`env/.agent-presets/dsh-bot/agent.cordis.yml`)+ YAML 安全转义 + 写后 `agentPreset.list` 非 broken,失败回滚删目录。P0 未做文件生成;通道与模板路径已核,剩余是实现健壮性 | 生成文件 broken → 回滚兜底;失败必须零残留 | Task 5 写后校验硬验证 |
+
+> Task 1 已消解:ASM-201(反查 = `session.list.items[].agentPreset`)、ASM-203(iframe 同源 POST `/dsh-bot/listSessions` 成功)。不再作为假设。
 
 ### 1.5 变更记录
 
-(首次生成,暂无。)
+| 日期 | 变更 | 原因 |
+|---|---|---|
+| 2026-08-30 | Task 1 校准回写 **1.3 事实 + 1.4 ASM 消解/改写**:BR-203 反查点名为 `session.list.items[].agentPreset`;working = `running` 或未闭合 `turn/start`;iframe 同源 fetch 成立。ASM-201/203 从 1.4 移除,ASM-202 改写为 Task 5 实现风险。**第 2 章合同未改**(ASM-201 证实而非证伪,不走变更协议;BR-203 仍写「ASM-201 通道」,UF-205 仍保留「未归属」失败分支) | P0 勘察;证据 `evidence/phase-0/calibration.md` |
 
 ---
 

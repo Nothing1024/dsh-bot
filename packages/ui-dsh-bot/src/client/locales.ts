@@ -5,6 +5,9 @@
 /** Simplified Chinese dictionary (the key-set source of truth). */
 export const zh = {
   'tab.title': 'DSH Bot',
+  'tab.loading': '加载工作台…',
+  'tab.error': '无法加载工作台',
+  'tab.retry': '重试',
   'list.loading': '加载中…',
   'list.empty': '还没有 DSH Bot 会话',
   'list.emptyHint': '新建一个即可开始对话。',
@@ -25,6 +28,9 @@ export type DshBotLocaleKey = keyof typeof zh
 /** English dictionary, checked complete against the zh key set. */
 export const en = {
   'tab.title': 'DSH Bot',
+  'tab.loading': 'Loading workbench…',
+  'tab.error': 'Could not load the workbench',
+  'tab.retry': 'Retry',
   'list.loading': 'Loading…',
   'list.empty': 'No DSH Bot sessions yet',
   'list.emptyHint': 'Create one to start chatting.',

@@ -24,7 +24,8 @@
   },
   "dependencies": {
     "session-marks": "workspace:*",
-    "session-tool": "workspace:*"
+    "session-tool": "workspace:*",
+    "workbench-ui": "workspace:*"
   },
   "peerDependencies": {
     "@deepseek-ai/cordis": "^4.0.1",

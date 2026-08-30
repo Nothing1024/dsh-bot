@@ -1,8 +1,8 @@
 序号,Phase,名称,详情锚点,前置任务,验证命令,状态,备注
-1,P0:勘察与骨架,勘察会话反查/turn状态/iframe 行为,spec.md#task-1,无,ASM-201/203 消解并回写 spec,待开始,
-2,P0:勘察与骨架,workbench-ui 包骨架与静态服务,spec.md#task-2,1,curl /dsh-bot/ui → doctype html 且双入口渲染,待开始,
-3,P0:勘察与骨架,页签替换为 iframe 嵌入,spec.md#task-3,2,pnpm --filter ui-dsh-bot run build && pnpm --filter ui-dsh-bot test → 全绿,待开始,
-4,P0:勘察与骨架,执行 Phase 0 回归验证,spec.md#task-4,2;3,重启后双入口空壳复现 + pnpm -r build/test,待开始,
+1,P0:勘察与骨架,勘察会话反查/turn状态/iframe 行为,spec.md#task-1,无,ASM-201/203 消解并回写 spec,已完成,
+2,P0:勘察与骨架,workbench-ui 包骨架与静态服务,spec.md#task-2,1,curl /dsh-bot/ui → doctype html 且双入口渲染,已完成,
+3,P0:勘察与骨架,页签替换为 iframe 嵌入,spec.md#task-3,2,pnpm --filter ui-dsh-bot run build && pnpm --filter ui-dsh-bot test → 全绿,已完成,
+4,P0:勘察与骨架,执行 Phase 0 回归验证,spec.md#task-4,2;3,重启后双入口空壳复现 + pnpm -r build/test,已完成,
 5,P1:人设注册表,host 人设注册表与 preset 工厂,spec.md#task-5,4,pnpm --filter dsh-bot-host run build && pnpm --filter dsh-bot-host test → 全绿,待开始,broken 即回滚是硬验证项
 6,P1:人设注册表,roster UI 与人设表单,spec.md#task-6,5,pnpm --filter workbench-ui run build && pnpm --filter workbench-ui test → 全绿,待开始,
 7,P1:人设注册表,执行 Phase 1 回归验证,spec.md#task-7,6,新建/编辑/删除人设实操 + agentPreset.list 校验,待开始,

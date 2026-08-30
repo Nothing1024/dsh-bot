@@ -1,13 +1,13 @@
 // @vitest-environment jsdom
 /**
- * DshBotTab states: loading, empty+CTA, error+retry, list jump, create guard.
+ * DshBotTab: probe /dsh-bot/ui, iframe src, gateway-dead error+retry.
  */
-import { describe, expect, it, vi } from 'vitest'
-import { fireEvent, render, screen } from '@testing-library/react'
+import { afterEach, describe, expect, it, vi } from 'vitest'
+import { cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { DshBotTab, resolveCreateCwd } from '../src/client/DshBotTab.tsx'
-import type { DshBotListState, IDshBotClient, RpcResult } from '../src/client/rpc.ts'
+import type { DshBotListState, IDshBotClient } from '../src/client/rpc.ts'
 
-function client(state: Partial<DshBotListState>, extras: Partial<IDshBotClient> = {}): IDshBotClient {
+function client(state: Partial<DshBotListState> = {}, extras: Partial<IDshBotClient> = {}): IDshBotClient {
   const snap: DshBotListState = {
     items: [],
     botModel: { provider: 'anthropic', model: 'grok-4.6', source: 'global-default' },
@@ -30,98 +30,59 @@ function client(state: Partial<DshBotListState>, extras: Partial<IDshBotClient> 
   }
 }
 
+function htmlOk(): { ok: true; text: () => Promise<string> } {
+  return { ok: true, text: async () => '<!doctype html>\n<html><body></body></html>' }
+}
+
 describe('DshBotTab', () => {
-  it('shows loading copy', () => {
-    const view = render(<DshBotTab ctx={{ dshBot: client({ state: 'loading', botModel: null }) }} />)
-    expect(screen.getByTestId('dsh-bot-loading').textContent).toMatch(/加载中/)
-    view.unmount()
+  afterEach(() => {
+    cleanup()
+    vi.unstubAllGlobals()
+    vi.useRealTimers()
   })
 
-  it('shows empty copy and a create CTA', () => {
-    const view = render(<DshBotTab ctx={{ dshBot: client({ items: [], state: 'idle' }) }} />)
-    expect(screen.getByTestId('dsh-bot-empty').textContent).toMatch(/还没有/)
-    expect(screen.getByTestId('dsh-bot-new')).toBeTruthy()
-    view.unmount()
+  it('shows loading copy and an iframe pointed at /dsh-bot/ui after probe', async () => {
+    vi.stubGlobal('fetch', vi.fn(async () => htmlOk()))
+    render(<DshBotTab ctx={{ dshBot: client() }} />)
+    expect(screen.getByTestId('dsh-bot-loading').textContent).toMatch(/加载工作台/)
+    const frame = await screen.findByTestId('dsh-bot-iframe')
+    expect(frame.getAttribute('src')).toBe('/dsh-bot/ui')
   })
 
-  it('shows error plus retry', () => {
-    const dshBot = client({ state: 'error', error: { code: 'unavailable', message: 'down' }, botModel: null })
-    const view = render(<DshBotTab ctx={{ dshBot }} />)
-    expect(screen.getByTestId('dsh-bot-error')).toBeTruthy()
-    fireEvent.click(screen.getByTestId('dsh-bot-retry'))
-    expect(dshBot.refresh).toHaveBeenCalled()
-    view.unmount()
-  })
-
-  it('lists title/time and jumps via sessions.open', () => {
-    const open = vi.fn()
-    const dshBot = client({
-      items: [{
-        sessionId: 'session-live',
-        title: 'Plan',
-        tags: ['kind:dsh-bot'],
-        status: 'idle',
-        createdAt: 1_700_000_000_000,
-        hidden: false,
-      }],
-    })
-    const view = render(<DshBotTab ctx={{ dshBot, sessions: { open } }} />)
-    expect(screen.getByText('Plan')).toBeTruthy()
-    fireEvent.click(screen.getByTestId('dsh-bot-row-session-live'))
-    expect(open).toHaveBeenCalledWith('session-live')
-    view.unmount()
-  })
-
-  it('sends the current session cwd when creating', async () => {
-    const dshBot = client({ items: [] })
-    const view = render(<DshBotTab ctx={{
-      dshBot,
-      sessions: {
-        open: vi.fn(),
-        list: {
-          getSnapshot: () => ({
-            current: 'session-cur',
-            byId: { 'session-cur': { cwd: '/work/plugin' } },
-          }),
-        },
-      },
-    }} />)
-    fireEvent.click(screen.getByTestId('dsh-bot-new'))
+  it('clears loading after iframe load when the workbench is still reachable', async () => {
+    vi.stubGlobal('fetch', vi.fn(async () => htmlOk()))
+    render(<DshBotTab ctx={{ dshBot: client() }} />)
+    const frame = await screen.findByTestId('dsh-bot-iframe')
+    fireEvent.load(frame)
     await vi.waitFor(() => {
-      expect(dshBot.createSession).toHaveBeenCalledWith(undefined, '/work/plugin')
+      expect(screen.queryByTestId('dsh-bot-loading')).toBeNull()
     })
-    view.unmount()
   })
 
-  it('guards reentry on New and jumps after create', async () => {
-    const open = vi.fn()
-    let resolveCreate!: (value: { ok: true; value: { sessionId: string; title: string } }) => void
-    const pending = new Promise<RpcResult<{ sessionId: string; title: string }>>((resolve) => {
-      resolveCreate = resolve as typeof resolveCreate
-    })
-    const dshBot = client({ items: [] }, {
-      createSession: vi.fn(() => pending),
-    })
-    const view = render(<DshBotTab ctx={{ dshBot, sessions: { open } }} />)
-    const button = screen.getByTestId('dsh-bot-new') as HTMLButtonElement
-    fireEvent.click(button)
-    expect(button.disabled).toBe(true)
-    fireEvent.click(button)
-    expect(dshBot.createSession).toHaveBeenCalledTimes(1)
-    resolveCreate({ ok: true as const, value: { sessionId: 'session-new', title: 'DSH Bot' } })
-    await vi.waitFor(() => { expect(open).toHaveBeenCalledWith('session-new') })
-    view.unmount()
+  it('shows error plus retry when the workbench probe fails (gateway dead)', async () => {
+    vi.stubGlobal('fetch', vi.fn(async () => {
+      throw new Error('Failed to fetch')
+    }))
+    render(<DshBotTab ctx={{ dshBot: client() }} />)
+    expect(await screen.findByTestId('dsh-bot-error')).toBeTruthy()
+    expect(screen.queryByTestId('dsh-bot-iframe')).toBeNull()
+    fireEvent.click(screen.getByTestId('dsh-bot-retry'))
+    expect(await screen.findByTestId('dsh-bot-error')).toBeTruthy()
+    expect(screen.queryByTestId('dsh-bot-iframe')).toBeNull()
   })
 
-  it('renders the readonly bot model footer', () => {
-    const view = render(<DshBotTab ctx={{
-      dshBot: client({
-        botModel: { provider: 'deepseek', model: 'flash', source: 'override' },
-      }),
-    }} />)
-    expect(screen.getByTestId('dsh-bot-footer-model').textContent).toMatch(/deepseek\/flash/)
-    expect(screen.getByTestId('dsh-bot-footer-model').textContent).toMatch(/override/)
-    view.unmount()
+  it('shows error when iframe load re-probe fails (error page load)', async () => {
+    let live = true
+    vi.stubGlobal('fetch', vi.fn(async () => {
+      if (!live) throw new Error('Failed to fetch')
+      return htmlOk()
+    }))
+    render(<DshBotTab ctx={{ dshBot: client() }} />)
+    const frame = await screen.findByTestId('dsh-bot-iframe')
+    live = false
+    fireEvent.load(frame)
+    expect(await screen.findByTestId('dsh-bot-error')).toBeTruthy()
+    expect(screen.queryByTestId('dsh-bot-iframe')).toBeNull()
   })
 })
 

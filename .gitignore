@@ -11,6 +11,9 @@ env/.env
 env/.credentials.yaml
 env/.anonymous-user-id
 env/session-tool/
+env/dsh-bot/
+env/.agent-presets/dsh-bot--*
+bots.json
 env/manual-test-last.txt
 env/manual-test-*.txt
 pnpm-debug.log

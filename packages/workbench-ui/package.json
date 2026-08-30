@@ -1,0 +1,27 @@
+{
+  "name": "workbench-ui",
+  "version": "0.1.0",
+  "private": true,
+  "description": "DSH Bot workbench SPA served at GET /dsh-bot/ui",
+  "type": "module",
+  "exports": {
+    ".": "./lib/index.html",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "lib"
+  ],
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "build": "tsdown && cp index.html lib/index.html && cp src/styles.css lib/workbench.css",
+    "test": "vitest run --config ../../vitest.config.ts packages/workbench-ui/tests"
+  },
+  "dependencies": {
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "@types/react": "~18.3.1",
+    "@types/react-dom": "~18.3.1"
+  }
+}

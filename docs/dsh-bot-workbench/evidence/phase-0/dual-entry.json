@@ -1,0 +1,12 @@
+{
+  "stand": {
+    "status": "idle",
+    "empty": 1,
+    "roster": 1
+  },
+  "iframeCount": 1,
+  "frameStatus": "idle",
+  "frameText": "人设\n\n还没有人设\n\n对话\n\n选择人设后在这里对话",
+  "errors": [],
+  "cons": []
+}

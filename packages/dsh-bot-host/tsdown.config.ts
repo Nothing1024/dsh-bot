@@ -14,5 +14,5 @@ export default defineConfig({
   fixedExtension: false,
   dts: true,
   clean: false,
-  external: ['cordis', 'cosmokit', 'schemastery', /^@deepseek-ai\//, 'session-marks', 'session-tool'],
+  external: ['cordis', 'cosmokit', 'schemastery', /^@deepseek-ai\//, 'session-marks', 'session-tool', 'workbench-ui'],
 })

@@ -1,0 +1,60 @@
+# static-route.log
+# 2026-08-30T04:51:46Z
+
+$ ~/.agents/skills/dsh-plugin-debug/scripts/dsh-rpc-who.sh 3084
+127.0.0.1:3084  pid=39260  DSH_HOME=/Users/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin/env  cwd=/Users/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin
+
+$ curl -sS -D - http://127.0.0.1:3084/dsh-bot/ui | head -20
+HTTP/1.1 200 OK
+Content-Type: text/html; charset=utf-8
+Content-Length: 369
+Date: Sun, 30 Aug 2026 04:51:46 GMT
+Connection: keep-alive
+Keep-Alive: timeout=5
+
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>DSH Bot</title>
+    <link rel="stylesheet" href="/dsh-bot/ui/workbench.css" />
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/dsh-bot/ui/workbench.js"></script>
+  </body>
+</html>
+
+$ curl -s http://127.0.0.1:3084/dsh-bot/ui | head -1
+<!doctype html>
+
+$ curl -sS -D - -o /dev/null http://127.0.0.1:3084/dsh-bot/ui/workbench.js
+HTTP/1.1 200 OK
+Content-Type: text/javascript; charset=utf-8
+Content-Length: 206258
+Date: Sun, 30 Aug 2026 04:51:46 GMT
+Connection: keep-alive
+Keep-Alive: timeout=5
+
+
+$ curl -sS -D - -o /dev/null http://127.0.0.1:3084/dsh-bot/ui/workbench.css
+HTTP/1.1 200 OK
+Content-Type: text/css; charset=utf-8
+Content-Length: 1806
+Date: Sun, 30 Aug 2026 04:51:46 GMT
+Connection: keep-alive
+Keep-Alive: timeout=5
+
+
+$ curl -sS -D - -o /dev/null http://127.0.0.1:3084/dsh-bot/ui/../package.json
+HTTP/1.1 405 Method Not Allowed
+Content-Type: application/json; charset=utf-8
+Content-Length: 66
+Date: Sun, 30 Aug 2026 04:51:46 GMT
+Connection: keep-alive
+Keep-Alive: timeout=5
+
+
+$ curl -sS -X POST http://127.0.0.1:3084/dsh-bot/listSessions -H 'Content-Type: application/json' -d '{"args":{}}' | python3 -c 'import sys,json; d=json.load(sys.stdin); print("ok",d.get("ok"),"sessions",len(d.get("value",{}).get("sessions",[])),"botModel",d.get("value",{}).get("botModel"))'
+ok True sessions 13 botModel {'provider': 'anthropic', 'model': 'grok-4.6', 'source': 'global-default'}

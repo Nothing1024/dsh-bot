@@ -1,0 +1,113 @@
+/**
+ * Static /dsh-bot/ui: doctype html, content types, no path traversal.
+ */
+import { EventEmitter } from 'node:events'
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs'
+import { tmpdir } from 'node:os'
+import { join } from 'node:path'
+import { Readable } from 'node:stream'
+import type { IncomingMessage, ServerResponse } from 'node:http'
+import { afterEach, describe, expect, it } from 'vitest'
+import { Context } from '@deepseek-ai/cordis'
+import { attachWorkbenchHttp, handleWorkbenchStatic, safeWorkbenchFile } from '../src/workbench-routes.ts'
+
+function mockReq(method: string, url: string): IncomingMessage {
+  const req = Readable.from([]) as IncomingMessage
+  req.method = method
+  req.url = url
+  return req
+}
+
+function mockRes(): { res: ServerResponse; chunks: Buffer[]; headers: Record<string, string> } {
+  const chunks: Buffer[] = []
+  const headers: Record<string, string> = {}
+  const res = new EventEmitter() as ServerResponse
+  res.statusCode = 0
+  res.setHeader = ((name: string, value: string | number) => {
+    headers[name] = String(value)
+    return res
+  }) as ServerResponse['setHeader']
+  res.write = ((chunk: string | Buffer) => {
+    chunks.push(typeof chunk === 'string' ? Buffer.from(chunk) : chunk)
+    return true
+  }) as ServerResponse['write']
+  res.end = ((chunk?: string | Buffer) => {
+    if (chunk !== undefined) chunks.push(typeof chunk === 'string' ? Buffer.from(chunk) : chunk)
+    res.emit('close')
+    return res
+  }) as ServerResponse['end']
+  return { res, chunks, headers }
+}
+
+async function get(root: string, url: string, method = 'GET'): Promise<{ status: number; body: string; headers: Record<string, string> }> {
+  const { res, chunks, headers } = mockRes()
+  await handleWorkbenchStatic(mockReq(method, url), res, root)
+  return { status: res.statusCode, body: Buffer.concat(chunks).toString('utf8'), headers }
+}
+
+describe('workbench static', () => {
+  let root = ''
+
+  afterEach(() => {
+    if (root !== '') rmSync(root, { recursive: true, force: true })
+    root = ''
+  })
+
+  function seed(): string {
+    root = mkdtempSync(join(tmpdir(), 'dsh-bot-ui-'))
+    writeFileSync(join(root, 'index.html'), '<!doctype html>\n<html><body>ok</body></html>\n')
+    writeFileSync(join(root, 'workbench.js'), 'console.log(1)\n')
+    writeFileSync(join(root, 'workbench.css'), 'body{margin:0}\n')
+    mkdirSync(join(root, 'nested'), { recursive: true })
+    writeFileSync(join(root, 'nested', 'x.txt'), 'secret\n')
+    return root
+  }
+
+  it('serves index.html at /dsh-bot/ui with html content type', async () => {
+    const dir = seed()
+    const { status, body, headers } = await get(dir, '/dsh-bot/ui')
+    expect(status).toBe(200)
+    expect(body.startsWith('<!doctype html>')).toBe(true)
+    expect(headers['Content-Type']).toMatch(/text\/html/)
+  })
+
+  it('serves js and css with matching types', async () => {
+    const dir = seed()
+    const js = await get(dir, '/dsh-bot/ui/workbench.js')
+    expect(js.status).toBe(200)
+    expect(js.headers['Content-Type']).toMatch(/javascript/)
+    const css = await get(dir, '/dsh-bot/ui/workbench.css')
+    expect(css.status).toBe(200)
+    expect(css.headers['Content-Type']).toMatch(/text\/css/)
+  })
+
+  it('rejects path traversal', async () => {
+    const dir = seed()
+    const slash = await get(dir, '/dsh-bot/ui/../index.html')
+    expect(slash.status).toBe(403)
+    const encoded = await get(dir, '/dsh-bot/ui/%2e%2e/index.html')
+    expect(encoded.status).toBe(403)
+    expect(safeWorkbenchFile('/dsh-bot/ui/foo/../../secret', dir)).toBeUndefined()
+  })
+
+  it('returns 404 for missing assets', async () => {
+    const dir = seed()
+    const { status } = await get(dir, '/dsh-bot/ui/missing.js')
+    expect(status).toBe(404)
+  })
+
+  it('registers the /dsh-bot/ui prefix', () => {
+    const ctx = new Context()
+    const paths: string[] = []
+    Object.defineProperty(ctx, 'webServer', {
+      value: {
+        register: (route: { path: string }) => {
+          paths.push(route.path)
+          return () => undefined
+        },
+      },
+    })
+    attachWorkbenchHttp(ctx, { root: seed() })
+    expect(paths).toContain('/dsh-bot/ui')
+  })
+})

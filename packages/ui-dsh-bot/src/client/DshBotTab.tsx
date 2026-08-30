@@ -1,20 +1,13 @@
 /**
- * better-sidebar "DSH Bot" tab: list / empty / error / create (UF-003).
+ * better-sidebar "DSH Bot" tab: iframe of `/dsh-bot/ui` (BR-204 / BR-208).
+ * Badge polling stays in rpc.ts; this surface is load / error / frame.
+ * Gateway-dead must not treat the browser error-page `load` as success.
  */
-import { useState, useSyncExternalStore, type ReactElement, type SVGProps } from 'react'
+import { useEffect, useRef, useState, type ReactElement, type SVGProps } from 'react'
 import { zh } from './locales.ts'
-import type { DshBotListState, IDshBotClient } from './rpc.ts'
-import { jumpToSession } from './session-jump.ts'
+import type { IDshBotClient } from './rpc.ts'
 import type { SessionJumpFace } from './session-jump.ts'
 import css from './DshBotTab.module.css'
-
-const EMPTY_FEED: DshBotListState = {
-  items: [],
-  botModel: null,
-  state: 'loading',
-  error: null,
-  includeHidden: false,
-}
 
 export interface WorkspaceCwdFace {
   list?: {
@@ -66,22 +59,6 @@ export interface DshBotTabProps {
   ctx: DshBotTabCtx
 }
 
-function useFeed(client: IDshBotClient | undefined): DshBotListState {
-  const subscribe = client === undefined ? () => () => undefined : client.list.subscribe.bind(client.list)
-  const get = client === undefined ? () => EMPTY_FEED : client.list.getSnapshot.bind(client.list)
-  return useSyncExternalStore(subscribe, get, get)
-}
-
-function formatTime(createdAt: number): string {
-  if (!Number.isFinite(createdAt) || createdAt <= 0) return ''
-  const ms = createdAt < 1e12 ? createdAt * 1000 : createdAt
-  try {
-    return new Date(ms).toLocaleString()
-  } catch {
-    return ''
-  }
-}
-
 function translate(
   locale: DshBotTabCtx['locale'],
   key: string,
@@ -119,111 +96,96 @@ export function DshBotIcon(_props: { size?: number }): ReactElement {
   )
 }
 
+const WORKBENCH_SRC = '/dsh-bot/ui'
+const PROBE_MS = 8_000
+
+async function probeWorkbench(signal: AbortSignal): Promise<boolean> {
+  const response = await fetch(WORKBENCH_SRC, { method: 'GET', cache: 'no-store', signal })
+  if (!response.ok) return false
+  const text = await response.text()
+  return /^\s*<!doctype html>/i.test(text)
+}
+
 /**
- * Render the sidebar sessions tab.
+ * Render the sidebar workbench iframe.
  * @param props - tab props (ctx is allowed here).
  */
 export function DshBotTab({ ctx }: DshBotTabProps) {
   const t = (key: string, vars?: Record<string, string>) => translate(ctx.locale, key, vars)
-  const feed = useFeed(ctx.dshBot)
-  const [creating, setCreating] = useState(false)
-  const [notice, setNotice] = useState<string | null>(null)
+  const iframeRef = useRef<HTMLIFrameElement>(null)
+  const [nonce, setNonce] = useState(0)
+  const [probeOk, setProbeOk] = useState(false)
+  const [loaded, setLoaded] = useState(false)
+  const [error, setError] = useState(false)
 
-  const jump = (sessionId: string): void => {
-    try {
-      if (!jumpToSession(ctx.sessions, sessionId)) {
-        setNotice(t('list.jumpFailed'))
+  useEffect(() => {
+    let cancelled = false
+    const ac = new AbortController()
+    const timer = window.setTimeout(() => { ac.abort() }, PROBE_MS)
+    setProbeOk(false)
+    setLoaded(false)
+    setError(false)
+    void probeWorkbench(ac.signal).then((ok) => {
+      if (cancelled) return
+      if (!ok) {
+        setError(true)
+        return
       }
-    } catch {
-      setNotice(t('list.jumpFailed'))
+      setProbeOk(true)
+    }).catch(() => {
+      if (!cancelled) setError(true)
+    })
+    return () => {
+      cancelled = true
+      ac.abort()
+      window.clearTimeout(timer)
     }
+  }, [nonce])
+
+  const remount = (): void => {
+    setNonce(n => n + 1)
   }
 
-  const create = async (): Promise<void> => {
-    if (ctx.dshBot === undefined || creating) return
-    setCreating(true)
-    setNotice(null)
-    const outcome = await ctx.dshBot.createSession(undefined, resolveCreateCwd(ctx.sessions, ctx.workspaces))
-    setCreating(false)
-    if (!outcome.ok) {
-      setNotice(outcome.error.message)
-      return
-    }
-    jump(outcome.value.sessionId)
+  const onFrameLoad = (): void => {
+    const ac = new AbortController()
+    const timer = window.setTimeout(() => { ac.abort() }, PROBE_MS)
+    void probeWorkbench(ac.signal).then((ok) => {
+      window.clearTimeout(timer)
+      if (!ok) {
+        setError(true)
+        return
+      }
+      setLoaded(true)
+    }).catch(() => {
+      window.clearTimeout(timer)
+      setError(true)
+    })
   }
-
-  const modelLabel = (): string => {
-    const info = feed.botModel
-    if (info === null || (info.provider === '' && info.model === '')) {
-      return t('footer.source.global')
-    }
-    const source = info.source === 'override' ? t('footer.source.override') : t('footer.source.global')
-    return `${info.provider}/${info.model} (${source})`
-  }
-
-  const busy = creating
 
   return (
     <div className={css.root} data-testid="dsh-bot-tab">
-      <div className={css.toolbar}>
-        <label className={css.toggle}>
-          <input
-            type="checkbox"
-            data-testid="dsh-bot-include-hidden"
-            checked={feed.includeHidden}
-            onChange={(event) => { ctx.dshBot?.setIncludeHidden(event.target.checked) }}
-          />
-          {t('list.includeHidden')}
-        </label>
-      </div>
-      {feed.state === 'loading' && feed.items.length === 0 ? (
-        <p className={css.hint} data-testid="dsh-bot-loading">{t('list.loading')}</p>
-      ) : feed.state === 'error' && feed.items.length === 0 ? (
+      {error ? (
         <div className={css.stateBox} data-testid="dsh-bot-error">
-          <p className={css.hint}>{t('list.error')}</p>
-          <button type="button" className={css.btn} data-testid="dsh-bot-retry" onClick={() => { void ctx.dshBot?.refresh() }}>
-            {t('list.retry')}
+          <p className={css.hint}>{t('tab.error')}</p>
+          <button type="button" className={css.btn} data-testid="dsh-bot-retry" onClick={remount}>
+            {t('tab.retry')}
           </button>
         </div>
-      ) : feed.items.length === 0 ? (
-        <div className={css.stateBox} data-testid="dsh-bot-empty">
-          <p className={css.hint}>{t('list.empty')}</p>
-          <p className={css.hint}>{t('list.emptyHint')}</p>
-        </div>
-      ) : (
-        <ul className={css.list} data-testid="dsh-bot-list">
-          {feed.items.map(row => (
-            <li key={row.sessionId}>
-              <button
-                type="button"
-                className={css.row}
-                data-testid={`dsh-bot-row-${row.sessionId}`}
-                onClick={() => { jump(row.sessionId) }}
-              >
-                <span className={css.rowText}>
-                  <span className={css.rowName}>{row.title ?? row.sessionId}</span>
-                  <span className={css.rowMeta}>{formatTime(row.createdAt)}</span>
-                </span>
-              </button>
-            </li>
-          ))}
-        </ul>
+      ) : probeOk ? (
+        <iframe
+          key={nonce}
+          ref={iframeRef}
+          className={css.iframe}
+          src={WORKBENCH_SRC}
+          title={t('tab.title')}
+          data-testid="dsh-bot-iframe"
+          onLoad={onFrameLoad}
+          onError={() => { setError(true) }}
+        />
+      ) : null}
+      {!loaded && !error && (
+        <p className={css.hint} data-testid="dsh-bot-loading">{t('tab.loading')}</p>
       )}
-      {notice !== null && <p className={css.notice}>{notice}</p>}
-      <div className={css.actions}>
-        <button
-          type="button"
-          className={`${css.btn} ${css.primary}`}
-          data-testid="dsh-bot-new"
-          disabled={busy}
-          onClick={() => { void create() }}
-        >
-          {creating ? t('list.creating') : t('list.new')}
-        </button>
-      </div>
-      <footer className={css.footer} data-testid="dsh-bot-footer-model">
-        {t('footer.model', { model: modelLabel() })}
-      </footer>
     </div>
   )
 }
