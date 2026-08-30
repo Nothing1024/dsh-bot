@@ -1,7 +1,8 @@
 /**
  * Workbench static face: GET /dsh-bot/ui and GET /dsh-bot/ui/* from the
  * workbench-ui lib/ tree (require.resolve). Longest-prefix wins over the
- * existing `/dsh-bot` RPC prefix.
+ * existing `/dsh-bot` RPC prefix. Bot CRUD POSTs share the v1 `{args}` wire
+ * and are dispatched from routes.ts.
  * @module dsh-bot-host/workbench-routes
  */
 
@@ -10,6 +11,15 @@ import { createRequire } from 'node:module'
 import { dirname, extname, join, relative, resolve as resolvePath, sep } from 'node:path'
 import { readFile } from 'node:fs/promises'
 import type { Context } from '@deepseek-ai/cordis'
+import type {
+  BotView,
+  CreateBotInput,
+  DeleteBotResult,
+  ListBotsResult,
+  UpdateBotInput,
+} from './bots.ts'
+import { DshBotError } from './errors.ts'
+import type { DshBotModelRef } from './platform.ts'
 
 interface WebServerLike {
   register(route: {
@@ -30,6 +40,14 @@ const CONTENT_TYPE: Record<string, string> = {
 }
 
 const UI_PREFIX = '/dsh-bot/ui'
+
+/** Host methods the workbench bot CRUD face needs. */
+export interface WorkbenchBotsFace {
+  listBots(): Promise<ListBotsResult>
+  createBot(input: CreateBotInput): Promise<BotView>
+  updateBot(input: UpdateBotInput): Promise<BotView>
+  deleteBot(input: { id: string }): Promise<DeleteBotResult>
+}
 
 function send(res: ServerResponse, status: number, body: string | Buffer, contentType: string): void {
   res.statusCode = status
@@ -120,6 +138,99 @@ export async function handleWorkbenchStatic(
 /**
  * Mount GET `/dsh-bot/ui` when a webServer is present.
  */
+/**
+ * Dispatch listBots / createBot / updateBot / deleteBot. Unknown methods
+ * return undefined so the v1 listSessions/createSession switch stays intact.
+ */
+export async function dispatchWorkbenchApi(
+  bot: WorkbenchBotsFace,
+  method: string,
+  args: Record<string, unknown>,
+): Promise<unknown | undefined> {
+  switch (method) {
+    case 'listBots':
+      return await bot.listBots()
+    case 'createBot':
+      return await bot.createBot(parseCreateBot(args))
+    case 'updateBot':
+      return await bot.updateBot(parseUpdateBot(args))
+    case 'deleteBot': {
+      const id = asString(args.id).trim()
+      if (id === '') throw new DshBotError('invalid-input', 'bot id is required')
+      return await bot.deleteBot({ id })
+    }
+    default:
+      return undefined
+  }
+}
+
+function parseCreateBot(args: Record<string, unknown>): CreateBotInput {
+  const name = asString(args.name)
+  const persona = asString(args.persona)
+  const avatar = parseAvatar(args.avatar)
+  const modelOverride = parseModelOverride(args.modelOverride)
+  return {
+    name,
+    persona,
+    ...avatar === undefined ? {} : { avatar },
+    ...modelOverride === undefined || modelOverride === null ? {} : { modelOverride },
+  }
+}
+
+function parseUpdateBot(args: Record<string, unknown>): UpdateBotInput {
+  const id = asString(args.id).trim()
+  if (id === '') throw new DshBotError('invalid-input', 'bot id is required')
+  const name = args.name === undefined ? undefined : asString(args.name)
+  const persona = args.persona === undefined ? undefined : asString(args.persona)
+  const avatar = args.avatar === undefined ? undefined : parseAvatar(args.avatar)
+  const hasOverride = Object.prototype.hasOwnProperty.call(args, 'modelOverride')
+  const modelOverride = hasOverride ? parseModelOverride(args.modelOverride) : undefined
+  return {
+    id,
+    ...name === undefined ? {} : { name },
+    ...persona === undefined ? {} : { persona },
+    ...avatar === undefined ? {} : { avatar },
+    ...modelOverride === undefined ? {} : { modelOverride },
+  }
+}
+
+function parseAvatar(value: unknown): { emoji?: string; color?: string } | undefined {
+  if (value === undefined || value === null) return undefined
+  if (typeof value !== 'object' || Array.isArray(value)) {
+    throw new DshBotError('invalid-input', 'avatar must be an object')
+  }
+  const rec = value as Record<string, unknown>
+  const emoji = typeof rec.emoji === 'string' ? rec.emoji : undefined
+  const color = typeof rec.color === 'string' ? rec.color : undefined
+  if (emoji === undefined && color === undefined) return undefined
+  return {
+    ...emoji === undefined ? {} : { emoji },
+    ...color === undefined ? {} : { color },
+  }
+}
+
+function parseModelOverride(value: unknown): DshBotModelRef | null | undefined {
+  if (value === undefined) return undefined
+  if (value === null) return null
+  if (typeof value !== 'object' || Array.isArray(value)) {
+    throw new DshBotError('invalid-input', 'modelOverride must be an object')
+  }
+  const rec = value as Record<string, unknown>
+  const provider = typeof rec.provider === 'string' ? rec.provider : ''
+  const model = typeof rec.model === 'string' ? rec.model : ''
+  if (provider.trim() === '' && model.trim() === '') return null
+  const reasoningEffort = typeof rec.reasoningEffort === 'string' ? rec.reasoningEffort : undefined
+  return {
+    provider,
+    model,
+    ...reasoningEffort === undefined ? {} : { reasoningEffort },
+  }
+}
+
+function asString(value: unknown): string {
+  return typeof value === 'string' ? value : ''
+}
+
 export function attachWorkbenchHttp(ctx: Context, options: { root?: string } = {}): void {
   let webServer: WebServerLike | undefined
   try {

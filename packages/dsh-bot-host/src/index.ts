@@ -27,6 +27,15 @@ import type {
 } from './ask.ts'
 import { createPlatform } from './platform.ts'
 import type { DshBotModelRef, DshBotPlatform } from './platform.ts'
+import {
+  createBotsRuntime,
+  createPresetGate,
+} from './bots.ts'
+import type {
+  BotsRuntime,
+  CreateBotInput,
+  UpdateBotInput,
+} from './bots.ts'
 import { attachDshBotHttp } from './routes.ts'
 import type { DshBotModelInfo } from './routes.ts'
 import { attachWorkbenchHttp } from './workbench-routes.ts'
@@ -60,7 +69,32 @@ export {
 export type { DshBotModelRef, DshBotPlatform } from './platform.ts'
 export { attachDshBotHttp, handleDshBotHttp } from './routes.ts'
 export type { DshBotHttpFace, DshBotModelInfo, ListSessionsRpcValue } from './routes.ts'
-export { attachWorkbenchHttp, handleWorkbenchStatic } from './workbench-routes.ts'
+export { attachWorkbenchHttp, handleWorkbenchStatic, dispatchWorkbenchApi } from './workbench-routes.ts'
+export {
+  AVATAR_COLORS,
+  MANAGED_PRESET_PREFIX,
+  SEED_BOT_ID,
+  SEED_PRESET_ID,
+  createBotsRuntime,
+  createPresetGate,
+  hashAvatarColor,
+  readPersonaText,
+  replacePersonaText,
+  slugifyName,
+  yamlPersonaScalar,
+  yamlSingleQuote,
+} from './bots.ts'
+export type {
+  BotAvatar,
+  BotRegistryRow,
+  BotView,
+  BotsRuntime,
+  CreateBotInput,
+  DeleteBotResult,
+  ListBotsResult,
+  PresetGate,
+  UpdateBotInput,
+} from './bots.ts'
 
 /** Settings namespace for bot-owned defaults (hot, live). */
 export const DSH_BOT_SETTINGS_NAMESPACE = settingsNamespace('dsh-bot')
@@ -104,8 +138,9 @@ class DshBotService extends Service {
 
   private source: () => DshBotRuntimeConfig
   private readonly platform: DshBotPlatform
+  private readonly botsRuntime: BotsRuntime
 
-  constructor(ctx: Context, config: DshBotConfig, platform?: DshBotPlatform) {
+  constructor(ctx: Context, config: DshBotConfig, platform?: DshBotPlatform, botsRuntime?: BotsRuntime) {
     super(ctx, 'dshBot')
     const entry: DshBotRuntimeConfig = Object.freeze({
       webUrl: config.webUrl,
@@ -114,6 +149,7 @@ class DshBotService extends Service {
     })
     this.source = () => entry
     this.platform = platform ?? createPlatform(ctx)
+    this.botsRuntime = botsRuntime ?? createBotsRuntime({ gate: createPresetGate(ctx) })
     installSettingsSection(ctx, DSH_BOT_SETTINGS_NAMESPACE, DshBotService.Config, entry, {
       setSource: (current) => {
         this.source = current
@@ -166,6 +202,22 @@ class DshBotService extends Service {
       model: global?.model ?? '',
       source: 'global-default',
     }
+  }
+
+  listBots() {
+    return this.botsRuntime.listBots()
+  }
+
+  createBot(input: CreateBotInput) {
+    return this.botsRuntime.createBot(input)
+  }
+
+  updateBot(input: UpdateBotInput) {
+    return this.botsRuntime.updateBot(input)
+  }
+
+  deleteBot(input: { id: string }) {
+    return this.botsRuntime.deleteBot(input)
   }
 }
 

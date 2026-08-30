@@ -1,0 +1,36 @@
+# bots-unit.log
+# 2026-08-30T06:05:05Z
+
+$ pnpm --filter dsh-bot-host run build
+$ tsdown
+ℹ tsdown v0.22.14 powered by rolldown v1.2.6
+ℹ config file: /Users/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin/packages/dsh-bot-host/tsdown.config.ts 
+ℹ entry: src/index.ts
+ℹ target: es2024
+ℹ tsconfig: tsconfig.json
+
+ WARN  `external` is deprecated. Use `deps.neverBundle` instead.
+
+ℹ Build start
+ℹ lib/index.js         51.05 kB │ gzip: 14.32 kB
+ℹ lib/index.js.map    107.38 kB │ gzip: 26.74 kB
+ℹ lib/index.d.ts.map    2.47 kB │ gzip:  0.89 kB
+ℹ lib/index.d.ts       15.64 kB │ gzip:  4.87 kB
+ℹ 4 files, total: 176.54 kB
+✔ Build complete in 485ms
+
+$ pnpm --filter dsh-bot-host run test
+$ vitest run --config ../../vitest.config.ts packages/dsh-bot-host/tests
+
+ RUN  v4.1.11 /Users/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin
+
+ ✓ packages/dsh-bot-host/tests/workbench-routes.spec.ts (5 tests) 10ms
+ ✓ packages/dsh-bot-host/tests/bots.spec.ts (17 tests) 57ms
+ ✓ packages/dsh-bot-host/tests/ask.spec.ts (20 tests) 77ms
+ ✓ packages/dsh-bot-host/tests/routes.spec.ts (10 tests) 482ms
+
+ Test Files  4 passed (4)
+      Tests  52 passed (52)
+   Start at  14:05:07
+   Duration  627ms (transform 194ms, setup 0ms, import 302ms, tests 626ms, environment 0ms)
+

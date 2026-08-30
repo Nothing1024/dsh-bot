@@ -1,0 +1,11 @@
+{
+  "ok": true,
+  "createdName": "诗人小北",
+  "editedName": "诗人小北改",
+  "presetId": "dsh-bot--shiren-xiaobei",
+  "presetBroken": false,
+  "deletedFromRoster": true,
+  "errors": [
+    "Failed to load resource: the server responded with a status of 404 (Not Found)"
+  ]
+}

@@ -17,6 +17,8 @@ import type {
   ListBotSessionsRequest,
 } from './ask.ts'
 import { DshBotError } from './errors.ts'
+import { dispatchWorkbenchApi } from './workbench-routes.ts'
+import type { WorkbenchBotsFace } from './workbench-routes.ts'
 
 /** Wire model shown on the sidebar footer (UF-006). */
 export interface DshBotModelInfo {
@@ -32,7 +34,7 @@ export interface ListSessionsRpcValue {
 }
 
 /** Host methods the HTTP face needs. */
-export interface DshBotHttpFace {
+export interface DshBotHttpFace extends WorkbenchBotsFace {
   listSessions(request?: ListBotSessionsRequest): Promise<readonly DshBotSessionRow[]>
   createSession(caller: SessionToolCaller, request?: CreateBotSessionRequest): Promise<CreateBotSessionResult>
   currentBotModel(): DshBotModelInfo
@@ -145,7 +147,8 @@ export async function handleDshBotHttp(
     }
     const body = asRecord(await readBody(req))
     const args = asRecord(body.args ?? body)
-    const value = await dispatch(bot, method, args)
+    const workbench = await dispatchWorkbenchApi(bot, method, args)
+    const value = workbench === undefined ? await dispatch(bot, method, args) : workbench
     sendJson(res, 200, { ok: true, value })
   } catch (error) {
     sendJson(res, 200, { ok: false, error: wireError(error) })

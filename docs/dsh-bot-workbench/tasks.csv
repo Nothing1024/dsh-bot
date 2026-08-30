@@ -3,9 +3,9 @@
 2,P0:勘察与骨架,workbench-ui 包骨架与静态服务,spec.md#task-2,1,curl /dsh-bot/ui → doctype html 且双入口渲染,已完成,
 3,P0:勘察与骨架,页签替换为 iframe 嵌入,spec.md#task-3,2,pnpm --filter ui-dsh-bot run build && pnpm --filter ui-dsh-bot test → 全绿,已完成,
 4,P0:勘察与骨架,执行 Phase 0 回归验证,spec.md#task-4,2;3,重启后双入口空壳复现 + pnpm -r build/test,已完成,
-5,P1:人设注册表,host 人设注册表与 preset 工厂,spec.md#task-5,4,pnpm --filter dsh-bot-host run build && pnpm --filter dsh-bot-host test → 全绿,待开始,broken 即回滚是硬验证项
-6,P1:人设注册表,roster UI 与人设表单,spec.md#task-6,5,pnpm --filter workbench-ui run build && pnpm --filter workbench-ui test → 全绿,待开始,
-7,P1:人设注册表,执行 Phase 1 回归验证,spec.md#task-7,6,新建/编辑/删除人设实操 + agentPreset.list 校验,待开始,
+5,P1:人设注册表,host 人设注册表与 preset 工厂,spec.md#task-5,4,pnpm --filter dsh-bot-host run build && pnpm --filter dsh-bot-host test → 全绿,已完成,broken 即回滚是硬验证项
+6,P1:人设注册表,roster UI 与人设表单,spec.md#task-6,5,pnpm --filter workbench-ui run build && pnpm --filter workbench-ui test → 全绿,已完成,
+7,P1:人设注册表,执行 Phase 1 回归验证,spec.md#task-7,6,新建/编辑/删除人设实操 + agentPreset.list 校验,已完成,
 8,P2:对话面,会话归属与创建链,spec.md#task-8,7,createBotSession 回显 id 且 marks 含 bot:<id>,待开始,
 9,P2:对话面,transcript 渲染与轮询,spec.md#task-9,8,pnpm --filter workbench-ui test → 全绿,待开始,
 10,P2:对话面,composer 与发送链,spec.md#task-10,9,pnpm --filter workbench-ui test → 全绿(草稿隔离/禁发/失败保留),待开始,

@@ -41,18 +41,201 @@ body,
 }
 
 .rosterHead {
-  padding: 14px 16px 10px;
+  padding: 10px 12px;
   font-size: 13px;
   font-weight: 600;
   letter-spacing: 0.01em;
   border-bottom: 1px solid var(--wb-border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.newBot {
+  appearance: none;
+  border: 1px solid var(--wb-border);
+  background: transparent;
+  color: var(--wb-text);
+  font-size: 12px;
+  line-height: 24px;
+  padding: 0 10px;
+  border-radius: 999px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.newBot:hover {
+  background: var(--wb-hover);
 }
 
 .rosterBody {
   flex: 1;
   min-height: 0;
   overflow: auto;
-  padding: 16px;
+  padding: 8px;
+}
+
+.rosterList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.rosterRow {
+  display: grid;
+  grid-template-columns: 36px minmax(0, 1fr) auto;
+  gap: 8px;
+  align-items: center;
+  padding: 8px;
+  border-radius: 8px;
+  cursor: pointer;
+  position: relative;
+}
+
+.rosterRow:hover {
+  background: var(--wb-hover);
+}
+
+.rosterRow.isSelected {
+  background: #243044;
+}
+
+.avatarWrap {
+  position: relative;
+  width: 32px;
+  height: 32px;
+}
+
+.avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #fff;
+  overflow: hidden;
+}
+
+.avatar.sm {
+  width: 24px;
+  height: 24px;
+  font-size: 12px;
+  border-radius: 8px;
+}
+
+.avatar.lg {
+  width: 40px;
+  height: 40px;
+  font-size: 18px;
+}
+
+.workingDot {
+  position: absolute;
+  right: -1px;
+  bottom: -1px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #3dd68c;
+  box-shadow: 0 0 0 2px var(--wb-panel);
+}
+
+.rosterMain {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.rosterName {
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rosterPreview {
+  color: var(--wb-muted);
+  font-size: 12px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rosterMeta {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+}
+
+.rosterTime {
+  color: var(--wb-muted);
+  font-size: 11px;
+}
+
+.rowMenuBtn {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  color: var(--wb-muted);
+  cursor: pointer;
+  padding: 0 4px;
+  font-size: 16px;
+  line-height: 1;
+}
+
+.rowMenu {
+  margin: 0 8px 8px;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--wb-border);
+  border-radius: 8px;
+  overflow: hidden;
+  background: var(--wb-bg);
+}
+
+.rowMenu button {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  color: var(--wb-text);
+  text-align: left;
+  padding: 8px 12px;
+  cursor: pointer;
+  font-size: 12px;
+}
+
+.rowMenu button:hover:not(:disabled) {
+  background: var(--wb-hover);
+}
+
+.rowMenu button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.renameInput {
+  width: 100%;
+  border: 1px solid var(--wb-accent);
+  background: var(--wb-bg);
+  color: var(--wb-text);
+  border-radius: 4px;
+  font: inherit;
+  padding: 2px 6px;
+}
+
+.identity {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .conversation {
@@ -116,4 +299,153 @@ body,
 .retry:disabled {
   opacity: 0.38;
   cursor: not-allowed;
+}
+
+.botForm {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px 20px 24px;
+  min-height: 0;
+  overflow: auto;
+}
+
+.botFormHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.botFormHead h2 {
+  margin: 0;
+  font-size: 15px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--wb-muted);
+}
+
+.field input,
+.field textarea {
+  border: 1px solid var(--wb-border);
+  background: var(--wb-bg);
+  color: var(--wb-text);
+  border-radius: 8px;
+  font: inherit;
+  padding: 8px 10px;
+}
+
+.field textarea {
+  resize: vertical;
+  min-height: 120px;
+}
+
+.fieldError,
+.formError {
+  margin: 0;
+  color: var(--wb-danger);
+  font-size: 12px;
+}
+
+.formHint {
+  margin: 0;
+  color: var(--wb-accent);
+  font-size: 12px;
+}
+
+.avatarPicker {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.colorRow {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.colorSwatch {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  cursor: pointer;
+  padding: 0;
+}
+
+.colorSwatch.isOn {
+  border-color: #fff;
+}
+
+.modelRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.primaryBtn,
+.dangerBtn {
+  appearance: none;
+  border: 0;
+  border-radius: 8px;
+  font-size: 13px;
+  line-height: 32px;
+  padding: 0 14px;
+  cursor: pointer;
+}
+
+.primaryBtn {
+  background: var(--wb-accent);
+  color: #fff;
+  align-self: flex-start;
+}
+
+.primaryBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.dangerBtn {
+  background: var(--wb-danger);
+  color: #fff;
+}
+
+.confirmMask {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+
+.confirmBox {
+  background: var(--wb-panel);
+  border: 1px solid var(--wb-border);
+  border-radius: 12px;
+  padding: 16px;
+  max-width: 240px;
+}
+
+.confirmTitle {
+  margin: 0 0 8px;
+  font-weight: 600;
+}
+
+.confirmActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.roster {
+  position: relative;
 }

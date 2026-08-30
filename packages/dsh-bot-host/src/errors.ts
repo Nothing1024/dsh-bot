@@ -17,6 +17,11 @@ export type DshBotErrorCode =
   | 'archive-failed'
   | 'archive-unavailable'
   | 'empty-prompt'
+  | 'invalid-input'
+  | 'bot-not-found'
+  | 'bot-protected'
+  | 'preset-broken'
+  | 'registry-corrupt'
   | 'internal'
 
 /**

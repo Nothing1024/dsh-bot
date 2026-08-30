@@ -70,11 +70,25 @@ const ROW: DshBotSessionRow = {
 
 const MODEL: DshBotModelInfo = { provider: 'anthropic', model: 'grok-4.6', source: 'global-default' }
 
+const BOT_VIEW = {
+  id: 'dsh-bot',
+  name: 'DSH Bot',
+  avatar: { color: '#5b8def' },
+  presetId: 'dsh-bot',
+  createdAt: 1,
+  persona: '你是 DSH Bot。',
+  protected: true,
+}
+
 function stub(overrides: Partial<DshBotHttpFace> = {}): DshBotHttpFace {
   return {
     listSessions: vi.fn(async () => [ROW]),
     createSession: vi.fn(async () => ({ sessionId: SessionId('session-new'), title: 'DSH Bot' } satisfies CreateBotSessionResult)),
     currentBotModel: () => MODEL,
+    listBots: vi.fn(async () => ({ bots: [BOT_VIEW] })),
+    createBot: vi.fn(async () => BOT_VIEW),
+    updateBot: vi.fn(async () => BOT_VIEW),
+    deleteBot: vi.fn(async () => ({ id: 'x', deleted: true as const })),
     ...overrides,
   }
 }
@@ -176,5 +190,21 @@ describe('dsh-bot HTTP face', () => {
       ok: false,
       error: { code: 'internal', message: 'boom' },
     })
+  })
+
+  it('lists bots on POST /dsh-bot/listBots', async () => {
+    const bot = stub()
+    const { handler } = attach(bot)
+    const { json } = await post(handler, '/dsh-bot/listBots', { args: {} })
+    expect(json).toEqual({ ok: true, value: { bots: [BOT_VIEW] } })
+  })
+
+  it('creates a bot with the same {args} wire', async () => {
+    const bot = stub()
+    const { handler } = attach(bot)
+    await post(handler, '/dsh-bot/createBot', {
+      args: { name: '诗人小北', persona: '你是一位诗人' },
+    })
+    expect(bot.createBot).toHaveBeenCalledWith({ name: '诗人小北', persona: '你是一位诗人' })
   })
 })

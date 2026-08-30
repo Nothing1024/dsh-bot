@@ -31,4 +31,17 @@ describe('workbenchCall', () => {
     expect(outcome.error.code).toBe('unavailable')
     expect(outcome.error.message).toMatch(/gateway down/)
   })
+
+  it('POSTs createBot with {args}', async () => {
+    const { createBot } = await import('../src/api.ts')
+    const fetchMock = vi.fn(async (url: string, init?: { body?: string; method?: string }) => {
+      expect(String(url)).toBe('/dsh-bot/createBot')
+      expect(init?.method).toBe('POST')
+      expect(init?.body).toBe(JSON.stringify({ args: { name: '诗人小北', persona: '你是一位诗人' } }))
+      return { json: async () => ({ ok: true, value: { id: 'shiren-xiaobei' } }) }
+    })
+    vi.stubGlobal('fetch', fetchMock)
+    const outcome = await createBot({ name: '诗人小北', persona: '你是一位诗人' })
+    expect(outcome.ok).toBe(true)
+  })
 })
