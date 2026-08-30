@@ -1,13 +1,22 @@
 # UF-201 首次空态
 
-Date: 2026-08-30 (review fix).
+Date: 2026-08-30 (closer: 临时 DSH_HOME 实拍).
 
-一口一仓 :3084 的 live `DSH_HOME=env/` 不能清掉（会毁掉 GUI 直建/对账会话）。本图用 Playwright `page.route` 把
+## 方法
 
-- `POST /dsh-bot/listBots` → 仅种子 `{id:dsh-bot,name:DSH Bot,protected:true}`
-- `POST /dsh-bot/listBotSessions` → `{sessions:[]}`
-- `POST /dsh-bot/reconcile` → 空 assigned
+Task 14「临时 DSH_HOME 或清运行数据」。一口一仓 :3084 live env 未清、未替换。
 
-钉成 2.7 空数据：roster 只有种子 DSH Bot，对话面「还没有对话」CTA，会话下拉为「新对话」，「包含隐藏」开关可见且默认关。
+1. 新建 `/tmp/dsh-wb-first-run`：symlink `profiles/gb`、只拷 bundled `dsh-bot` preset、空 `dsh-bot/`（无 bots.json）、无 `dsh-bot--*`、无 sessions/marks。
+2. `DSH_HOME=/tmp/dsh-wb-first-run npx @deepseek-ai/dsh@0.1.1-rc.2 --profile gb --port 3184 --no-open`
+3. `dsh-rpc-who.sh 3184` → `DSH_HOME=/tmp/dsh-wb-first-run`
+4. `dsh-rpc-who.sh 3084` 仍为本仓 env（pid 55016）。未动 3080/3083。
+5. Playwright 直开 `http://127.0.0.1:3184/dsh-bot/ui`（无 `page.route`）。
+6. 拍完 kill 3184，删除临时 home（含凭据副本）。
 
-`first-run.png` 即该 UI。不是脏 env 里点「新开对话」的截图。
+## Then
+
+- `POST /dsh-bot/listBots` 仅种子 `id=dsh-bot` `protected=true`
+- `.agent-presets/` 只有 `dsh-bot`
+- roster 一行 DSH Bot；会话下拉「新对话」；空会话 CTA；「包含隐藏」默认关
+
+见 `first-run.png` + `first-run.json`。

@@ -3,7 +3,7 @@
 ## 完成任务
 - Task 12 GUI 直建会话补标对账：`reconcile.ts` 经 ASM-201 `session.list.items[].agentPreset` 反查注册表；未标 bot preset 会话补 `[kind:dsh-bot, bot:<id>]`；v1 `kind:dsh-bot` 无 `bot:` 归默认 bot；非 bot 会话增量 skip cache；幂等、不删既有 marks。打开工作台异步 `POST /dsh-bot/reconcile`（不挡首屏）+ 显式方法 + 30s 定时。
 - Task 13 双人设隔离与身份打磨：UF-203 四步草稿/历史/口吻隔离；working 点只亮生成中 bot；composer 占位随 bot；UF-204 编辑提示「人设对之后的新对话生效」、新会话评书口吻 / 旧会话诗人口吻；A+B 并发生成互不干扰。
-- Task 14 双入口：浏览器直开与页签 iframe 均可选 bot / 对话 / 新建人设；gateway-down 错误态+重试不白屏；种子 bot + 空会话 CTA（`first-run.png` 为 seed-only 空态，见 `first-run.md`）。
+- Task 14 双入口：浏览器直开与页签 iframe 均可选 bot / 对话 / 新建人设；gateway-down 错误态+重试不白屏；首次空态用临时 DSH_HOME :3184 实拍（仅种子 bot + CTA）。
 - Task 15 Phase 3 回归：`pnpm -r run build/typecheck/test` 全绿；UF-201~205 主路径复现。
 - Review 修复：BR-208 工作台「包含隐藏」开关（默认关）；UF-203 roster 预览优先未发送草稿；iframe 路径重放 `页签复核`；`browser.json` iframe.ok=true。
 
@@ -27,7 +27,7 @@
 | UF-201 直开 | roster 含默认 bot + 入口直开对话 | `../UF-201/standalone.png` |
 | UF-201 页签 iframe | 右栏 DSH Bot 页签 iframe `/dsh-bot/ui`；新建「页签复核」并回复 | `../UF-201/tab.png` `tab.json` `browser.json` |
 | UF-201 gateway-down | roster 错误态 + 重试，不白屏 | `../UF-201/gateway-down.png` |
-| UF-201 空态 | 仅种子 bot + 「还没有对话」CTA + 包含隐藏开关 | `../UF-201/first-run.png` `first-run.md` |
+| UF-201 空态 | 临时 DSH_HOME :3184 实拍：仅种子 bot + 「还没有对话」CTA + 包含隐藏默认关 | `../UF-201/first-run.png` `first-run.md` `first-run.json` |
 | UF-202 回归 | 直开新建「入口直开」对话「测试助手」；既有诗人小北路径仍在 | `../UF-201/standalone.png` `../phase-2/uf-202-chat.png` |
 | v1 listSessions/createSession | 仍 `{args}` wire；createSession 仍只打 kind:dsh-bot | `v1-sessions.md` |
 

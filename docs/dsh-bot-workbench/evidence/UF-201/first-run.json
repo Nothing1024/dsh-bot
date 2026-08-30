@@ -1,0 +1,14 @@
+{
+  "port": 3184,
+  "dshHome": "/tmp/dsh-wb-first-run",
+  "rows": [
+    "DSH Bot"
+  ],
+  "select": "新对话",
+  "hidden": 1,
+  "hiddenChecked": false,
+  "cta": "还没有对话\n\n给 DSH Bot 发一条消息开始，或点「新开对话」",
+  "errors": [
+    "Failed to load resource: the server responded with a status of 404 (Not Found)"
+  ]
+}
