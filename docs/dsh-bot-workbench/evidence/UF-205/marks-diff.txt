@@ -25,3 +25,20 @@ Playwright 官方 GUI「新会话」composer Enter 发送 `你是谁? … 标记
 ## 阻塞原因
 
 `已阻塞:env: official GUI 新会话 reuses labeled dsh-bot-manual session; unlabeled window only on session.create blanks`
+
+## Closer 复验（2026-08-30T20:42+08）
+
+未调用 `POST /dsh-bot/reconcile`（仅打开 `/dsh-bot/ui`，由 SPA 对账钩子触发）。
+
+### unlabeled → labeled（session.create + 打开工作台）
+
+- `session.create {cwd, agentPreset:dsh-bot}` → `session-212c25a1-5a3b-4ec8-913c-997a9687690a`
+- 打开前 marks：`session-not-found`（无 `bot:dsh-bot`）
+- GET `/dsh-bot/ui` 后 marks：`bot:dsh-bot,kind:dsh-bot`
+- 证据：`../phase-4/closer-uf205-reverify.json`
+
+### 官方 GUI「新会话」仍不产生新 id
+
+Playwright `http://127.0.0.1:3084/` 点「新会话」：`session.list` added=`[]`，标题仍为现有 DSH Bot 会话；落地页「探索未至之境」是当前会话 compose overlay。`wsCount=0`（无「在 plugin 中新建会话」）。截图 `../phase-4/closer-gui-new.png`。
+
+用户可见 UF-205 Then（GUI 聊过的 dsh-bot 会话出现在默认 bot 列表、可切换/新开）已有 `gui-create.png` + `reconcile.png`。缺的是「官方 GUI 点击新会话产生的新 sessionId」与「无 bot: 标」绑在同一 id 上。

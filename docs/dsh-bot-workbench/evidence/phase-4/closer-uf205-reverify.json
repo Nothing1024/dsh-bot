@@ -1,0 +1,21 @@
+{
+  "who": "127.0.0.1:3084  pid=34032  DSH_HOME=/Users/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin/env  cwd=/Users/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin",
+  "unlabeledToLabeled": {
+    "sid": "session-212c25a1-5a3b-4ec8-913c-997a9687690a",
+    "beforeMarks": "dsh-session: [session-not-found] session \"session-212c25a1-5a3b-4ec8-913c-997a9687690a\" does not exist",
+    "afterMarks": "session-212c25a1-5a3b-4ec8-913c-997a9687690a bot:dsh-bot,kind:dsh-bot",
+    "unlabeledBefore": true,
+    "labeledAfter": true,
+    "postedReconcileFromScript": false
+  },
+  "guiNewSessionProbe": {
+    "title0": "DSH Bot — DeepSeek Harness",
+    "title1": "DSH Bot — DeepSeek Harness",
+    "hero0": "新会话\n工作区\nplugin\n新会话\nv1 leftover t18\n1小时\ndsh-bot-manual-20260830-183331-override-off\n57分钟\ndsh-bot-manual-20260830-183331-override-on\n52分钟\ndsh-bot-manual-20260830-183331-plugin\n50分钟\n展开其余 12 个会话\n未分组\n设置\n探索未至之境\n预览版\nplugin\nDSH Bot\nWorkspace Write\n",
+    "hero1": "新会话\n工作区\nplugin\n新会话\nv1 leftover t18\n1小时\ndsh-bot-manual-20260830-183331-override-off\n57分钟\ndsh-bot-manual-20260830-183331-override-on\n52分钟\ndsh-bot-manual-20260830-183331-plugin\n50分钟\n展开其余 12 个会话\n未分组\n设置\n探索未至之境\n预览版\nplugin\nDSH Bot\nWorkspace Write\n",
+    "wsCount": 0,
+    "added": [],
+    "addedInfo": [],
+    "reuse": true
+  }
+}
