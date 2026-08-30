@@ -246,13 +246,14 @@ function scanUpstreamTouches() {
   const result = {}
   for (const pkg of readdirSync(PACKAGES_DIR)) {
     const srcDir = join(PACKAGES_DIR, pkg, 'src')
+    if (!existsSync(srcDir) || !statSync(srcDir).isDirectory()) continue
     const specs = new Set()
     for (const file of sourceFilesOf(srcDir)) {
       for (const spec of importSpecifiersOf(readFileSync(file, 'utf8'))) {
         if (UPSTREAM_RE.test(spec)) specs.add(spec)
       }
     }
-    if (specs.size > 0) result[pkg] = [...specs].sort()
+    result[pkg] = [...specs].sort()
   }
   return result
 }
@@ -366,7 +367,7 @@ function main() {
   const current = scanUpstreamTouches()
   if (updateBaseline || !existsSync(BASELINE_PATH)) {
     writeFileSync(BASELINE_PATH, JSON.stringify({
-      $comment: '上游触点基线：packages/*/src 中 import 的上游说明符（@deepseek-ai/*、cordis、schemastery）以及邻仓 session-tool / session-marks。新增触点属于耦合面扩张，须评审后用 --update-baseline 更新；目标是把触点收敛进未来的版本化 adapter 层（对齐 dsh-community-standard 原则⑤）。',
+      $comment: '上游触点基线：packages/*/src 中 import 的上游说明符（@deepseek-ai/*、cordis、schemastery）以及邻仓 session-tool / session-marks。有 src/ 的包即使零触点也入表（空数组 = 已评审的空面）。workbench-ui 是纯构建产物 SPA，无上述上游 import；dsh-bot-host 经 createRequire(\'workbench-ui/package.json\') 静态服务 GET /dsh-bot/ui，该 resolve 不是 ESM import、不进本表。新增触点属于耦合面扩张，须评审后用 --update-baseline 更新；目标是把触点收敛进未来的版本化 adapter 层（对齐 dsh-community-standard 原则⑤）。',
       packages: current,
     }, null, 2) + '\n')
     console.log(`✓ 基线已写入 ${BASELINE_PATH}`)

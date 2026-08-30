@@ -10,6 +10,11 @@ env/
 ├── cli.patch.yml         # headless CLI：关 runner + webUrl :3084
 ├── settings.example.yaml # 唯一入 git 的配置模板（无明文 key）
 ├── .env / .credentials.yaml / .anonymous-user-id   # git 忽略
+├── dsh-bot/              # 运行时人设注册表（gitignore）
+│   └── bots.json
+├── .agent-presets/
+│   ├── dsh-bot/          # 默认 bundled preset（setup 种子）
+│   └── dsh-bot--*/       # 自动人设 preset（gitignore）
 └── profiles/gb/          bundles + 邻仓 link；overlay 把 webUrl 指到 :3084
 ```
 
@@ -23,7 +28,8 @@ sh env/boot.sh            # :3084；已起且身份对本仓则直接退出
 
 `boot.sh` 会核对监听进程的 `DSH_HOME` 是本目录。口被别人占着会失败，不会偷偷打过去。
 
-前台：http://127.0.0.1:3084
+前台：http://127.0.0.1:3084  
+工作台：http://127.0.0.1:3084/dsh-bot/ui
 
 半自动矩阵（先核身份再 RPC/CLI）：
 
@@ -47,6 +53,17 @@ DSH_HOME=$PWD node ../../session-tool/plugin/packages/session-tool-cli/lib/bin.j
 ```
 
 `dsh-bot.model` 只作用于经本插件创建的会话；GUI 直建会话跟随全局默认（见仓根 README）。
+
+### `$DSH_HOME/dsh-bot/` 运行数据
+
+人设注册表与自动 preset 都是 **env 运行数据，不入 git**（INV-204）。`.gitignore` 已忽略 `env/dsh-bot/`、`env/.agent-presets/dsh-bot--*`、`bots.json`。
+
+| 路径 | 内容 |
+|---|---|
+| `$DSH_HOME/dsh-bot/bots.json` | 人设清单唯一事实源：`{id, name, avatar, presetId, modelOverride?, createdAt}`。**人设文本不在此文件**，只在对应 preset 的 persona 行。首次启动种子默认 bot（id `dsh-bot`）。 |
+| `$DSH_HOME/.agent-presets/dsh-bot--<slug>/` | 工作台新建人设时整文件模板生成的自动 preset；写后校验，失败回滚删目录。编辑人设重写该目录，只影响其后新会话。 |
+| `$DSH_HOME/.agent-presets/dsh-bot/` | 默认 bot 的 bundled preset（setup 种子）。不要 YAML surgery；自定义人设请新建 bot。 |
+| `$DSH_HOME/sessions/`、`$DSH_HOME/session-tool/` | 会话投影与 marks（含 `kind:dsh-bot` / `bot:<id>`）；删除人设不删历史会话。 |
 
 | 依赖 | 去哪 | bundle 层 |
 |---|---|---|

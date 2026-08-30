@@ -1,0 +1,30 @@
+$ pnpm run standard:check
+time: 2026-08-30T18:33:16+08:00
+
+== manifest 校验（packages/*/dsh-plugin.json） ==
+✓ tool-dsh-bot (io.github.nothing1024.tool-dsh-bot)
+✓ ui-dsh-bot (io.github.nothing1024.ui-dsh-bot)
+
+== 协商（manifest × host-descriptor） ==
+✓ tool-dsh-bot: compatible
+✓ ui-dsh-bot: compatible
+
+== fixtures 自检 ==
+✓ valid/full.json
+✓ valid/minimal.json
+✓ valid/tool-dsh-bot.json
+✓ invalid/missing-schema.json → [missing-schema]
+✓ invalid/wrong-manifest-version.json → [wrong-manifest-version]
+✓ invalid/missing-facets.json → [missing-facets]
+✓ invalid/bad-id.json → [bad-id]
+✓ invalid/unknown-field.json → [unknown-field]
+✓ invalid/provides-rejected.json → [provides-rejected]
+✓ invalid/requires-services-rejected.json → [requires-services-rejected]
+✓ invalid/reserved-facet-client.json → [reserved-facet]
+✓ invalid/duplicate-contributes-id.json → [duplicate-contributes-id]
+✓ invalid/entry-outside-root.json → [entry-outside-root]
+
+== adapter 审计（上游触点基线） ==
+✓ 无未评审的新增上游触点
+
+结论：全部通过

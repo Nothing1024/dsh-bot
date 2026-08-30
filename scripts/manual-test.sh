@@ -1,16 +1,18 @@
 #!/usr/bin/env bash
 # dsh-bot 半自动 CLI 矩阵：先 gateway_require(:3084)，再 UF-001 建会话冒烟、
 # UF-002 插件创建（--write 才走模型委托）、UF-006 override 开关核 header、
-# UF-004 marks 查询。记录写 env/manual-test-last.txt。
+# UF-004 marks 查询、工作台链 createBot → createBotSession → prompt(--write)
+# → history 有回复 → deleteBot 清理。记录写 env/manual-test-last.txt。
 #
 # 需要 :3084 上本仓网关已起（sh env/boot.sh）。不要再 boot --profile gb。
 # 先核监听进程的 DSH_HOME 是本仓 env/，再打；别人的 :3084 直接失败。
 #
-#   bash scripts/manual-test.sh              # 含 session.prompt（走模型）
-#   bash scripts/manual-test.sh --no-write   # 只建会话 / 设 override / 查 marks
+#   bash scripts/manual-test.sh              # 含 session.prompt / 工作台 prompt（走模型）
+#   bash scripts/manual-test.sh --no-write   # 只建会话 / 设 override / 查 marks / 工作台建删；跳过 prompt
 #   bash scripts/manual-test.sh --out PATH
 #
 # 前台：http://127.0.0.1:3084
+# 工作台：http://127.0.0.1:3084/dsh-bot/ui
 set -u
 
 ROOT=$(CDPATH='' cd -- "$(dirname -- "$0")/.." && pwd)
@@ -59,6 +61,9 @@ GLOBAL_PROVIDER=''
 GLOBAL_MODEL=''
 OVERRIDE_PROVIDER=''
 OVERRIDE_MODEL=''
+WB_BOT=''
+WB_BOT_ID=''
+WB_SID=''
 
 say() {
   printf '%s\n' "$*" | tee -a "$OUT"
@@ -182,6 +187,10 @@ stdout_has() {
   case "$LAST_STDOUT" in *"$1"*) return 0 ;; *) return 1 ;; esac
 }
 
+stdout_lacks() {
+  case "$LAST_STDOUT" in *"$1"*) return 1 ;; *) return 0 ;; esac
+}
+
 inventory_active() {
   local id=$1
   LAST_JSON_FILE="$LAST_JSON_FILE" ID="$id" node --input-type=module -e '
@@ -243,7 +252,18 @@ restore_override() {
   run_rpc "恢复：写回原 dsh-bot.model" settings.update "$patch"
 }
 
+cleanup_workbench_bot() {
+  if [ -z "$WB_BOT" ]; then
+    return 0
+  fi
+  local payload
+  payload=$(node --input-type=module -e 'process.stdout.write(JSON.stringify({id:process.argv[1]}))' "$WB_BOT")
+  run_http "清理：deleteBot ${WB_BOT}" deleteBot "$payload"
+  WB_BOT=''
+}
+
 cleanup() {
+  cleanup_workbench_bot
   restore_override
   rm -f "$LAST_JSON_FILE"
 }
@@ -275,7 +295,7 @@ EXPECTED_HOME="$DSH_HOME"
 . "$DSH_HOME/gateway-id.sh"
 gateway_require
 
-say "# dsh-bot 一键 CLI 矩阵"
+say "# dsh-bot 一键 CLI 矩阵（含工作台 createBot 链）"
 say "时间：$STAMP"
 say "ROOT：$ROOT"
 say "DSH_HOME：$DSH_HOME"
@@ -421,6 +441,64 @@ marks "UF-004 空 kind" marks list --kind kind:dsh-bot-no-such
 check UF-004-空-退出码 eq "$LAST_EXIT" 0
 check UF-004-空提示 stdout_has '(no marks)'
 
+say '=== 工作台：createBot → createBotSession → prompt(--write) → history → deleteBot ==='
+WB_NAME="wb-mtx-${STAMP}"
+WB_CREATE=$(node --input-type=module -e 'process.stdout.write(JSON.stringify({name:process.argv[1],persona:process.argv[2]}))' "$WB_NAME" 'Workbench matrix bot. Reply briefly.')
+run_http "WB createBot" createBot "$WB_CREATE"
+check WB-createBot-ok rpc_ok
+WB_BOT=$(rpc_value id)
+WB_BOT_ID=$WB_BOT
+check WB-createBot-有id nempty "$WB_BOT"
+
+if [ -n "$WB_BOT" ]; then
+  run_http "WB listBots" listBots '{}'
+  check WB-listBots-含新bot stdout_has "$WB_BOT"
+
+  WB_SESSION=$(node --input-type=module -e 'process.stdout.write(JSON.stringify({botId:process.argv[1],title:process.argv[2],cwd:process.argv[3]}))' "$WB_BOT" "${PREFIX}-wb" "$ROOT")
+  run_http "WB createBotSession" createBotSession "$WB_SESSION"
+  check WB-createBotSession-ok rpc_ok
+  WB_SID=$(rpc_value sessionId)
+  check WB-createBotSession-有id nempty "$WB_SID"
+  check WB-createBotSession-botId eq "$(rpc_value botId)" "$WB_BOT"
+
+  if [ -n "$WB_SID" ]; then
+    WB_LIST=$(node --input-type=module -e 'process.stdout.write(JSON.stringify({botId:process.argv[1]}))' "$WB_BOT")
+    run_http "WB listBotSessions" listBotSessions "$WB_LIST"
+    check WB-listBotSessions-含新会话 stdout_has "$WB_SID"
+  fi
+
+  if [ "$WITH_WRITE" -eq 1 ] && [ -n "$WB_SID" ]; then
+    say '=== 工作台 --write：prompt → history 有回复 ==='
+    WB_PROMPT=$(node --input-type=module -e 'process.stdout.write(JSON.stringify({sessionId:process.argv[1],text:process.argv[2]}))' "$WB_SID" '你是谁?')
+    run_http "WB prompt" prompt "$WB_PROMPT"
+    check WB-prompt-ok rpc_ok
+    i=0
+    while [ "$i" -lt 60 ]; do
+      sleep 3
+      WB_HIST=$(node --input-type=module -e 'process.stdout.write(JSON.stringify({sessionId:process.argv[1]}))' "$WB_SID")
+      run_http "WB 轮询 history ($i)" history "$WB_HIST"
+      if stdout_has '"role":"assistant"'; then
+        break
+      fi
+      i=$((i + 1))
+    done
+    check WB-history-有assistant stdout_has '"role":"assistant"'
+  else
+    say '工作台 --no-write：跳过 prompt / history 回复核'
+  fi
+
+  WB_DEL=$(node --input-type=module -e 'process.stdout.write(JSON.stringify({id:process.argv[1]}))' "$WB_BOT")
+  run_http "WB deleteBot" deleteBot "$WB_DEL"
+  check WB-deleteBot-ok rpc_ok
+  if rpc_ok; then
+    check WB-deleteBot-deleted eq "$(rpc_value deleted)" true
+    DELETED_ID=$WB_BOT
+    WB_BOT=''
+    run_http "WB listBots（删除后）" listBots '{}'
+    check WB-deleteBot-零残留 stdout_lacks "$DELETED_ID"
+  fi
+fi
+
 say ''
 say '=== 本轮会话对照 ==='
 say "打开 http://127.0.0.1:${GW_PORT}"
@@ -429,6 +507,8 @@ say "UF-002 插件新建         $UF002"
 say "UF-006 override 开      $UF006_ON"
 say "UF-006 GUI 直建         $UF006_GUI"
 say "UF-006 override 关      $UF006_OFF"
+say "WB 人设（已删）         $WB_BOT_ID"
+say "WB 会话                 $WB_SID"
 say ''
 say "核对 $PASS 通过 / $FAIL 失败"
 say "完整记录：$OUT"
