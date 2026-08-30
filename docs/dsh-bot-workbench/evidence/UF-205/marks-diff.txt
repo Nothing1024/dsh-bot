@@ -1,30 +1,27 @@
-# UF-205 marks diff
+# UF-205 marks diff — closer residue
 
-Gateway: 127.0.0.1:3084  pid=34032  DSH_HOME=/Users/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin/env  cwd=/Users/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin
+Gateway: 127.0.0.1:3084 this-warehouse env
 
-## Official GUI 直建
+## Official GUI 直建（browser）
 
-Playwright 打开 http://127.0.0.1:3084，搜索并打开已用官方「新会话」composer 发送过的会话（标记 t18fix-GUI）。截图 `phase-4/v1-gui-chat.png`：官方对话面，preset DSH Bot，用户气泡 + assistant「我是 DSH Bot」。
+Playwright 官方 GUI「新会话」composer Enter 发送 `你是谁? … 标记 t18fix-GUI7`。
+截图 `gui-create.png` / `phase-4/closer-uf205-fail.png`：preset DSH Bot，用户气泡 + assistant「我是 DSH Bot」。
+会话 `session-4cac60d2-bbc2-48f9-85fe-b0a8653c27c3` title `dsh-bot-manual-20260829-231307-override-off`。
+该会话**已在** session.list 中（GUI 新会话落地页复用已有 dsh-bot 会话，不产生新 id）。
 
-## Unlabeled → labeled by opening workbench
+工作台打开后该会话出现在默认 bot 对话列表（`reconcile.png` 含 GUI 直建补标回复）。
 
-Gateway `session.create {cwd, agentPreset:dsh-bot}` 与官方「新建会话」同一条 RPC（不经插件 marks）。本步**未** POST /dsh-bot/reconcile。
+## Unlabeled → labeled（打开工作台触发，未 POST /dsh-bot/reconcile）
 
-sessionId=`session-69a43a6f-73e1-4ac6-9712-9a4984afa163` agentPreset=`dsh-bot`
+官方 GUI 新会话在本环境**复用已标记的 dsh-bot 会话**，无法把「无 bot: 标」和「GUI 点新建」绑在同一个新 sessionId 上（closer 三次：leftover+新会话 / 等待落地页 / bait blank session.create，Enter 均落入已有 `dsh-bot-manual-*` 行）。
 
-### Before GET /dsh-bot/ui
+对照：`session.create {cwd, agentPreset:dsh-bot}` 与官方新建同一网关 RPC、不经插件 marks：
 
-```
-(no marks row / session-not-found)
-```
+- `session-69a43a6f-73e1-4ac6-9712-9a4984afa163` / `session-803d8cfb-aeee-4505-870c-a30e8d860c4b`
+- 打开前 marks：session-not-found / 无 `bot:dsh-bot`
+- GET `/dsh-bot/ui` 后：`bot:dsh-bot,kind:dsh-bot`
+- 空白未 prompt 时 `listBotSessions includes: false`（sessionTool.list 交集；有过 GUI prompt 的会话会入列）
 
-unlabeled: true
+## 阻塞原因
 
-### After GET /dsh-bot/ui (workbench App load → reconcile)
-
-```
-session-69a43a6f-73e1-4ac6-9712-9a4984afa163 bot:dsh-bot,kind:dsh-bot
-```
-
-labeled bot:dsh-bot: true
-listBotSessions includes: false
+`已阻塞:env: official GUI 新会话 reuses labeled dsh-bot-manual session; unlabeled window only on session.create blanks`
