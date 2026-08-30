@@ -1,6 +1,8 @@
-# UF-203 concurrent generation
+# UF-203 并发生成
 
-Date: 2026-08-30
+时间: 2026-08-30T11:10:45.025Z
+网关: `127.0.0.1:3084  pid=55016  DSH_HOME=/Users/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin/env  cwd=/Users/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin`
+
 
 Sent overlapping prompts to DSH Bot and 诗人小北.
 
@@ -11,7 +13,8 @@ Sent overlapping prompts to DSH Bot and 诗人小北.
 
 Screenshot: concurrent.png (working dots during overlap).
 
-Replies (no crosstalk):
+Replies (no crosstalk=true):
 
-- DSH Bot: 我是 DSH Bot：跑在本机 DSH 插件环境里的常驻对话助手，当前模型是 grok-4.6。
-- 诗人小北: 我是诗人小北 / 山月随人远，溪声入梦清。
+- DSH Bot `session-831f95af-4893-452f-8c73-2475ce234c68`: true
+- 诗人小北 `session-c09c250e-ad3e-4b95-9371-05f7378a743b`: true
+

@@ -1,0 +1,56 @@
+{
+  "editors": [
+    {
+      "tag": "TEXTAREA",
+      "role": null,
+      "ph": "描述你想要构建的内容",
+      "ce": null,
+      "vis": true,
+      "text": ""
+    }
+  ],
+  "buttons": [
+    {
+      "aria": "新建会话",
+      "title": "",
+      "text": "",
+      "vis": true
+    },
+    {
+      "aria": "新建会话",
+      "title": "",
+      "text": "新会话",
+      "vis": true
+    },
+    {
+      "aria": "在“plugin”中新建会话",
+      "title": "",
+      "text": "",
+      "vis": false
+    },
+    {
+      "aria": "在“未分组”中新建会话",
+      "title": "",
+      "text": "",
+      "vis": false
+    },
+    {
+      "aria": "发送消息",
+      "title": "",
+      "text": "",
+      "vis": true
+    },
+    {
+      "aria": "新建标签页",
+      "title": "新建标签页",
+      "text": "",
+      "vis": true
+    },
+    {
+      "aria": "新建标签页",
+      "title": "新建标签页",
+      "text": "",
+      "vis": true
+    }
+  ]
+}

@@ -1,0 +1,29 @@
+{
+  "ok": true,
+  "value": {
+    "sessionId": "session-0dbea7f3-3664-405b-b992-0eaa6e300045",
+    "items": [
+      {
+        "id": "message-8-1",
+        "kind": "message",
+        "seq": 8,
+        "role": "user",
+        "text": "你是谁?"
+      },
+      {
+        "id": "thinking-58-1",
+        "kind": "thinking",
+        "seq": 58,
+        "text": "The user asked \"你是谁?\" which means \"Who are you?\" in Chinese.\n\n\n"
+      },
+      {
+        "id": "message-58-1",
+        "kind": "message",
+        "seq": 58,
+        "role": "assistant",
+        "text": "我是诗人小北\n君问姓名何所似\n北窗一砚对青灯"
+      }
+    ],
+    "working": false
+  }
+}

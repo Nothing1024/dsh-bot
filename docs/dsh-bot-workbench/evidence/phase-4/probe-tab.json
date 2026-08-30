@@ -1,0 +1,283 @@
+[
+  {
+    "step": "load",
+    "iframe": false,
+    "tab": false,
+    "buttons": [
+      {
+        "text": "",
+        "title": "",
+        "aria": "收起侧边栏",
+        "vis": true
+      },
+      {
+        "text": "",
+        "title": "",
+        "aria": "会话“DSH Bot”的操作",
+        "vis": false
+      },
+      {
+        "text": "DSH Bot",
+        "title": "即将开始的这个会话所用的 Agent 预设",
+        "aria": "",
+        "vis": true
+      },
+      {
+        "text": "",
+        "title": "",
+        "aria": "展开底部面板",
+        "vis": true
+      },
+      {
+        "text": "",
+        "title": "",
+        "aria": "展开侧边栏",
+        "vis": true
+      },
+      {
+        "text": "",
+        "title": "新建标签页",
+        "aria": "新建标签页",
+        "vis": true
+      },
+      {
+        "text": "",
+        "title": "",
+        "aria": "折叠底部面板",
+        "vis": true
+      },
+      {
+        "text": "",
+        "title": "新建标签页",
+        "aria": "新建标签页",
+        "vis": true
+      },
+      {
+        "text": "DSH Bot",
+        "title": "DSH Bot",
+        "aria": "",
+        "vis": true
+      }
+    ]
+  },
+  {
+    "step": "展开底部面板",
+    "iframe": false,
+    "tab": false,
+    "buttons": [
+      {
+        "text": "",
+        "title": "",
+        "aria": "收起侧边栏",
+        "vis": true
+      },
+      {
+        "text": "",
+        "title": "",
+        "aria": "会话“DSH Bot”的操作",
+        "vis": false
+      },
+      {
+        "text": "DSH Bot",
+        "title": "即将开始的这个会话所用的 Agent 预设",
+        "aria": "",
+        "vis": true
+      },
+      {
+        "text": "",
+        "title": "",
+        "aria": "折叠底部面板",
+        "vis": true
+      },
+      {
+        "text": "",
+        "title": "",
+        "aria": "展开侧边栏",
+        "vis": true
+      },
+      {
+        "text": "",
+        "title": "新建标签页",
+        "aria": "新建标签页",
+        "vis": true
+      },
+      {
+        "text": "",
+        "title": "",
+        "aria": "折叠底部面板",
+        "vis": true
+      },
+      {
+        "text": "",
+        "title": "新建标签页",
+        "aria": "新建标签页",
+        "vis": true
+      }
+    ]
+  },
+  {
+    "step": "展开侧边栏",
+    "iframe": false,
+    "tab": false,
+    "buttons": [
+      {
+        "text": "",
+        "title": "",
+        "aria": "打开侧边栏",
+        "vis": true
+      },
+      {
+        "text": "DSH Bot",
+        "title": "即将开始的这个会话所用的 Agent 预设",
+        "aria": "",
+        "vis": true
+      },
+      {
+        "text": "",
+        "title": "",
+        "aria": "折叠底部面板",
+        "vis": true
+      },
+      {
+        "text": "",
+        "title": "",
+        "aria": "折叠侧边栏",
+        "vis": true
+      },
+      {
+        "text": "",
+        "title": "新建标签页",
+        "aria": "新建标签页",
+        "vis": true
+      },
+      {
+        "text": "",
+        "title": "",
+        "aria": "折叠底部面板",
+        "vis": true
+      },
+      {
+        "text": "",
+        "title": "新建标签页",
+        "aria": "新建标签页",
+        "vis": true
+      }
+    ]
+  },
+  {
+    "step": "新建标签页",
+    "iframe": false,
+    "tab": false,
+    "buttons": [
+      {
+        "text": "",
+        "title": "",
+        "aria": "打开侧边栏",
+        "vis": true
+      },
+      {
+        "text": "DSH Bot",
+        "title": "即将开始的这个会话所用的 Agent 预设",
+        "aria": "",
+        "vis": true
+      },
+      {
+        "text": "",
+        "title": "",
+        "aria": "折叠底部面板",
+        "vis": true
+      },
+      {
+        "text": "",
+        "title": "",
+        "aria": "折叠侧边栏",
+        "vis": true
+      },
+      {
+        "text": "",
+        "title": "新建标签页",
+        "aria": "新建标签页",
+        "vis": true
+      },
+      {
+        "text": "",
+        "title": "",
+        "aria": "折叠底部面板",
+        "vis": true
+      },
+      {
+        "text": "",
+        "title": "新建标签页",
+        "aria": "新建标签页",
+        "vis": true
+      },
+      {
+        "text": "DSH Bot",
+        "title": "",
+        "aria": "",
+        "vis": true
+      }
+    ]
+  },
+  {
+    "step": "click DSH Bot",
+    "iframe": false,
+    "tab": false,
+    "buttons": [
+      {
+        "text": "",
+        "title": "",
+        "aria": "打开侧边栏",
+        "vis": true
+      },
+      {
+        "text": "DSH Bot",
+        "title": "即将开始的这个会话所用的 Agent 预设",
+        "aria": "",
+        "vis": true
+      },
+      {
+        "text": "",
+        "title": "",
+        "aria": "折叠底部面板",
+        "vis": true
+      },
+      {
+        "text": "",
+        "title": "",
+        "aria": "折叠侧边栏",
+        "vis": true
+      },
+      {
+        "text": "",
+        "title": "新建标签页",
+        "aria": "新建标签页",
+        "vis": true
+      },
+      {
+        "text": "",
+        "title": "",
+        "aria": "折叠底部面板",
+        "vis": true
+      },
+      {
+        "text": "",
+        "title": "新建标签页",
+        "aria": "新建标签页",
+        "vis": true
+      },
+      {
+        "text": "DSH Bot",
+        "title": "",
+        "aria": "",
+        "vis": true
+      },
+      {
+        "text": "DSH Bot运行在本机 DSH 插件环境里的常驻对话助手。",
+        "title": "",
+        "aria": "",
+        "vis": true
+      }
+    ]
+  }
+]

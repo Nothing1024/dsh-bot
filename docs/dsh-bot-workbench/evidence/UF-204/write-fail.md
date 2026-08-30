@@ -1,34 +1,38 @@
-# UF-204 write-fail (preset/registry rollback)
+# UF-204 写盘失败
 
-Date: 2026-08-30. Task 13. Code-level fixture (spec 5.2: 只读目录或代码级 fixture).
+时间: 2026-08-30T11:10:45.025Z
+网关: `127.0.0.1:3084  pid=55016  DSH_HOME=/Users/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin/env  cwd=/Users/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin`
 
-Host `packages/dsh-bot-host/tests/bots.spec.ts` already hard-verifies BR-202 rollback.
 
-## 1. Registry write fail after rewrite (chmod 0555 on `$DSH_HOME/dsh-bot`)
+## 1. Live host（chmod 0555 on `$DSH_HOME/dsh-bot`）
+
+`updateBot` → ok=false error={
+  "code": "internal",
+  "message": "EACCES: permission denied, open '/Users/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin/env/dsh-bot/bots.json.55016.1788088328379.tmp'"
+}
+
+原 persona 保留: true
+
+## 2. 代码级 fixture
+
+`pnpm --filter dsh-bot-host exec vitest run tests/bots.spec.ts -t "rolls back"`
+
+exit=0
 
 ```
-it('rolls back the preset if the registry write fails after rewrite')
-chmodSync(join(home, 'dsh-bot'), 0o555)
-await expect(bots.updateBot({ id, persona: '新人设' })).rejects.toThrow()
-persona file still '旧人设'; listBots persona still '旧人设'
+
+ RUN  v4.1.11 /Users/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin
+
+ ✓ packages/dsh-bot-host/tests/bots.spec.ts (17 tests | 14 skipped) 18ms
+
+ Test Files  1 passed (1)
+      Tests  3 passed | 14 skipped (17)
+   Start at  19:12:08
+   Duration  146ms (transform 34ms, setup 0ms, import 62ms, tests 18ms, environment 0ms)
+
+
+
 ```
 
-UI: `updateBot` returns `{ok:false,error}` → BotForm `data-testid=bot-form-error` keeps the original fields (`busy` unlocks, submit lock clears). Roster row is unchanged.
+Host `bots.spec.ts`：registry write fail after rewrite 回滚；broken update 回滚。UI：`updateBot` `ok:false` 时 BotForm 不关面板、原值保留。
 
-## 2. Broken preset after rewrite
-
-```
-it('rolls back a broken update and keeps the previous composition')
-gate.list marks the managed preset broken → updateBot throws preset-broken
-composition restored to '旧人设'
-```
-
-## 3. Live host
-
-`pnpm --filter dsh-bot-host test` 76 passed, including the two rollback cases above.
-No half-written persona and no registry mutation on failure.
-
-## 4. UI contract
-
-`BotForm` shows `formError` from `updateBot` and does not close the panel (`setForm(null)` only on ok).
-Original name/persona stay in the inputs (controlled state is not reset).

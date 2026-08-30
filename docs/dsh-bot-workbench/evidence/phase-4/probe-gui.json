@@ -1,0 +1,329 @@
+{
+  "wb": {
+    "title": "DSH Bot",
+    "testids": [
+      "workbench-shell",
+      "workbench-roster",
+      "roster-new",
+      "roster-row-dsh-bot",
+      "roster-avatar-dsh-bot",
+      "roster-name-dsh-bot",
+      "roster-preview-dsh-bot",
+      "roster-menu-dsh-bot",
+      "roster-row-shiren-xiaobei",
+      "roster-avatar-shiren-xiaobei",
+      "roster-name-shiren-xiaobei",
+      "roster-preview-shiren-xiaobei",
+      "roster-menu-shiren-xiaobei",
+      "roster-row-rukou-zhikai",
+      "roster-avatar-rukou-zhikai",
+      "roster-name-rukou-zhikai",
+      "roster-preview-rukou-zhikai",
+      "roster-menu-rukou-zhikai",
+      "roster-row-rukou-yeqian",
+      "roster-avatar-rukou-yeqian",
+      "roster-name-rukou-yeqian",
+      "roster-preview-rukou-yeqian",
+      "roster-menu-rukou-yeqian",
+      "roster-row-yeqian-fuhe",
+      "roster-avatar-yeqian-fuhe",
+      "roster-name-yeqian-fuhe",
+      "roster-preview-yeqian-fuhe",
+      "roster-menu-yeqian-fuhe",
+      "workbench-conversation",
+      "conversation-pane",
+      "conversation-identity",
+      "conversation-name",
+      "session-select",
+      "include-hidden",
+      "session-new",
+      "empty-chat-cta",
+      "composer",
+      "composer-input",
+      "composer-send"
+    ],
+    "text": "人设\n+ 新建人设\nD\nDSH Bot\n30m\n⋯\n诗\n诗人小北\n1h\n⋯\n入\n入口直开\n1h\n⋯\n入\n入口页签\n1h\n⋯\n页\n页签复核\n1m\n⋯\nD\nDSH Bot\n对话\ndsh-bot-manual-20260830-183331-override-off\nsession-\ndsh-bot-manual-20260830-183331-override-on\ndsh-bot-manual-20260830-183331-plugin\nsession-\nDSH Bot\nv1 leftover\nGUI直建补标\nworkbench-task8\n询问你是谁并介绍自己\nDSH Bot\nUF005 PIN Query\nuf005-def-pin switch check\nDSH Bot\nUF-006 invalid t19\nuf005 default switch rerun check\nCall dsh_bot_ask exactly once with\nReply with exactly: uf005 missing\nReply with exactly: should fail\nReply with exactly: should fail\nUF-006 override-off t19\nsession-\nUF-006 override-on t19\nCall dsh_bot_ask with default switch ok\nExact phrase reply request\nUF-003 jump t19\nCall dsh_bot_ask concurrent B\nCall dsh_bot_ask concurrent A\nCall dsh_bot_ask pong prompt\n询问AI助手身份\ndsh-bot-manual-20260829-231307-override-off\nsession-\ndsh-bot-manual-20260829-231307-override-on\ndsh-bot-manual-20260829-231307-plugin\nsession-\nCall dsh_bot_ask phase3 pong\nRequest exact three-word reply\nDSH Bot\nUF-003 jump\nCall dsh_bot_ask for phase3 pong\nRequest exact three-word reply\nDSH Bot\nPhase3 tab\nCall dsh_bot_ask ping missing-key\nCall dsh_bot_ask phase2 pong\n询问助手身份\nCall dsh_bot_ask with ping\nCall dsh_bot_ask with ping\nCall dsh_bot_ask concurrent B\nCall dsh_bot_ask concurrent A\nCall dsh_bot_ask with timeout\nCall dsh_bot_ask tool once\nsession-\n询问AI身份\nsession-\nsession-\n询问人工智能身份\n包含隐藏\n新开对话\n\n还没有对话\n\n给 DSH Bot 发一条消息开始，或点「新开对话」\n\n发送"
+  },
+  "gui": {
+    "title": "dsh-bot-manual-20260830-183331-override-off — DeepSeek Harness",
+    "testids": [],
+    "buttons": [
+      {
+        "text": "",
+        "title": "",
+        "aria": "新建会话"
+      },
+      {
+        "text": "",
+        "title": "",
+        "aria": "收起侧边栏"
+      },
+      {
+        "text": "新会话",
+        "title": "",
+        "aria": "新建会话"
+      },
+      {
+        "text": "",
+        "title": "",
+        "aria": "搜索会话"
+      },
+      {
+        "text": "",
+        "title": "",
+        "aria": "视图选项"
+      },
+      {
+        "text": "",
+        "title": "",
+        "aria": "添加工作区"
+      },
+      {
+        "text": "",
+        "title": "",
+        "aria": "工作区“plugin”的操作"
+      },
+      {
+        "text": "",
+        "title": "",
+        "aria": "在“plugin”中新建会话"
+      },
+      {
+        "text": "",
+        "title": "",
+        "aria": "会话“DSH Bot”的操作"
+      },
+      {
+        "text": "",
+        "title": "",
+        "aria": "会话“UF-006 invalid t19”的操作"
+      },
+      {
+        "text": "",
+        "title": "",
+        "aria": "会话“UF-006 override-off t19”的操作"
+      },
+      {
+        "text": "",
+        "title": "",
+        "aria": "会话“UF-006 override-on t19”的操作"
+      },
+      {
+        "text": "展开其余 2 个会话",
+        "title": "",
+        "aria": ""
+      },
+      {
+        "text": "",
+        "title": "",
+        "aria": "在“未分组”中新建会话"
+      },
+      {
+        "text": "设置",
+        "title": "",
+        "aria": ""
+      },
+      {
+        "text": "plugin",
+        "title": "",
+        "aria": "选择工作区"
+      },
+      {
+        "text": "DSH Bot",
+        "title": "即将开始的这个会话所用的 Agent 预设",
+        "aria": ""
+      },
+      {
+        "text": "",
+        "title": "",
+        "aria": "命令"
+      },
+      {
+        "text": "Workspace Write",
+        "title": "",
+        "aria": "访问模式，当前：Workspace Write"
+      },
+      {
+        "text": "grok-4.6Xhigh",
+        "title": "grok-4.6 · Xhigh",
+        "aria": "选择模型，当前 grok-4.6，推理等级 Xhigh"
+      },
+      {
+        "text": "",
+        "title": "",
+        "aria": "发送消息"
+      },
+      {
+        "text": "",
+        "title": "",
+        "aria": "关闭详情"
+      },
+      {
+        "text": "",
+        "title": "",
+        "aria": "展开底部面板"
+      },
+      {
+        "text": "",
+        "title": "",
+        "aria": "展开侧边栏"
+      },
+      {
+        "text": "",
+        "title": "",
+        "aria": "关闭"
+      },
+      {
+        "text": "",
+        "title": "新建标签页",
+        "aria": "新建标签页"
+      },
+      {
+        "text": "",
+        "title": "文件树面板",
+        "aria": "文件树面板"
+      },
+      {
+        "text": "",
+        "title": "刷新",
+        "aria": "刷新"
+      },
+      {
+        "text": "@文件",
+        "title": "@文件",
+        "aria": "@文件"
+      },
+      {
+        "text": "@文件",
+        "title": "@文件",
+        "aria": "@文件"
+      },
+      {
+        "text": "@文件",
+        "title": "@文件",
+        "aria": "@文件"
+      },
+      {
+        "text": "@文件",
+        "title": "@文件",
+        "aria": "@文件"
+      },
+      {
+        "text": "@文件",
+        "title": "@文件",
+        "aria": "@文件"
+      },
+      {
+        "text": "@文件",
+        "title": "@文件",
+        "aria": "@文件"
+      },
+      {
+        "text": "@文件",
+        "title": "@文件",
+        "aria": "@文件"
+      },
+      {
+        "text": "@文件",
+        "title": "@文件",
+        "aria": "@文件"
+      },
+      {
+        "text": "@文件",
+        "title": "@文件",
+        "aria": "@文件"
+      },
+      {
+        "text": "@文件",
+        "title": "@文件",
+        "aria": "@文件"
+      },
+      {
+        "text": "@文件",
+        "title": "@文件",
+        "aria": "@文件"
+      },
+      {
+        "text": "@文件",
+        "title": "@文件",
+        "aria": "@文件"
+      },
+      {
+        "text": "@文件",
+        "title": "@文件",
+        "aria": "@文件"
+      },
+      {
+        "text": "@文件",
+        "title": "@文件",
+        "aria": "@文件"
+      },
+      {
+        "text": "@文件",
+        "title": "@文件",
+        "aria": "@文件"
+      },
+      {
+        "text": "@文件",
+        "title": "@文件",
+        "aria": "@文件"
+      },
+      {
+        "text": "@文件",
+        "title": "@文件",
+        "aria": "@文件"
+      },
+      {
+        "text": "@文件",
+        "title": "@文件",
+        "aria": "@文件"
+      },
+      {
+        "text": "@文件",
+        "title": "@文件",
+        "aria": "@文件"
+      },
+      {
+        "text": "",
+        "title": "",
+        "aria": "折叠底部面板"
+      },
+      {
+        "text": "",
+        "title": "新建标签页",
+        "aria": "新建标签页"
+      },
+      {
+        "text": "文件",
+        "title": "文件",
+        "aria": ""
+      },
+      {
+        "text": "源代码管理",
+        "title": "源代码管理",
+        "aria": ""
+      },
+      {
+        "text": "DSH Bot",
+        "title": "DSH Bot",
+        "aria": ""
+      },
+      {
+        "text": "任务管理",
+        "title": "任务管理",
+        "aria": ""
+      },
+      {
+        "text": "终端",
+        "title": "终端",
+        "aria": ""
+      },
+      {
+        "text": "浏览器",
+        "title": "浏览器",
+        "aria": ""
+      }
+    ],
+    "text": "新会话\n工作区\nplugin\n新会话\nDSH Bot\n18小时\nUF-006 invalid t19\n19小时\nUF-006 override-off t19\n19小时\nUF-006 override-on t19\n19小时\n展开其余 2 个会话\n未分组\n设置\n探索未至之境\n预览版\nplugin\nDSH Bot\nWorkspace Write\ngrok-4.6\nXhigh\n详情\n点击消息流中的工具行查看详情"
+  }
+}

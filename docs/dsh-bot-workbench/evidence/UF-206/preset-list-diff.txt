@@ -1,0 +1,12 @@
+# UF-206 preset / marks / official GUI
+
+preset dir `env/.agent-presets/dsh-bot--shiren-xiaobei` exists after delete: false
+workbench `roster-row-shiren-xiaobei` count: 0
+
+session `session-44576a1a-771f-4216-b5cf-56e246b29e06` (title t18fix-poet-hist, preset dsh-bot--shiren-xiaobei)
+marks after delete (should remain):
+session-44576a1a-771f-4216-b5cf-56e246b29e06 bot:shiren-xiaobei,kind:dsh-bot
+
+official GUI: search `t18fix-poet-hist` → session still listed; transcript still shows
+「我是诗人小北 君问姓名何所似 北窗诗酒一闲人」
+screenshot: official-rail.png

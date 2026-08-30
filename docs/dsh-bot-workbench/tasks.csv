@@ -16,5 +16,5 @@
 15,P3:身份与对账,执行 Phase 3 回归验证,spec.md#task-15,13;14,UF-201~205 主路径复现 + pnpm -r build/test,已完成,
 16,P4:收尾与验收,standards 与 manual-test 扩展,spec.md#task-16,15,standard:check 0 FAIL + manual-test --no-write 全步通过,已完成,evidence/phase-4/standard-check.log + manual-test.log
 17,P4:收尾与验收,文档更新,spec.md#task-17,15,README 四点边界齐全(人工核对),已完成,evidence/phase-4/docs-diff.md
-18,P4:收尾与验收,执行 spec 5.2 真实场景全套测试,spec.md#task-18,16;17,5.2 执行矩阵 15 行逐行回放全部通过 + 二次跑包校验,待开始,
-19,P4:收尾与验收,执行 Phase 4 回归验证(总收尾),spec.md#task-19,18,全量命令级 + v1 回归 + 邻仓零 diff + 红线 rg 为空,待开始,
+18,P4:收尾与验收,执行 spec 5.2 真实场景全套测试,spec.md#task-18,16;17,5.2 执行矩阵 15 行逐行回放全部通过 + 二次跑包校验,已完成,review-fix: GUI 直建+打开工作台对账; sidA 非空; official-rail; v1-gui-chat 非落地页
+19,P4:收尾与验收,执行 Phase 4 回归验证(总收尾),spec.md#task-19,18,全量命令级 + v1 回归 + 邻仓零 diff + 红线 rg 为空,已完成,build/typecheck/test/standard:check 全绿; v1-regression.md; 邻仓 session-tool/genoffice 空; vibee 并发脏非本仓写入

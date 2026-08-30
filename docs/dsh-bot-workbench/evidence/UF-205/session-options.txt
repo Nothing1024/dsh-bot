@@ -1,3 +1,15 @@
+dsh-bot-manual-20260830-183331-override-off
+v1 leftover t18
+询问身份并自称DSH Bot
+session-
+session-
+GUI直建补标 ping。Reply with exactl
+DSH Bot
+session-
+dsh-bot-manual-20260830-183331-override-on
+dsh-bot-manual-20260830-183331-plugin
+session-
+DSH Bot
 v1 leftover
 GUI直建补标
 workbench-task8

@@ -1,14 +1,13 @@
 {
   "port": 3184,
-  "dshHome": "/tmp/dsh-wb-first-run",
-  "rows": [
+  "dshHome": "/tmp/dsh-wb-t18",
+  "who": "127.0.0.1:3184  pid=31726  DSH_HOME=/tmp/dsh-wb-t18  cwd=/Users/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin",
+  "names": [
     "DSH Bot"
   ],
-  "select": "新对话",
-  "hidden": 1,
+  "select": "",
   "hiddenChecked": false,
   "cta": "还没有对话\n\n给 DSH Bot 发一条消息开始，或点「新开对话」",
-  "errors": [
-    "Failed to load resource: the server responded with a status of 404 (Not Found)"
-  ]
+  "extraRows": 1,
+  "ok": true
 }

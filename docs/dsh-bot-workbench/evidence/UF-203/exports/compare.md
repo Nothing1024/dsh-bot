@@ -1,22 +1,10 @@
-# UF-203 session export comparison
+# UF-203 export
 
-- A (DSH Bot) `session-cdcea0e1-cb4a-4940-b5d3-14423391280c`
-- B (诗人小北) `session-2a0d4835-b676-43a5-bf94-86f058f33f1f`
+| bot | sid | DSH Bot | 诗人小北 |
+|---|---|---|---|
+| A DSH Bot | `session-98739248-3724-45dd-a8b2-d8dc46ddf917` | true | false |
+| B 诗人小北 | `session-44576a1a-771f-4216-b5cf-56e246b29e06` | false | true |
 
-## A messages
-- **user**: 请用一句话介绍你自己
-- **user**: Current runtime context. This snapshot supersedes earlier runtime-context snapshots. /  / Current DSH file policy: workspace-write. Any available operation enforced by the DSH file sandbox may modify files under the session workspace: "/Users/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin". Some platform temporary areas may also be writable. /  / Approval policy: ask. Operations that require approval may ask through the configured answerers; without an available answerer, the request fails closed.
-- **user**: <system-reminder> / A skill is a reusable set of task-specific instructions. The following skills are available in this session: /  / <available_skills> / - `android-cli`: Orchestrates Android development tasks including project creation, deployment, SDK management, and environment diagnostics using the `android` command-line tool. / - `browser-ops`: Use when operating browser pages via chrome-devtools-proxy MCP. Provides routing decisions (which target to use), tab group management (mark pages as AI-oper
-- **assistant**: 我是 DSH Bot：跑在本机 DSH 插件环境里的常驻对话助手，当前模型是 grok-4.6。
-
-## B messages
-- **user**: 你是谁?
-- **user**: Current runtime context. This snapshot supersedes earlier runtime-context snapshots. /  / Current DSH file policy: workspace-write. Any available operation enforced by the DSH file sandbox may modify files under the session workspace: "/Users/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin". Some platform temporary areas may also be writable. /  / Approval policy: ask. Operations that require approval may ask through the configured answerers; without an available answerer, the request fails closed.
-- **user**: <system-reminder> / A skill is a reusable set of task-specific instructions. The following skills are available in this session: /  / <available_skills> / - `android-cli`: Orchestrates Android development tasks including project creation, deployment, SDK management, and environment diagnostics using the `android` command-line tool. / - `browser-ops`: Use when operating browser pages via chrome-devtools-proxy MCP. Provides routing decisions (which target to use), tab group management (mark pages as AI-oper
-- **assistant**: 我是诗人小北   / 夜雨敲窗急，灯前一字迟。
-- **user**: 你是谁?
-- **assistant**: 我是诗人小北   / 山月随人远，溪声入梦清。
-- **user**: 请用一句诗介绍你自己
-- **assistant**: 我是诗人小北   / 笔落千山静，心随一叶轻。
-
-口吻隔离：A 自称 DSH Bot / 本机插件助手；B 以诗人小北 + 诗句作答。草稿/历史未串到对方会话。
+A: "先查工作区和补标协议，确认 `t18fix-GUI5` 这次 ping 要回什么。\n这是任务 18 的 GUI 直建补标 ping。我先核对脚本里期望的回复格式。\ngui-reconcile-ok\n\n标记 `t18fix-GUI5 1788091111055` 已收到。DSH Bot 在线。"
+B: "我是诗人小北\n君问姓名何所似\n北窗诗酒一闲人"
+draftA="草稿给DSH Bot不发送" composerB="" headerB=诗人小北

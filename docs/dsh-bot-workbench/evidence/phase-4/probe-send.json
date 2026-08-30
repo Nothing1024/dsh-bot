@@ -1,0 +1,99 @@
+{
+  "before": [
+    {
+      "id": "session-d1e9b",
+      "blank": false,
+      "running": false,
+      "u": 1788090719094,
+      "preset": "dsh-bot"
+    },
+    {
+      "id": "session-b26bd",
+      "blank": false,
+      "running": false,
+      "u": 1788090482657,
+      "preset": "dsh-bot--shiren-xiaobei"
+    },
+    {
+      "id": "session-bc674",
+      "blank": false,
+      "running": false,
+      "u": 1788090480712,
+      "preset": "dsh-bot"
+    },
+    {
+      "id": "session-cfc5b",
+      "blank": false,
+      "running": false,
+      "u": 1788090464830,
+      "preset": "dsh-bot"
+    },
+    {
+      "id": "session-39c84",
+      "blank": false,
+      "running": false,
+      "u": 1788090104703,
+      "preset": "dsh-bot"
+    },
+    {
+      "id": "session-727b7",
+      "blank": false,
+      "running": false,
+      "u": 1788088460659,
+      "preset": "dsh-bot"
+    }
+  ],
+  "after": [
+    {
+      "id": "session-f2faa",
+      "blank": false,
+      "running": true,
+      "u": 1788090828599,
+      "preset": "dsh-bot"
+    },
+    {
+      "id": "session-d1e9b",
+      "blank": false,
+      "running": false,
+      "u": 1788090719094,
+      "preset": "dsh-bot"
+    },
+    {
+      "id": "session-b26bd",
+      "blank": false,
+      "running": false,
+      "u": 1788090482657,
+      "preset": "dsh-bot--shiren-xiaobei"
+    },
+    {
+      "id": "session-bc674",
+      "blank": false,
+      "running": false,
+      "u": 1788090480712,
+      "preset": "dsh-bot"
+    },
+    {
+      "id": "session-cfc5b",
+      "blank": false,
+      "running": false,
+      "u": 1788090464830,
+      "preset": "dsh-bot"
+    },
+    {
+      "id": "session-39c84",
+      "blank": false,
+      "running": false,
+      "u": 1788090104703,
+      "preset": "dsh-bot"
+    }
+  ],
+  "editors": [
+    {
+      "ph": "描述你想要构建的内容",
+      "vis": true,
+      "disabled": false,
+      "val": ""
+    }
+  ],
+  "body": "新会话\n工作区\nplugin\n进行中\ndsh-bot-manual-20260830-183331-plugin\n刚刚\nv1 leftover t18\n12分钟\ndsh-bot-manual-20260830-183331-override-off\n6分钟\ndsh-bot-manual-20260830-183331-override-on\n1分钟\nDSH Bot\n19小时\n展开其余 5 个会话\n未分组\n设置\ndsh-bot-manual-20260830-183331-plugin\nDSH Bot\nSession log\n对话\n轨迹\nGUI直建 probe t18fix-GUI3\n19:53\n上下文注入\n@deepseek-ai/dsh-system-prompt\n上下文注入\nskill-catalog\nDeep diving...\nWorkspace Write\ngrok-4.6\nXhigh\n详情\n点击消息流中的工具行查看详情"
+}

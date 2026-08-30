@@ -1,0 +1,164 @@
+{
+  "before": [
+    {
+      "id": "session-39c84391-3556-41bb-a947-276e7425175c",
+      "blank": false,
+      "running": false,
+      "u": 1788090104703
+    },
+    {
+      "id": "session-727b7627-147f-4380-af31-a9c04267fcc0",
+      "blank": false,
+      "running": false,
+      "u": 1788088460659
+    },
+    {
+      "id": "session-41f479ce-3e16-48be-aa8b-b9f899f9a18d",
+      "blank": false,
+      "running": false,
+      "u": 1788088456701
+    },
+    {
+      "id": "session-59892c0b-5e24-4716-9666-2fbbb18f6b4a",
+      "blank": false,
+      "running": false,
+      "u": 1788088454160
+    },
+    {
+      "id": "session-42b88f14-2eae-4287-8932-4f7ff9e8bf3d",
+      "blank": false,
+      "running": false,
+      "u": 1788088335835
+    },
+    {
+      "id": "session-e6c7059d-c8b8-4d45-8e8d-d032f0e65a65",
+      "blank": false,
+      "running": false,
+      "u": 1788088334485
+    },
+    {
+      "id": "session-7cbdd12a-c4bd-429c-af9d-e4f11a7bdc17",
+      "blank": false,
+      "running": false,
+      "u": 1788088329228
+    },
+    {
+      "id": "session-61a3ec52-3b34-4d0e-abde-43e22e901959",
+      "blank": false,
+      "running": false,
+      "u": 1788088320124
+    }
+  ],
+  "steps": [
+    {
+      "label": "load",
+      "title": "dsh-bot-manual-20260830-183331-override-off — DeepSeek Harness",
+      "hero": "新会话\n工作区\nplugin\n新会话\nv1 leftover t18\n3分钟\nDSH Bot\n19小时\nUF-006 invalid t19\n20小时\nUF-006 override-off t19\n20小时\n展开其余 3 个会话\n未分组\n设置\n探索未至之境\n预览版\nplugin\nDSH Bot\nWorkspace Write\ngrok-4.6\nXhigh\n详情\n点击消息流中的工具行查看详情",
+      "ids": [
+        {
+          "id": "session-39c84391-3556-41bb-a947-276e7425175c",
+          "blank": false,
+          "running": false,
+          "u": 1788090104703
+        },
+        {
+          "id": "session-727b7627-147f-4380-af31-a9c04267fcc0",
+          "blank": false,
+          "running": false,
+          "u": 1788088460659
+        },
+        {
+          "id": "session-41f479ce-3e16-48be-aa8b-b9f899f9a18d",
+          "blank": false,
+          "running": false,
+          "u": 1788088456701
+        },
+        {
+          "id": "session-59892c0b-5e24-4716-9666-2fbbb18f6b4a",
+          "blank": false,
+          "running": false,
+          "u": 1788088454160
+        },
+        {
+          "id": "session-42b88f14-2eae-4287-8932-4f7ff9e8bf3d",
+          "blank": false,
+          "running": false,
+          "u": 1788088335835
+        },
+        {
+          "id": "session-e6c7059d-c8b8-4d45-8e8d-d032f0e65a65",
+          "blank": false,
+          "running": false,
+          "u": 1788088334485
+        },
+        {
+          "id": "session-7cbdd12a-c4bd-429c-af9d-e4f11a7bdc17",
+          "blank": false,
+          "running": false,
+          "u": 1788088329228
+        },
+        {
+          "id": "session-61a3ec52-3b34-4d0e-abde-43e22e901959",
+          "blank": false,
+          "running": false,
+          "u": 1788088320124
+        }
+      ]
+    },
+    {
+      "label": "after-click",
+      "title": "dsh-bot-manual-20260830-183331-override-off — DeepSeek Harness",
+      "hero": "新会话\n工作区\nplugin\n新会话\nv1 leftover t18\n3分钟\nDSH Bot\n19小时\nUF-006 invalid t19\n20小时\nUF-006 override-off t19\n20小时\n展开其余 3 个会话\n未分组\n设置\n探索未至之境\n预览版\nplugin\nDSH Bot\nWorkspace Write\ngrok-4.6\nXhigh\n详情\n点击消息流中的工具行查看详情",
+      "ids": [
+        {
+          "id": "session-39c84391-3556-41bb-a947-276e7425175c",
+          "blank": false,
+          "running": false,
+          "u": 1788090104703
+        },
+        {
+          "id": "session-727b7627-147f-4380-af31-a9c04267fcc0",
+          "blank": false,
+          "running": false,
+          "u": 1788088460659
+        },
+        {
+          "id": "session-41f479ce-3e16-48be-aa8b-b9f899f9a18d",
+          "blank": false,
+          "running": false,
+          "u": 1788088456701
+        },
+        {
+          "id": "session-59892c0b-5e24-4716-9666-2fbbb18f6b4a",
+          "blank": false,
+          "running": false,
+          "u": 1788088454160
+        },
+        {
+          "id": "session-42b88f14-2eae-4287-8932-4f7ff9e8bf3d",
+          "blank": false,
+          "running": false,
+          "u": 1788088335835
+        },
+        {
+          "id": "session-e6c7059d-c8b8-4d45-8e8d-d032f0e65a65",
+          "blank": false,
+          "running": false,
+          "u": 1788088334485
+        },
+        {
+          "id": "session-7cbdd12a-c4bd-429c-af9d-e4f11a7bdc17",
+          "blank": false,
+          "running": false,
+          "u": 1788088329228
+        },
+        {
+          "id": "session-61a3ec52-3b34-4d0e-abde-43e22e901959",
+          "blank": false,
+          "running": false,
+          "u": 1788088320124
+        }
+      ]
+    }
+  ]
+}
