@@ -1,0 +1,16 @@
+序号,Phase,名称,详情锚点,前置任务,验证命令,状态,备注
+1,P0:校准,校准并发行为/引擎态通道/jsonl 兼容,spec.md#task-1,无,calibration.md 存在且 ASM-501~503 全消解,待开始,豁免回归:P0 单实现任务
+2,P1:多轮引擎与队列,实现多轮调度器 runGroupDiscussion,spec.md#task-2,1,pnpm --filter dsh-bot-host run build && pnpm --filter dsh-bot-host test → 全绿(含默认一轮等价用例),待开始,
+3,P1:多轮引擎与队列,实现继续讨论与轮内排队(host),spec.md#task-3,2,pnpm --filter dsh-bot-host test + RPC 讨论中 queuePrompt→结束自动触发,待开始,
+4,P1:多轮引擎与队列,执行 Phase 1 回归验证,spec.md#task-4,3,pnpm -r run build && pnpm -r test + rounds=2 房间导出含两轮 + 默认组与三期一致,待开始,
+5,P2:讨论交互面,实现轮次进度/chips 三态/继续讨论按钮,spec.md#task-5,4,pnpm --filter workbench-ui run build && pnpm --filter workbench-ui test → 全绿,待开始,
+6,P2:讨论交互面,实现引用回复(Transcript+Composer+host),spec.md#task-6,4,pnpm -r test → 全绿(优先级矩阵用例),待开始,
+7,P2:讨论交互面,实现轮内排队 UI,spec.md#task-7,5,pnpm --filter workbench-ui test → 全绿,待开始,
+8,P2:讨论交互面,执行 Phase 2 回归验证,spec.md#task-8,6;7,pnpm -r run build && pnpm -r test + 浏览器 UF-501/502/503/504 主路径,待开始,
+9,P3:房间管理与重试,实现房间标题/重命名/删除,spec.md#task-9,8,pnpm --filter dsh-bot-host test && pnpm --filter workbench-ui test → 全绿,待开始,
+10,P3:房间管理与重试,实现 roster 小组 working 真值与引擎态接入,spec.md#task-10,8,pnpm -r test + 讨论中切走小组行 working 仍亮,待开始,
+11,P3:房间管理与重试,实现单成员失败重试,spec.md#task-11,9,pnpm -r test → 全绿(重试/并发拒绝/触顶用例),待开始,
+12,P3:房间管理与重试,执行 Phase 3 回归验证,spec.md#task-12,10;11,pnpm -r run build && pnpm -r test + UF-505/506 主路径 + 三期旧房间可聊,待开始,
+13,P4:收尾验收,更新 standards/manual-test/README,spec.md#task-13,12,pnpm run standard:check 0 FAIL + bash scripts/manual-test.sh --no-write 全过,待开始,
+14,P4:收尾验收,执行 spec 5.2 真实场景全套测试,spec.md#task-14,13,5.2 矩阵逐行回放全过 + validate_package.py 证据审计 0 FAIL,待开始,
+15,P4:收尾验收,执行 Phase 4 回归验证,spec.md#task-15,14,pnpm -r build/typecheck/test/standard:check 全绿 + v1/v2/三期抽验 + 红线 rg 为空,待开始,
