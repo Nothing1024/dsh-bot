@@ -21,6 +21,7 @@ import {
   isSkipReply,
   parseMentions,
   runGroupRound,
+  toRoomSpeech,
 } from '../src/group-engine.ts'
 import { get } from 'session-marks'
 import type { BotView, BotsRuntime } from '../src/bots.ts'
@@ -239,18 +240,49 @@ describe('isSkipReply', () => {
 })
 
 describe('buildMemberTurnPrompt', () => {
-  it('is original copy and names the speaking member', () => {
+  it('names the speaker and room without host banners', () => {
     const prompt = buildMemberTurnPrompt({
       groupName: '编辑室',
       memberName: '诗人小北',
       peerNames: ['DSH Bot'],
-      userText: '你们是谁?',
       recent: ['用户: 你们是谁?'],
     })
     expect(prompt).toMatch(/诗人小北/)
     expect(prompt).toMatch(/编辑室/)
+    expect(prompt).toMatch(/用户: 你们是谁/)
+    expect(prompt).not.toMatch(/【/)
+    expect(prompt).not.toMatch(/小组房间轮次/)
+    expect(prompt).not.toMatch(/SAND_HIDDEN/)
+    expect(prompt).not.toMatch(/Group chat:/)
     expect(prompt.includes('SendMessage')).toBe(false)
     expect(prompt.includes(['sand', '://'].join(''))).toBe(false)
+  })
+})
+
+describe('toRoomSpeech', () => {
+  const prompt = buildMemberTurnPrompt({
+    groupName: '编辑室',
+    memberName: '诗人小北',
+    peerNames: ['DSH Bot'],
+    recent: ['用户: 你们是谁?'],
+  })
+
+  it('returns the assistant line as room speech', () => {
+    expect(toRoomSpeech('我是诗人小北。', prompt)).toBe('我是诗人小北。')
+  })
+
+  it('strips an echoed turn prompt', () => {
+    expect(toRoomSpeech(`${prompt}\n\n窗含西岭千秋雪`, prompt)).toBe('窗含西岭千秋雪')
+  })
+
+  it('strips leaked host banners', () => {
+    expect(toRoomSpeech('【小组房间轮次】\n我是小北', prompt)).toBe('我是小北')
+    expect(toRoomSpeech('[SAND_HIDDEN_PROMPT]hello', prompt)).toBe('hello')
+  })
+
+  it('skips pass and empty', () => {
+    expect(toRoomSpeech('(pass)', prompt)).toBeUndefined()
+    expect(toRoomSpeech('   ', prompt)).toBeUndefined()
   })
 })
 
@@ -309,6 +341,34 @@ describe('runGroupRound', () => {
     expect(members).toHaveLength(1)
     expect(members[0]?.speaker).toEqual({ kind: 'member', botId: POET.id })
     expect(platform.createCalls).toHaveLength(1)
+  })
+
+  it('does not copy an echoed turn prompt into the room', async () => {
+    const { groups, group, room } = await setupRoom()
+    const sessionTool = new StubSessionTool()
+    const platform = new StubPlatform()
+    const wake = buildMemberTurnPrompt({
+      groupName: group.name,
+      memberName: POET.name,
+      peerNames: [DSH.name],
+      recent: ['用户: 你们是谁?'],
+    })
+    const leaked = `【小组房间轮次】\n${wake}\n\n我才是房间里该看见的那句。`
+    sessionTool.setReply('session-owned-1', assistantText('session-owned-1', leaked))
+    sessionTool.setReply('session-owned-2', assistantText('session-owned-2', '我是 DSH Bot。'))
+    await runGroupRound({
+      sessionTool,
+      platform,
+      bots: fakeBots,
+      groups,
+      config: CONFIG,
+      tracker: createRoundTracker(),
+      createCwd: () => '/work',
+    }, { roomId: room.roomId, text: '你们是谁?' })
+    const state = await groups.peekRoom(room.roomId)
+    const blob = JSON.stringify(state?.messages)
+    expect(blob).not.toMatch(/小组房间轮次/)
+    expect(blob).toMatch(/我才是房间里该看见的那句/)
   })
 
   it('skips (pass) and does not write a member line', async () => {

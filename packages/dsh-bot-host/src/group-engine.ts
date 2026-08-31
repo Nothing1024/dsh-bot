@@ -1,7 +1,8 @@
 /**
  * Group round engine: mention parse + one serial turn per responder (BR-304).
- * Member replies come from a hidden per-(room, member) session; only the last
- * assistant text is written into the room (ASM-302 / ASM-303).
+ * Member replies come from a hidden per-(room, member) session. The official
+ * DSH session stays a normal agent turn (archived + kind:hidden). Only
+ * sanitized assistant text is copied into the DSH Bot group room jsonl.
  * @module dsh-bot-host/group-engine
  */
 
@@ -155,8 +156,10 @@ export function parseMentions(text: string, members: readonly MentionMember[]): 
 export function isSkipReply(text: string): boolean {
   const trimmed = text.trim()
   if (trimmed === '') return true
-  return trimmed.toLowerCase() === '(pass)'
+  return /^(?:\(\s*)?pass(?:\s*\))?\s*\.?$/i.test(trimmed)
 }
+
+const LEAKED_BANNER = /^(?:【小组房间轮次】|\[SAND_HIDDEN_PROMPT\]|\[Group chat:[^\]]*\])\s*/i
 
 function formatRoomLine(message: RoomMessage, names: Map<string, string>): string {
   if (message.speaker.kind === 'user') return `用户: ${message.text}`
@@ -166,29 +169,50 @@ function formatRoomLine(message: RoomMessage, names: Map<string, string>): strin
 }
 
 /**
- * Original round prompt (BR-308). Not copied from the reference tree.
+ * Wake text for a member's hidden DSH session. Identity comes from that
+ * session's agent preset — this is only room context plus whose turn it is.
+ * No host banners / protocol tags (those leak when we copy assistant text).
  */
 export function buildMemberTurnPrompt(input: {
   readonly groupName: string
   readonly memberName: string
   readonly peerNames: readonly string[]
-  readonly userText: string
   readonly recent: readonly string[]
 }): string {
-  const peers = input.peerNames.length === 0 ? '（仅你一人在本轮）' : input.peerNames.join('、')
-  const recent = input.recent.length === 0 ? '（尚无更早的房间消息）' : input.recent.join('\n')
+  const peers = input.peerNames.length === 0 ? '' : `同组还有 ${input.peerNames.join('、')}。`
+  const recent = input.recent.length === 0 ? '（房间里还没有更早的话。）' : input.recent.join('\n')
   return [
-    '【小组房间轮次】',
-    `你正在小组「${input.groupName}」里按自己的身份发言。你是「${input.memberName}」，不要扮演其他成员。`,
-    `同组成员：${peers}`,
-    '下面是房间里最近的对话（按时间）：',
+    `${input.memberName}，现在轮到你在「${input.groupName}」里说话。${peers}`,
+    '房间里刚说的：',
     recent,
-    '用户本轮说：',
-    input.userText,
-    '请只用你自己的口吻写出会出现在小组房间里的回复。',
-    '不要复述本提示，不要输出思考过程或工具经过。',
-    '如果这一轮没有要补充的，请只回复 (pass)。',
+    '按你自己的身份接一句。没有要补充的可以沉默。',
   ].join('\n')
+}
+
+/**
+ * What the DSH Bot group room may show. Official member sessions stay
+ * untouched; we only copy sanitized assistant text into our room jsonl.
+ */
+export function toRoomSpeech(answer: string, turnPrompt: string): string | undefined {
+  let text = answer.trim()
+  const prompt = turnPrompt.trim()
+  const lines = text.split('\n')
+  while (lines.length > 0) {
+    const trimmed = lines[0]!.trim()
+    const match = LEAKED_BANNER.exec(trimmed)
+    if (match === null) break
+    const rest = trimmed.slice(match[0].length)
+    if (rest === '') {
+      lines.shift()
+      continue
+    }
+    lines[0] = rest
+    break
+  }
+  text = lines.join('\n').trim()
+  if (prompt !== '' && text.startsWith(prompt)) text = text.slice(prompt.length).trim()
+  if (isSkipReply(text)) return undefined
+  return text
 }
 
 const roomLocks = new Map<string, Promise<void>>()
@@ -298,7 +322,6 @@ export async function runGroupRound(
             groupName: group.name,
             memberName: bot.name,
             peerNames: peers,
-            userText: text,
             recent,
           })
           await deps.sessionTool.write(CLI_CALLER, SessionId(sessionId), prompt)
@@ -320,8 +343,9 @@ export async function runGroupRound(
               { sessionId },
             )
           }
-          const answer = await lastAssistantText(deps.sessionTool, sessionId)
-          if (answer === undefined || isSkipReply(answer)) continue
+          const raw = await lastAssistantText(deps.sessionTool, sessionId)
+          const answer = raw === undefined ? undefined : toRoomSpeech(raw, prompt)
+          if (answer === undefined) continue
           await deps.groups.appendRoomMessage(roomId, { kind: 'member', botId: bot.id }, answer)
         } catch (error) {
           const code = error instanceof DshBotError ? error.code : 'internal'

@@ -74,6 +74,7 @@ ASM-301 已消解(见 1.3 实机行与 `evidence/phase-0/calibration.md`):按 (�
 | 日期 | 条目 | 原因 | 影响任务 |
 |---|---|---|---|
 | 2026-08-30 | ASM-301 消解 | Task 1 实机:默认列表 0 hidden; marks `group-room:` 可找回校准会话 | Task 1/2 完成; Task 7 按复用实现 |
+| 2026-08-31 | 轮次投递对齐 | 去掉 `【小组房间轮次】` 等 prompt 标识;房间只收净化后的成员正文;官方会话仍只跑隐藏 `~` 会话 | `group-engine.ts` `toRoomSpeech` |
 
 ---
 

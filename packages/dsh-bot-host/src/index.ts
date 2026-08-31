@@ -158,6 +158,7 @@ export {
   isSkipReply,
   parseMentions,
   runGroupRound,
+  toRoomSpeech,
 } from './group-engine.ts'
 export {
   AVATAR_COLORS,
