@@ -1,0 +1,6 @@
+## Task 2 useGlobalKeyboard
+expected: rg hit in App.tsx; workbench-ui tests include keyboard.spec.tsx
+
+import { useGlobalKeyboard } from './useGlobalKeyboard.ts'
+  useGlobalKeyboard({
+

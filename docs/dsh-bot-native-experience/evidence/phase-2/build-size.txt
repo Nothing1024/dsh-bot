@@ -1,0 +1,17 @@
+# ASM-101 包体积
+
+Date: 2026-09-03
+Command: pnpm --filter workbench-ui build
+
+tsdown output:
+  lib/workbench.js      345.75 kB │ gzip:  84.45 kB
+  lib/workbench.css     22 063 B  │ gzip:   4 209 B
+
+No new npm dependency (no emoji-mart / emoji-picker-element / emojibase).
+New source gzip (compresslevel=9):
+  emoji.ts               1 352 B
+  useGlobalKeyboard.ts     581 B
+  CommandPalette.tsx     1 779 B
+  total new files        3 712 B
+
+ASM-101 证实：增量远小于 20KB gzipped。

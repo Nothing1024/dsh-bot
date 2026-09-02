@@ -1,0 +1,7 @@
+## Task 5 onReplyTo
+
+packages/workbench-ui/src/Transcript.tsx:  readonly onReplyTo?: (item: WorkbenchHistoryItem) => void
+packages/workbench-ui/src/Transcript.tsx:  const canReply = props.onReplyTo !== undefined
+packages/workbench-ui/src/Transcript.tsx:            {...props.onReplyTo === undefined ? {} : {
+packages/workbench-ui/src/Transcript.tsx:                props.onReplyTo?.(item)
+packages/workbench-ui/src/Conversation.tsx:            onReplyTo: (item: WorkbenchHistoryItem) => {

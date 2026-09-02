@@ -1,0 +1,15 @@
+## Task 6 replyTo
+
+packages/workbench-ui/src/Composer.tsx:  readonly replyTo?: ComposerReplyTo | null
+packages/workbench-ui/src/Composer.tsx:      if (props.replyTo != null) {
+packages/workbench-ui/src/Composer.tsx:  const replyTo = props.replyTo
+packages/workbench-ui/src/Composer.tsx:      {replyTo !== undefined && replyTo !== null ? (
+packages/workbench-ui/src/Composer.tsx:            回复: {replyTo.speaker}: {clip(replyTo.text)}
+packages/workbench-ui/src/Conversation.tsx:  readonly replyTo: ComposerReplyTo
+packages/workbench-ui/src/Conversation.tsx:  const [replyTo, setReplyTo] = useState<ComposerReplyTo | null>(null)
+packages/workbench-ui/src/Conversation.tsx:      if (replyTo !== null) {
+packages/workbench-ui/src/Conversation.tsx:        const cited = replyTo
+packages/workbench-ui/src/Conversation.tsx:        setReplyMarks(current => [...current, { sessionId: id, text, replyTo: cited }])
+packages/workbench-ui/src/Conversation.tsx:              .map(row => ({ text: row.text, replyTo: row.replyTo })),
+packages/workbench-ui/src/Conversation.tsx:              : (replyMarks.find(row => row.sessionId === sessionId && row.text === pending.text)?.replyTo ?? null),
+packages/workbench-ui/src/Conversation.tsx:        {...replyTo === null ? {} : { replyTo }}

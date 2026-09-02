@@ -1,12 +1,12 @@
 
 == validate_package: /Users/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin/docs/dsh-bot-native-experience ==
-[PASS] spec.md 存在（626 行）
+[PASS] spec.md 存在（627 行）
 [PASS] 无 tasks.csv, 检测到 spec 第 4 章内嵌状态表（小需求模式）
 [PASS] 内嵌状态表 状态列取值全部合法
 [PASS] handoff.md 引用路径全部存在且均为相对路径
 [PASS] §0 人话摘要在位（6 行正文）
 [PASS] BR/UF/INV/EVD 引用闭环（定义 19 个）
-[PASS] §3.3 定位清单 待勘察/ASM 占比 29%（2/7）
+[PASS] §3.3 定位清单 待勘察/ASM 占比 0%（0/7）
 [PASS] 任务验证命令 待勘察/ASM 占比 6%（1/18）
 [PASS] 全部 4 个 UF 均有步骤级流程脚本
 [PASS] 全部 4 个流程脚本均含入口接线清单
@@ -15,7 +15,7 @@
 [PASS] 5.2 执行矩阵引用了 12 条具体 evidence 路径
 [PASS] 真实场景任务尚未标记完成, 证据审计跳过（执行完成后请重跑本脚本）
 [PASS] 无残留模板占位符
-[PASS] --repo 核验: §3.3 全部 5 条 rg anchor 命中
+[PASS] --repo 核验: §3.3 全部 7 条 rg anchor 命中
 [PASS] evidence/ 目录存在
 
 结果: 0 FAIL / 0 WARN / 17 PASS

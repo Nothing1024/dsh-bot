@@ -1,0 +1,12 @@
+loaded idle workbench
+palette items: ["+ 新建人设","+ 新建小组","清空当前对话","校对组","编辑室","校对阿宁","诗人小北","DSH Bot"]
+switched to 诗人小北, palette closed
+composer-focus Cmd+K kept="保留这段草稿 @" mentionMenus=0
+Escape closed palette
+before Shift+Enter {"hasComposer":true,"pane":"📜\n诗人小北\n对话\n新对话\n⋯\n新开对话\n\ninternal: cannot get property \"sessionProjections\" without inject\n\n😊\n发送"}
+after Shift+Enter {"hasComposer":true,"value":"第一行","pane":"📜\n诗人小北\n对话\n新对话\n⋯\n新开对话\n\ninternal: cannot get property \"sessionProjections\" without inject\n\n😊\n发送"}
+shift+enter value="第一行"
+Enter sent (pending or cleared)
+emoji inserted: "😀"
+cleared reply card
+tree cite visible=true

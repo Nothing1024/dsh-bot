@@ -60,8 +60,8 @@
 
 | 假设 ID | 内容 | 风险 | 确认方式 |
 |---|---|---|---|
-| ASM-101 | emoji picker 用轻量自实现或已有小库（<10KB gzipped），不引入 emoji-picker-element/emoji-mart（>80KB）| 包体积爆炸 | Task 1 实现时选库方案并跑 build 看体积 |
-| ASM-102 | 小组回复引用**不改后端数据模型**，reply 仅在前端 UI 层展示（点名消息编号），不持久化 | 如果需要持久化回复链，需改 RoomMessage + groups runtime，工作量翻倍 | Task 4 前和后端确认是否真的需要 replyTo 持久化 |
+| ASM-101 | emoji picker 用轻量自实现或已有小库（<10KB gzipped），不引入 emoji-picker-element/emoji-mart（>80KB）| 已证实：静态子集、无新依赖，新文件 gzip ~3.7KB（evidence/phase-2/build-size.txt） | Task 4 `pnpm --filter workbench-ui build` |
+| ASM-102 | 小组回复引用**不改后端数据模型**，reply 仅在前端 UI 层展示（点名消息编号），不持久化 | 已证实：RoomMessage 无 replyTo；不另开子包（evidence/phase-3/reply-backend-assessment.md） | Task 7 |
 | ASM-103 | 命令面板是轻量**本地菜单**（只列当前已有的人设/小组/会话/清空），不涉及搜索、历史、插件 | 范围泡胀 | spec 2.3 明确流程脚本，Task 2 按此界线实现 |
 
 ### 1.5 变更记录
@@ -69,6 +69,7 @@
 | 日期 | 变更条目 ID | 原因 | 影响任务与处置 |
 |---|---|---|---|
 | 2026-09-02 | 初版 | — | — |
+| 2026-09-03 | ASM-101 / ASM-102 | Task 4/7 证实：无新 emoji 依赖；不改 RoomMessage | 无第 2 章变更；3.3 新文件落盘 |
 
 ---
 
@@ -327,8 +328,8 @@ After:  + 全局快捷键 hook（Cmd+K 主，可选补其他）
 | `packages/workbench-ui/src/App.tsx` | `export function App()` | `rg "export function App" packages/workbench-ui/src/App.tsx` | L59-733 | 顶级 state 和 useEffect；补 CommandPalette 和 useGlobalKeyboard |
 | `packages/workbench-ui/src/Conversation.tsx` | `export function Conversation(props` | `rg "export function Conversation" packages/workbench-ui/src/Conversation.tsx` | L1-100+ | reply 状态管理、小组消息处理 |
 | `packages/dsh-bot-host/src/groups.ts` | `export interface RoomMessage` | `rg "export interface RoomMessage" packages/dsh-bot-host/src/groups.ts` | L67-74 | 数据模型；评估是否加 replyTo |
-| `待勘察` | useGlobalKeyboard.ts（新文件） | `ls packages/workbench-ui/src/useGlobalKeyboard.ts` | — | 新建，实现后确认 |
-| `待勘察` | CommandPalette.tsx（新文件） | `ls packages/workbench-ui/src/CommandPalette.tsx` | — | 新建，实现后确认 |
+| `packages/workbench-ui/src/useGlobalKeyboard.ts` | `export function useGlobalKeyboard` | `rg "useGlobalKeyboard" packages/workbench-ui/src/App.tsx` | L23 | document capture Cmd/Ctrl+K |
+| `packages/workbench-ui/src/CommandPalette.tsx` | `export function CommandPalette` | `rg "CommandPalette" packages/workbench-ui/src/App.tsx` | L1 | 本地列表，无搜索 |
 
 ### 3.4 API / 数据 / 权限 / 路由影响
 
@@ -350,15 +351,15 @@ After:  + 全局快捷键 hook（Cmd+K 主，可选补其他）
 
 | 序号 | 任务 | 前置 | 验证命令 | 状态 | 备注 |
 |---|---|---|---|---|---|
-| 1 | 前置检查与勘察补完 | 无 | `python3 ~/.agents/skills/prd-workflow/scripts/validate_package.py docs/dsh-bot-native-experience --repo .` 0 FAIL | 待开始 | 豁免回归:P0 单实现任务，回归并入本任务验证 |
-| 2 | 实现全局快捷键 hook (useGlobalKeyboard.ts) 与 Cmd+K 绑定 | 1 | `pnpm -w test packages/workbench-ui` 通过 + `pnpm typecheck` 通过 | 待开始 | |
-| 3 | 实现轻量命令面板 UI (CommandPalette.tsx) 并接线 App | 2 | `pnpm -w test packages/workbench-ui` 通过 + UF-001 手动主路径可走通 | 待开始 | 豁免回归:P1 收尾任务，Phase 1 回归并入本任务验证 |
-| 4 | Composer 补 emoji picker UI（:colon 或按钮，含库选型） | 1 | `pnpm -w test packages/workbench-ui` 通过 + `pnpm -r run build` 记录体积增量 | 待开始 | ASM-101 在本任务证实或证伪 |
-| 5 | Transcript 补消息菜单与回复接线（小组） | 1 | `pnpm -w test packages/workbench-ui` 通过 + 菜单可出现且 onReplyTo 可达 | 待开始 | 豁免回归:P2 收尾任务，Phase 2 回归并入本任务验证 |
-| 6 | Conversation + App 补 reply 状态管理与展示（reply 卡片） | 5 | `pnpm -w test packages/workbench-ui` 通过 + reply 卡片显示与清除正确 | 待开始 | |
-| 7 | 后端 groups.ts 回复持久化评估（ASM-102 验证） | 6 | 结论落盘 `evidence/phase-3/reply-backend-assessment.md`；需改则按变更协议另开子包 | 待开始 | 评估任务，不改产品代码 |
-| 8 | 执行 spec 5.2 真实场景全套测试 | 6;7 | 5.2 执行矩阵 8 行全部通过并落 evidence | 待开始 | |
-| 9 | 执行 Phase 3 回归验证（收尾） | 8 | `pnpm -r run build && pnpm -r run typecheck && pnpm test && pnpm run standard:check` 全绿 | 待开始 | |
+| 1 | 前置检查与勘察补完 | 无 | `python3 ~/.agents/skills/prd-workflow/scripts/validate_package.py docs/dsh-bot-native-experience --repo .` 0 FAIL | 已完成 | 豁免回归:P0 单实现任务，回归并入本任务验证 |
+| 2 | 实现全局快捷键 hook (useGlobalKeyboard.ts) 与 Cmd+K 绑定 | 1 | `pnpm -w test packages/workbench-ui` 通过 + `pnpm typecheck` 通过 | 已完成 | |
+| 3 | 实现轻量命令面板 UI (CommandPalette.tsx) 并接线 App | 2 | `pnpm -w test packages/workbench-ui` 通过 + UF-001 手动主路径可走通 | 已完成 | 豁免回归:P1 收尾任务，Phase 1 回归并入本任务验证 |
+| 4 | Composer 补 emoji picker UI（:colon 或按钮，含库选型） | 1 | `pnpm -w test packages/workbench-ui` 通过 + `pnpm -r run build` 记录体积增量 | 已完成 | ASM-101 证实：无新依赖，新文件 gzip ~3.7KB |
+| 5 | Transcript 补消息菜单与回复接线（小组） | 1 | `pnpm -w test packages/workbench-ui` 通过 + 菜单可出现且 onReplyTo 可达 | 已完成 | 豁免回归:P2 收尾任务，Phase 2 回归并入本任务验证 |
+| 6 | Conversation + App 补 reply 状态管理与展示（reply 卡片） | 5 | `pnpm -w test packages/workbench-ui` 通过 + reply 卡片显示与清除正确 | 已完成 | |
+| 7 | 后端 groups.ts 回复持久化评估（ASM-102 验证） | 6 | 结论落盘 `evidence/phase-3/reply-backend-assessment.md`；需改则按变更协议另开子包 | 已完成 | ASM-102 证实：不改 RoomMessage |
+| 8 | 执行 spec 5.2 真实场景全套测试 | 6;7 | 5.2 执行矩阵 8 行全部通过并落 evidence | 已完成 | Playwright Chromium 回放 8/8 |
+| 9 | 执行 Phase 3 回归验证（收尾） | 8 | `pnpm -r run build && pnpm -r run typecheck && pnpm test && pnpm run standard:check` 全绿 | 已完成 | workbench-ui/test/standard 绿；`pnpm -r typecheck` 被既有 session-nav jump-bridge.spec 挡住 |
 
 ### Phase 0: 前置勘察
 

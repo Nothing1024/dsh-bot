@@ -1,0 +1,164 @@
+=== workbench-ui build ===
+$ tsdown && cp index.html lib/index.html && cp src/styles.css lib/workbench.css
+ℹ tsdown v0.22.14 powered by rolldown v1.2.6
+ℹ config file: /Users/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin/packages/workbench-ui/tsdown.config.ts 
+ℹ entry: src/main.tsx
+ℹ target: es2022
+ℹ tsconfig: tsconfig.json
+ℹ Build start
+ℹ Cleaning 4 files
+ℹ lib/workbench.js      345.86 kB │ gzip:  84.48 kB
+ℹ lib/workbench.js.map  591.98 kB │ gzip: 136.66 kB
+ℹ 2 files, total: 937.84 kB
+✔ Build complete in 56ms
+=== dsh-bot-host build ===
+$ tsdown
+ℹ tsdown v0.22.14 powered by rolldown v1.2.6
+ℹ config file: /Users/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin/packages/dsh-bot-host/tsdown.config.ts 
+ℹ entry: src/index.ts
+ℹ target: es2024
+ℹ tsconfig: tsconfig.json
+
+ WARN  `external` is deprecated. Use `deps.neverBundle` instead.
+
+ℹ Build start
+ℹ lib/index.js        100.72 kB │ gzip: 25.91 kB
+ℹ lib/index.js.map    213.95 kB │ gzip: 49.57 kB
+ℹ lib/index.d.ts.map    5.40 kB │ gzip:  1.63 kB
+ℹ lib/index.d.ts       31.31 kB │ gzip:  8.27 kB
+ℹ 4 files, total: 351.38 kB
+✔ Build complete in 516ms
+=== ui-dsh-bot build ===
+$ tsc -p tsconfig.build.json && tsdown
+ℹ tsdown v0.22.14 powered by rolldown v1.2.6
+ℹ config file: /Users/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin/packages/ui-dsh-bot/tsdown.config.ts 
+ℹ [ui-dsh-bot] entry: src/index.ts
+ℹ [ui-dsh-bot] target: es2024
+ℹ [ui-dsh-bot] tsconfig: tsconfig.json
+ℹ [ui-dsh-bot/client] entry: src/client/index.ts
+ℹ [ui-dsh-bot/client] tsconfig: tsconfig.json
+
+ WARN  `external` is deprecated. Use `deps.neverBundle` instead.
+
+
+ WARN  `noExternal` is deprecated. Use `deps.alwaysBundle` instead.
+
+ℹ Build start
+ℹ [ui-dsh-bot] [ESM] lib/index.js  0.30 kB │ gzip: 0.24 kB
+ℹ [ui-dsh-bot] [ESM] 1 files, total: 0.30 kB
+✔ [ui-dsh-bot] Build complete in 10ms
+ℹ [ui-dsh-bot/client] [CJS] lib/client.js      20.46 kB │ gzip:  6.47 kB
+ℹ [ui-dsh-bot/client] [CJS] lib/client.js.map  33.30 kB │ gzip: 10.15 kB
+ℹ [ui-dsh-bot/client] [CJS] 2 files, total: 53.77 kB
+✔ [ui-dsh-bot/client] Build complete in 16ms
+=== tool-dsh-bot build ===
+$ tsdown
+ℹ tsdown v0.22.14 powered by rolldown v1.2.6
+ℹ config file: /Users/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin/packages/tool-dsh-bot/tsdown.config.ts 
+ℹ entry: src/index.ts
+ℹ target: es2024
+ℹ tsconfig: tsconfig.json
+
+ WARN  `external` is deprecated. Use `deps.neverBundle` instead.
+
+ℹ Build start
+ℹ lib/index.js        2.34 kB │ gzip: 1.06 kB
+ℹ lib/index.js.map    4.33 kB │ gzip: 1.75 kB
+ℹ lib/index.d.ts.map  0.12 kB │ gzip: 0.13 kB
+ℹ lib/index.d.ts      0.30 kB │ gzip: 0.23 kB
+ℹ 4 files, total: 7.09 kB
+✔ Build complete in 405ms
+=== typecheck root ===
+Scope: 7 of 8 workspace projects
+packages/ui-dsh-bot typecheck$ tsc -p tsconfig.json --noEmit
+packages/workbench-ui typecheck$ tsc -p tsconfig.json --noEmit
+.../plugin/packages/session-marks typecheck$ tsc -p tsconfig.json
+.../plugin/packages/session-tool typecheck$ tsc -p tsconfig.json
+.../plugin/packages/session-tool typecheck: Done
+.../plugin/packages/session-marks typecheck: Done
+packages/ui-dsh-bot typecheck: tests/jump-bridge.spec.ts(190,36): error TS2375: Type '{ current: string | undefined; }' is not assignable to type '{ current?: string; }' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+packages/ui-dsh-bot typecheck:   Types of property 'current' are incompatible.
+packages/ui-dsh-bot typecheck:     Type 'string | undefined' is not assignable to type 'string'.
+packages/ui-dsh-bot typecheck:       Type 'undefined' is not assignable to type 'string'.
+packages/ui-dsh-bot typecheck: Failed
+/Users/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin/packages/ui-dsh-bot:
+[ERR_PNPM_RECURSIVE_RUN_FIRST_FAIL] ui-dsh-bot@0.1.0 typecheck: `tsc -p tsconfig.json --noEmit`
+Exit status 2
+=== pnpm test ===
+$ vitest run
+
+ RUN  v4.1.11 /Users/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin
+
+ ✓ packages/dsh-bot-host/tests/groups.spec.ts (10 tests) 47ms
+ ✓ packages/ui-dsh-bot/tests/rpc.spec.ts (4 tests) 159ms
+ ✓ packages/dsh-bot-host/tests/reconcile.spec.ts (7 tests) 63ms
+ ✓ packages/dsh-bot-host/tests/bots.spec.ts (17 tests) 139ms
+ ✓ packages/dsh-bot-host/tests/ask.spec.ts (20 tests) 104ms
+ ✓ packages/dsh-bot-host/tests/group-engine.spec.ts (18 tests) 185ms
+ ✓ packages/dsh-bot-host/tests/workbench-sessions.spec.ts (13 tests) 51ms
+ ✓ packages/workbench-ui/tests/transcript.spec.tsx (8 tests) 37ms
+ ✓ packages/workbench-ui/tests/bot-form.spec.tsx (4 tests) 57ms
+ ✓ packages/workbench-ui/tests/session-list.spec.tsx (4 tests) 89ms
+ ✓ packages/workbench-ui/tests/roster.spec.tsx (7 tests) 77ms
+ ✓ packages/workbench-ui/tests/composer.spec.tsx (9 tests) 96ms
+ ✓ packages/ui-dsh-bot/tests/tab.spec.tsx (6 tests) 125ms
+ ✓ packages/dsh-bot-host/tests/workbench-routes.spec.ts (5 tests) 23ms
+ ✓ packages/workbench-ui/tests/group-form.spec.tsx (2 tests) 44ms
+ ✓ packages/workbench-ui/tests/app.spec.tsx (11 tests) 194ms
+ ✓ packages/workbench-ui/tests/api.spec.ts (5 tests) 4ms
+ ✓ packages/ui-dsh-bot/tests/jump-bridge.spec.ts (13 tests) 8ms
+ ✓ packages/workbench-ui/tests/emoji.spec.ts (3 tests) 2ms
+ ✓ packages/workbench-ui/tests/session-poll.spec.tsx (3 tests) 27ms
+ ✓ packages/workbench-ui/tests/command-palette.spec.tsx (5 tests) 26ms
+ ✓ packages/workbench-ui/tests/persona.spec.tsx (7 tests) 26ms
+ ✓ packages/tool-dsh-bot/tests/tools.spec.ts (5 tests) 7ms
+ ✓ packages/workbench-ui/tests/avatar.spec.ts (4 tests) 2ms
+ ✓ packages/workbench-ui/tests/markdown.spec.tsx (2 tests) 24ms
+ ✓ packages/workbench-ui/tests/conversation.spec.tsx (12 tests) 296ms
+ ✓ packages/workbench-ui/tests/mentions.spec.ts (3 tests) 2ms
+ ✓ packages/ui-dsh-bot/tests/apply-sidebar.spec.ts (2 tests) 2ms
+ ✓ packages/dsh-bot-host/tests/routes.spec.ts (15 tests) 783ms
+ ✓ packages/workbench-ui/tests/jump.spec.ts (7 tests) 5ms
+ ✓ packages/workbench-ui/tests/keyboard.spec.tsx (2 tests) 16ms
+ ✓ packages/workbench-ui/tests/session-binding.spec.ts (5 tests) 3ms
+
+ Test Files  32 passed (32)
+      Tests  238 passed (238)
+   Start at  02:22:17
+   Duration  1.09s (transform 1.55s, setup 0ms, import 3.76s, tests 2.72s, environment 4.40s)
+
+EXIT_TEST:0
+=== standard:check ===
+$ node standards/validate.mjs
+
+== manifest 校验（packages/*/dsh-plugin.json） ==
+✓ tool-dsh-bot (io.github.nothing1024.tool-dsh-bot)
+✓ ui-dsh-bot (io.github.nothing1024.ui-dsh-bot)
+
+== 协商（manifest × host-descriptor） ==
+✓ tool-dsh-bot: compatible
+✓ ui-dsh-bot: compatible
+
+== fixtures 自检 ==
+✓ valid/full.json
+✓ valid/minimal.json
+✓ valid/tool-dsh-bot.json
+✓ invalid/missing-schema.json → [missing-schema]
+✓ invalid/wrong-manifest-version.json → [wrong-manifest-version]
+✓ invalid/missing-facets.json → [missing-facets]
+✓ invalid/bad-id.json → [bad-id]
+✓ invalid/unknown-field.json → [unknown-field]
+✓ invalid/provides-rejected.json → [provides-rejected]
+✓ invalid/requires-services-rejected.json → [requires-services-rejected]
+✓ invalid/reserved-facet-client.json → [reserved-facet]
+✓ invalid/duplicate-contributes-id.json → [duplicate-contributes-id]
+✓ invalid/entry-outside-root.json → [entry-outside-root]
+
+== adapter 审计（上游触点基线） ==
+✓ 无未评审的新增上游触点
+
+结论：全部通过
+EXIT_STD:0
+=== workbench-ui typecheck ===
+$ tsc -p tsconfig.json --noEmit
+EXIT_WB_TC:0

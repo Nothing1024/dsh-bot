@@ -1,0 +1,6 @@
+## Task 4 emoji
+expected: rg insertEmoji Composer.tsx; tests pass
+
+  const insertEmoji = (glyph: string): void => {
+        else if (popup === 'emoji' && 'glyph' in choice) insertEmoji(choice.glyph)
+                      insertEmoji(row.glyph)
