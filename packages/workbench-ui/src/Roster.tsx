@@ -3,12 +3,24 @@
  */
 import { useEffect, useId, useRef, useState, type KeyboardEvent, type MouseEvent } from 'react'
 import { hashAvatarColor, nameInitial, relativeTime } from './avatar.ts'
+import { Persona } from './Persona.tsx'
+import { nestedSessionSlice } from './session-binding.ts'
+import { SessionJumpMenuItem } from './SessionList.tsx'
 
 export interface RosterMemberAvatar {
   readonly id: string
   readonly name: string
   readonly color?: string
   readonly emoji?: string
+}
+
+export interface RosterSession {
+  readonly sessionId: string
+  readonly title: string
+  readonly updatedAt: number
+  readonly working: boolean
+  readonly hidden: boolean
+  readonly selected: boolean
 }
 
 export interface RosterItem {
@@ -22,6 +34,8 @@ export interface RosterItem {
   readonly protected: boolean
   readonly kind?: 'bot' | 'group'
   readonly members?: readonly RosterMemberAvatar[]
+  readonly sessionCount?: number
+  readonly sessions?: readonly RosterSession[]
 }
 
 export interface RosterProps {
@@ -29,6 +43,8 @@ export interface RosterProps {
   readonly nowMs?: number
   readonly error?: string | null
   readonly onSelect: (id: string) => void
+  readonly onSelectSession?: (ownerId: string, sessionId: string) => void
+  readonly onNewSession?: (ownerId: string) => void
   readonly onCreate: () => void
   readonly onCreateGroup?: () => void
   readonly onEdit: (id: string) => void
@@ -38,13 +54,22 @@ export interface RosterProps {
   readonly onRename: (id: string, name: string) => void
 }
 
-function AvatarGlyph(props: { botId: string; name: string; emoji?: string; color?: string }) {
-  const color = props.color && props.color !== '' ? props.color : hashAvatarColor(props.botId)
-  const glyph = props.emoji !== undefined && props.emoji !== '' ? props.emoji : nameInitial(props.name)
+function AvatarGlyph(props: {
+  botId: string
+  name: string
+  emoji?: string
+  color?: string
+  mood?: 'idle' | 'thinking' | 'working'
+}) {
   return (
-    <span className="avatar" style={{ background: color }} data-testid={`roster-avatar-${props.botId}`}>
-      {glyph}
-    </span>
+    <Persona
+      botId={props.botId}
+      name={props.name}
+      testId={`roster-avatar-${props.botId}`}
+      {...props.color === undefined ? {} : { color: props.color }}
+      {...props.emoji === undefined ? {} : { emoji: props.emoji }}
+      {...props.mood === undefined ? {} : { mood: props.mood }}
+    />
   )
 }
 
@@ -74,6 +99,7 @@ export function Roster(props: RosterProps) {
   const [confirmId, setConfirmId] = useState<string | null>(null)
   const [renameId, setRenameId] = useState<string | null>(null)
   const [renameValue, setRenameValue] = useState('')
+  const [jumpToast, setJumpToast] = useState<string | null>(null)
   const renameRef = useRef<HTMLInputElement>(null)
   const menuRef = useRef<HTMLDivElement>(null)
 
@@ -91,6 +117,12 @@ export function Roster(props: RosterProps) {
     document.addEventListener('mousedown', onDoc)
     return () => document.removeEventListener('mousedown', onDoc)
   }, [menuId])
+
+  useEffect(() => {
+    if (jumpToast === null) return
+    const timer = window.setTimeout(() => setJumpToast(null), 4000)
+    return () => window.clearTimeout(timer)
+  }, [jumpToast])
 
   const commitRename = (id: string): void => {
     const next = renameValue.trim()
@@ -126,6 +158,9 @@ export function Roster(props: RosterProps) {
         {props.error !== null && props.error !== undefined && props.error !== '' ? (
           <p className="formError" data-testid="workbench-action-error">{props.error}</p>
         ) : null}
+        {jumpToast !== null ? (
+          <p className="formHint" data-testid="roster-toast">{jumpToast}</p>
+        ) : null}
         {props.items.length === 0 ? (
           <p className="hint" data-testid="workbench-empty">还没有人设</p>
         ) : (
@@ -147,13 +182,14 @@ export function Roster(props: RosterProps) {
                       openRename(item)
                     }}
                   >
-                    <span className="avatarWrap">
+                    <span className={`avatarWrap${item.working ? ' isWorking' : ''}`}>
                       {item.kind === 'group' && item.members !== undefined && item.members.length >= 2 ? (
                         <MosaicAvatar id={item.id} members={item.members} />
                       ) : (
                         <AvatarGlyph
                           botId={item.id}
                           name={item.name}
+                          mood={item.working ? 'working' : 'idle'}
                           {...item.avatar.emoji === undefined ? {} : { emoji: item.avatar.emoji }}
                           {...item.avatar.color === undefined ? {} : { color: item.avatar.color }}
                         />
@@ -190,6 +226,15 @@ export function Roster(props: RosterProps) {
                       <span className="rosterPreview" data-testid={`roster-preview-${item.id}`}>{item.preview}</span>
                     </span>
                     <span className="rosterMeta">
+                      {item.sessionCount !== undefined && item.sessionCount > 1 ? (
+                        <span
+                          className="sessionCount"
+                          data-testid={`roster-session-count-${item.id}`}
+                          title={`${item.sessionCount} 段对话`}
+                        >
+                          {item.sessionCount}
+                        </span>
+                      ) : null}
                       <span className="rosterTime">{relativeTime(item.updatedAt, props.nowMs)}</span>
                       <button
                         type="button"
@@ -259,6 +304,17 @@ export function Roster(props: RosterProps) {
                       )}
                     </div>
                   ) : null}
+                  {selected ? (
+                    <BoundSessions
+                      ownerId={item.id}
+                      jumpable={item.kind !== 'group'}
+                      sessions={item.sessions ?? []}
+                      onToast={setJumpToast}
+                      {...props.nowMs === undefined ? {} : { nowMs: props.nowMs }}
+                      {...props.onSelectSession === undefined ? {} : { onSelectSession: props.onSelectSession }}
+                      {...props.onNewSession === undefined ? {} : { onNewSession: props.onNewSession }}
+                    />
+                  ) : null}
                 </li>
               )
             })}
@@ -280,6 +336,106 @@ export function Roster(props: RosterProps) {
         />
       ) : null}
     </aside>
+  )
+}
+
+function BoundSessions(props: {
+  ownerId: string
+  jumpable: boolean
+  sessions: readonly RosterSession[]
+  nowMs?: number
+  onToast: (text: string) => void
+  onSelectSession?: (ownerId: string, sessionId: string) => void
+  onNewSession?: (ownerId: string) => void
+}) {
+  const [menuId, setMenuId] = useState<string | null>(null)
+  const menuRef = useRef<HTMLLIElement>(null)
+  const sliced = nestedSessionSlice(props.sessions)
+
+  useEffect(() => {
+    if (menuId === null) return
+    const onDoc = (event: Event): void => {
+      const target = event.target as Node | null
+      if (target !== null && menuRef.current?.contains(target) === true) return
+      setMenuId(null)
+    }
+    document.addEventListener('mousedown', onDoc)
+    return () => document.removeEventListener('mousedown', onDoc)
+  }, [menuId])
+
+  return (
+    <div className="rosterSessions" data-testid={`roster-sessions-${props.ownerId}`}>
+      {props.sessions.length === 0 ? (
+        <p className="hint rosterSessionsEmpty">还没有对话</p>
+      ) : (
+        <ul className="rosterSessionList">
+          {sliced.visible.map(session => (
+            <li key={session.sessionId} ref={menuId === session.sessionId ? menuRef : undefined}>
+              <div className="rosterSessionRow">
+                <button
+                  type="button"
+                  className={`rosterSession${session.selected ? ' isSelected' : ''}`}
+                  data-testid={`roster-session-${session.sessionId}`}
+                  data-selected={session.selected ? 'true' : 'false'}
+                  onClick={event => {
+                    event.stopPropagation()
+                    props.onSelectSession?.(props.ownerId, session.sessionId)
+                  }}
+                >
+                  <span className="rosterSessionTitle">{session.title}</span>
+                  <span className="rosterSessionMeta">
+                    {session.working ? <span className="sessionOptionWorking">工作中</span> : null}
+                    <span className="rosterTime">{relativeTime(session.updatedAt, props.nowMs)}</span>
+                  </span>
+                </button>
+                {props.jumpable ? (
+                  <button
+                    type="button"
+                    className="rowMenuBtn"
+                    data-testid={`roster-session-menu-${session.sessionId}`}
+                    aria-label="会话操作"
+                    onClick={event => {
+                      event.stopPropagation()
+                      setMenuId(current => current === session.sessionId ? null : session.sessionId)
+                    }}
+                  >
+                    ⋯
+                  </button>
+                ) : null}
+              </div>
+              {props.jumpable && menuId === session.sessionId ? (
+                <div className="rowMenu" data-testid={`roster-session-menu-panel-${session.sessionId}`}>
+                  <SessionJumpMenuItem
+                    sessionId={session.sessionId}
+                    testId={`roster-session-jump-${session.sessionId}`}
+                    onToast={props.onToast}
+                    onDone={() => setMenuId(null)}
+                  />
+                </div>
+              ) : null}
+            </li>
+          ))}
+        </ul>
+      )}
+      {sliced.hiddenCount > 0 ? (
+        <p className="hint rosterSessionsMore" data-testid={`roster-sessions-more-${props.ownerId}`}>
+          还有 {sliced.hiddenCount} 段，用顶栏「对话」查看全部
+        </p>
+      ) : null}
+      {props.onNewSession !== undefined ? (
+        <button
+          type="button"
+          className="rosterSessionNew"
+          data-testid={`roster-session-new-${props.ownerId}`}
+          onClick={event => {
+            event.stopPropagation()
+            props.onNewSession?.(props.ownerId)
+          }}
+        >
+          + 新开对话
+        </button>
+      ) : null}
+    </div>
   )
 }
 

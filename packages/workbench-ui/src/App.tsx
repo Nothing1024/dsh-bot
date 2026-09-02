@@ -4,7 +4,9 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
   createBot,
+  createBotSession,
   createGroup,
+  createGroupSession,
   deleteBot,
   deleteGroup,
   groupDraftStorageKey,
@@ -23,15 +25,26 @@ import type {
   WorkbenchBotModelInfo,
   WorkbenchGroup,
   WorkbenchModelOverride,
+  WorkbenchSessionRow,
 } from './api.ts'
 import { rowPreview } from './avatar.ts'
+import { sessionDisplayTitle } from './session-binding.ts'
 import { BotForm } from './BotForm.tsx'
 import type { BotFormValues } from './BotForm.tsx'
+import {
+  buildCommandItems,
+  CLEAR_COMMAND,
+  CommandPalette,
+  NEW_BOT_COMMAND,
+  NEW_GROUP_COMMAND,
+  parseIdentityCommand,
+} from './CommandPalette.tsx'
 import { Conversation } from './Conversation.tsx'
 import { GroupForm } from './GroupForm.tsx'
 import type { GroupFormValues } from './GroupForm.tsx'
 import { Roster } from './Roster.tsx'
-import type { RosterItem } from './Roster.tsx'
+import type { RosterItem, RosterSession } from './Roster.tsx'
+import { useGlobalKeyboard } from './useGlobalKeyboard.ts'
 
 type ShellStatus = 'loading' | 'idle' | 'error'
 type FormMode =
@@ -69,8 +82,15 @@ export function App() {
   const [botModel, setBotModel] = useState<WorkbenchBotModelInfo | null>(null)
   const [refreshEpoch, setRefreshEpoch] = useState(0)
   const [updatedAtById, setUpdatedAtById] = useState<Record<string, number>>({})
+  const [sessionsByOwner, setSessionsByOwner] = useState<Record<string, readonly WorkbenchSessionRow[]>>({})
+  const [preferredSessionId, setPreferredSessionId] = useState<string | null>(null)
+  const [activeSessionId, setActiveSessionId] = useState<string | null>(null)
+  const [paletteOpen, setPaletteOpen] = useState(false)
   const submitLock = useRef(false)
   const workingOverlay = useRef(new Map<string, boolean>())
+  const selectedIdRef = useRef(selectedId)
+  const conversationOwned = useRef(new Set<string>())
+  selectedIdRef.current = selectedId
 
   const load = useCallback(async (): Promise<void> => {
     setStatus('loading')
@@ -156,6 +176,7 @@ export function App() {
       if (typeof document !== 'undefined' && document.hidden) return
       const next = new Set<string>()
       const times: Record<string, number> = {}
+      const listed: Record<string, readonly WorkbenchSessionRow[]> = {}
       await Promise.all([
         ...bots.map(async bot => {
           const outcome = await listBotSessions(bot.id)
@@ -167,16 +188,30 @@ export function App() {
             latest = Math.max(latest, row.updatedAt, row.createdAt)
           }
           if (latest > 0) times[bot.id] = latest
+          const selected = selectedIdRef.current
+          if (bot.id !== selected || !conversationOwned.current.has(bot.id)) listed[bot.id] = sessions
         }),
         ...groups.map(async group => {
           const outcome = await listGroupSessions(group.id)
           if (!outcome.ok) return
           const rooms = outcome.value.rooms ?? []
+          const sessions: WorkbenchSessionRow[] = rooms.map(row => ({
+            sessionId: row.roomId,
+            title: `房间 ${row.roomId.slice(0, 8)}`,
+            tags: [],
+            status: 'idle',
+            createdAt: row.createdAt,
+            updatedAt: row.updatedAt,
+            hidden: false,
+            working: false,
+          }))
           let latest = 0
           for (const row of rooms) {
             latest = Math.max(latest, row.updatedAt, row.createdAt)
           }
           if (latest > 0) times[group.id] = latest
+          const selected = selectedIdRef.current
+          if (group.id !== selected || !conversationOwned.current.has(group.id)) listed[group.id] = sessions
         }),
       ])
       for (const [id, on] of workingOverlay.current) {
@@ -198,6 +233,27 @@ export function App() {
           }
         }
         return same ? current : { ...current, ...times }
+      })
+      setSessionsByOwner(current => {
+        const keys = Object.keys(listed)
+        if (keys.length === 0) return current
+        let same = true
+        for (const key of keys) {
+          const prev = current[key] ?? []
+          const nextRows = listed[key] ?? []
+          if (prev.length !== nextRows.length) {
+            same = false
+            break
+          }
+          if (prev.some((row, index) => row.sessionId !== nextRows[index]?.sessionId
+            || row.updatedAt !== nextRows[index]?.updatedAt
+            || row.working !== nextRows[index]?.working
+            || row.title !== nextRows[index]?.title)) {
+            same = false
+            break
+          }
+        }
+        return same ? current : { ...current, ...listed }
       })
     }
     void tick()
@@ -229,39 +285,66 @@ export function App() {
   }, [bots, selectedGroup])
 
   const items: readonly RosterItem[] = useMemo(() => {
-    const botItems: RosterItem[] = bots.map(bot => ({
-      id: bot.id,
-      name: bot.name,
-      avatar: bot.avatar,
-      preview: rowPreview(drafts[bot.id], lastMessages[bot.id]),
-      updatedAt: updatedAtById[bot.id] ?? bot.createdAt,
-      working: workingIds.has(bot.id),
-      selected: selectedGroup === null && bot.id === selectedId,
-      protected: bot.protected,
-      kind: 'bot',
-    }))
-    const groupItems: RosterItem[] = groups.map(group => ({
-      id: group.id,
-      name: group.name,
-      avatar: {},
-      preview: rowPreview(drafts[group.id], lastMessages[group.id]),
-      updatedAt: updatedAtById[group.id] ?? group.createdAt,
-      working: workingIds.has(group.id),
-      selected: group.id === selectedId && selectedGroup !== null,
-      protected: false,
-      kind: 'group',
-      members: group.memberIds.map(id => {
-        const bot = bots.find(row => row.id === id)
-        return {
-          id,
-          name: bot?.name ?? id,
-          ...bot?.avatar.color === undefined ? {} : { color: bot.avatar.color },
-          ...bot?.avatar.emoji === undefined ? {} : { emoji: bot.avatar.emoji },
-        }
-      }),
-    }))
+    const boundSessions = (ownerId: string, name: string, selected: boolean): {
+      sessionCount: number
+      sessions?: readonly RosterSession[]
+    } => {
+      const rows = sessionsByOwner[ownerId] ?? []
+      return {
+        sessionCount: rows.length,
+        ...selected ? {
+          sessions: rows.map(row => ({
+            sessionId: row.sessionId,
+            title: sessionDisplayTitle(row.title, name, { hidden: row.hidden }),
+            updatedAt: row.updatedAt > 0 ? row.updatedAt : row.createdAt,
+            working: row.working,
+            hidden: row.hidden,
+            selected: row.sessionId === activeSessionId,
+          })),
+        } : {},
+      }
+    }
+    const botItems: RosterItem[] = bots.map(bot => {
+      const selected = selectedGroup === null && bot.id === selectedId
+      return {
+        id: bot.id,
+        name: bot.name,
+        avatar: bot.avatar,
+        preview: rowPreview(drafts[bot.id], lastMessages[bot.id]),
+        updatedAt: updatedAtById[bot.id] ?? bot.createdAt,
+        working: workingIds.has(bot.id),
+        selected,
+        protected: bot.protected,
+        kind: 'bot',
+        ...boundSessions(bot.id, bot.name, selected),
+      }
+    })
+    const groupItems: RosterItem[] = groups.map(group => {
+      const selected = group.id === selectedId && selectedGroup !== null
+      return {
+        id: group.id,
+        name: group.name,
+        avatar: {},
+        preview: rowPreview(drafts[group.id], lastMessages[group.id]),
+        updatedAt: updatedAtById[group.id] ?? group.createdAt,
+        working: workingIds.has(group.id),
+        selected,
+        protected: false,
+        kind: 'group',
+        members: group.memberIds.map(id => {
+          const bot = bots.find(row => row.id === id)
+          return {
+            id,
+            name: bot?.name ?? id,
+            ...bot?.avatar.color === undefined ? {} : { color: bot.avatar.color },
+            ...bot?.avatar.emoji === undefined ? {} : { emoji: bot.avatar.emoji },
+          }
+        }),
+        ...boundSessions(group.id, group.name, selected),
+      }
+    })
     return [...botItems, ...groupItems].sort((a, b) => b.updatedAt - a.updatedAt)
-  }, [bots, drafts, groups, lastMessages, selectedGroup, selectedId, updatedAtById, workingIds])
+  }, [activeSessionId, bots, drafts, groups, lastMessages, selectedGroup, selectedId, sessionsByOwner, updatedAtById, workingIds])
 
   const submitForm = async (values: BotFormValues): Promise<void> => {
     if (submitLock.current || form === null) return
@@ -408,6 +491,102 @@ export function App() {
     if (form?.kind === 'edit' && form.bot.id === id) setForm(null)
   }
 
+  const rememberSessions = (ownerId: string, rows: readonly WorkbenchSessionRow[]): void => {
+    conversationOwned.current.add(ownerId)
+    setSessionsByOwner(current => {
+      const prev = current[ownerId] ?? []
+      if (prev.length === rows.length
+        && prev.every((row, index) => row.sessionId === rows[index]?.sessionId
+          && row.title === rows[index]?.title
+          && row.updatedAt === rows[index]?.updatedAt
+          && row.working === rows[index]?.working
+          && row.hidden === rows[index]?.hidden)) {
+        return current
+      }
+      return { ...current, [ownerId]: rows }
+    })
+  }
+
+  const closePalette = useCallback(() => setPaletteOpen(false), [])
+  const togglePalette = useCallback(() => setPaletteOpen(open => !open), [])
+  useGlobalKeyboard({
+    enabled: status === 'idle',
+    paletteOpen,
+    onTogglePalette: togglePalette,
+    onClosePalette: closePalette,
+  })
+
+  const commandItems = useMemo(() => buildCommandItems(
+    bots.map(bot => ({
+      id: bot.id,
+      name: bot.name,
+      updatedAt: updatedAtById[bot.id] ?? bot.createdAt,
+      kind: 'bot' as const,
+    })),
+    groups.map(group => ({
+      id: group.id,
+      name: group.name,
+      updatedAt: updatedAtById[group.id] ?? group.createdAt,
+      kind: 'group' as const,
+    })),
+  ), [bots, groups, updatedAtById])
+
+  const openOwnedSession = useCallback(async (ownerId: string): Promise<void> => {
+    const group = groups.find(row => row.id === ownerId)
+    if (group !== undefined) {
+      const outcome = await createGroupSession(ownerId)
+      if (!outcome.ok) {
+        setActionError(outcome.error.message)
+        return
+      }
+      setActionError(null)
+      setSelectedId(ownerId)
+      setPreferredSessionId(outcome.value.roomId)
+      setRefreshEpoch(n => n + 1)
+      return
+    }
+    const outcome = await createBotSession(ownerId)
+    if (!outcome.ok) {
+      setActionError(outcome.error.message)
+      return
+    }
+    setActionError(null)
+    setSelectedId(ownerId)
+    setPreferredSessionId(outcome.value.sessionId)
+    setRefreshEpoch(n => n + 1)
+  }, [groups])
+
+  const selectCommand = useCallback((id: string): void => {
+    setPaletteOpen(false)
+    if (id === NEW_BOT_COMMAND) {
+      setFormError(null)
+      setActionError(null)
+      setEffectHint(null)
+      setForm({ kind: 'create' })
+      return
+    }
+    if (id === NEW_GROUP_COMMAND) {
+      setFormError(null)
+      setActionError(null)
+      setEffectHint(null)
+      setForm({ kind: 'create-group' })
+      return
+    }
+    if (id === CLEAR_COMMAND) {
+      const current = selectedIdRef.current
+      if (current === null) return
+      void openOwnedSession(current)
+      return
+    }
+    const identity = parseIdentityCommand(id)
+    if (identity === null) return
+    setSelectedId(identity.id)
+    setPreferredSessionId(null)
+    setForm(null)
+    setEffectHint(null)
+    setActionError(null)
+  }, [openOwnedSession])
+
   return (
     <div
       className="shell"
@@ -458,10 +637,19 @@ export function App() {
             error={actionError}
             onSelect={id => {
               setSelectedId(id)
+              setPreferredSessionId(null)
               setForm(null)
               setEffectHint(null)
               setActionError(null)
             }}
+            onSelectSession={(ownerId, sessionId) => {
+              setSelectedId(ownerId)
+              setPreferredSessionId(sessionId)
+              setForm(null)
+              setEffectHint(null)
+              setActionError(null)
+            }}
+            onNewSession={id => { void openOwnedSession(id) }}
             onCreate={() => {
               setFormError(null)
               setActionError(null)
@@ -532,10 +720,14 @@ export function App() {
                 members={groupMembers}
                 hint={effectHint}
                 refreshEpoch={refreshEpoch}
+                preferredSessionId={preferredSessionId}
+                paletteOpen={paletteOpen}
                 onEditMembers={() => {
                   setFormError(null)
                   setForm({ kind: 'edit-group', group: selectedGroup })
                 }}
+                onActiveSession={setActiveSessionId}
+                onSessions={rows => rememberSessions(selectedGroup.id, rows)}
                 onWorking={(id, working) => {
                   workingOverlay.current.set(id, working)
                   setWorkingIds(current => {
@@ -570,10 +762,14 @@ export function App() {
                 bot={selected}
                 hint={effectHint}
                 refreshEpoch={refreshEpoch}
+                preferredSessionId={preferredSessionId}
+                paletteOpen={paletteOpen}
                 onEdit={() => {
                   setFormError(null)
                   setForm({ kind: 'edit', bot: selected })
                 }}
+                onActiveSession={setActiveSessionId}
+                onSessions={rows => rememberSessions(selected.id, rows)}
                 onWorking={(id, working) => {
                   workingOverlay.current.set(id, working)
                   setWorkingIds(current => {
@@ -599,6 +795,12 @@ export function App() {
           </main>
         </>
       )}
+      <CommandPalette
+        open={paletteOpen && status === 'idle'}
+        items={commandItems}
+        onSelect={selectCommand}
+        onClose={closePalette}
+      />
     </div>
   )
 }

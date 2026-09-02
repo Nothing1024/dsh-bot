@@ -34,6 +34,48 @@ describe('App roster load', () => {
     expect(screen.getByTestId('conversation-identity').textContent).toMatch(/DSH Bot/)
   })
 
+  it('lists the selected bot\'s sessions under the roster row', async () => {
+    vi.stubGlobal('fetch', vi.fn(async (url: string) => {
+      const path = String(url)
+      if (path.includes('listBots')) return jsonOk({ bots: [SEED] })
+      if (path.includes('listBotSessions')) {
+        return jsonOk({
+          sessions: [
+            {
+              sessionId: 's-new',
+              title: '论诗',
+              tags: [],
+              status: 'idle',
+              createdAt: 2,
+              updatedAt: 2,
+              hidden: false,
+              working: false,
+            },
+            {
+              sessionId: 's-old',
+              title: 'DSH Bot',
+              tags: [],
+              status: 'idle',
+              createdAt: 1,
+              updatedAt: 1,
+              hidden: false,
+              working: false,
+            },
+          ],
+        })
+      }
+      return jsonOk({ sessions: [], botModel: { provider: 'anthropic', model: 'grok-4.6', source: 'global-default' } })
+    }))
+    render(<App />)
+    expect(await screen.findByTestId('roster-session-s-new')).toBeTruthy()
+    expect(screen.getByTestId('roster-session-s-new').textContent).toMatch(/论诗/)
+    expect(screen.getByTestId('roster-session-s-old').textContent).toMatch(/新对话/)
+    fireEvent.click(screen.getByTestId('roster-session-s-old'))
+    await vi.waitFor(() => {
+      expect(screen.getByTestId('session-select').getAttribute('data-session-id')).toBe('s-old')
+    })
+  })
+
   it('sends createBot once when create is clicked twice', async () => {
     let creates = 0
     let release!: () => void
@@ -195,6 +237,47 @@ describe('App roster load', () => {
     render(<App />)
     await screen.findByTestId('roster-new')
     fireEvent.click(screen.getByTestId('roster-new'))
+    expect(screen.getByTestId('bot-form').getAttribute('data-mode')).toBe('create')
+  })
+
+  it('opens the command palette with Cmd+K and switches identity without confirm', async () => {
+    const extra = {
+      id: 'shiren-xiaobei',
+      name: '诗人小北',
+      avatar: { color: '#c9a227' },
+      presetId: 'dsh-bot--shiren-xiaobei',
+      createdAt: 2,
+      persona: '人设',
+      protected: false,
+    }
+    vi.stubGlobal('fetch', vi.fn(async (url: string) => {
+      const path = String(url)
+      if (path.includes('listBots')) return jsonOk({ bots: [SEED, extra] })
+      if (path.includes('listGroups')) return jsonOk({ groups: [] })
+      return jsonOk({ sessions: [], botModel: { provider: '', model: '', source: 'global-default' } })
+    }))
+    render(<App />)
+    await screen.findByTestId('roster-row-dsh-bot')
+    fireEvent.keyDown(document, { key: 'k', metaKey: true })
+    expect(await screen.findByTestId('command-palette')).toBeTruthy()
+    expect(screen.getByTestId('command-item-action:new-bot')).toBeTruthy()
+    expect(screen.getByTestId('command-item-bot:shiren-xiaobei')).toBeTruthy()
+    fireEvent.click(screen.getByTestId('command-item-bot:shiren-xiaobei'))
+    expect(screen.queryByTestId('command-palette')).toBeNull()
+    await vi.waitFor(() => {
+      expect(screen.getByTestId('conversation-name').textContent).toBe('诗人小北')
+    })
+  })
+
+  it('opens the new-bot form from the palette', async () => {
+    vi.stubGlobal('fetch', vi.fn(async (url: string) => {
+      if (String(url).includes('listBots')) return jsonOk({ bots: [SEED] })
+      return jsonOk({ sessions: [], botModel: { provider: '', model: '', source: 'global-default' } })
+    }))
+    render(<App />)
+    await screen.findByTestId('composer-input')
+    fireEvent.keyDown(document, { key: 'k', metaKey: true })
+    fireEvent.click(await screen.findByTestId('command-item-action:new-bot'))
     expect(screen.getByTestId('bot-form').getAttribute('data-mode')).toBe('create')
   })
 })

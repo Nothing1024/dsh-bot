@@ -219,17 +219,181 @@ describe('Conversation', () => {
       return jsonOk({ sessionId: 's-live', working: false, items: [] })
     }))
     render(<Conversation bot={BOT} />)
+    const trigger = await screen.findByTestId('session-select')
+    expect(trigger.getAttribute('data-session-id')).toBe('s-live')
+    fireEvent.click(trigger)
     const toggle = await screen.findByTestId('include-hidden') as HTMLInputElement
     expect(toggle.checked).toBe(false)
-    await screen.findByTestId('session-select')
-    expect((screen.getByTestId('session-select') as HTMLSelectElement).value).toBe('s-live')
     fireEvent.click(toggle)
     await vi.waitFor(() => {
       expect(bodies.some(row => row.includeHidden === true)).toBe(true)
     })
     await vi.waitFor(() => {
-      expect((screen.getByTestId('session-select') as HTMLSelectElement).value).toBe('s-hidden')
+      expect(screen.getByTestId('session-select').getAttribute('data-session-id')).toBe('s-hidden')
     })
     expect(screen.getByTestId('session-select').textContent).toMatch(/~/)
+  })
+
+  it('reopens the remembered session instead of always the newest', async () => {
+    localStorage.setItem('dsh-bot:last-session:shiren-xiaobei', 's-old')
+    vi.stubGlobal('fetch', vi.fn(async (url: string) => {
+      const path = String(url)
+      if (path.includes('listBotSessions')) {
+        return jsonOk({
+          sessions: [
+            {
+              sessionId: 's-new',
+              title: '论诗',
+              tags: [],
+              status: 'idle',
+              createdAt: 2,
+              updatedAt: 2,
+              hidden: false,
+              working: false,
+            },
+            {
+              sessionId: 's-old',
+              title: '旧稿',
+              tags: [],
+              status: 'idle',
+              createdAt: 1,
+              updatedAt: 1,
+              hidden: false,
+              working: false,
+            },
+          ],
+        })
+      }
+      return jsonOk({ sessionId: 's-old', working: false, items: [] })
+    }))
+    render(<Conversation bot={BOT} />)
+    await vi.waitFor(() => {
+      expect(screen.getByTestId('session-select').getAttribute('data-session-id')).toBe('s-old')
+    })
+    expect(screen.getByTestId('session-select').textContent).toMatch(/旧稿/)
+  })
+
+  it('does not label every bound session with the bot name', async () => {
+    vi.stubGlobal('fetch', vi.fn(async (url: string) => {
+      if (String(url).includes('listBotSessions')) {
+        return jsonOk({
+          sessions: [{
+            sessionId: 's1',
+            title: '诗人小北',
+            tags: [],
+            status: 'idle',
+            createdAt: 1,
+            updatedAt: 1,
+            hidden: false,
+            working: false,
+          }],
+        })
+      }
+      return jsonOk({ sessionId: 's1', working: false, items: [] })
+    }))
+    render(<Conversation bot={BOT} />)
+    const trigger = await screen.findByTestId('session-select')
+    expect(trigger.textContent).toMatch(/新对话/)
+    fireEvent.click(trigger)
+    expect(screen.getByTestId('session-option-s1').textContent).toMatch(/新对话/)
+  })
+
+  it('offers a current-session menu that copies the id when standalone', async () => {
+    const writeText = vi.fn(async () => undefined)
+    Object.defineProperty(navigator, 'clipboard', {
+      configurable: true,
+      value: { writeText },
+    })
+    vi.stubGlobal('fetch', vi.fn(async (url: string) => {
+      if (String(url).includes('listBotSessions')) {
+        return jsonOk({
+          sessions: [{
+            sessionId: 's1',
+            title: '对话 1',
+            tags: [],
+            status: 'idle',
+            createdAt: 1,
+            updatedAt: 1,
+            hidden: false,
+            working: false,
+          }],
+        })
+      }
+      return jsonOk({ sessionId: 's1', working: false, items: [] })
+    }))
+    render(<Conversation bot={BOT} />)
+    await screen.findByTestId('session-current-menu')
+    fireEvent.click(screen.getByTestId('session-current-menu'))
+    const jump = await screen.findByTestId('session-current-jump')
+    expect(jump.textContent).toBe('复制会话 ID')
+    expect(jump.getAttribute('title')).toBe('在右栏页签内可直接跳转')
+    fireEvent.click(jump)
+    expect(await screen.findByTestId('conversation-toast')).toHaveProperty('textContent', '已复制会话 ID')
+    expect(writeText).toHaveBeenCalledWith('s1')
+  })
+
+  it('does not offer DSH jump on group rooms', async () => {
+    const group = { id: 'bianji-shi', name: '编辑室', memberIds: [BOT.id], createdAt: 1 }
+    vi.stubGlobal('fetch', vi.fn(async (url: string) => {
+      const path = String(url)
+      if (path.includes('listGroupSessions')) {
+        return jsonOk({
+          rooms: [{ roomId: 'room-1', groupId: group.id, createdAt: 1, updatedAt: 1 }],
+        })
+      }
+      if (path.includes('history')) {
+        return jsonOk({ sessionId: 'room-1', working: false, items: [] })
+      }
+      return jsonOk({})
+    }))
+    render(<Conversation group={group} members={[BOT]} />)
+    const trigger = await screen.findByTestId('session-select')
+    expect(screen.queryByTestId('session-current-menu')).toBeNull()
+    fireEvent.click(trigger)
+    expect(screen.getByTestId('session-option-room-1')).toBeTruthy()
+    expect(screen.queryByTestId('session-menu-room-1')).toBeNull()
+  })
+
+  it('sets a reply card from the group message menu and clears it after send', async () => {
+    const group = { id: 'bianji-shi', name: '编辑室', memberIds: [BOT.id], createdAt: 1 }
+    vi.stubGlobal('fetch', vi.fn(async (url: string) => {
+      const path = String(url)
+      if (path.includes('listGroupSessions')) {
+        return jsonOk({
+          rooms: [{ roomId: 'room-1', groupId: group.id, createdAt: 1, updatedAt: 1 }],
+        })
+      }
+      if (path.includes('history')) {
+        return jsonOk({
+          sessionId: 'room-1',
+          working: false,
+          items: [
+            { id: 'm-1', kind: 'message', seq: 1, role: 'user', text: '你们是谁?' },
+            {
+              id: 'm-2',
+              kind: 'message',
+              seq: 2,
+              role: 'assistant',
+              text: '我是诗人小北',
+              author: { botId: BOT.id, name: BOT.name, avatar: BOT.avatar },
+            },
+          ],
+        })
+      }
+      if (path.includes('prompt')) return jsonOk({ sessionId: 'room-1' })
+      return jsonOk({})
+    }))
+    render(<Conversation group={group} members={[BOT]} />)
+    expect(await screen.findByTestId('transcript-msg-2')).toBeTruthy()
+    fireEvent.click(screen.getByTestId('transcript-menu-2'))
+    fireEvent.click(screen.getByTestId('transcript-reply-2'))
+    expect(screen.getByTestId('composer-reply').textContent).toMatch(/回复: 诗人小北/)
+    const input = screen.getByTestId('composer-input')
+    fireEvent.change(input, { target: { value: '再来一句' } })
+    fireEvent.click(screen.getByTestId('composer-send'))
+    await vi.waitFor(() => {
+      expect(screen.queryByTestId('composer-reply')).toBeNull()
+    })
+    expect(await screen.findByTestId('transcript-reply-cite-pending')).toBeTruthy()
   })
 })

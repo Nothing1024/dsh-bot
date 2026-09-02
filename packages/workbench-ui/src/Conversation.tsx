@@ -19,9 +19,26 @@ import type {
   WorkbenchWireError,
 } from './api.ts'
 import { parseMentions } from './mentions.ts'
-import { hashAvatarColor, nameInitial } from './avatar.ts'
+import { hashAvatarColor } from './avatar.ts'
+import { Persona } from './Persona.tsx'
 import { Composer } from './Composer.tsx'
+import type { ComposerReplyTo } from './Composer.tsx'
 import { Transcript } from './Transcript.tsx'
+import type { TranscriptSpeaker } from './Transcript.tsx'
+
+type ReplyMark = {
+  readonly sessionId: string
+  readonly text: string
+  readonly replyTo: ComposerReplyTo
+}
+import { SessionJumpMenuItem, SessionList } from './SessionList.tsx'
+import type { SessionChoice } from './SessionList.tsx'
+import {
+  pickBoundSession,
+  readLastSession,
+  sessionDisplayTitle,
+  writeLastSession,
+} from './session-binding.ts'
 import { useSessionPoll } from './useSessionPoll.ts'
 
 export interface ConversationProps {
@@ -30,18 +47,36 @@ export interface ConversationProps {
   readonly members?: readonly WorkbenchBot[]
   readonly hint?: string | null
   readonly refreshEpoch?: number
+  readonly preferredSessionId?: string | null
   readonly roundLocked?: boolean
+  readonly paletteOpen?: boolean
   readonly onEdit?: () => void
   readonly onEditMembers?: () => void
   readonly onWorking?: (botId: string, working: boolean) => void
   readonly onWorkingDetach?: (botId: string) => void
   readonly onPreview?: (botId: string, preview: string) => void
   readonly onDraft?: (botId: string, text: string) => void
+  readonly onActiveSession?: (sessionId: string | null) => void
+  readonly onSessions?: (sessions: readonly WorkbenchSessionRow[]) => void
 }
 
 function formatError(error: WorkbenchWireError): string {
   const code = error.code !== undefined && error.code !== '' ? error.code : 'internal'
   return `${code}: ${error.message}`
+}
+
+function resolveSpeaking(
+  speaking: { readonly botId: string; readonly name: string } | null,
+  members: readonly WorkbenchBot[],
+): TranscriptSpeaker | null {
+  if (speaking === null) return null
+  const member = members.find(row => row.id === speaking.botId)
+  if (member === undefined) return speaking
+  return {
+    botId: speaking.botId,
+    name: speaking.name,
+    avatar: member.avatar,
+  }
 }
 
 function lastPreview(items: readonly WorkbenchHistoryItem[]): string {
@@ -56,15 +91,30 @@ function lastPreview(items: readonly WorkbenchHistoryItem[]): string {
  * Header + transcript + composer for one selected bot.
  */
 function roomsToSessions(rooms: readonly { roomId: string; createdAt: number; updatedAt: number }[]): WorkbenchSessionRow[] {
-  return rooms.map((row, index) => ({
+  return rooms.map(row => ({
     sessionId: row.roomId,
-    title: index === 0 ? '当前房间' : `房间 ${row.roomId.slice(0, 8)}`,
+    title: `房间 ${row.roomId.slice(0, 8)}`,
     tags: [],
     status: 'idle' as const,
     createdAt: row.createdAt,
     updatedAt: row.updatedAt,
     hidden: false,
     working: false,
+  }))
+}
+
+function toChoices(
+  rows: readonly WorkbenchSessionRow[],
+  identityName: string,
+  sessionId: string | null,
+): SessionChoice[] {
+  return rows.map(row => ({
+    sessionId: row.sessionId,
+    title: sessionDisplayTitle(row.title, identityName, { hidden: row.hidden }),
+    updatedAt: row.updatedAt > 0 ? row.updatedAt : row.createdAt,
+    working: row.working,
+    hidden: row.hidden,
+    selected: row.sessionId === sessionId,
   }))
 }
 
@@ -85,10 +135,19 @@ export function Conversation(props: ConversationProps) {
   const [awaitingTurn, setAwaitingTurn] = useState(false)
   const [includeHidden, setIncludeHidden] = useState(false)
   const [toast, setToast] = useState<string | null>(null)
+  const [switcherOpen, setSwitcherOpen] = useState(false)
+  const [currentMenuOpen, setCurrentMenuOpen] = useState(false)
+  const [replyTo, setReplyTo] = useState<ComposerReplyTo | null>(null)
+  const [replyMarks, setReplyMarks] = useState<readonly ReplyMark[]>([])
+  const switcherRef = useRef<HTMLDivElement>(null)
   const sawWorkingRef = useRef(false)
   const sendSeqRef = useRef(-1)
   const sessionIdRef = useRef(sessionId)
   const includeHiddenRef = useRef(includeHidden)
+  const onSessionsRef = useRef(props.onSessions)
+  const onActiveSessionRef = useRef(props.onActiveSession)
+  onSessionsRef.current = props.onSessions
+  onActiveSessionRef.current = props.onActiveSession
   sessionIdRef.current = sessionId
 
   const loadSessions = useCallback(async (prefer: string | null): Promise<string | null> => {
@@ -110,9 +169,8 @@ export function Conversation(props: ConversationProps) {
       setListError(null)
       const rows = roomsToSessions(rooms)
       setSessions(rows)
-      const keep = prefer !== null && rows.some(row => row.sessionId === prefer)
-        ? prefer
-        : rows[0]?.sessionId ?? null
+      onSessionsRef.current?.(rows)
+      const keep = pickBoundSession(rows.map(row => row.sessionId), prefer, readLastSession(identityId))
       setSessionId(keep)
       return keep
     }
@@ -125,12 +183,11 @@ export function Conversation(props: ConversationProps) {
     setListError(null)
     const rows = outcome.value.sessions ?? []
     setSessions(rows)
-    const keep = prefer !== null && rows.some(row => row.sessionId === prefer)
-      ? prefer
-      : rows[0]?.sessionId ?? null
+    onSessionsRef.current?.(rows)
+    const keep = pickBoundSession(rows.map(row => row.sessionId), prefer, readLastSession(identityId))
     setSessionId(keep)
     return keep
-  }, [bot, group, includeHidden, isGroup])
+  }, [bot, group, identityId, includeHidden, isGroup])
 
   useEffect(() => {
     let cancelled = false
@@ -139,9 +196,13 @@ export function Conversation(props: ConversationProps) {
     setSendCode(null)
     setAwaitingTurn(false)
     setToast(null)
+    setSwitcherOpen(false)
+    setCurrentMenuOpen(false)
+    setReplyTo(null)
     sawWorkingRef.current = false
     setSessionId(null)
-    void loadSessions(null).then(id => {
+    const prefer = props.preferredSessionId ?? readLastSession(identityId)
+    void loadSessions(prefer).then(id => {
       if (cancelled) return
       if (id !== null) setSessionId(id)
     })
@@ -152,6 +213,41 @@ export function Conversation(props: ConversationProps) {
   }, [identityId])
 
   useEffect(() => {
+    const id = props.preferredSessionId
+    if (id === undefined || id === null) return
+    if (id === sessionIdRef.current) return
+    if (!sessions.some(row => row.sessionId === id)) return
+    setSessionId(id)
+    setPending(null)
+    setSwitcherOpen(false)
+    setCurrentMenuOpen(false)
+  }, [props.preferredSessionId, sessions])
+
+  useEffect(() => {
+    if (identityId === '') return
+    if (sessionId !== null) writeLastSession(identityId, sessionId)
+    onActiveSessionRef.current?.(sessionId)
+  }, [identityId, sessionId])
+
+  useEffect(() => {
+    if (switcherOpen === false && currentMenuOpen === false) return
+    const onDoc = (event: Event): void => {
+      const target = event.target as Node | null
+      if (target !== null && switcherRef.current?.contains(target) === true) return
+      setSwitcherOpen(false)
+      setCurrentMenuOpen(false)
+    }
+    document.addEventListener('mousedown', onDoc)
+    return () => document.removeEventListener('mousedown', onDoc)
+  }, [switcherOpen, currentMenuOpen])
+
+  useEffect(() => {
+    if (toast === null) return
+    const timer = window.setTimeout(() => setToast(null), 4000)
+    return () => window.clearTimeout(timer)
+  }, [toast])
+
+  useEffect(() => {
     if (includeHiddenRef.current === includeHidden) return
     includeHiddenRef.current = includeHidden
     void loadSessions(sessionIdRef.current)
@@ -159,8 +255,8 @@ export function Conversation(props: ConversationProps) {
 
   useEffect(() => {
     if (props.refreshEpoch === undefined || props.refreshEpoch === 0) return
-    void loadSessions(sessionIdRef.current)
-  }, [loadSessions, props.refreshEpoch])
+    void loadSessions(props.preferredSessionId ?? sessionIdRef.current)
+  }, [loadSessions, props.preferredSessionId, props.refreshEpoch])
 
   const poll = useSessionPoll({
     sessionId,
@@ -276,6 +372,11 @@ export function Conversation(props: ConversationProps) {
         setAwaitingTurn(false)
         return false
       }
+      if (replyTo !== null) {
+        const cited = replyTo
+        setReplyMarks(current => [...current, { sessionId: id, text, replyTo: cited }])
+        setReplyTo(null)
+      }
       sendSeqRef.current = poll.items.reduce((max, item) => item.seq > max ? item.seq : max, -1)
       sawWorkingRef.current = false
       setAwaitingTurn(true)
@@ -290,11 +391,9 @@ export function Conversation(props: ConversationProps) {
   const color = !isGroup && bot !== undefined
     ? (bot.avatar.color !== '' ? bot.avatar.color : hashAvatarColor(bot.id))
     : '#5b8def'
-  const glyph = !isGroup && bot !== undefined
-    ? (bot.avatar.emoji !== undefined && bot.avatar.emoji !== '' ? bot.avatar.emoji : nameInitial(bot.name))
-    : nameInitial(identityName)
   const empty = poll.ready && poll.items.length === 0 && pending === null && !working && poll.error === null && listError === null
   const composerLocked = poll.working || awaitingTurn || sending
+  const speaking = resolveSpeaking(poll.speaking, members)
 
   return (
     <div className="conversationPane" data-testid="conversation-pane" data-kind={isGroup ? 'group' : 'bot'}>
@@ -303,7 +402,9 @@ export function Conversation(props: ConversationProps) {
           <div className="identity" data-testid="conversation-identity">
             <span data-testid="conversation-name">{identityName}</span>
             {working ? (
-              <span className="workingBadge" data-testid="conversation-working">工作中</span>
+              <span className="workingBadge" data-testid="conversation-working">
+                {poll.speaking !== null ? `${poll.speaking.name} 正在发言` : '工作中'}
+              </span>
             ) : null}
           </div>
         ) : (
@@ -314,7 +415,14 @@ export function Conversation(props: ConversationProps) {
             title="编辑人设"
             onClick={() => props.onEdit?.()}
           >
-            <span className="avatar sm" style={{ background: color }}>{glyph}</span>
+            <Persona
+              botId={bot?.id ?? identityId}
+              name={identityName}
+              size="sm"
+              mood={working ? 'working' : 'idle'}
+              color={color}
+              {...bot?.avatar.emoji === undefined || bot.avatar.emoji === '' ? {} : { emoji: bot.avatar.emoji }}
+            />
             <span data-testid="conversation-name">{identityName}</span>
             {working ? (
               <span className="workingBadge" data-testid="conversation-working">工作中</span>
@@ -322,39 +430,81 @@ export function Conversation(props: ConversationProps) {
           </button>
         )}
         <span className="headActions">
-          <label className="sessionPick">
-            <span className="visuallyHidden">对话</span>
-            <select
+          <div className="sessionSwitch" ref={switcherRef}>
+            <button
+              type="button"
+              className="sessionSwitchBtn"
               data-testid="session-select"
-              value={sessionId ?? ''}
-              onChange={event => {
-                const next = event.target.value
-                setSessionId(next === '' ? null : next)
-                setPending(null)
+              data-session-id={sessionId ?? ''}
+              aria-expanded={switcherOpen}
+              aria-haspopup="listbox"
+              title="切换这段对话"
+              onClick={() => {
+                setCurrentMenuOpen(false)
+                setSwitcherOpen(open => !open)
               }}
             >
-              {sessions.length === 0 ? <option value="">新对话</option> : null}
-              {sessions.map(row => {
-                const title = row.title !== undefined && row.title !== '' ? row.title : row.sessionId.slice(0, 8)
-                return (
-                  <option key={row.sessionId} value={row.sessionId}>
-                    {row.hidden ? `~ ${title}` : title}
-                  </option>
-                )
-              })}
-            </select>
-          </label>
-          {isGroup ? null : (
-            <label className="hiddenToggle">
-              <input
-                type="checkbox"
-                data-testid="include-hidden"
-                checked={includeHidden}
-                onChange={event => setIncludeHidden(event.target.checked)}
-              />
-              包含隐藏
-            </label>
-          )}
+              <span className="sessionSwitchLabel">对话</span>
+              <span className="sessionSwitchTitle">
+                {sessionId === null
+                  ? '新对话'
+                  : sessionDisplayTitle(
+                    sessions.find(row => row.sessionId === sessionId)?.title,
+                    identityName,
+                    { hidden: sessions.find(row => row.sessionId === sessionId)?.hidden === true },
+                  )}
+              </span>
+            </button>
+            {switcherOpen ? (
+              <div className="sessionSwitchMenu" role="listbox">
+                <SessionList
+                  items={toChoices(sessions, identityName, sessionId)}
+                  emptyHint="还没有绑定的对话"
+                  onSelect={id => {
+                    setSessionId(id)
+                    setPending(null)
+                    setSwitcherOpen(false)
+                  }}
+                  onCreate={() => {
+                    setSwitcherOpen(false)
+                    void openNew()
+                  }}
+                  {...isGroup ? { enableJump: false } : {
+                    includeHidden,
+                    onIncludeHidden: (next: boolean) => setIncludeHidden(next),
+                    onToast: setToast,
+                  }}
+                />
+              </div>
+            ) : null}
+            {!isGroup && sessionId !== null ? (
+              <button
+                type="button"
+                className="rowMenuBtn sessionCurrentMenuBtn"
+                data-testid="session-current-menu"
+                aria-label="当前会话"
+                aria-expanded={currentMenuOpen}
+                aria-haspopup="menu"
+                title="当前会话"
+                onClick={() => {
+                  setSwitcherOpen(false)
+                  setCurrentMenuOpen(open => !open)
+                }}
+              >
+                ⋯
+              </button>
+            ) : null}
+            {!isGroup && currentMenuOpen && sessionId !== null ? (
+              <div className="rowMenu sessionCurrentMenuPanel" data-testid="session-current-menu-panel">
+                <SessionJumpMenuItem
+                  sessionId={sessionId}
+                  testId="session-current-jump"
+                  onToast={setToast}
+                  onDone={() => setCurrentMenuOpen(false)}
+                />
+              </div>
+            ) : null}
+          </div>
           <button
             type="button"
             className="retry"
@@ -369,23 +519,31 @@ export function Conversation(props: ConversationProps) {
         <div className="memberChips" data-testid="group-member-chips">
           {members.map(member => {
             const chipColor = member.avatar.color !== '' ? member.avatar.color : hashAvatarColor(member.id)
-            const chipGlyph = member.avatar.emoji !== undefined && member.avatar.emoji !== ''
-              ? member.avatar.emoji
-              : nameInitial(member.name)
             return (
               <button
                 key={member.id}
                 type="button"
-                className="memberChip"
+                className={`memberChip${poll.speaking?.botId === member.id ? ' isSpeaking' : ''}`}
                 data-testid={`group-chip-${member.id}`}
+                data-speaking={poll.speaking?.botId === member.id ? 'true' : undefined}
                 onClick={() => props.onEditMembers?.()}
               >
-                <span className="avatar sm" style={{ background: chipColor }}>{chipGlyph}</span>
+                <Persona
+                  botId={member.id}
+                  name={member.name}
+                  size="sm"
+                  mood={poll.speaking?.botId === member.id ? 'working' : 'idle'}
+                  color={chipColor}
+                  {...member.avatar.emoji === undefined || member.avatar.emoji === '' ? {} : { emoji: member.avatar.emoji }}
+                />
                 {member.name}
               </button>
             )
           })}
         </div>
+      ) : null}
+      {toast !== null ? (
+        <p className="formHint" data-testid="conversation-toast">{toast}</p>
       ) : null}
       {listError !== null ? (
         <p className="formError" data-testid="conversation-list-error">{listError}</p>
@@ -406,8 +564,23 @@ export function Conversation(props: ConversationProps) {
           items={poll.items}
           pending={pending}
           working={working}
-          speaking={poll.speaking}
-          groupMode={isGroup}
+          {...speaking === null ? {} : { speaking }}
+          {...isGroup ? {
+            groupMode: true,
+            replyMarks: replyMarks
+              .filter(row => row.sessionId === sessionId)
+              .map(row => ({ text: row.text, replyTo: row.replyTo })),
+            pendingReply: pending === null
+              ? null
+              : (replyMarks.find(row => row.sessionId === sessionId && row.text === pending.text)?.replyTo ?? null),
+            onReplyTo: (item: WorkbenchHistoryItem) => {
+              setReplyTo({
+                seq: item.seq,
+                speaker: item.author?.name ?? (item.role === 'user' ? '你' : '成员'),
+                text: item.text ?? '',
+              })
+            },
+          } : {}}
         />
       )}
       <Composer
@@ -418,6 +591,9 @@ export function Conversation(props: ConversationProps) {
         error={sendError}
         errorCode={sendCode}
         toast={toast}
+        paletteOpen={props.paletteOpen === true}
+        {...replyTo === null ? {} : { replyTo }}
+        onClearReply={() => setReplyTo(null)}
         {...isGroup ? { storageKey: groupDraftStorageKey(group.id), members } : {}}
         onSend={send}
         {...props.onDraft === undefined ? {} : { onDraft: props.onDraft }}

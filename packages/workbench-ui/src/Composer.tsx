@@ -1,13 +1,21 @@
 /**
  * Composer dock: draft isolated by botId, Enter sends, Shift+Enter newline.
+ * Mention `@` and emoji `:` share one popup + keyboard pattern.
  */
 import { useEffect, useRef, useState, type KeyboardEvent } from 'react'
 import { readDraft, writeDraft, draftStorageKey } from './api.ts'
+import { emojiQuery, filterEmoji } from './emoji.ts'
 import { mentionQuery } from './mentions.ts'
 
 export interface ComposerMember {
   readonly id: string
   readonly name: string
+}
+
+export interface ComposerReplyTo {
+  readonly seq: number
+  readonly speaker: string
+  readonly text: string
 }
 
 export interface ComposerProps {
@@ -20,8 +28,11 @@ export interface ComposerProps {
   readonly storageKey?: string
   readonly members?: readonly ComposerMember[]
   readonly toast?: string | null
+  readonly paletteOpen?: boolean
+  readonly replyTo?: ComposerReplyTo | null
   readonly onSend: (text: string) => Promise<boolean>
   readonly onDraft?: (botId: string, text: string) => void
+  readonly onClearReply?: () => void
 }
 
 /**
@@ -48,6 +59,17 @@ function writeAt(key: string, text: string): void {
   }
 }
 
+function clip(text: string, max = 48): string {
+  const next = text.replace(/\s+/g, ' ').trim()
+  if (next.length <= max) return next
+  return `${next.slice(0, max)}…`
+}
+
+type PopupKind = 'mention' | 'emoji' | null
+
+/**
+ * Enter sends, Shift+Enter newline. Cmd+K is handled on document (capture).
+ */
 export function Composer(props: ComposerProps) {
   const [text, setText] = useState(() => {
     const key = storageOf(props)
@@ -55,7 +77,9 @@ export function Composer(props: ComposerProps) {
     if (stored !== '') return stored
     return props.storageKey !== undefined ? '' : readDraft(props.botId)
   })
-  const [mentionOpen, setMentionOpen] = useState(false)
+  const [popup, setPopup] = useState<PopupKind>(null)
+  const [emojiMode, setEmojiMode] = useState<'colon' | 'button'>('colon')
+  const [active, setActive] = useState(0)
   const botRef = useRef(props.botId)
   const keyRef = useRef(storageOf(props))
   const textRef = useRef(text)
@@ -76,7 +100,7 @@ export function Composer(props: ComposerProps) {
       keyRef.current = nextKey
       const next = readAt(nextKey)
       setText(next)
-      setMentionOpen(false)
+      setPopup(null)
       onDraftRef.current?.(props.botId, next)
       return
     }
@@ -91,16 +115,36 @@ export function Composer(props: ComposerProps) {
     }
   }, [])
 
+  useEffect(() => {
+    if (props.paletteOpen === true) setPopup(null)
+  }, [props.paletteOpen])
+
+  const syncPopup = (value: string, caret: number): void => {
+    const mention = props.members !== undefined && props.members.length > 0
+      ? mentionQuery(value, caret)
+      : null
+    const emoji = emojiQuery(value, caret)
+    if (mention !== null) {
+      setPopup('mention')
+      setActive(0)
+      return
+    }
+    if (emoji !== null) {
+      setPopup('emoji')
+      setEmojiMode('colon')
+      setActive(0)
+      return
+    }
+    setPopup(current => (current === 'emoji' && emojiMode === 'button' ? current : null))
+  }
+
   const change = (value: string): void => {
     setText(value)
     writeAt(storageOf(props), value)
     if (props.storageKey === undefined) writeDraft(props.botId, value)
     onDraftRef.current?.(props.botId, value)
     const caret = inputRef.current?.selectionStart ?? value.length
-    const query = props.members !== undefined && props.members.length > 0
-      ? mentionQuery(value, caret)
-      : null
-    setMentionOpen(query !== null)
+    syncPopup(value, caret)
   }
 
   const send = async (): Promise<void> => {
@@ -111,7 +155,7 @@ export function Composer(props: ComposerProps) {
       setText('')
       writeAt(storageOf(props), '')
       if (props.storageKey === undefined) writeDraft(props.botId, '')
-      setMentionOpen(false)
+      setPopup(null)
       onDraftRef.current?.(props.botId, '')
     }
   }
@@ -123,7 +167,7 @@ export function Composer(props: ComposerProps) {
     if (query === null) return
     const next = `${text.slice(0, query.start)}@${name} ${text.slice(caret)}`
     change(next)
-    setMentionOpen(false)
+    setPopup(null)
     requestAnimationFrame(() => {
       const pos = query.start + name.length + 2
       node?.setSelectionRange(pos, pos)
@@ -131,31 +175,110 @@ export function Composer(props: ComposerProps) {
     })
   }
 
+  const insertEmoji = (glyph: string): void => {
+    const node = inputRef.current
+    const caret = node?.selectionStart ?? text.length
+    const query = emojiMode === 'colon' ? emojiQuery(text, caret) : null
+    const start = query?.start ?? caret
+    const next = `${text.slice(0, start)}${glyph}${text.slice(caret)}`
+    change(next)
+    setPopup(null)
+    requestAnimationFrame(() => {
+      const pos = start + glyph.length
+      node?.setSelectionRange(pos, pos)
+      node?.focus()
+    })
+  }
+
+  const caret = inputRef.current?.selectionStart ?? text.length
+  const mentionToken = popup === 'mention' ? mentionQuery(text, caret) : null
+  const emojiToken = popup === 'emoji' && emojiMode === 'colon' ? emojiQuery(text, caret) : null
+  const mentionChoices = (props.members ?? []).filter(row => {
+    if (mentionToken === null) return false
+    const needle = mentionToken.query.toLowerCase()
+    if (needle === '') return true
+    return row.name.toLowerCase().includes(needle) || row.id.toLowerCase().includes(needle)
+  })
+  const emojiChoices = popup === 'emoji' ? filterEmoji(emojiToken?.query ?? '') : []
+  const popupChoices = popup === 'mention' ? mentionChoices : emojiChoices
+  const popupOpen = popup !== null && popupChoices.length > 0
+
+  useEffect(() => {
+    setActive(0)
+  }, [popup, mentionChoices.length, emojiChoices.length])
+
   const onKeyDown = (event: KeyboardEvent<HTMLTextAreaElement>): void => {
-    if (event.key === 'Escape' && mentionOpen) {
-      event.preventDefault()
-      setMentionOpen(false)
+    if (event.nativeEvent.isComposing || event.keyCode === 229) return
+    if (event.key === 'Escape') {
+      if (popup !== null) {
+        event.preventDefault()
+        setPopup(null)
+        return
+      }
+      if (props.replyTo != null) {
+        event.preventDefault()
+        props.onClearReply?.()
+        return
+      }
       return
     }
+    if (popupOpen) {
+      if (event.key === 'ArrowDown') {
+        event.preventDefault()
+        setActive(current => (current + 1) % popupChoices.length)
+        return
+      }
+      if (event.key === 'ArrowUp') {
+        event.preventDefault()
+        setActive(current => (current - 1 + popupChoices.length) % popupChoices.length)
+        return
+      }
+      if (event.key === 'Enter' && !event.shiftKey) {
+        event.preventDefault()
+        const choice = popupChoices[active]
+        if (choice === undefined) return
+        if (popup === 'mention' && 'name' in choice) insertMention(choice.name)
+        else if (popup === 'emoji' && 'glyph' in choice) insertEmoji(choice.glyph)
+        return
+      }
+    }
     if (event.key !== 'Enter' || event.shiftKey) return
-    if (event.nativeEvent.isComposing || event.keyCode === 229) return
     event.preventDefault()
     void send()
   }
 
   const locked = props.disabled || props.sending
   const placeholder = `给 ${props.botName} 发消息`
-  const caret = inputRef.current?.selectionStart ?? text.length
-  const query = props.members !== undefined && mentionOpen ? mentionQuery(text, caret) : null
-  const mentionChoices = (props.members ?? []).filter(row => {
-    if (query === null) return false
-    const needle = query.query.toLowerCase()
-    if (needle === '') return true
-    return row.name.toLowerCase().includes(needle) || row.id.toLowerCase().includes(needle)
-  })
+  const replyTo = props.replyTo
+
+  const toggleEmojiButton = (): void => {
+    if (locked) return
+    setPopup(current => {
+      if (current === 'emoji' && emojiMode === 'button') return null
+      setEmojiMode('button')
+      setActive(0)
+      return 'emoji'
+    })
+  }
 
   return (
     <div className="composer" data-testid="composer">
+      {replyTo !== undefined && replyTo !== null ? (
+        <div className="replyCard" data-testid="composer-reply">
+          <span className="replyCardText">
+            回复: {replyTo.speaker}: {clip(replyTo.text)}
+          </span>
+          <button
+            type="button"
+            className="replyCardClear"
+            data-testid="composer-reply-clear"
+            aria-label="清除回复"
+            onClick={() => props.onClearReply?.()}
+          >
+            ×
+          </button>
+        </div>
+      ) : null}
       {props.toast !== undefined && props.toast !== null && props.toast !== '' ? (
         <p className="formHint" data-testid="composer-toast">{props.toast}</p>
       ) : null}
@@ -187,14 +310,17 @@ export function Composer(props: ComposerProps) {
             rows={2}
             onChange={event => change(event.target.value)}
             onKeyDown={onKeyDown}
+            onSelect={event => syncPopup(event.currentTarget.value, event.currentTarget.selectionStart)}
           />
-          {mentionOpen && mentionChoices.length > 0 ? (
-            <ul className="mentionMenu" data-testid="mention-menu">
-              {mentionChoices.map(row => (
+          {popup === 'mention' && mentionChoices.length > 0 ? (
+            <ul className="mentionMenu" data-testid="mention-menu" role="listbox">
+              {mentionChoices.map((row, index) => (
                 <li key={row.id}>
                   <button
                     type="button"
+                    className={index === active ? 'isActive' : undefined}
                     data-testid={`mention-item-${row.id}`}
+                    onMouseEnter={() => setActive(index)}
                     onMouseDown={event => {
                       event.preventDefault()
                       insertMention(row.name)
@@ -206,7 +332,41 @@ export function Composer(props: ComposerProps) {
               ))}
             </ul>
           ) : null}
+          {popup === 'emoji' && emojiChoices.length > 0 ? (
+            <ul className="mentionMenu" data-testid="emoji-menu" role="listbox">
+              {emojiChoices.map((row, index) => (
+                <li key={row.id}>
+                  <button
+                    type="button"
+                    className={index === active ? 'isActive' : undefined}
+                    data-testid={`emoji-item-${row.id}`}
+                    onMouseEnter={() => setActive(index)}
+                    onMouseDown={event => {
+                      event.preventDefault()
+                      insertEmoji(row.glyph)
+                    }}
+                  >
+                    <span className="emojiGlyph">{row.glyph}</span>
+                    <span>:{row.id}:</span>
+                  </button>
+                </li>
+              ))}
+            </ul>
+          ) : null}
         </div>
+        <button
+          type="button"
+          className="composerEmojiBtn"
+          data-testid="composer-emoji"
+          aria-label="表情"
+          disabled={locked}
+          onMouseDown={event => {
+            event.preventDefault()
+            toggleEmojiButton()
+          }}
+        >
+          😊
+        </button>
         <button
           type="button"
           className="primaryBtn composerSend"

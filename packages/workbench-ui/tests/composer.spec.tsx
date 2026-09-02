@@ -121,4 +121,94 @@ describe('Composer', () => {
     fireEvent.keyDown(input, { key: 'Enter', shiftKey: false })
     await vi.waitFor(() => { expect(onSend).toHaveBeenCalledWith('第一行') })
   })
+
+  it('opens the emoji picker on colon and inserts the glyph', () => {
+    render(
+      <Composer
+        botId="bot-a"
+        botName="甲"
+        disabled={false}
+        sending={false}
+        error={null}
+        onSend={async () => true}
+      />,
+    )
+    const input = screen.getByTestId('composer-input') as HTMLTextAreaElement
+    fireEvent.change(input, { target: { value: ':smile' } })
+    expect(screen.getByTestId('emoji-menu')).toBeTruthy()
+    fireEvent.mouseDown(screen.getByTestId('emoji-item-smile'))
+    expect(input.value).toBe('😀')
+    expect(screen.queryByTestId('emoji-menu')).toBeNull()
+  })
+
+  it('toggles the emoji picker from the button without sending', () => {
+    render(
+      <Composer
+        botId="bot-a"
+        botName="甲"
+        disabled={false}
+        sending={false}
+        error={null}
+        onSend={async () => true}
+      />,
+    )
+    fireEvent.mouseDown(screen.getByTestId('composer-emoji'))
+    expect(screen.getByTestId('emoji-menu')).toBeTruthy()
+    fireEvent.mouseDown(screen.getByTestId('emoji-item-smile'))
+    expect((screen.getByTestId('composer-input') as HTMLTextAreaElement).value).toBe('😀')
+  })
+
+  it('keeps Enter-to-send when the picker is closed and shows a reply card', async () => {
+    const onSend = vi.fn(async () => true)
+    const onClearReply = vi.fn()
+    render(
+      <Composer
+        botId="bot-a"
+        botName="甲"
+        disabled={false}
+        sending={false}
+        error={null}
+        replyTo={{ seq: 2, speaker: '诗人小北', text: '我是诗人小北' }}
+        onClearReply={onClearReply}
+        onSend={onSend}
+      />,
+    )
+    expect(screen.getByTestId('composer-reply').textContent).toMatch(/回复: 诗人小北/)
+    fireEvent.click(screen.getByTestId('composer-reply-clear'))
+    expect(onClearReply).toHaveBeenCalled()
+    const input = screen.getByTestId('composer-input')
+    fireEvent.change(input, { target: { value: '下一句' } })
+    fireEvent.keyDown(input, { key: 'Enter', shiftKey: false })
+    await vi.waitFor(() => { expect(onSend).toHaveBeenCalledWith('下一句') })
+  })
+
+  it('closes mention when the command palette opens', () => {
+    const members = [{ id: 'shiren-xiaobei', name: '诗人小北' }]
+    const { rerender } = render(
+      <Composer
+        botId="bot-a"
+        botName="甲"
+        disabled={false}
+        sending={false}
+        error={null}
+        members={members}
+        onSend={async () => true}
+      />,
+    )
+    fireEvent.change(screen.getByTestId('composer-input'), { target: { value: '@诗' } })
+    expect(screen.getByTestId('mention-menu')).toBeTruthy()
+    rerender(
+      <Composer
+        botId="bot-a"
+        botName="甲"
+        disabled={false}
+        sending={false}
+        error={null}
+        members={members}
+        paletteOpen
+        onSend={async () => true}
+      />,
+    )
+    expect(screen.queryByTestId('mention-menu')).toBeNull()
+  })
 })
