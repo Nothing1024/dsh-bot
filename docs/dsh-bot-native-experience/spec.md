@@ -1,6 +1,6 @@
 # dsh-bot-native-experience Spec
 
-> Version: 0.1.0 | Date: 2026-09-02 | Status: Skeleton 骨架
+> Version: 0.1.0 | Date: 2026-09-02 | Status: Ready 可执行
 >
 > 本文件是本需求的**唯一事实源**：事实基线、业务合同、技术方案、任务计划、验收协议全部在此。
 > 其他文件（handoff.md、tasks.csv）只引用本文件，不复制内容。
@@ -18,7 +18,7 @@
 - **给谁 / 场景**：要补齐 dsh-bot workbench-ui 贴合 dsh 特色的原生体验差距、让工作台更易用的执行方（人或 agent）。
 - **做什么**：补上四项能力：轻量命令面板（Cmd+K，仅覆盖切换人设/小组/会话的 dsh 概念，不做 workflow/MCP/文件等通用功能），全局快捷键系统（至少 Cmd+K 和可选的快捷键），emoji picker（composer 中），小组消息回复引用（轮次制发言时可引用房间内之前某条消息）。
 - **改哪里**：前端 `packages/workbench-ui/src`（Command Palette 新组件 + 快捷键 hook + Composer 补 emoji UI + Transcript/GroupForm 补 reply 逻辑），后端 `packages/dsh-bot-host/src/groups.ts`（仅评估是否需要 roomMessage 加 replyTo 字段，可能不改）。
-- **怎么算做完**：四项都实现 + 前端真实场景测试通过（浏览器操作）+ 命令 build/typecheck/test 全��。
+- **怎么算做完**：四项都实现 + 前端真实场景测试通过（浏览器操作）+ 命令 build/typecheck/test 全绿。
 - **不做什么**：消息内查找(Cmd+F)、roster 未读计数、SSE/推送替代轮询、composer slash-command(/开头)、文件上传、KaTeX/Mermaid 渲染、跨会话全局搜索、虚拟滚动、群聊人类在线状态、emoji reaction——这些均因投入产出比低或与 dsh-bot 定位（多人设轻量工作台）不符。
 
 ---
@@ -82,7 +82,7 @@
 | BR-002 | Cmd+K 可随时打开/关闭；Escape 关闭面板；在 composer 中输入时 Cmd+K 不被 composer 的 onKeyDown 拦截 | Cmd+K 在 body 或 textarea focus 时都响应；@mention 弹窗不与面板共存（面板打开时关掉 mention 弹窗） | Cmd+K 在 textarea 中没反应，或与 mention 弹窗打架 | 全工作台 | UF-001 失败分支 |
 | BR-003 | 快捷键无硬冲突：Composer 既有的 Enter(发送)/Shift+Enter(换行) 不变；新增全局 Cmd+K（命令面板）；其他快捷键可选（Cmd+N 新建人设等）为文档注释，不强制实现 | 既有快捷键照常工作，新快捷键补充 | 改了 Enter 行为，或全局快捷键和 Composer 冲突 | Composer + App 级 | UF-002 真实场景 |
 | BR-004 | emoji picker 在 Composer 中提供「:」开头自动完成弹窗（可选），或单独 emoji 按钮，或二者都有 | 输入冒号 → 弹出 emoji 列表 → 选中 → 插入文本 | emoji UI 单独弹窗，与 @mention 体验不一致 | Composer | UF-003 真实场景 |
-| BR-005 | 小组房间消息可点击「引用」或在消息行右键菜单点「回复」，在 composer 顶部显示「回复: 某条消息」卡片，发送时附上 replyTo 标记（不改后端存储，仅前端展示） | 点消息菜单 → 出现回复框 → composer 显示 reply 卡片 → 发送后房间显示「→ 某人: 某条文` → 组织成树视图 | 回复信息丢失，或需要改后端数据库 | 小组对话 | UF-004 主路径 |
+| BR-005 | 小组房间消息可经消息行菜单点「回复」，composer 顶部显示「回复: 某人: 摘要」卡片，可「×」清除；发送后该条用户消息在房间里显示指向被引用消息的标记（前端展示层，不改后端存储） | 点消息菜单「回复」→ composer 出现 reply 卡片 → 发送 → 房间该行显示「→ 诗人小北」 | 回复卡片发送后不清除；或为此改后端 RoomMessage 结构 | 小组对话 | UF-004 主路径 |
 | BR-006 | 非目标与红线同步：本轮四项与既有功能无冲突；不破坏 dsh-bot-workbench 三期既有行为 | 本轮四项与既有功能无冲突 | 范围泡胀，加了不在需求内的功能；或破坏既有功能 | 全仓 | spec 完整性 |
 
 ### 2.2 UF 用户验收场景（索引）
@@ -105,7 +105,7 @@
 | 步骤 | 用户动作 | 界面即时反馈 | 系统行为 | 用户看到的结果 |
 |---|---|---|---|---|
 | 1 | 按 Cmd+K（Mac）或 Ctrl+K（Windows） | body 上 `keydown` 捕获，focus 无要求 | 触发命令面板打开逻辑 | 工作台中央或顶部出现半透明蒙层 + 面板列表 |
-| 2 | 面板列出：「+ 新建人设」「+ 新建小组」「清空当前对话」加当前 bots/groups 列表（按 updatedAt 排序） | 每行可hover高亮；列表最多显示 10 项，多于此时可滚��� | 无后端请求，纯前端列表 | 用户看到所有可选项，按数字键(1-9)或点击选中 |
+| 2 | 面板列出：「+ 新建人设」「+ 新建小组」「清空当前对话」加当前 bots/groups 列表（按 updatedAt 排序） | 每行可 hover 高亮；列表超出面板高度时可滚动 | 无后端请求，纯前端列表 | 用户看到所有可选项，按数字键(1-9)或点击选中 |
 | 3 | 点击「诗人小北」(某人设) 或按数字键快速选中 | 按钮 highlight;面板立即关闭;左栏 roster 切到该人设 | `setSelectedId(id); setForm(null)` 立即执行 | 右侧 Conversation 切到该人设对话 |
 
 **失败分支**：
@@ -207,7 +207,7 @@ textarea-idle → (:输入) → emoji-picker-open
 
 **入口接线清单**：
 
-- Composer.tsx 的 `change` 回调检测「:」字符并打开弹窗 (Task 3)
+- Composer.tsx 的 `change` 回调检测「:」字符并打开弹窗，或 composerRow 内新增 emoji 按钮 (Task 4)
 
 ---
 
@@ -225,9 +225,9 @@ textarea-idle → (:输入) → emoji-picker-open
 
 **失败分支**：
 
-| 分支 | 触���条件 | 界面表现 | 系统行为 | 恢复路径 |
+| 分支 | 触发条件 | 界面表现 | 系统行为 | 恢复路径 |
 |---|---|---|---|---|
-| 直接修改后端 RoomMessage 加 replyTo | 评估时发现需要持久化 | 需要改 groups.ts 数据模型；涉及迁移 | P0 校准任务，值得单独评估 | Task 4 前确认 ASM-102 |
+| 评估发现需要持久化 replyTo | Task 7 确认历史/分享场景要求回复链落盘 | 前端行为不变；后端改造另开子包 | 需改 `groups.ts` 的 `RoomMessage` 与房间 jsonl 读写 | ASM-102 被证伪 → 走 shared-rules §12 变更协议 |
 | 回复消息删除或过期 | 房间里消息被清理 | 引用失效，显示「原消息已删除」 | 消息 seq 检查可用性 | 降级显示，不报错 |
 | 多人同时回复同一条 | 房间并发 | 每条回复独立维护 replyTo，无冲突 | 轮次制自然隔离 | 无特殊处理 |
 
@@ -245,8 +245,8 @@ idle → (右键 → 回复) → reply-mode
 
 **入口接线清单**：
 
-- Transcript.tsx 消息行右键菜单或 SessionList.tsx 菜单组件 (Task 4)
-- Composer 顶部 reply 卡片显示逻辑 (Task 4)
+- Transcript.tsx 小组消息行的菜单入口 → `onReplyTo` 回调 (Task 5)
+- Conversation.tsx 的 `replyTo` state → Composer 顶部 reply 卡片与「×」清除 (Task 6)
 
 ---
 
@@ -341,24 +341,24 @@ After:  + 全局快捷键 hook（Cmd+K 主，可选补其他）
 > Phase 依赖链:
 >
 > ```text
-> P0 勘察 (T1) → P1 命令面板 + 快捷键 (T2-T3) → P2 emoji + 回复 (T4-T5) → P3 联合验收 (T6-T7)
+> P0 勘察 (T1) → P1 命令面板 + 快捷键 (T2-T3) → P2 emoji + 回复菜单 (T4-T5，与 P1 无依赖，可并行) → P3 回复状态 + 验收 (T6-T9)
 > ```
 
 > 实现任务数 ≥ 8 → 用 tasks.csv；否则用下方内嵌表。
 
 ### 内嵌状态表
 
-| 序号 | 任务 | 前置 | 验证命令 | 状态 |
-|---|---|---|---|---|
-| 1 | 前置检查与勘察补完 | 无 | `python3 ~/.agents/skills/prd-workflow/scripts/validate_package.py docs/dsh-bot-native-experience --repo .` 0 FAIL | 待开始 |
-| 2 | 实现全局快捷键 hook (useGlobalKeyboard.ts) 与 Cmd+K 绑定 | 1 | `rg "useGlobalKeyboard" packages/workbench-ui/src/` 命中；`pnpm typecheck` 通过 | 待开始 |
-| 3 | 实现轻量命令面板 UI (CommandPalette.tsx) | 2 | `rg "CommandPalette" packages/workbench-ui/src/App.tsx` 命中；面板能打开/关闭/选项 | 待开始 |
-| 4 | Composer 补 emoji picker UI（:colon 或按钮，可选库选型） | 2 | `rg "insertEmoji" packages/workbench-ui/src/Composer.tsx` 命中；emoji 能插入 textarea | 待开始 |
-| 5 | Transcript 补消息右键菜单与回复逻辑（小组） | 3 | 右键菜单能出现，onReplyTo 回调可达 | 待开始 |
-| 6 | Conversation + App 补 reply 状态管理与展示（reply 卡片） | 5 | reply 卡片显示，发送时状态正确 | 待开始 |
-| 7 | 可选：后端 groups.ts 评估（ASM-102 验证） | 6 | 确认是否需改 RoomMessage.replyTo；若是，升级为单独子包 | 待开始 |
-| 8 | 执行 spec 5.2 真实场景全套测试 | 6/7 | UF-001~004 浏览器测试全过；screenshot + 操作日志 | 待开始 |
-| 9 | 执行 Phase 最终验收 (build/typecheck/test/standard:check) | 8 | 四条命令全绿；代码无 console error；总报告落盘 | 待开始 |
+| 序号 | 任务 | 前置 | 验证命令 | 状态 | 备注 |
+|---|---|---|---|---|---|
+| 1 | 前置检查与勘察补完 | 无 | `python3 ~/.agents/skills/prd-workflow/scripts/validate_package.py docs/dsh-bot-native-experience --repo .` 0 FAIL | 待开始 | 豁免回归:P0 单实现任务，回归并入本任务验证 |
+| 2 | 实现全局快捷键 hook (useGlobalKeyboard.ts) 与 Cmd+K 绑定 | 1 | `pnpm -w test packages/workbench-ui` 通过 + `pnpm typecheck` 通过 | 待开始 | |
+| 3 | 实现轻量命令面板 UI (CommandPalette.tsx) 并接线 App | 2 | `pnpm -w test packages/workbench-ui` 通过 + UF-001 手动主路径可走通 | 待开始 | 豁免回归:P1 收尾任务，Phase 1 回归并入本任务验证 |
+| 4 | Composer 补 emoji picker UI（:colon 或按钮，含库选型） | 1 | `pnpm -w test packages/workbench-ui` 通过 + `pnpm -r run build` 记录体积增量 | 待开始 | ASM-101 在本任务证实或证伪 |
+| 5 | Transcript 补消息菜单与回复接线（小组） | 1 | `pnpm -w test packages/workbench-ui` 通过 + 菜单可出现且 onReplyTo 可达 | 待开始 | 豁免回归:P2 收尾任务，Phase 2 回归并入本任务验证 |
+| 6 | Conversation + App 补 reply 状态管理与展示（reply 卡片） | 5 | `pnpm -w test packages/workbench-ui` 通过 + reply 卡片显示与清除正确 | 待开始 | |
+| 7 | 后端 groups.ts 回复持久化评估（ASM-102 验证） | 6 | 结论落盘 `evidence/phase-3/reply-backend-assessment.md`；需改则按变更协议另开子包 | 待开始 | 评估任务，不改产品代码 |
+| 8 | 执行 spec 5.2 真实场景全套测试 | 6;7 | 5.2 执行矩阵 8 行全部通过并落 evidence | 待开始 | |
+| 9 | 执行 Phase 3 回归验证（收尾） | 8 | `pnpm -r run build && pnpm -r run typecheck && pnpm test && pnpm run standard:check` 全绿 | 待开始 | |
 
 ### Phase 0: 前置勘察
 
@@ -385,7 +385,7 @@ After:  + 全局快捷键 hook（Cmd+K 主，可选补其他）
 
 **验证**：校验脚本 0 FAIL；定位清单占比 ≤ 30%。
 
-**Evidence**：`evidence/phase-0/validate-stage1.log`
+**Evidence**：`evidence/phase-0/stage1-validate.log`
 
 **注意事项**：豁免回归（P0 单实现任务）。
 
@@ -405,13 +405,11 @@ After:  + 全局快捷键 hook（Cmd+K 主，可选补其他）
 2. 在 App.tsx 中 `import { useGlobalKeyboard }` 并调用，传入 `setCommandPaletteOpen` 回调。
 3. 确保 Composer 的 onKeyDown 优先级 ≤ 全局快捷键（document 事件优先）。
 
-**验证**：
-
-- `pnpm typecheck` 通过。
-- `rg "useGlobalKeyboard" packages/workbench-ui/src/App.tsx` 命中。
-- 手动测试：在工作台任意处按 Cmd+K，控制台有日志记录。
+**验证**：`pnpm -w test packages/workbench-ui && pnpm -r run typecheck` 全绿 → 期望新增 hook 用例通过；`rg "useGlobalKeyboard" packages/workbench-ui/src/App.tsx` 命中
 
 **Evidence**：`evidence/phase-1/shortcut-hook.log`
+
+**注意事项**：必须用 `document.addEventListener` 保证全局优先于 textarea 的 onKeyDown（BR-002）；打开面板时要清掉 @mention 弹窗状态，禁止两个弹窗共存。
 
 ---
 
@@ -431,13 +429,11 @@ After:  + 全局快捷键 hook（Cmd+K 主，可选补其他）
 2. 在 App.tsx 中传入 bots/groups 和 actions，生成命令列表。
 3. 选中后调 `onSelect(id)` 触发相应动作（`setSelectedId`/`setForm`）。
 
-**验证**：
+**验证**：`pnpm -w test packages/workbench-ui && pnpm -r run typecheck` 全绿 → 期望新增面板用例通过；`rg "CommandPalette" packages/workbench-ui/src/App.tsx` 命中；手动走 UF-001 主路径（Cmd+K 打开 → 列表 → 数字键切换 → 面板关闭）
 
-- `pnpm typecheck` 通过。
-- `rg "CommandPalette" packages/workbench-ui/src/App.tsx` 命中。
-- 手动测试：Cmd+K 打开面板 → 列表显示 → 按数字键 1-3 切换人设 → Escape 关闭。
+**Evidence**：`evidence/phase-1/command-palette-ui.log` + `evidence/phase-1/phase1-regression.log`
 
-**Evidence**：`evidence/phase-1/command-palette-ui.log` + `screenshot`
+**注意事项**：豁免回归:P1 收尾任务，Phase 1 聚合回归并入本任务验证（Task 2+3 的命令级验证在此一次跑全）。
 
 ---
 
@@ -446,7 +442,7 @@ After:  + 全局快捷键 hook（Cmd+K 主，可选补其他）
 ### Task 4: Composer 补 emoji picker UI
 
 - **关联**：BR-004, UF-003
-- **前置任务**：2
+- **前置任务**：1
 - **风险等级**：P1（库选型风险，ASM-101）
 
 **具体操作**：
@@ -458,21 +454,18 @@ After:  + 全局快捷键 hook（Cmd+K 主，可选补其他）
    - 关闭 emoji 弹窗时恢复焦点。
 3. 跑 `pnpm build` 检查包体积增量 < 20KB gzipped（ASM-101 验证）。
 
-**验证**：
+**验证**：`pnpm -w test packages/workbench-ui && pnpm -r run build` 全绿 → 期望 emoji 插入用例通过且体积增量 < 20KB gzipped（ASM-101）；`rg "insertEmoji" packages/workbench-ui/src/Composer.tsx` 命中
 
-- `pnpm typecheck` 通过。
-- `rg "insertEmoji" packages/workbench-ui/src/Composer.tsx` 命中。
-- 手动测试：输入「:」→ 弹窗出现 → 选「😀」→ emoji 插入 → 继续输入/发送。
-- `pnpm build` 输出包体积日志，确认增量合理。
+**Evidence**：`evidence/phase-2/emoji-picker.log` + `evidence/phase-2/build-size.txt`
 
-**Evidence**：`evidence/phase-2/emoji-picker.log` + `build-size.txt`
+**注意事项**：与 @mention 共用一套弹窗定位/键盘导航模式，禁止两套交互；「:」与「@」触发条件互斥，同一时刻只开一个弹窗。
 
 ---
 
-### Task 5: Transcript 补消息右键菜单与回复接线（小组）
+### Task 5: Transcript 补消息菜单与回复接线（小组）
 
 - **关联**：BR-005, UF-004
-- **前置任务**：3
+- **前置任务**：1
 - **风险等级**：P1
 
 **具体操作**：
@@ -482,13 +475,11 @@ After:  + 全局快捷键 hook（Cmd+K 主，可选补其他）
 3. 点「回复」时调 `onReplyTo?.(item)` 回调（由 Conversation 传入）。
 4. 无需改后端；reply 信息由前端管理。
 
-**验证**：
+**验证**：`pnpm -w test packages/workbench-ui && pnpm -r run typecheck` 全绿 → 期望菜单与回调用例通过；`rg "onReplyTo" packages/workbench-ui/src/Transcript.tsx` 命中
 
-- `pnpm typecheck` 通过。
-- `rg "onContextMenu\|onReplyTo" packages/workbench-ui/src/Transcript.tsx` 命中。
-- 手动测试（小组房间）：右键某条消息 → 菜单出现 → 点「回复」 → Composer 上方显示 reply 卡片。
+**Evidence**：`evidence/phase-2/reply-menu.log` + `evidence/phase-2/phase2-regression.log`
 
-**Evidence**：`evidence/phase-2/reply-menu.log` + `screenshot`
+**注意事项**：豁免回归:P2 收尾任务，Phase 2 聚合回归并入本任务验证（Task 4+5 一次跑全）。菜单入口沿用 Roster/SessionList 既有 `rowMenu` 样式与 document mousedown 关闭模式，不引入新交互范式。
 
 ---
 
@@ -508,19 +499,17 @@ After:  + 全局快捷键 hook（Cmd+K 主，可选补其他）
 4. 发送消息时，若 `replyTo` 不空，传给 `runGroupRound` 请求（在 `PromptRequest` 或 `RunGroupRoundRequest` 中附 `replyTo` 字段作为前端上下文，不改后端存储）。
 5. 房间显示层：消息行显示「→ 原发言人」指示或嵌套树（纯前端渲染）。
 
-**验证**：
+**验证**：`pnpm -w test packages/workbench-ui && pnpm -r run typecheck` 全绿 → 期望 reply 状态与卡片用例通过；`rg "replyTo" packages/workbench-ui/src/Conversation.tsx` 命中
 
-- `pnpm typecheck` 通过。
-- `rg "replyTo\|reply-card" packages/workbench-ui/src/Conversation.tsx` 命中。
-- 手动测试：小组中选择回复 → 卡片显示 → 输入新消息 → 发送 → 房间显示树结构。
+**Evidence**：`evidence/phase-3/reply-state.log`
 
-**Evidence**：`evidence/phase-3/reply-state.log` + `screenshot`
+**注意事项**：发送成功后必须清除 `replyTo`（BR-005 反例）；被引用消息已不在房间时降级显示「原消息已删除」，不抛错。
 
 ---
 
-### Task 7: 可选评估任务（后端 ASM-102 验证）
+### Task 7: 后端回复持久化评估（ASM-102 验证）
 
-- **关联**：BR-005, ASM-102
+- **关联**：BR-005 / INV-003（UF: NA——评估任务，不产生用户可见变更）
 - **前置任务**：6
 - **风险等级**：P2（可能升级为单独子包）
 
@@ -548,9 +537,9 @@ After:  + 全局快捷键 hook（Cmd+K 主，可选补其他）
 
 ---
 
-### Task 9: 执行 Phase 最终验收（收尾）
+### Task 9: 执行 Phase 3 回归验证（收尾）
 
-- **关联**：BR-006 / INV-002/004
+- **关联**：BR-006 / INV-001 / INV-002 / INV-004（本 Phase 全部 BR/UF 聚合核销）
 - **前置任务**：8
 
 **验证**：
@@ -628,10 +617,10 @@ docs/dsh-bot-native-experience/evidence/
 
 ## 质量记录
 
-（Stage 1 闸门检查结果，待 Task 1 完成后补全）
+**Stage 1（勘察与骨架）**：`validate_package.py --repo .` → 0 FAIL / 0 WARN / 17 PASS；§3.3 定位清单 `待勘察+ASM` 占比 29%（2/7，两条为待建新文件）≤ 30% 闸门；`--repo` 全量核验 5 条 rg anchor 全部命中（代替人工抽查 3 条）。
 
-**Validate 输出**：（待补）
+**Stage 2（任务包展开）**：内嵌状态表 9 条（实现任务 6 条 < 8 → 按规则不生成 tasks.csv）；Phase 1/2 按 tasks-csv schema 豁免通道把聚合回归并入收尾任务（Task 3 / Task 5）并留 `豁免回归:` 痕；5.2 执行矩阵 8 行覆盖 UF-001~004 的主路径与失败分支，Evidence 列全为具体路径。
 
----
+**Stage 3（交接层）**：`handoff.md` 已生成（executor `generic`，无浏览器工具按「手动脚本 + 用户回填」降级）；`evidence/README.md` 与 5.3 目录结构对齐；`spec-view.html` 由 `render_spec.py` 生成，是**只读投影**——任何修改一律回本文件再重渲染。终检 0 FAIL / 0 WARN / 17 PASS。
 
-**此文件冻结于 2026-09-02 Stage 1，等待用户或执行方进入 Stage 2 展开任务。**
+**遗留闸门**：证据审计当前因真实场景任务未标记完成而跳过；执行方在 Task 8 完成后必须重跑 `validate_package.py` 做第二次（证据）校验。
