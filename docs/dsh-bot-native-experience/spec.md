@@ -16,8 +16,8 @@
 > 给人看的一节，**人签字以此为准**；机器闸门：缺失或超过 20 行正文 = FAIL。
 
 - **给谁 / 场景**：要补齐 dsh-bot workbench-ui 贴合 dsh 特色的原生体验差距、让工作台更易用的执行方（人或 agent）。
-- **做什么**：补上四项能力：轻量命令面板（Cmd+K，仅覆盖切换人设/小组/会话的 dsh 概念，不做 workflow/MCP/文件等通用功能），全局快捷键系统（至少 Cmd+K 和可选的快捷键），emoji picker（composer 中），小组消息回复引用（轮次制发言时可引用房间内之前某条消息）。
-- **改哪里**：前端 `packages/workbench-ui/src`（Command Palette 新组件 + 快捷键 hook + Composer 补 emoji UI + Transcript/GroupForm 补 reply 逻辑），后端 `packages/dsh-bot-host/src/groups.ts`（仅评估是否需要 roomMessage 加 replyTo 字段，可能不改）。
+- **做什么**：补上四项能力：轻量命令面板（Cmd+K，仅覆盖切换人设/小组的 dsh 概念，不做 workflow/MCP/文件等通用功能），全局快捷键系统（至少 Cmd+K 和可选的快捷键），emoji picker（composer 中），小组消息回复引用（轮次制发言时可引用房间内之前某条消息）。
+- **改哪里**：前端 `packages/workbench-ui/src`（Command Palette 新组件 + 快捷键 hook + Composer 补 emoji UI + Transcript/Conversation 补 reply 逻辑），后端 `packages/dsh-bot-host/src/groups.ts`（仅评估是否需要 roomMessage 加 replyTo 字段，可能不改）。
 - **怎么算做完**：四项都实现 + 前端真实场景测试通过（浏览器操作）+ 命令 build/typecheck/test 全绿。
 - **不做什么**：消息内查找(Cmd+F)、roster 未读计数、SSE/推送替代轮询、composer slash-command(/开头)、文件上传、KaTeX/Mermaid 渲染、跨会话全局搜索、虚拟滚动、群聊人类在线状态、emoji reaction——这些均因投入产出比低或与 dsh-bot 定位（多人设轻量工作台）不符。
 
@@ -52,7 +52,7 @@
 | Composer 当前只有 Enter/Shift+Enter + @mention，无 emoji/slash-command/富文本 | `rg "onKeyDown" packages/workbench-ui/src/Composer.tsx`(L134-144) | textarea 纯文本，无其他快捷键；mention 弹窗已实现 |
 | Transcript.tsx 已有 `TypingIndicator` 组件渲染 speaking 状态，不需补 | `rg "TypingIndicator" packages/workbench-ui/src/Transcript.tsx`(L70-113) | speaking indicator 已完整实现，不在本轮范围 |
 | 小组消息存储在 `groups.ts` 的 `RoomMessage` 结构，目前只有 speaker/text，无 replyTo | `cat packages/dsh-bot-host/src/groups.ts` L67-74 | `readonly type: 'message'; readonly speaker; readonly text;` 无 reply 字段 |
-| App.tsx 已有命令面板触发入口（选人设/小组/会话/清空），仅需补交互 UI | `rg "setForm|setSelectedId" packages/workbench-ui/src/App.tsx`(L588-726) | 所有动作已有 callback 钩子，只缺 keyboard shortcut 和 command palette UI |
+| App.tsx 已有可被命令面板复用的 callback（选人设/小组/会话/清空），仅需补交互 UI | `rg "setForm|setSelectedId" packages/workbench-ui/src/App.tsx`(L588-726) | 所有动作已有 callback 钩子，只缺 keyboard shortcut 和 command palette UI。**注**：本行是既有 callback 的勘察事实，非面板范围；面板实际只接人设/小组 + 三个动作，界线以 ASM-103 / BR-001 为准 |
 | 项目用 vitest + React 18 + tsx 编译，无第三方 UI 组件库 | `cat package.json` & `cat vitest.config.ts` | 纯手写 UI，无 shadcn/antd 依赖 |
 | 当前模块结构：`packages/workbench-ui/src/`(前端SPA) + `packages/dsh-bot-host/src/`(网关) | `ls packages/workbench-ui/src/ && ls packages/dsh-bot-host/src/` | 前后端清晰分离 |
 
@@ -60,9 +60,9 @@
 
 | 假设 ID | 内容 | 风险 | 确认方式 |
 |---|---|---|---|
-| ASM-101 | emoji picker 用轻量自实现或已有小库（<10KB gzipped），不引入 emoji-picker-element/emoji-mart（>80KB）| 已证实：静态子集、无新依赖，新文件 gzip ~3.7KB（evidence/phase-2/build-size.txt） | Task 4 `pnpm --filter workbench-ui build` |
+| ASM-101 | emoji picker 用轻量自实现或已有小库（**阈值 <10KB gzipped**，全文以此为准），不引入 emoji-picker-element/emoji-mart（>80KB）| 已证实：静态子集、无新依赖，新文件 gzip ~3.7KB（evidence/phase-2/build-size.txt） | Task 4 `pnpm --filter workbench-ui build` |
 | ASM-102 | 小组回复引用**不改后端数据模型**，reply 仅在前端 UI 层展示（点名消息编号），不持久化 | 已证实：RoomMessage 无 replyTo；不另开子包（evidence/phase-3/reply-backend-assessment.md） | Task 7 |
-| ASM-103 | 命令面板是轻量**本地菜单**（只列当前已有的人设/小组/会话/清空），不涉及搜索、历史、插件 | 范围泡胀 | spec 2.3 明确流程脚本，Task 2 按此界线实现 |
+| ASM-103 | 命令面板是轻量**本地菜单**（只列当前已有的人设/小组 + 新建人设/新建小组/清空当前对话三个动作；**不含会话切换**，会话切换留在 Conversation 顶栏既有入口），不涉及搜索、历史、插件 | 范围泡胀 | spec 2.3 明确流程脚本，Task 2 按此界线实现 |
 
 ### 1.5 变更记录
 
@@ -70,6 +70,7 @@
 |---|---|---|---|
 | 2026-09-02 | 初版 | — | — |
 | 2026-09-03 | ASM-101 / ASM-102 | Task 4/7 证实：无新 emoji 依赖；不改 RoomMessage | 无第 2 章变更；3.3 新文件落盘 |
+| 2026-09-03 | §0 / ASM-101 / ASM-103 / Task 9 | 人工 review：§0 范围漂移（「会话」「GroupForm」）、ASM-101 阈值双版本、10 处任务编号错位、Task 9 状态与验证标准不符 | 无 BR/UF 语义变更（§0 收敛为已交付范围）；Task 9 改判 `已阻塞`；详见「质量记录 / Stage 4」 |
 
 ---
 
@@ -131,7 +132,7 @@ idle → (Cmd+K) → panel-open
 
 **入口接线清单**：
 
-- 全局 `window.addEventListener('keydown')` 或 App.tsx 级 useEffect（Task 1 选择）
+- 全局 `window.addEventListener('keydown')` 或 App.tsx 级 useEffect（Task 2 选择）
 - Cmd+K 路由到 `setSelectedId / setForm`（既有回调，无新接线）
 
 ---
@@ -171,7 +172,7 @@ textarea-idle → (输入) → textarea-editing
 
 **入口接线清单**：
 
-- `document.addEventListener('keydown', (e) => { if (e.metaKey && e.key === 'k') ... })` (Task 1)
+- `document.addEventListener('keydown', (e) => { if (e.metaKey && e.key === 'k') ... })` (Task 2)
 - Composer 的既有 onKeyDown 无改动
 
 ---
@@ -192,9 +193,9 @@ textarea-idle → (输入) → textarea-editing
 
 | 分支 | 触发条件 | 界面表现 | 系统行为 | 恢复路径 |
 |---|---|---|---|---|
-| emoji 列表过长 | emoji 数据库有数千个 | 弹窗需要虚拟滚动或分页，否则卡顿 | 实现时选简化方案（常用 emoji 子集） | Task 3 评估库方案 |
-| 与 @mention 冲突 | 同时输入「:」和「@」 | 弹窗显示哪个？ | 可以同时打开；或用不同 key（「:」vs「@」）分离 | Task 3 明确优先级 |
-| emoji 编码问题 | 复杂 emoji（skin tone 变体等） | 可能乱码或显示异常 | 使用 emojibase 等标准库，不手写编码 | Task 3 选库 |
+| emoji 列表过长 | emoji 数据库有数千个 | 弹窗需要虚拟滚动或分页，否则卡顿 | 实现时选简化方案（常用 emoji 子集） | Task 4 评估库方案 |
+| 与 @mention 冲突 | 同时输入「:」和「@」 | 弹窗显示哪个？ | 可以同时打开；或用不同 key（「:」vs「@」）分离 | Task 4 明确优先级 |
+| emoji 编码问题 | 复杂 emoji（skin tone 变体等） | 可能乱码或显示异常 | 使用 emojibase 等标准库，不手写编码 | Task 4 选库 |
 
 **界面状态机**：
 
@@ -256,9 +257,9 @@ idle → (右键 → 回复) → reply-mode
 | 不变量 ID | 内容 | 关联 BR/UF | 验证方式 |
 |---|---|---|---|
 | INV-001 | 既有快捷键 Enter(发送)/Shift+Enter(换行) + @mention 不改动；新快捷键（Cmd+K 等）与既有的不冲突 | BR-003, UF-002 | Task 2/3 的既有快捷键回归测试 |
-| INV-002 | 命令面板列表的数据来自既有 App state（bots/groups），不新增后端请求；emoji picker 数据来自静态库或内存 | BR-001/004, UF-001/003 | Task 1/3 无网络请求；build 时检查没有新 RPC 调用 |
-| INV-003 | 小组回复**不改后端数据模型**（unless ASM-102 被证伪），reply 仅前端展示，不写入 RoomMessage.replyTo；历史会话与小组消息记录不变 | BR-005, UF-004 | Task 4 确认后验证，若需改后端则升级为新 Task |
-| INV-004 | 全仓规范遵循：BR-006 红线不破（不做消息搜索、未读计数、SSE、文件上传）；仓库干净（无新依赖、无多余文件） | — | Task 5 收尾验证 + `pnpm build && pnpm test` |
+| INV-002 | 命令面板列表的数据来自既有 App state（bots/groups），不新增后端请求；emoji picker 数据来自静态库或内存 | BR-001/004, UF-001/003 | Task 3/4 无网络请求；build 时检查没有新 RPC 调用 |
+| INV-003 | 小组回复**不改后端数据模型**（unless ASM-102 被证伪），reply 仅前端展示，不写入 RoomMessage.replyTo；历史会话与小组消息记录不变 | BR-005, UF-004 | Task 7 确认后验证，若需改后端则升级为新 Task |
+| INV-004 | 全仓规范遵循：BR-006 红线不破（不做消息搜索、未读计数、SSE、文件上传）；仓库干净（无新依赖、无多余文件） | — | Task 9 收尾验证 + `pnpm build && pnpm test` |
 
 ### 2.5 EVD 证据清单
 
@@ -280,8 +281,8 @@ idle → (右键 → 回复) → reply-mode
 |---|---|---|---|---|
 | 浏览器刷新 | 命令面板打开 | Ctrl+R / Cmd+R 刷新页面 | 工作台重新加载，面板关闭，数据恢复 | 无特殊，正常刷新行为 |
 | 快捷键与浏览器冲突 | Cmd+K = 浏览器搜索栏 | 按 Cmd+K | 面板或浏览器行为优先；若优先级反，需改绑定 | Task 2 实现时测试 |
-| emoji 库加载失败 | emoji 依赖缺失 | Composer 中输入「:」 | 弹窗不出现或降级为纯文本；不报 JS 错 | Task 3 确保兼容性 |
-| 回复消息在房间里被删除 | replyTo 指向的 seq 不存在 | 查看引用 | 显示「原消息已删除」；树视图不展示 | Task 4 添加容错 |
+| emoji 库加载失败 | emoji 依赖缺失 | Composer 中输入「:」 | 弹窗不出现或降级为纯文本；不报 JS 错 | Task 4 确保兼容性 |
+| 回复消息在房间里被删除 | replyTo 指向的 seq 不存在 | 查看引用 | 显示「原消息已删除」；树视图不展示 | Task 6 添加容错 |
 | 网关重启中途 | 命令面板打开或 emoji picker 活跃 | 网关不可达 | 前端 UI 保持，无新请求；用户体感无差 | INV-002 确保无新后端请求 |
 
 ### 2.8 非目标
@@ -358,8 +359,8 @@ After:  + 全局快捷键 hook（Cmd+K 主，可选补其他）
 | 5 | Transcript 补消息菜单与回复接线（小组） | 1 | `pnpm -w test packages/workbench-ui` 通过 + 菜单可出现且 onReplyTo 可达 | 已完成 | 豁免回归:P2 收尾任务，Phase 2 回归并入本任务验证 |
 | 6 | Conversation + App 补 reply 状态管理与展示（reply 卡片） | 5 | `pnpm -w test packages/workbench-ui` 通过 + reply 卡片显示与清除正确 | 已完成 | |
 | 7 | 后端 groups.ts 回复持久化评估（ASM-102 验证） | 6 | 结论落盘 `evidence/phase-3/reply-backend-assessment.md`；需改则按变更协议另开子包 | 已完成 | ASM-102 证实：不改 RoomMessage |
-| 8 | 执行 spec 5.2 真实场景全套测试 | 6;7 | 5.2 执行矩阵 8 行全部通过并落 evidence | 已完成 | Playwright Chromium 回放 8/8 |
-| 9 | 执行 Phase 3 回归验证（收尾） | 8 | `pnpm -r run build && pnpm -r run typecheck && pnpm test && pnpm run standard:check` 全绿 | 已完成 | workbench-ui/test/standard 绿；`pnpm -r typecheck` 被既有 session-nav jump-bridge.spec 挡住 |
+| 8 | 执行 spec 5.2 真实场景全套测试 | 6;7 | 5.2 执行矩阵 8 行全部通过并落 evidence | 已完成 | Playwright Chromium 回放：7 行跑通 + UF-003 降级行「不适用」（按 5.2 通过标准允许）；其中 UF-002 冲突行证据弱，见 `evidence/UF-002/no-conflict.md` 声明 |
+| 9 | 执行 Phase 3 回归验证（收尾） | 8 | `pnpm -r run build && pnpm -r run typecheck && pnpm test && pnpm run standard:check` 全绿 | 已阻塞:`pnpm -r run typecheck` 未全绿 | build / `pnpm test`(32 files,238 tests) / standard:check / workbench-ui typecheck 均绿；**`pnpm -r run typecheck` FAIL**：`packages/ui-dsh-bot/tests/jump-bridge.spec.ts:190` TS2375 exactOptionalPropertyTypes。该文件属 session-nav 包未提交产物，**不在本包改动面内**（本包 0 文件改动于 ui-dsh-bot），本包无权修复；解除条件见下方 Task 9 「阻塞说明」 |
 
 ### Phase 0: 前置勘察
 
@@ -453,9 +454,9 @@ After:  + 全局快捷键 hook（Cmd+K 主，可选补其他）
    - change() 检测冒号「:」触发 emoji 弹窗；或新增单独 emoji 按钮。
    - 实现 `insertEmoji(name: string)` 方法（参考 `insertMention` 逻辑）。
    - 关闭 emoji 弹窗时恢复焦点。
-3. 跑 `pnpm build` 检查包体积增量 < 20KB gzipped（ASM-101 验证）。
+3. 跑 `pnpm build` 检查包体积增量 < 10KB gzipped（ASM-101 验证）。
 
-**验证**：`pnpm -w test packages/workbench-ui && pnpm -r run build` 全绿 → 期望 emoji 插入用例通过且体积增量 < 20KB gzipped（ASM-101）；`rg "insertEmoji" packages/workbench-ui/src/Composer.tsx` 命中
+**验证**：`pnpm -w test packages/workbench-ui && pnpm -r run build` 全绿 → 期望 emoji 插入用例通过且体积增量 < 10KB gzipped（ASM-101）；`rg "insertEmoji" packages/workbench-ui/src/Composer.tsx` 命中
 
 **Evidence**：`evidence/phase-2/emoji-picker.log` + `evidence/phase-2/build-size.txt`
 
@@ -552,6 +553,16 @@ After:  + 全局快捷键 hook（Cmd+K 主，可选补其他）
 
 **Evidence**：`evidence/phase-final/report.md` + `evidence/phase-final/final-regression.log`
 
+**阻塞说明（2026-09-03）**：本任务状态为 `已阻塞`，不得按「已完成」对外汇报。
+
+| 项 | 结论 |
+|---|---|
+| 已绿 | `pnpm -r run build`、`pnpm test`（32 files / 238 tests）、`pnpm run standard:check`、`pnpm --filter workbench-ui typecheck` |
+| 未绿 | `pnpm -r run typecheck` → `packages/ui-dsh-bot/tests/jump-bridge.spec.ts:190` TS2375（`exactOptionalPropertyTypes`：`{ current: string \| undefined }` 不可赋给 `{ current?: string }`） |
+| 归属 | 该文件 `git status` 为 `??`（未跟踪），属 **dsh-bot-session-nav** 包在途产物；本包全部 commit 未触碰 `packages/ui-dsh-bot/**`，无权在本包修复（越界即违反 handoff「不改无关文件」） |
+| 影响面 | 仅阻断仓级 typecheck 聚合闸门；不影响本包 BR-001~006 / UF-001~004 的功能正确性与 5.2 回放结论 |
+| 解除条件 | session-nav 包修好 `jump-bridge.spec.ts:190` 后，在本包重跑 `pnpm -r run typecheck` 转绿，本任务方可置 `已完成` |
+
 ---
 
 ## 5. 验收与 Review 协议
@@ -609,7 +620,7 @@ docs/dsh-bot-native-experience/evidence/
 - [ ] UF-001~004 全部通过，evidence 与第 2.5 节 EVD 清单一致
 - [ ] 2.3 节每条流程的「入口接线清单」已实现（全局快捷键、菜单、按钮均可达）
 - [ ] 快捷键与既有 Composer Enter/Shift+Enter 无冲突；命令面板与 @mention 不打架
-- [ ] emoji picker 实现的包体积增量 < 20KB gzipped (ASM-101 验证)
+- [ ] emoji picker 实现的包体积增量 < 10KB gzipped (ASM-101 验证)
 - [ ] 小组回复不改后端数据模型（unless ASM-102 被验证为需要改，已单独评估）
 - [ ] 四条命令 build/typecheck/test/standard:check 全绿；无 console/server error
 - [ ] INV-001~004 无破坏：既有快捷键不变、无新后端请求、回复纯前端、规范遵循
@@ -624,4 +635,13 @@ docs/dsh-bot-native-experience/evidence/
 
 **Stage 3（交接层）**：`handoff.md` 已生成（executor `generic`，无浏览器工具按「手动脚本 + 用户回填」降级）；`evidence/README.md` 与 5.3 目录结构对齐；`spec-view.html` 由 `render_spec.py` 生成，是**只读投影**——任何修改一律回本文件再重渲染。终检 0 FAIL / 0 WARN / 17 PASS。
 
-**遗留闸门**：证据审计当前因真实场景任务未标记完成而跳过；执行方在 Task 8 完成后必须重跑 `validate_package.py` 做第二次（证据）校验。
+**遗留闸门**：证据审计已在 Task 8 完成后重跑 `validate_package.py --repo .` 通过（0 FAIL / 0 WARN / 17 PASS，12 条 5.2 evidence 路径全部命中）。
+
+**Stage 4（Review 修订，2026-09-03）**：人工 review 发现并修正——①§0 与 ASM-103 的「会话」越界描述（命令面板实为人设/小组，`buildCommandItems` 只接 bots+groups）与「GroupForm」误指（实际接线在 Transcript/Conversation）；②10 处任务编号错位（INV-002 / INV-003 / INV-004、2.7 两行、UF-003 三条失败分支、UF-001 与 UF-002 各一条入口接线清单）；③ASM-101 阈值 10KB / 20KB 双版本（spec 三处 + handoff 一处），统一为 10KB（实测 3.7KB）；④Task 9 由 `已完成` 更正为 `已阻塞`（`pnpm -r run typecheck` 未全绿，见其阻塞说明）；⑤Task 8 备注与 `report.md` 的「8/8」更正为「7 跑通 + 1 N/A」；⑥`spec-view.html` 重渲染（此前停留在 9 条全 `待开始`，与 spec.md 完全脱节）。
+
+**未闭合面（review 提出，本轮未处置）**：
+- BR-003 / BR-004 含「可选」「或二者都有」措辞，非可证伪验收标准——留作下一包立项教训，不回改本包已交付行为。
+- UF-002 冲突测试证据（`evidence/UF-002/no-conflict.md`）在 Playwright Chromium 下取得，该环境结构上不存在 Chrome 地址栏 Cmd+K 冲突，**等价于未验证**；如需真实结论应在带地址栏的 Chrome 手动回放。
+- 5.2 访问入口列了「官方 GUI 右栏 DSH Bot 页签」，8 行矩阵全部只覆盖 `127.0.0.1:3084/dsh-bot/ui`；`useGlobalKeyboard` 在 capture 阶段 `preventDefault + stopPropagation` 吞 Cmd+K，嵌入宿主场景零覆盖。
+- 2.3 两条失败分支（UF-001「面板列表为空」、UF-004「回复消息删除或过期」）已实现（后者见 `Transcript.tsx` `sourceMissing` + 「原消息已删除」）但无 5.2 矩阵行与 evidence。
+- `markFor` / `pendingReply` 以**文本相等**匹配回复标记（`Transcript.tsx:40-43`、`Conversation.tsx:575`）：同一会话内重复发送相同文本、仅其一为回复时，两条都会渲染「→ 某人」。纯展示层、刷新即清，2.7 未覆盖此负向分支。

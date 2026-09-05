@@ -29,7 +29,7 @@
 
 缺失资料与假设（全量见 spec 1.4）：
 
-- **ASM-101**：emoji 方案体积增量 < 20KB gzipped —— Task 4 用 `pnpm -r run build` 证实或证伪。
+- **ASM-101**：emoji 方案体积增量 < 10KB gzipped —— Task 4 用 `pnpm -r run build` 证实或证伪。
 - **ASM-102**：小组回复**不改后端**，`replyTo` 只在前端展示 —— Task 7 评估；若证伪，按 spec 1.5 + shared-rules §12 走变更协议另开子包，**不要在本包里顺手改后端房间数据模型**（位置见 spec 3.3 定位清单末两行）。
 - **ASM-103**：命令面板是本地列表，无搜索/历史/插件 —— 按 spec 2.3 UF-001 界线实现。
 
