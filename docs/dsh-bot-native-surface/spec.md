@@ -1,6 +1,6 @@
 # dsh-bot-native-surface Spec
 
-> Version: 0.1.0 | Date: 2026-09-06 | Status: Ready 可执行
+> Version: 0.2.0 | Date: 2026-09-06 | Status: Deferred 已搁置（见 §0 末行与 §1.5）
 >
 > 本文件是本需求的**唯一事实源**：事实基线、业务合同、技术方案、任务计划、验收协议全部在此。
 > 其他文件（handoff.md、tasks.csv）只引用本文件，不复制内容。
@@ -17,7 +17,8 @@
 - **做什么**：让 bot 长进 DSH 官方壳的**真实空座位**里——左栏底部一个「DSH Bot」入口（带未读/工作中徽标）；打开 bot 会话时标题栏显示人设头像和名字，旁边一个「人设」按钮能跳到该人设；工作台颜色跟随宿主明暗主题。
 - **改哪里**：`ui-dsh-bot` 客户端插件（往官方 slot 注册三个小控件 + 把主题传给 iframe）、`dsh-bot-host`（新增一个「这些会话属于哪个人设」的查询接口）、`workbench-ui`（嵌在页签里时变成**纯导航面**：点会话直接在官方中栏打开，不再在 iframe 里自己画一套对话；浅色主题）。
 - **怎么算做完**：在真实 :3084 GUI 里：左栏底部能看到并点开 DSH Bot；打开一个 bot 会话，标题栏有它的头像名字；页签里点任意 1:1 会话，官方中栏切到该会话；把系统切成浅色，页签内工作台也变浅色；小组房间在页签里照常能聊。
-- **不做什么**：不做记忆、例程/定时唤醒、bot 互发消息、会话树里的身份 chip（官方会话树是整块占据的座位，加不进去）——这些另立包。浏览器直开 `/dsh-bot/ui` 仍保留完整对话面作为调试入口，但不再宣称"与页签功能等价"。
+- **不做什么**：不做记忆、例程/定时唤醒、bot 互发消息、会话树里的身份 chip（官方会话树是整块占据的座位，加不进去）——这些另立包。
+- **状态说明（v0.2）**：用户 2026-09-06 判定本包偏离 Grok Bot 体验目标——把 Bot 面拆到官方壳的几个小座位上，产生不了"Bot 中心"的体验。路线改为 Bot 中心工作台（`../prototypes/dsh-bot-grok-parity.html`），先做 `../dsh-bot-memory/`、`../dsh-bot-routines/`。本包**搁置**为后续抛光项，且 **BR-703（把 iframe 收窄成纯导航面）已撤回**——工作台保留完整对话面。
 
 ---
 
@@ -78,6 +79,12 @@
 | ASM-704 | 宿主明暗主题可从 `document.documentElement` 的 `color-scheme` 计算样式或某 `data-*` 属性读到，并可 `MutationObserver` 监听变化 | 读不到则主题跟随退化为 `prefers-color-scheme` | Task 1：真机 `getComputedStyle(document.documentElement).colorScheme` + 切换系统主题观察属性变化 |
 | ASM-705 | v1 `listSessions` 在会话数 ≤ 100 时单次响应 < 300ms，可作为身份查询的临时数据源；否则需 Task 2 的批量 `identity` 接口 | 慢则标题栏身份标闪烁 | Task 2 实测 curl 耗时 |
 
+### 1.5 变更记录
+
+| 日期 | 变更条目 ID | 原因 | 影响任务与处置 |
+|---|---|---|---|
+| 2026-09-06 | BR-703 撤回；包 Status → Deferred | 用户判定"导航面"方案与 Grok Bot 体验目标相悖（Bot 面被切成三块，对话面交官方后 Bot 中心特性无处生长）；改走 Bot 中心工作台路线 | Task 9 阻塞（BR-703 撤回）；Task 3/8/11/13 因依赖链随之阻塞；其余任务保留待后续抛光阶段重启时复审 |
+
 ---
 ## 2. 业务合同
 
@@ -89,7 +96,7 @@
 |---|---|---|---|---|---|
 | BR-701 | 左栏入口：`ui-dsh-bot` 向官方 `sidebar.footer.action`（list/root）注册一条「DSH Bot」行；`wide=false` 时只画图标；徽标 = 有 bot 会话 `running` 时黄点、有「完成未读」时数字；点击 → `betterSidebar.activateTab(DSH_BOT_SESSIONS_TAB_ID)`，页签未开则 `openTab({ type: DSH_BOT_SESSIONS_TAB_ID })` | 折叠侧栏后仍有 🤖 图标，点击右侧页签条切到 DSH Bot | 注册到 `sidebar.workspaces`（single 座位，会替换会话树）；betterSidebar 缺失时抛错导致 fiber PENDING | ui-dsh-bot | 真机 DOM `[data-slot="sidebar.footer.action"]` 子节点 + 点击回放 |
 | BR-702 | 会话身份标：当前会话 marks 含 `bot:<id>` 且该 id 在 `listBots` 中时，`conversation.session.header.actions` 渲染「头像 + 人设名」（order 排在官方预设标之后）；`header.utilities` 渲染「人设」按钮，点击 = BR-701 的打开页签 + 向 iframe 发 `focusBot(botId)`；非 bot 会话两处**都不渲染**（返回 null，不占位） | 打开 `v1 leftover t18` 见 D 头像 + 「DSH Bot」；打开 `重构 api.ts…` 标题栏与官方完全一致 | 非 bot 会话渲染空 pill；身份查询失败时显示「未知」占位 | ui-dsh-bot + dsh-bot-host | 真机截图 + DOM 断言 |
-| BR-703 | 页签导航模式：workbench 在**嵌入宿主**（`!isStandaloneWorkbench()`）时，1:1 人设的会话行点击 → 经既有桥 `sessions.open`，iframe 内**不渲染** 1:1 `Conversation`（改为空态提示「对话在左侧官方面板」+「新开对话」）；小组房间仍在 iframe 内完整渲染（房间不是官方 session）；直开 `/dsh-bot/ui` 行为不变 | 页签里点「九月」→ 官方中栏切到该会话，iframe 右侧不出现第二套对话 | 嵌入时仍轮询 1:1 history 并画气泡；直开时把对话面也去掉 | workbench-ui | 真机：点击后 `document.title` 变为该会话标题 + iframe 内无 `.transcript` |
+| BR-703 | **【v0.2 已撤回，见 §1.5】** 页签导航模式：workbench 在**嵌入宿主**（`!isStandaloneWorkbench()`）时，1:1 人设的会话行点击 → 经既有桥 `sessions.open`，iframe 内**不渲染** 1:1 `Conversation`（改为空态提示「对话在左侧官方面板」+「新开对话」）；小组房间仍在 iframe 内完整渲染（房间不是官方 session）；直开 `/dsh-bot/ui` 行为不变 | 页签里点「九月」→ 官方中栏切到该会话，iframe 右侧不出现第二套对话 | 嵌入时仍轮询 1:1 history 并画气泡；直开时把对话面也去掉 | workbench-ui | 真机：点击后 `document.title` 变为该会话标题 + iframe 内无 `.transcript` |
 | BR-704 | 主题跟随：宿主（ui-dsh-bot）读取 `getComputedStyle(document.documentElement).colorScheme`（ASM-704 校准后可换更稳的属性），首帧与每次变化都 `postMessage({type:'dsh-bot/theme', scheme})` 给 iframe；workbench 收到后设 `html[data-theme]`；直开时按 `prefers-color-scheme` | 宿主切浅色 ≤500ms 内 iframe 变浅色 | iframe 仍硬编码 `color-scheme: dark`；用 iframe 自己的 `prefers-color-scheme` 代替宿主实际主题 | ui-dsh-bot + workbench-ui | 真机切换系统外观截图两张 |
 | BR-705 | 身份查询接口：host 新增只读 `POST /dsh-bot/sessionIdentity`，args `{ sessionIds: string[] }`（≤50），返回 `{ [sessionId]: { botId, name, avatar } \| null }`；仅读 marks + `bots.json`，**不打标、不建会话** | 传 3 个 id，1 个是 bot 会话 → 该项有值其余 null | 顺手做 reconcile 补标；返回 500 而非 `{ok:false}` | dsh-bot-host | curl + vitest |
 | BR-706 | 红线：不改官方 npm 包与三邻仓；不注册任何 single 座位（`sidebar`/`sidebar.workspaces`/`conversation`/`details`/`conversation.hero.agentPreset`）；不开新端口（仍只 :3084）；`slots`/`betterSidebar` 任一缺失时插件软降级（该能力不出现），不得让客户端 fiber PENDING；参考树只读，`rg -i 'anysphere\|sand://' packages/` 为空 | `ctx.inject(['slots'], …)` 内注册，缺失时 warn 一条 | 把 `slots` 写进硬 `inject` 数组 | 全部 | `git status` 邻仓 + rg + 拔掉 better-sidebar 起 boot 不报错 |

@@ -7,7 +7,7 @@
 6,P2:客户端 slot 控件,标题栏身份标与「人设」按钮,spec.md#task-6,2;4,pnpm test -- identity-badge → 通过；真机 bot 会话 header.actions 含人设名,待开始,
 7,P2:客户端 slot 控件,宿主主题广播,spec.md#task-7,4,pnpm test -- tab → 通过,待开始,
 8,P2:客户端 slot 控件,执行 Phase 2 回归验证,spec.md#task-8,5;6;7,pnpm run typecheck && pnpm test && pnpm run build → 全过；无 better-sidebar boot 仅 warn,待开始,
-9,P3:workbench 嵌入导航模式,嵌入导航模式 EmbeddedNav 与会话行接线,spec.md#task-9,1,pnpm test -- app jump → 通过；真机点会话后 document.title 更新且 iframe 无 .transcript,待开始,
+9,P3:workbench 嵌入导航模式,嵌入导航模式 EmbeddedNav 与会话行接线,spec.md#task-9,1,pnpm test -- app jump → 通过；真机点会话后 document.title 更新且 iframe 无 .transcript,已阻塞:BR-703 已撤回（包 Deferred，见 spec §1.5）,
 10,P3:workbench 嵌入导航模式,主题接收与浅色变量,spec.md#task-10,7;9,pnpm test -- app → 通过；rg "color-scheme: dark" styles.css 无命中,待开始,
 11,P3:workbench 嵌入导航模式,执行 Phase 3 回归验证,spec.md#task-11,9;10,pnpm run typecheck && pnpm test && pnpm run build → 全过；直开工作台走通,待开始,
 12,P4:文档同步与收尾,同步文档与各期非目标表述,spec.md#task-12,8;11,rg "两个入口功能等价" README.md → 无命中；四期 spec 各含 native-surface,待开始,
