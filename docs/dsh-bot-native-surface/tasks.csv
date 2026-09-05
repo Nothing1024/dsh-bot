@@ -1,0 +1,15 @@
+序号,Phase,名称,详情锚点,前置任务,验证命令,状态,备注
+1,P0:校准假设,校准 ASM-701~704 与隐藏会话 open 行为,spec.md#task-1,无,ls evidence/phase-0/calibration.md evidence/phase-0/hero-preset-menu.png → 两文件存在,待开始,豁免回归:单任务校准 Phase，验证已含命令与 evidence
+2,P1:host 身份查询接口,实现 POST /dsh-bot/sessionIdentity,spec.md#task-2,1,pnpm test -- workbench-sessions → 新增 3 例通过；curl 三例 ok:true,待开始,
+3,P1:host 身份查询接口,执行 Phase 1 回归验证,spec.md#task-3,2,pnpm run typecheck && pnpm test → 全过；bash scripts/manual-test.sh --no-write → 通,待开始,
+4,P2:客户端 slot 控件,注入 slots 软依赖与注册骨架,spec.md#task-4,1,pnpm test -- apply-sidebar → 通过；rg 座位纪律无命中,待开始,
+5,P2:客户端 slot 控件,左栏「DSH Bot」入口与徽标,spec.md#task-5,2;4,pnpm test -- footer-action → 通过；真机 footer.action 含 DSH Bot,待开始,
+6,P2:客户端 slot 控件,标题栏身份标与「人设」按钮,spec.md#task-6,2;4,pnpm test -- identity-badge → 通过；真机 bot 会话 header.actions 含人设名,待开始,
+7,P2:客户端 slot 控件,宿主主题广播,spec.md#task-7,4,pnpm test -- tab → 通过,待开始,
+8,P2:客户端 slot 控件,执行 Phase 2 回归验证,spec.md#task-8,5;6;7,pnpm run typecheck && pnpm test && pnpm run build → 全过；无 better-sidebar boot 仅 warn,待开始,
+9,P3:workbench 嵌入导航模式,嵌入导航模式 EmbeddedNav 与会话行接线,spec.md#task-9,1,pnpm test -- app jump → 通过；真机点会话后 document.title 更新且 iframe 无 .transcript,待开始,
+10,P3:workbench 嵌入导航模式,主题接收与浅色变量,spec.md#task-10,7;9,pnpm test -- app → 通过；rg "color-scheme: dark" styles.css 无命中,待开始,
+11,P3:workbench 嵌入导航模式,执行 Phase 3 回归验证,spec.md#task-11,9;10,pnpm run typecheck && pnpm test && pnpm run build → 全过；直开工作台走通,待开始,
+12,P4:文档同步与收尾,同步文档与各期非目标表述,spec.md#task-12,8;11,rg "两个入口功能等价" README.md → 无命中；四期 spec 各含 native-surface,待开始,
+13,P4:文档同步与收尾,执行 spec 5.2 真实场景全套测试,spec.md#task-13,8;11,按 5.2 执行矩阵逐行回放（Playwright channel chrome 对 :3084）→ 全部通过,待开始,
+14,P4:文档同步与收尾,执行 Phase 4 回归验证,spec.md#task-14,12;13,四命令全绿；rg 红线为空；邻仓干净；validate_package.py --repo . → 0 FAIL,待开始,
