@@ -1,8 +1,6 @@
-shiren-xiaobei
-shiren-xiaobei/log.jsonl 
-shiren-xiaobei/profile.md 
-xiaodui-aning
-xiaodui-aning/log.jsonl {"id":"1788691339618-bc3bzz","ts":1788691339618,"kind":"log","text":"校对时术语保留英文",
-xiaodui-aning/profile.md <!-- dsh-mem p-uf801-term 1788691339616 --> - 术语保留英文 
-yunwei-yeban
-yunwei-yeban/log.jsonl {"id":"1788692450833-ut4n3j","ts":1788692450833,"kind":"log","text":"用户叫 Nothing
+shiren-xiaobei/log.jsonl | auto:用户要求用比喻说明助手是谁，且不要提别人的名字。
+shiren-xiaobei/profile.md
+xiaodui-aning/log.jsonl | explicit:校对时术语保留英文 || auto:用户叫 Nothing || explicit:api-806-probe
+xiaodui-aning/profile.md
+yunwei-yeban/log.jsonl | explicit:用户叫 Nothing || explicit:Nothing，现在是 2026-09-06 19:12 CST。 || auto:用户要求记住部署环境代号 living-master-replay 且时区固定用
+yunwei-yeban/profile.md

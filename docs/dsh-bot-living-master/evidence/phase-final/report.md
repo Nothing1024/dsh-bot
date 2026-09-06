@@ -8,7 +8,9 @@ This is not an “all done” report. Two child packages shipped; joint verbal p
 
 **5.2 without a model (earlier):** empty-inject strip, panel copy, forget toast, API-806, 📌 unit.
 
-**5.2 after model recovery:** 运维夜班 memory panel shows two 「你标记的」 rows (name + pinned wake line). Auto-extract still not proven on a user turn this run.
+**5.2 after model recovery:** 运维夜班 memory panel shows two 「你标记的」 rows (name + pinned wake line).
+
+**5.2 after gateway replay (bg_7 / :3084):** user turn on `uf103-auto-extract` produced `source:auto` log + two profile facts (`living-master-replay`, CST). Hidden worker title `~dsh-bot-memory: yunwei-yeban` is not a memory directory.
 
 **Still blocked**
 
@@ -36,7 +38,7 @@ This is not an “all done” report. Two child packages shipped; joint verbal p
 |---|---|---|
 | UF-101 | PASS named wake + three-section preset | `Nothing，现在是 2026-09-06 19:12 CST。`; cordis 基础+记忆+规范; switcher 401 so no thread bubble screenshot |
 | UF-102 | PASS pin + no auto extract + compose stable | `log.jsonl` two `explicit` rows after second spoke; no `source:auto`; 📌 row in MemoryPanel; save persona keeps order + pinned text; `bots.json.persona` base unchanged |
-| UF-103 | PARTIAL | 编辑室「你们是谁？」 both members one round; v2 诗人小北 / 校对阿宁 isolated answers; memory tree has no hidden-session filenames; deleteBot removes memory dir. v1 `dsh_bot_ask` official tool card not finished (compose timeout). Live delete (old code) removed the routine row; fix now disables. |
+| UF-103 | PASS v1/v2/group + auto-extract; delete leftover still stale-process | v1 official session `Dsh bot ask tool request` tool card `dsh_bot_ask` → `dsh bot pong.`; hidden `~dsh-bot: uf103-v1-hidden` not in routineList and not a memory dir. v2 + 编辑室 already passed. Auto-extract on 运维夜班 user turn. `listBotSessions` still 401. deleteBot on pid 20928 (started 19:10, before 19:17 lib) still removed the routine row; source/lib already `enabled=false`. |
 
 ## Four commands
 

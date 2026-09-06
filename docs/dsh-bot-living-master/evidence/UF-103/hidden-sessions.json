@@ -1,0 +1,27 @@
+{
+  "v1Caller": {
+    "sessionId": "session-db24dfe7-b207-413a-bb73-56979d9f2b62",
+    "title": "Dsh bot ask tool request",
+    "agentPreset": "dsh-bot"
+  },
+  "v1Hidden": {
+    "sessionId": "session-b3335484-5c9c-4408-8772-71b95444d9d4",
+    "title": "~dsh-bot: uf103-v1-hidden",
+    "agentPreset": "dsh-bot"
+  },
+  "extractWorkbench": {
+    "sessionId": "session-bbeb73e6-3cd0-47c3-8c3a-43bafbc6cde1",
+    "title": "uf103-auto-extract",
+    "agentPreset": "dsh-bot--yunwei-yeban"
+  },
+  "extractHidden": {
+    "sessionId": "session-327a4083-dbc4-4d23-bc49-9a960afa759d",
+    "title": "~dsh-bot-memory: yunwei-yeban",
+    "agentPreset": "dsh-bot"
+  },
+  "routineOnly": {
+    "sessionId": "session-44502c29-7576-43bf-9239-df8800e682d0",
+    "title": "例程 · 报时",
+    "agentPreset": "dsh-bot--yunwei-yeban"
+  }
+}

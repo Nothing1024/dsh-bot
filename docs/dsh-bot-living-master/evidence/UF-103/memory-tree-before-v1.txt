@@ -1,0 +1,5 @@
+shiren-xiaobei/log.jsonl sources=auto
+shiren-xiaobei/profile.md
+xiaodui-aning/log.jsonl sources=explicit,auto,explicit
+xiaodui-aning/profile.md
+yunwei-yeban/log.jsonl sources=explicit,explicit

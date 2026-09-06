@@ -1,0 +1,11 @@
+{
+  "type": "server-response",
+  "rpcId": "dbg",
+  "result": {
+    "ok": true,
+    "value": {
+      "sessionId": "session-db24dfe7-b207-413a-bb73-56979d9f2b62",
+      "agentPreset": "dsh-bot"
+    }
+  }
+}

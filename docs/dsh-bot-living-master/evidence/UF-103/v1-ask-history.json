@@ -1,0 +1,75 @@
+{
+  "sessionId": "session-db24dfe7-b207-413a-bb73-56979d9f2b62",
+  "events": [
+    {
+      "type": "session/title",
+      "seq": 10,
+      "title": "Use the dsh_bot_ask tool exactly"
+    },
+    {
+      "type": "assistant/message",
+      "seq": 75,
+      "content": [
+        {
+          "type": "reasoning",
+          "text": "The user wants me to use the dsh_bot_ask tool exactly once with a specific prompt and title, then quote the answer and stop.\n\n"
+        },
+        {
+          "type": "text",
+          "text": "I'll call `dsh_bot_ask` once with the exact prompt and title you specified."
+        },
+        {
+          "type": "tool-call",
+          "id": "call-b3a366f5-b451-4c8b-aaea-6c8457bd4ca4-0",
+          "name": "dsh_bot_ask",
+          "arguments": "{\"prompt\":\"Reply with exactly: dsh bot pong.\",\"title\":\"uf103-v1-hidden\"}"
+        }
+      ]
+    },
+    {
+      "type": "tool/call",
+      "seq": 76,
+      "name": "dsh_bot_ask",
+      "arguments": "{\"prompt\":\"Reply with exactly: dsh bot pong.\",\"title\":\"uf103-v1-hidden\"}"
+    },
+    {
+      "type": "tool/result",
+      "seq": 77,
+      "result": [
+        {
+          "type": "tool-result",
+          "toolCallId": "call-b3a366f5-b451-4c8b-aaea-6c8457bd4ca4-0",
+          "content": [
+            {
+              "type": "text",
+              "text": "dsh bot pong."
+            }
+          ],
+          "isError": false
+        }
+      ]
+    },
+    {
+      "type": "assistant/message",
+      "seq": 90,
+      "content": [
+        {
+          "type": "text",
+          "text": "dsh bot pong."
+        }
+      ]
+    },
+    {
+      "type": "turn/end",
+      "seq": 92,
+      "reason": {
+        "kind": "completed"
+      }
+    },
+    {
+      "type": "session/title",
+      "seq": 93,
+      "title": "Dsh bot ask tool request"
+    }
+  ]
+}

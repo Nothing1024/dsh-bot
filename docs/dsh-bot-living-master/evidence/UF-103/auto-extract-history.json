@@ -1,0 +1,29 @@
+{
+  "ok": true,
+  "value": {
+    "sessionId": "session-bbeb73e6-3cd0-47c3-8c3a-43bafbc6cde1",
+    "items": [
+      {
+        "id": "message-8-1",
+        "kind": "message",
+        "seq": 8,
+        "role": "user",
+        "text": "部署环境代号是 living-master-replay，时区固定用 CST，请记住这一点。"
+      },
+      {
+        "id": "thinking-83-1",
+        "kind": "thinking",
+        "seq": 83,
+        "text": "The user wants me to remember that the deployment environment code is \"living-master-replay\" and that the timezone is fixed to CST. Let me acknowledge this briefly as I'm on night ops duty - short res...\n\n"
+      },
+      {
+        "id": "message-83-1",
+        "kind": "message",
+        "seq": 83,
+        "role": "assistant",
+        "text": "记下了。\n\n环境：`living-master-replay`  \n时区：CST（固定）"
+      }
+    ],
+    "working": false
+  }
+}

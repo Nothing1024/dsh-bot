@@ -1,0 +1,41 @@
+{
+  "ok": true,
+  "value": {
+    "profile": [
+      {
+        "id": "1788693728923-y3dsd4",
+        "text": "部署环境代号是 living-master-replay。",
+        "ts": 1788693728923
+      },
+      {
+        "id": "1788693728923-vi8mwc",
+        "text": "时区固定使用 CST。",
+        "ts": 1788693728923
+      }
+    ],
+    "log": [
+      {
+        "id": "1788692450833-ut4n3j",
+        "kind": "log",
+        "text": "用户叫 Nothing",
+        "ts": 1788692450833,
+        "source": "explicit"
+      },
+      {
+        "id": "1788693137061-6eflxb",
+        "kind": "log",
+        "text": "Nothing，现在是 2026-09-06 19:12 CST。",
+        "ts": 1788693137061,
+        "source": "explicit"
+      },
+      {
+        "id": "1788693728923-aitu7p",
+        "kind": "log",
+        "text": "用户要求记住部署环境代号 living-master-replay 且时区固定用 CST。",
+        "ts": 1788693728923,
+        "source": "auto",
+        "sessionId": "session-bbeb73e6-3cd0-47c3-8c3a-43bafbc6cde1"
+      }
+    ]
+  }
+}
