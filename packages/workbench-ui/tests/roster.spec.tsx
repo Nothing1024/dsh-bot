@@ -164,3 +164,21 @@ describe('Roster', () => {
     expect(screen.getByTestId('roster-unread-ops').textContent).toBe('2')
   })
 })
+
+  it('opens the relationship graph from the roster head', () => {
+    const onOpenGraph = vi.fn()
+    render(
+      <Roster
+        items={[item()]}
+        onSelect={vi.fn()}
+        onCreate={vi.fn()}
+        onEdit={vi.fn()}
+        onDelete={vi.fn()}
+        onRename={vi.fn()}
+        onOpenGraph={onOpenGraph}
+      />,
+    )
+    fireEvent.click(screen.getByTestId('roster-graph'))
+    expect(onOpenGraph).toHaveBeenCalledTimes(1)
+  })
+

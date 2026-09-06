@@ -53,6 +53,7 @@ export interface RosterProps {
   readonly onDelete: (id: string) => void
   readonly onDeleteGroup?: (id: string) => void
   readonly onRename: (id: string, name: string) => void
+  readonly onOpenGraph?: () => void
 }
 
 function AvatarGlyph(props: {
@@ -145,6 +146,11 @@ export function Roster(props: RosterProps) {
       <div className="rosterHead">
         <span>人设</span>
         <span className="rosterHeadActions">
+          {props.onOpenGraph === undefined ? null : (
+            <button type="button" className="newBot" data-testid="roster-graph" onClick={props.onOpenGraph}>
+              关系图
+            </button>
+          )}
           <button type="button" className="newBot" data-testid="roster-new" onClick={props.onCreate}>
             + 新建人设
           </button>

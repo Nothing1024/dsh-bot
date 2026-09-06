@@ -14,6 +14,7 @@ import {
   memoryList,
   memoryRemember,
   memoryClear,
+  peerLog,
   routineList,
   routineCreate,
   routineUpdate,
@@ -38,6 +39,7 @@ import { Persona } from './Persona.tsx'
 import { Composer } from './Composer.tsx'
 import type { ComposerReplyTo } from './Composer.tsx'
 import { MemoryPanel } from './MemoryPanel.tsx'
+import { PeersPanel } from './PeersPanel.tsx'
 import { RoutinesPanel } from './RoutinesPanel.tsx'
 import { Transcript } from './Transcript.tsx'
 import type { TranscriptSpeaker } from './Transcript.tsx'
@@ -160,6 +162,8 @@ export function Conversation(props: ConversationProps) {
   const [memoryUnavailable, setMemoryUnavailable] = useState(false)
   const [routinesOpen, setRoutinesOpen] = useState(false)
   const [routines, setRoutines] = useState<readonly RoutineRow[]>([])
+  const [peersOpen, setPeersOpen] = useState(false)
+  const [peerCount, setPeerCount] = useState(0)
   const [pinPick, setPinPick] = useState<string | null>(null)
   const [switcherOpen, setSwitcherOpen] = useState(false)
   const [currentMenuOpen, setCurrentMenuOpen] = useState(false)
@@ -325,6 +329,16 @@ export function Conversation(props: ConversationProps) {
       if (result.ok) setRoutines(Array.isArray(result.value) ? result.value : [])
     })
   }, [botId, isGroup])
+
+  useEffect(() => {
+    if (isGroup || botId === undefined) return
+    let cancelled = false
+    void peerLog(botId).then(result => {
+      if (cancelled) return
+      if (result.ok) setPeerCount(result.value.length)
+    })
+    return () => { cancelled = true }
+  }, [botId, isGroup, props.refreshEpoch])
 
   const working = poll.working || sending || awaitingTurn
   const onWorking = props.onWorking
@@ -530,6 +544,15 @@ export function Conversation(props: ConversationProps) {
               >
                 ⏰ {routines.length}
               </button>
+              <button
+                type="button"
+                className="memoryPill"
+                data-testid="peers-open"
+                title="同事"
+                onClick={() => setPeersOpen(open => !open)}
+              >
+                同事 {peerCount}
+              </button>
               {routinesOpen ? (
                 <RoutinesPanel
                   open
@@ -563,6 +586,14 @@ export function Conversation(props: ConversationProps) {
                     }
                     return true
                   }}
+                />
+              ) : null}
+              {peersOpen && bot !== undefined ? (
+                <PeersPanel
+                  open
+                  botId={bot.id}
+                  botName={identityName}
+                  onClose={() => setPeersOpen(false)}
                 />
               ) : null}
               {memoryOpen ? (

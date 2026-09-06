@@ -442,7 +442,6 @@ describe('Conversation', () => {
     expect(await screen.findByTestId('memory-panel')).toBeTruthy()
     expect(screen.getByTestId('memory-profile').textContent).toMatch(/Nothing/)
   })
-})
 
   it('shows the routines pill next to memory', async () => {
     vi.stubGlobal('fetch', vi.fn(async (url: string) => {
@@ -456,3 +455,25 @@ describe('Conversation', () => {
     expect(await screen.findByTestId('routines-open')).toBeTruthy()
     expect(screen.getByTestId('memory-open')).toBeTruthy()
   })
+
+  it('shows the peers pill next to routines', async () => {
+    vi.stubGlobal('fetch', vi.fn(async (url: string) => {
+      const path = String(url)
+      if (path.includes('listBotSessions')) return jsonOk({ sessions: [] })
+      if (path.includes('routineList')) return jsonOk([])
+      if (path.includes('memoryList')) return jsonOk({ profile: [], log: [] })
+      if (path.includes('peerLog')) return jsonOk([{ from: 'shiren-xiaobei', to: 'xiaodui-aning', ts: 1, sessionId: 'p1' }])
+      if (path.includes('listBots')) return jsonOk({ bots: [] })
+      if (path.includes('listGroups')) return jsonOk({ groups: [] })
+      return jsonOk({})
+    }))
+    render(<Conversation bot={BOT} />)
+    const pill = await screen.findByTestId('peers-open')
+    expect(pill.textContent).toMatch(/同事/)
+    await vi.waitFor(() => {
+      expect(pill.textContent).toMatch(/1/)
+    })
+    fireEvent.click(pill)
+    expect(await screen.findByTestId('peers-panel')).toBeTruthy()
+  })
+})

@@ -1587,3 +1587,45 @@ body,
 @keyframes streamBlink {
   50% { opacity: 0; }
 }
+
+.peerTag {
+  display: inline-block;
+  margin: 0 0 4px;
+  padding: 1px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  color: var(--wb-muted, #9aa0a6);
+  border: 1px solid var(--wb-border);
+}
+
+.peersList {
+  margin: 0;
+  padding-left: 1.1em;
+}
+
+.graphOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgb(0 0 0 / 0.45);
+}
+
+.graphCard {
+  background: var(--wb-panel);
+  border: 1px solid var(--wb-border);
+  border-radius: 12px;
+  padding: 10px 12px 16px;
+  box-shadow: 0 12px 32px rgb(0 0 0 / 0.4);
+}
+
+.graphPulse {
+  animation: graphPulse 1.2s ease-in-out infinite;
+}
+
+@keyframes graphPulse {
+  50% { opacity: 0.45; }
+}
+

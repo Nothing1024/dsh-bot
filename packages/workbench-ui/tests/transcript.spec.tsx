@@ -259,3 +259,20 @@ describe('Transcript', () => {
     expect(fetchMock).toHaveBeenCalled()
   })
 })
+
+  it('labels [agent] peer lines without dropping fold cards', () => {
+    render(
+      <Transcript
+        items={[
+          { id: 't-1', kind: 'thinking', seq: 1, text: 'think' },
+          { id: 'm-1', kind: 'message', seq: 2, role: 'user', text: '[agent] 来自 校对阿宁：封面用深蓝' },
+          { id: 'm-2', kind: 'message', seq: 3, role: 'assistant', text: '[agent] 来自 诗人小北：深蓝可以' },
+        ]}
+        working={false}
+      />,
+    )
+    expect(screen.getByTestId('transcript-thinking-1')).toBeTruthy()
+    expect(screen.getByTestId('transcript-peer-2').textContent).toBe('来自 校对阿宁')
+    expect(screen.getByTestId('transcript-peer-3').textContent).toBe('来自 诗人小北')
+  })
+

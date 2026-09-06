@@ -44,6 +44,7 @@ import {
 import { Conversation } from './Conversation.tsx'
 import { GroupForm } from './GroupForm.tsx'
 import type { GroupFormValues } from './GroupForm.tsx'
+import { RelationshipGraph } from './RelationshipGraph.tsx'
 import { Roster } from './Roster.tsx'
 import type { RosterItem, RosterSession } from './Roster.tsx'
 import { useBotEvents } from './useBotEvents.ts'
@@ -88,6 +89,7 @@ export function App() {
   const [refreshEpoch, setRefreshEpoch] = useState(0)
   const [updatedAtById, setUpdatedAtById] = useState<Record<string, number>>({})
   const [sessionsByOwner, setSessionsByOwner] = useState<Record<string, readonly WorkbenchSessionRow[]>>({})
+  const [graphOpen, setGraphOpen] = useState(false)
   const [preferredSessionId, setPreferredSessionId] = useState<string | null>(null)
   const [activeSessionId, setActiveSessionId] = useState<string | null>(null)
   const [paletteOpen, setPaletteOpen] = useState(false)
@@ -693,6 +695,7 @@ export function App() {
               if (!groups.some(row => row.id === ownerId)) clearUnread(ownerId)
             }}
             onNewSession={id => { void openOwnedSession(id) }}
+            onOpenGraph={() => setGraphOpen(true)}
             onCreate={() => {
               setFormError(null)
               setActionError(null)
@@ -847,6 +850,18 @@ export function App() {
         items={commandItems}
         onSelect={selectCommand}
         onClose={closePalette}
+      />
+      <RelationshipGraph
+        open={graphOpen}
+        workingIds={workingIds}
+        onClose={() => setGraphOpen(false)}
+        onSelect={id => {
+          setSelectedId(id)
+          setPreferredSessionId(null)
+          setForm(null)
+          setGraphOpen(false)
+          if (!groups.some(row => row.id === id)) clearUnread(id)
+        }}
       />
     </div>
   )

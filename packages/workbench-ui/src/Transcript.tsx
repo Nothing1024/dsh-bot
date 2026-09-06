@@ -9,6 +9,7 @@ import type { WorkbenchBot, WorkbenchHistoryItem } from './api.ts'
 import { hashAvatarColor } from './avatar.ts'
 import { Markdown } from './Markdown.tsx'
 import { Persona } from './Persona.tsx'
+import { peerLabelFromText } from './peer-label.ts'
 
 export interface TranscriptSpeaker {
   readonly botId: string
@@ -278,6 +279,7 @@ function TranscriptRow(props: {
   const role = item.role === 'user' ? 'user' : 'assistant'
   const author = item.author
   const showAuthor = author !== undefined && role === 'assistant'
+  const peerFrom = peerLabelFromText(item.text)
   const color = showAuthor
     ? (author.avatar.color !== '' ? author.avatar.color : hashAvatarColor(author.botId))
     : undefined
@@ -316,6 +318,9 @@ function TranscriptRow(props: {
         />
       ) : null}
       <div className="bubbleCol">
+        {peerFrom !== undefined ? (
+          <span className="peerTag" data-testid={`transcript-peer-${item.seq}`}>来自 {peerFrom}</span>
+        ) : null}
         {showAuthor ? (
           <>
             {item.origin === 'routine' ? <span className="routineTag" data-testid={`transcript-routine-${item.seq}`}>主动 · routine</span> : null}

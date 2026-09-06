@@ -446,3 +446,15 @@ export function routineDecline(botId: string, topic: string): Promise<RpcResult<
 export function markRead(botId: string): Promise<RpcResult<{ ok: true; unread: number }>> {
   return workbenchCall('markRead', { botId })
 }
+
+export interface PeerLogRow {
+  readonly from: string
+  readonly to: string
+  readonly ts: number
+  readonly sessionId: string
+}
+
+export function peerLog(botId?: string): Promise<RpcResult<readonly PeerLogRow[]>> {
+  return workbenchCall('peerLog', botId === undefined || botId === '' ? {} : { botId })
+}
+
