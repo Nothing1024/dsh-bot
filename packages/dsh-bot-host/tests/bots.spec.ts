@@ -342,3 +342,44 @@ describe('declineTopic / behavior section', () => {
     expect(row?.declined).toEqual(['校稿'])
   })
 })
+
+describe('bot layout defaults', () => {
+  it('fills layout defaults for old bots.json rows', async () => {
+    const { home, bots } = runtime()
+    await bots.listBots()
+    const file = join(home, 'dsh-bot', 'bots.json')
+    const raw = JSON.parse(readFileSync(file, 'utf8')) as { version: number; bots: Record<string, unknown>[] }
+    raw.bots = raw.bots.map(row => {
+      const copy = { ...row }
+      delete copy.pinned
+      delete copy.section
+      delete copy.hidden
+      delete copy.order
+      delete copy.muted
+      return copy
+    })
+    writeFileSync(file, JSON.stringify(raw))
+    const listed = await bots.listBots()
+    expect(listed.bots[0]?.pinned).toBe(false)
+    expect(listed.bots[0]?.section).toBe('work')
+    expect(listed.bots[0]?.hidden).toBe(false)
+    expect(listed.bots[0]?.muted).toBe(false)
+    expect(typeof listed.bots[0]?.order).toBe('number')
+  })
+
+  it('updateLayout skips unknown ids', async () => {
+    const { bots } = runtime()
+    const listed = await bots.listBots()
+    const id = listed.bots[0]!.id
+    const result = await bots.updateLayout([
+      { id, pinned: true, section: 'pinned' },
+      { id: 'missing-bot', hidden: true },
+    ])
+    expect(result.ok).toBe(true)
+    expect(result.skipped).toEqual(['missing-bot'])
+    const again = await bots.getBot(id)
+    expect(again.pinned).toBe(true)
+    expect(again.section).toBe('pinned')
+  })
+})
+

@@ -10,6 +10,7 @@ import { mkdir, readFile, rename, rm, writeFile } from 'node:fs/promises'
 import { join } from 'node:path'
 import { pinyin } from 'pinyin-pro'
 import { DshBotError } from './errors.ts'
+import { botLayoutFrom } from './roster-layout.ts'
 import { stripMemorySection } from './memory.ts'
 import type { DshBotModelRef } from './platform.ts'
 
@@ -55,6 +56,11 @@ export interface BotRegistryRow {
   readonly declined?: readonly string[]
   readonly modelOverride?: DshBotModelRef
   readonly createdAt: number
+  readonly pinned: boolean
+  readonly section: string
+  readonly hidden: boolean
+  readonly order: number
+  readonly muted: boolean
 }
 
 /** Wire view: registry fields plus persona read from the preset file. */
@@ -108,6 +114,16 @@ export interface BotsRuntime {
   deleteBot(input: { id: string }): Promise<DeleteBotResult>
   rewritePresetPersona(botId: string, fullText: string): Promise<void>
   declineTopic(botId: string, topic: string): Promise<BotView>
+  updateLayout(updates: readonly BotLayoutUpdate[]): Promise<{ ok: true; skipped: string[] }>
+}
+
+export interface BotLayoutUpdate {
+  readonly id: string
+  readonly pinned?: boolean
+  readonly section?: string
+  readonly hidden?: boolean
+  readonly order?: number
+  readonly muted?: boolean
 }
 
 export interface BotsRuntimeOptions {
@@ -399,6 +415,11 @@ export function createBotsRuntime(options: BotsRuntimeOptions): BotsRuntime {
       persona,
       ...modelOverride === undefined ? {} : { modelOverride },
       createdAt: nowOf(),
+      pinned: false,
+      section: 'work',
+      hidden: false,
+      order: nowOf(),
+      muted: false,
     }
     try {
       await writePresetDir(home, dest, name, persona)
@@ -439,8 +460,14 @@ export function createBotsRuntime(options: BotsRuntimeOptions): BotsRuntime {
       avatar,
       presetId: current.presetId,
       ...persona === undefined ? {} : { persona },
+      ...current.declined === undefined || current.declined.length === 0 ? {} : { declined: current.declined },
       ...modelOverride === undefined ? {} : { modelOverride },
       createdAt: current.createdAt,
+      pinned: current.pinned,
+      section: current.section,
+      hidden: current.hidden,
+      order: current.order,
+      muted: current.muted,
     }
     let restorePreset: (() => Promise<void>) | undefined
     try {
@@ -539,6 +566,31 @@ export function createBotsRuntime(options: BotsRuntimeOptions): BotsRuntime {
     }
   }
 
+  const updateLayout = async (updates: readonly BotLayoutUpdate[]): Promise<{ ok: true; skipped: string[] }> => {
+    const home = homeOf()
+    const rows = [...await loadRegistry(home, nowOf)]
+    const skipped: string[] = []
+    for (const patch of updates) {
+      const id = patch.id.trim()
+      const index = rows.findIndex(row => row.id === id)
+      if (index < 0) {
+        skipped.push(id)
+        continue
+      }
+      const current = rows[index]!
+      rows[index] = {
+        ...current,
+        pinned: patch.pinned ?? current.pinned,
+        section: patch.section?.trim() || current.section,
+        hidden: patch.hidden ?? current.hidden,
+        order: patch.order ?? current.order,
+        muted: patch.muted ?? current.muted,
+      }
+    }
+    await saveRegistry(home, rows)
+    return { ok: true, skipped }
+  }
+
   return {
     listBots: () => withLock(listBots),
     getBot: id => withLock(() => getBot(id)),
@@ -547,6 +599,7 @@ export function createBotsRuntime(options: BotsRuntimeOptions): BotsRuntime {
     deleteBot: input => withLock(() => deleteBot(input)),
     rewritePresetPersona: (botId, fullText) => withLock(() => rewritePresetPersona(botId, fullText)),
     declineTopic: (botId, topic) => withLock(() => declineTopic(botId, topic)),
+    updateLayout: updates => withLock(() => updateLayout(updates)),
   }
 }
 
@@ -770,6 +823,7 @@ function parseRow(value: unknown, index: number): BotRegistryRow {
     ...declined === undefined || declined.length === 0 ? {} : { declined },
     ...modelOverride === undefined ? {} : { modelOverride },
     createdAt,
+    ...botLayoutFrom(rec, createdAt),
   }
 }
 
@@ -797,10 +851,15 @@ async function seedRow(home: string, now: () => number): Promise<BotRegistryRow>
   }
   return {
     id: SEED_BOT_ID,
+    pinned: false,
+    section: 'work',
+    hidden: false,
+    muted: false,
     name,
     avatar: { color: hashAvatarColor(SEED_BOT_ID) },
     presetId: SEED_PRESET_ID,
     createdAt: now(),
+    order: now(),
   }
 }
 

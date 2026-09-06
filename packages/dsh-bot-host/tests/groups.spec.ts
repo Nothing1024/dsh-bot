@@ -178,3 +178,18 @@ describe('groups runtime', () => {
     await expect(groups.getGroup('missing')).rejects.toMatchObject({ code: 'group-not-found' })
   })
 })
+
+describe('group layout defaults', () => {
+  it('updateLayout skips unknown ids', async () => {
+    const { groups } = runtime()
+    const created = await groups.createGroup({ name: '编辑室', memberIds: ['dsh-bot', 'shiren-xiaobei'] })
+    const result = await groups.updateLayout([
+      { id: created.id, section: 'life', order: 1 },
+      { id: 'nope', section: 'work' },
+    ])
+    expect(result.skipped).toEqual(['nope'])
+    const listed = await groups.listGroups()
+    expect(listed.groups[0]?.section).toBe('life')
+  })
+})
+

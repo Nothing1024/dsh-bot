@@ -10,6 +10,7 @@ import { dirname, join } from 'node:path'
 import { randomUUID } from 'node:crypto'
 import { DshBotError } from './errors.ts'
 import { slugifyName } from './bots.ts'
+import { groupLayoutFrom } from './roster-layout.ts'
 
 export const GROUP_MEMBER_MIN = 2
 export const GROUP_MEMBER_MAX = 6
@@ -24,6 +25,8 @@ export interface GroupRegistryRow {
   readonly name: string
   readonly memberIds: readonly string[]
   readonly createdAt: number
+  readonly section: string
+  readonly order: number
 }
 
 export interface GroupView extends GroupRegistryRow {}
@@ -99,6 +102,13 @@ export interface GroupsRuntime {
     speaker: RoomSpeaker,
     text: string,
   ): Promise<RoomMessage>
+  updateLayout(updates: readonly GroupLayoutUpdate[]): Promise<{ ok: true; skipped: string[] }>
+}
+
+export interface GroupLayoutUpdate {
+  readonly id: string
+  readonly section?: string
+  readonly order?: number
 }
 
 export interface GroupsRuntimeOptions {
@@ -232,6 +242,7 @@ function parseGroupRow(value: unknown, index: number): GroupRegistryRow {
     name,
     memberIds: rec.memberIds as string[],
     createdAt,
+    ...groupLayoutFrom(rec, createdAt),
   }
 }
 
@@ -424,6 +435,8 @@ export function createGroupsRuntime(options: GroupsRuntimeOptions): GroupsRuntim
       name,
       memberIds,
       createdAt: nowOf(),
+      section: 'work',
+      order: nowOf(),
     }
     groups.push(row)
     await saveRegistry(home, groups)
@@ -448,6 +461,8 @@ export function createGroupsRuntime(options: GroupsRuntimeOptions): GroupsRuntim
       name,
       memberIds,
       createdAt: current.createdAt,
+      section: current.section,
+      order: current.order,
     }
     groups[index] = next
     await saveRegistry(home, groups)
@@ -551,6 +566,28 @@ export function createGroupsRuntime(options: GroupsRuntimeOptions): GroupsRuntim
     return message
   }
 
+  const updateLayout = async (updates: readonly GroupLayoutUpdate[]): Promise<{ ok: true; skipped: string[] }> => {
+    const home = homeOf()
+    const groups = [...await loadRegistry(home)]
+    const skipped: string[] = []
+    for (const patch of updates) {
+      const id = patch.id.trim()
+      const index = groups.findIndex(row => row.id === id)
+      if (index < 0) {
+        skipped.push(id)
+        continue
+      }
+      const current = groups[index]!
+      groups[index] = {
+        ...current,
+        section: patch.section?.trim() || current.section,
+        order: patch.order ?? current.order,
+      }
+    }
+    await saveRegistry(home, groups)
+    return { ok: true, skipped }
+  }
+
   return {
     listGroups: () => withLock(listGroups),
     getGroup: id => withLock(() => getGroup(id)),
@@ -561,5 +598,6 @@ export function createGroupsRuntime(options: GroupsRuntimeOptions): GroupsRuntim
     listGroupSessions: input => withLock(() => listGroupSessions(input)),
     peekRoom: roomId => withLock(() => peekRoom(roomId)),
     appendRoomMessage: (roomId, speaker, text) => withLock(() => appendRoomMessage(roomId, speaker, text)),
+    updateLayout: updates => withLock(() => updateLayout(updates)),
   }
 }

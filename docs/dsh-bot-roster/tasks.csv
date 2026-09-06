@@ -1,8 +1,8 @@
 序号,Phase,名称,详情锚点,前置任务,验证命令,状态,备注
-1,P0:校准,校准 ASM-031~034,spec.md#task-1,无,ls evidence/phase-0/calibration.md → 存在,待开始,豁免回归:单任务校准 Phase
-2,P1:数据与RPC,bots/groups 布局字段与旧文件默认,spec.md#task-2,1,./node_modules/.bin/vitest run packages/dsh-bot-host/tests/bots.spec.ts packages/dsh-bot-host/tests/groups.spec.ts → 通过,待开始,
-3,P1:数据与RPC,updateBotLayout RPC,spec.md#task-3,2,./node_modules/.bin/vitest run packages/dsh-bot-host/tests/workbench-routes.spec.ts → 通过,待开始,
-4,P1:数据与RPC,执行 Phase 1 回归验证,spec.md#task-4,3,pnpm run typecheck && ./node_modules/.bin/vitest run packages/dsh-bot-host/tests → 全过,待开始,
+1,P0:校准,校准 ASM-031~034,spec.md#task-1,无,ls evidence/phase-0/calibration.md → 存在,已完成,豁免回归:单任务校准 Phase; ASM-034 确认
+2,P1:数据与RPC,bots/groups 布局字段与旧文件默认,spec.md#task-2,1,./node_modules/.bin/vitest run packages/dsh-bot-host/tests/bots.spec.ts packages/dsh-bot-host/tests/groups.spec.ts → 通过,已完成,
+3,P1:数据与RPC,updateBotLayout RPC,spec.md#task-3,2,./node_modules/.bin/vitest run packages/dsh-bot-host/tests/workbench-routes.spec.ts → 通过,已完成,
+4,P1:数据与RPC,执行 Phase 1 回归验证,spec.md#task-4,3,pnpm run typecheck && ./node_modules/.bin/vitest run packages/dsh-bot-host/tests → 全过,已完成,
 5,P2:名册UI,分组可折叠与默认可改名三组,spec.md#task-5,3,./node_modules/.bin/vitest run packages/workbench-ui/tests/roster.spec.tsx → 通过,待开始,
 6,P2:名册UI,HTML5 拖拽换组与排序,spec.md#task-6,5,./node_modules/.bin/vitest run packages/workbench-ui/tests/roster.spec.tsx → 通过,待开始,
 7,P2:名册UI,右键菜单与已隐藏底栏,spec.md#task-7,5,./node_modules/.bin/vitest run packages/workbench-ui/tests/roster.spec.tsx → 通过,待开始,
