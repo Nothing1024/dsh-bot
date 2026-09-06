@@ -271,12 +271,12 @@ P0 前置(1) → P1 实时包全量(2) → P2 同事包全量(3) → P3 名册�
 
 | 序号 | 任务 | 前置 | 验证命令 | 状态 | 备注 |
 |---|---|---|---|---|---|
-| 1 | 前置检查与共享面基线 | 无 | 三子包 `validate_package.py --repo .` 均 0 FAIL；`git status --porcelain packages/` 记录基线 | 待开始 | 豁免回归:P0 单实现任务 |
-| 2 | 执行子包 dsh-bot-live-transcript 全量 | 1 | 其子包 tasks.csv 全部已完成或诚实已阻塞且 validate 0 FAIL | 待开始 | 豁免回归:单任务 Phase，回归即子包自身收尾 |
-| 3 | 执行子包 dsh-bot-peers 全量 | 2 | 其子包 tasks.csv 全部已完成或诚实已阻塞且 validate 0 FAIL | 待开始 | 豁免回归:单任务 Phase，回归即子包自身收尾 |
-| 4 | 执行子包 dsh-bot-roster 全量 | 3 | 其子包 tasks.csv 全部已完成或诚实已阻塞且 validate 0 FAIL | 待开始 | 豁免回归:单任务 Phase，回归即子包自身收尾 |
-| 5 | 执行 spec 5.2 真实场景全套测试（跨包联合回放） | 4 | 5.2 执行矩阵三条联合场景全行通过并落 evidence | 待开始 | |
-| 6 | 执行母包总回归验证（收尾） | 5 | 四命令全绿 + 红线空 + 总报告落盘 | 待开始 | |
+| 1 | 前置检查与共享面基线 | 无 | 三子包 `validate_package.py --repo .` 均 0 FAIL；`git status --porcelain packages/` 记录基线 | 已完成 | 豁免回归:P0 单实现任务 |
+| 2 | 执行子包 dsh-bot-live-transcript 全量 | 1 | 其子包 tasks.csv 全部已完成或诚实已阻塞且 validate 0 FAIL | 已完成 | 豁免回归:单任务 Phase，回归即子包自身收尾；15/16 typecheck 阻塞 |
+| 3 | 执行子包 dsh-bot-peers 全量 | 2 | 其子包 tasks.csv 全部已完成或诚实已阻塞且 validate 0 FAIL | 已完成 | 豁免回归:单任务 Phase，回归即子包自身收尾 |
+| 4 | 执行子包 dsh-bot-roster 全量 | 3 | 其子包 tasks.csv 全部已完成或诚实已阻塞且 validate 0 FAIL | 已完成 | 豁免回归:单任务 Phase，回归即子包自身收尾；14/15 typecheck 阻塞 |
+| 5 | 执行 spec 5.2 真实场景全套测试（跨包联合回放） | 4 | 5.2 执行矩阵三条联合场景全行通过并落 evidence | 已完成 | UF-041~043 evidence 已落 |
+| 6 | 执行母包总回归验证（收尾） | 5 | 四命令全绿 + 红线空 + 总报告落盘 | 已阻塞:typecheck SessionId brand clash 本仓 0.1.2-rc.1 vs vibee 0.1.0-rc.7 | build/test/standard 绿；报告已写 |
 
 ### Phase 0: 前置检查
 
