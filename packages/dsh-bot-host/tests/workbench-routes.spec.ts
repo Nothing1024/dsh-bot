@@ -7,9 +7,9 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { Readable } from 'node:stream'
 import type { IncomingMessage, ServerResponse } from 'node:http'
-import { afterEach, describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import { Context } from '@deepseek-ai/cordis'
-import { attachWorkbenchHttp, handleWorkbenchStatic, safeWorkbenchFile } from '../src/workbench-routes.ts'
+import { attachWorkbenchHttp, handleWorkbenchStatic, safeWorkbenchFile, dispatchWorkbenchApi } from '../src/workbench-routes.ts'
 
 function mockReq(method: string, url: string): IncomingMessage {
   const req = Readable.from([]) as IncomingMessage
@@ -204,5 +204,37 @@ describe('routine RPC dispatch', () => {
     expect(await dispatchWorkbenchApi(bot as never, 'routineList', { botId: 'ops' })).toEqual([])
     expect(await dispatchWorkbenchApi(bot as never, 'markRead', { botId: 'ops' })).toEqual({ ok: true, unread: 0 })
     expect(calls).toEqual(['rlist:ops', 'read:ops'])
+  })
+})
+
+describe('live-transcript RPC dispatch', () => {
+  it('routes cancel / approvalRespond / questionRespond', async () => {
+    const cancel = vi.fn(async () => ({ accepted: true }))
+    const approvalRespond = vi.fn(async () => ({ ok: true }))
+    const questionRespond = vi.fn(async () => ({ ok: true }))
+    const bot = {
+      cancel,
+      approvalRespond,
+      questionRespond,
+    } as unknown as Parameters<typeof dispatchWorkbenchApi>[0]
+    await expect(dispatchWorkbenchApi(bot, 'cancel', { sessionId: 's1' })).resolves.toEqual({ accepted: true })
+    await expect(dispatchWorkbenchApi(bot, 'approvalRespond', {
+      rpcId: 'rpc-1',
+      sessionId: 's1',
+      approvalId: 'ap-1',
+      outcome: 'allowed-once',
+    })).resolves.toEqual({ ok: true })
+    await expect(dispatchWorkbenchApi(bot, 'questionRespond', {
+      rpcId: 'rpc-2',
+      sessionId: 's1',
+      answer: { answers: [] },
+    })).resolves.toEqual({ ok: true })
+    expect(cancel).toHaveBeenCalledWith({ sessionId: 's1' })
+    expect(approvalRespond).toHaveBeenCalledWith({
+      rpcId: 'rpc-1',
+      sessionId: 's1',
+      approvalId: 'ap-1',
+      outcome: 'allowed-once',
+    })
   })
 })

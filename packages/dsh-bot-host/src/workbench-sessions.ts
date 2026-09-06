@@ -125,6 +125,7 @@ export interface HistoryResult {
 export interface PromptRequest {
   readonly sessionId: string
   readonly text: string
+  readonly mode?: 'queue' | 'steer'
 }
 
 export interface PromptResult {
@@ -527,12 +528,18 @@ export async function readOwnedHistory(
 export async function promptOwnedSession(
   sessionTool: SessionToolService,
   request: PromptRequest,
+  platform?: Pick<DshBotPlatform, 'promptSession'>,
 ): Promise<PromptResult> {
   const sessionId = request.sessionId.trim()
   if (sessionId === '') throw new DshBotError('invalid-input', 'sessionId is required')
   const text = request.text.trim()
   if (text === '') throw new DshBotError('empty-prompt', 'prompt requires a non-empty text')
+  const mode = request.mode === 'steer' ? 'steer' : 'queue'
   return await withPromptLock(sessionId, async () => {
+    if (platform?.promptSession !== undefined) {
+      const outcome = await platform.promptSession({ sessionId, mode, text })
+      if ('accepted' in outcome && outcome.accepted) return { sessionId }
+    }
     try {
       await sessionTool.write(CLI_CALLER, SessionId(sessionId), text)
       return { sessionId }

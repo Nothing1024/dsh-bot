@@ -27,6 +27,7 @@ import type {
   DshBotSessionRow,
   ListBotSessionsRequest,
 } from './ask.ts'
+import { DshBotError } from './errors.ts'
 import { createPlatform } from './platform.ts'
 import type { DshBotModelRef, DshBotPlatform } from './platform.ts'
 import {
@@ -286,6 +287,8 @@ class DshBotService extends Service {
   private readonly routineStore: RoutineStore
   private readonly scheduler: RoutineScheduler
   private readonly unread = new Map<string, number>()
+  private readonly sessionWorking = new Map<string, string>()
+  private botIds: string[] = []
   private readonly routineErrors = new Map<string, number>()
   private readonly pendingExtract = new Map<string, {
     readonly botId: string
@@ -408,12 +411,15 @@ class DshBotService extends Service {
   }
 
   listBots() {
-    return this.botsRuntime.listBots().then(listed => ({
-      bots: listed.bots.map(bot => ({
-        ...bot,
-        unread: this.unread.get(bot.id) ?? 0,
-      })),
-    }))
+    return this.botsRuntime.listBots().then(listed => {
+      this.botIds = listed.bots.map(bot => bot.id)
+      return {
+        bots: listed.bots.map(bot => ({
+          ...bot,
+          unread: this.unread.get(bot.id) ?? 0,
+        })),
+      }
+    })
   }
 
   createBot(input: CreateBotInput) {
@@ -527,7 +533,7 @@ class DshBotService extends Service {
   private async promptSession(input: PromptRequest): Promise<PromptResult> {
     const room = await this.groupsRuntime.peekRoom(input.sessionId)
     if (room === undefined) {
-      const result = await promptOwnedSession(this.ctx.sessionTool, input)
+      const result = await promptOwnedSession(this.ctx.sessionTool, input, this.platform)
       await this.notePrompt(input.sessionId, input.text)
       return result
     }
@@ -758,6 +764,79 @@ class DshBotService extends Service {
         return
       }
       this.pendingExtract.delete(sessionId)
+    }
+  }
+
+  cancel(input: { sessionId: string }) {
+    if (this.platform.cancelSession === undefined) {
+      throw new DshBotError('cancel-unavailable', 'sessions.cancel is unavailable')
+    }
+    return this.platform.cancelSession(input.sessionId)
+  }
+
+  updateQueue(input: { sessionId: string; itemId: string; action: unknown }) {
+    if (this.platform.updateQueue === undefined) {
+      throw new DshBotError('update-queue-unavailable', 'sessions.updateQueue is unavailable')
+    }
+    return this.platform.updateQueue(input)
+  }
+
+  approvalRespond(input: {
+    rpcId: string
+    sessionId: string
+    approvalId: string
+    outcome: 'allowed-once' | 'rejected'
+  }) {
+    if (this.platform.respond === undefined) {
+      throw new DshBotError('respond-unavailable', 'apiProxy.respond is unavailable')
+    }
+    return this.platform.respond({
+      rpcId: input.rpcId,
+      value: {
+        sessionId: input.sessionId,
+        approvalId: input.approvalId,
+        outcome: input.outcome,
+      },
+    })
+  }
+
+  questionRespond(input: { rpcId: string; sessionId: string; answer: unknown }) {
+    if (this.platform.respond === undefined) {
+      throw new DshBotError('respond-unavailable', 'apiProxy.respond is unavailable')
+    }
+    return this.platform.respond({
+      rpcId: input.rpcId,
+      value: { sessionId: input.sessionId, answer: input.answer },
+    })
+  }
+
+  listBotStatus() {
+    const ids = new Set<string>([...this.botIds, ...this.unread.keys(), ...this.sessionWorking.values()])
+    return [...ids].map(botId => ({
+      botId,
+      working: [...this.sessionWorking.values()].includes(botId),
+      unread: this.unread.get(botId) ?? 0,
+    }))
+  }
+
+  subscribeMux(signal: AbortSignal) {
+    return this.platform.subscribeMux?.(signal)
+  }
+
+  subscribeHost(signal: AbortSignal) {
+    return this.platform.subscribeHost?.(signal)
+  }
+
+  async noteSessionRunning(sessionId: string, running: boolean) {
+    const tags = await get(sessionId)
+    const botId = parseBotMark(tags ?? [])
+    if (botId === undefined) return undefined
+    if (running) this.sessionWorking.set(sessionId, botId)
+    else this.sessionWorking.delete(sessionId)
+    return {
+      botId,
+      working: [...this.sessionWorking.values()].includes(botId),
+      unread: this.unread.get(botId) ?? 0,
     }
   }
 

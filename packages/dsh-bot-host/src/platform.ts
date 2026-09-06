@@ -41,6 +41,12 @@ export interface GatewaySessionRow {
  * Platform verbs the host needs beyond sessionTool. Tests stub this object;
  * production wiring is {@link createPlatform}.
  */
+export interface SessionPromptRequest {
+  readonly sessionId: string
+  readonly mode: 'queue' | 'steer'
+  readonly text: string
+}
+
 export interface DshBotPlatform {
   archiveSession(sessionId: string): Promise<void>
   selectModel(sessionId: string, model: DshBotModelRef): Promise<void>
@@ -50,6 +56,12 @@ export interface DshBotPlatform {
   createSession(request: GatewayCreateSessionRequest): Promise<GatewayCreateSessionResult>
   renameSession(sessionId: string, title: string): Promise<void>
   listSessions(): Promise<readonly GatewaySessionRow[]>
+  promptSession?(request: SessionPromptRequest): Promise<{ accepted: true } | { unavailable: true; message?: string }>
+  cancelSession?(sessionId: string): Promise<{ accepted: true } | { unavailable: true; message?: string }>
+  updateQueue?(request: { sessionId: string; itemId: string; action: unknown }): Promise<{ accepted: true } | { unavailable: true; message?: string }>
+  respond?(request: { rpcId: string; value: unknown }): Promise<{ ok: true } | { ok: false; message: string }>
+  subscribeMux?(signal: AbortSignal): AsyncIterable<unknown> | undefined
+  subscribeHost?(signal: AbortSignal): AsyncIterable<unknown> | undefined
 }
 
 /** Duck-typed `ctx.apiProxy` unary result. */
@@ -90,7 +102,28 @@ interface ApiProxyDuck {
       rpcId: string
       payload: { sessionId: string; provider: string; model: string; reasoningEffort?: string }
     }): Promise<RpcEnvelope<{ selected: DshBotModelRef }>>
+    prompt?(request: {
+      rpcId: string
+      payload: { sessionId: string; mode: 'queue' | 'steer'; content: ReadonlyArray<{ type: 'text'; text: string }> }
+    }): Promise<RpcEnvelope<{ accepted: true }>>
+    cancel?(request: {
+      rpcId: string
+      payload: { sessionId: string }
+    }): Promise<RpcEnvelope<{ accepted: true }>>
+    updateQueue?(request: {
+      rpcId: string
+      payload: { sessionId: string; itemId: string; action: unknown }
+    }): Promise<RpcEnvelope<{ accepted: true }>>
   }
+  readonly events?: {
+    mux?(request: { rpcId: string; payload: Record<string, unknown> }, signal: AbortSignal): AsyncIterable<unknown>
+    host?(request: { rpcId: string; payload: Record<string, unknown> }, signal: AbortSignal): AsyncIterable<unknown>
+  }
+  respond?(message: {
+    type: 'client-response'
+    rpcId: string
+    result: { ok: true; value: unknown }
+  }): Promise<unknown>
   readonly workspace?: {
     archiveSession(request: {
       rpcId: string
@@ -301,6 +334,96 @@ export function createPlatform(ctx: Context): DshBotPlatform {
         })
       }
       return rows
+    },
+
+    async promptSession(request) {
+      const api = ctx.get('apiProxy') as ApiProxyDuck | undefined
+      if (api?.sessions?.prompt === undefined) {
+        return { unavailable: true as const, message: 'sessions.prompt is unavailable' }
+      }
+      const response = await api.sessions.prompt({
+        rpcId: mintRpcId(),
+        payload: {
+          sessionId: request.sessionId,
+          mode: request.mode,
+          content: [{ type: 'text', text: request.text }],
+        },
+      })
+      if (response.result.ok === false) {
+        throw new DshBotError(
+          'internal',
+          `sessions.prompt failed for ${request.sessionId}: ${response.result.error?.message ?? 'unknown error'}`,
+          { sessionId: request.sessionId },
+        )
+      }
+      return { accepted: true as const }
+    },
+
+    async cancelSession(sessionId) {
+      const api = ctx.get('apiProxy') as ApiProxyDuck | undefined
+      if (api?.sessions?.cancel === undefined) {
+        return { unavailable: true as const, message: 'sessions.cancel is unavailable' }
+      }
+      const response = await api.sessions.cancel({
+        rpcId: mintRpcId(),
+        payload: { sessionId },
+      })
+      if (response.result.ok === false) {
+        throw new DshBotError(
+          'internal',
+          `sessions.cancel failed for ${sessionId}: ${response.result.error?.message ?? 'unknown error'}`,
+          { sessionId },
+        )
+      }
+      return { accepted: true as const }
+    },
+
+    async updateQueue(request) {
+      const api = ctx.get('apiProxy') as ApiProxyDuck | undefined
+      if (api?.sessions?.updateQueue === undefined) {
+        return { unavailable: true as const, message: 'sessions.updateQueue is unavailable' }
+      }
+      const response = await api.sessions.updateQueue({
+        rpcId: mintRpcId(),
+        payload: {
+          sessionId: request.sessionId,
+          itemId: request.itemId,
+          action: request.action,
+        },
+      })
+      if (response.result.ok === false) {
+        throw new DshBotError(
+          'internal',
+          `sessions.updateQueue failed for ${request.sessionId}: ${response.result.error?.message ?? 'unknown error'}`,
+          { sessionId: request.sessionId },
+        )
+      }
+      return { accepted: true as const }
+    },
+
+    async respond(request) {
+      const api = ctx.get('apiProxy') as ApiProxyDuck | undefined
+      if (typeof api?.respond !== 'function') {
+        return { ok: false as const, message: 'apiProxy.respond is unavailable' }
+      }
+      await api.respond({
+        type: 'client-response',
+        rpcId: request.rpcId,
+        result: { ok: true, value: request.value },
+      })
+      return { ok: true as const }
+    },
+
+    subscribeMux(signal) {
+      const api = ctx.get('apiProxy') as ApiProxyDuck | undefined
+      if (typeof api?.events?.mux !== 'function') return undefined
+      return api.events.mux({ rpcId: mintRpcId(), payload: {} }, signal)
+    },
+
+    subscribeHost(signal) {
+      const api = ctx.get('apiProxy') as ApiProxyDuck | undefined
+      if (typeof api?.events?.host !== 'function') return undefined
+      return api.events.host({ rpcId: mintRpcId(), payload: {} }, signal)
     },
   }
 }

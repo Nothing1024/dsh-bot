@@ -25,6 +25,10 @@ export type DshBotErrorCode =
   | 'preset-broken'
   | 'registry-corrupt'
   | 'internal'
+  | 'cancel-unavailable'
+  | 'update-queue-unavailable'
+  | 'respond-unavailable'
+  | 'events-unavailable'
 
 /**
  * Typed failure for askBot / createSession. `code` is the stable wire value;

@@ -18,6 +18,8 @@ import type {
 } from './ask.ts'
 import { DshBotError } from './errors.ts'
 import { dispatchWorkbenchApi } from './workbench-routes.ts'
+import { handleBotEventsHttp } from './bot-events.ts'
+import type { BotEventsSource } from './bot-events.ts'
 import type { WorkbenchBotsFace } from './workbench-routes.ts'
 
 /** Wire model shown on the sidebar footer (UF-006). */
@@ -34,7 +36,7 @@ export interface ListSessionsRpcValue {
 }
 
 /** Host methods the HTTP face needs. */
-export interface DshBotHttpFace extends WorkbenchBotsFace {
+export interface DshBotHttpFace extends WorkbenchBotsFace, BotEventsSource {
   listSessions(request?: ListBotSessionsRequest): Promise<readonly DshBotSessionRow[]>
   createSession(caller: SessionToolCaller, request?: CreateBotSessionRequest): Promise<CreateBotSessionResult>
   currentBotModel(): DshBotModelInfo
@@ -141,6 +143,10 @@ export async function handleDshBotHttp(
   try {
     const url = new URL(req.url ?? '/', 'http://127.0.0.1')
     const method = url.pathname.replace(/^\/dsh-bot\/?/, '')
+    if (method === 'events' && (req.method === 'GET' || req.method === 'HEAD')) {
+      await handleBotEventsHttp(bot, req, res)
+      return
+    }
     if (req.method !== 'POST') {
       sendJson(res, 405, { ok: false, error: { code: 'method-not-allowed', message: req.method } })
       return

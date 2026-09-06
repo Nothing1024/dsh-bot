@@ -369,3 +369,25 @@ describe('dsh-bot HTTP face', () => {
     expect(bot.listGroups).toHaveBeenCalledTimes(1)
   })
 })
+
+describe('GET /dsh-bot/events', () => {
+  it('returns 503 when events ducks are missing', async () => {
+    const { handler } = attach(stub())
+    const { res, chunks } = mockRes()
+    handler(mockReq('GET', '/dsh-bot/events'), res)
+    await vi.waitFor(() => { expect(chunks.length).toBeGreaterThan(0) })
+    expect(res.statusCode).toBe(503)
+    expect(JSON.parse(chunks.join(''))).toMatchObject({
+      ok: false,
+      error: { code: 'events-unavailable' },
+    })
+  })
+
+  it('still rejects GET on other methods with 405', async () => {
+    const { handler } = attach(stub())
+    const { res, chunks } = mockRes()
+    handler(mockReq('GET', '/dsh-bot/listSessions'), res)
+    await vi.waitFor(() => { expect(chunks.length).toBeGreaterThan(0) })
+    expect(res.statusCode).toBe(405)
+  })
+})

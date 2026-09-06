@@ -152,6 +152,10 @@ class StubPlatform implements DshBotPlatform {
   async listSessions() {
     return this.gatewayRows
   }
+
+  async promptSession(_request: { sessionId: string; mode: 'queue' | 'steer'; text: string }): Promise<{ accepted: true } | { unavailable: true }> {
+    return { unavailable: true }
+  }
 }
 
 
@@ -477,6 +481,26 @@ describe('createBotSession / listBotSessions / history / prompt', () => {
     const result = await bot.prompt({ sessionId: 'session-owned-1', text: '  你是谁?  ' })
     expect(result).toEqual({ sessionId: 'session-owned-1' })
     expect(sessionTool.writeCalls).toEqual([{ sessionId: 'session-owned-1', content: '你是谁?' }])
+  })
+
+  it('prefers platform.promptSession when the duck accepts', async () => {
+    const { bot, sessionTool, platform } = boot()
+    const calls: Array<{ sessionId: string; mode: string; text: string }> = []
+    platform.promptSession = async (request) => {
+      calls.push(request)
+      return { accepted: true as const }
+    }
+    const result = await bot.prompt({ sessionId: 'session-owned-1', text: '排队一句', mode: 'queue' })
+    expect(result).toEqual({ sessionId: 'session-owned-1' })
+    expect(calls).toEqual([{ sessionId: 'session-owned-1', mode: 'queue', text: '排队一句' }])
+    expect(sessionTool.writeCalls).toEqual([])
+  })
+
+  it('falls back to sessionTool.write when promptSession is unavailable', async () => {
+    const { bot, sessionTool, platform } = boot()
+    platform.promptSession = async () => ({ unavailable: true as const })
+    await bot.prompt({ sessionId: 'session-owned-1', text: '回退写' })
+    expect(sessionTool.writeCalls).toEqual([{ sessionId: 'session-owned-1', content: '回退写' }])
   })
 
   it('rejects an empty prompt loud', async () => {

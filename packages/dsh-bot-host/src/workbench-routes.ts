@@ -89,6 +89,15 @@ export interface WorkbenchBotsFace {
   routineRunNow(input: { id: string }): Promise<unknown>
   routineDecline(input: { botId: string; topic: string }): Promise<unknown>
   markRead(input: { botId: string }): Promise<unknown>
+  cancel?(input: { sessionId: string }): Promise<unknown>
+  updateQueue?(input: { sessionId: string; itemId: string; action: unknown }): Promise<unknown>
+  approvalRespond?(input: {
+    rpcId: string
+    sessionId: string
+    approvalId: string
+    outcome: 'allowed-once' | 'rejected'
+  }): Promise<unknown>
+  questionRespond?(input: { rpcId: string; sessionId: string; answer: unknown }): Promise<unknown>
 }
 
 function send(res: ServerResponse, status: number, body: string | Buffer, contentType: string): void {
@@ -315,6 +324,50 @@ export async function dispatchWorkbenchApi(
       if (botId === '') throw new DshBotError('invalid-input', 'botId is required')
       return await bot.markRead({ botId })
     }
+    case 'cancel': {
+      const sessionId = asString(args.sessionId).trim()
+      if (sessionId === '') throw new DshBotError('invalid-input', 'sessionId is required')
+      if (bot.cancel === undefined) throw new DshBotError('cancel-unavailable', 'sessions.cancel is unavailable')
+      return await bot.cancel({ sessionId })
+    }
+    case 'updateQueue': {
+      const sessionId = asString(args.sessionId).trim()
+      const itemId = asString(args.itemId).trim()
+      if (sessionId === '' || itemId === '') {
+        throw new DshBotError('invalid-input', 'sessionId and itemId are required')
+      }
+      if (bot.updateQueue === undefined) {
+        throw new DshBotError('update-queue-unavailable', 'sessions.updateQueue is unavailable')
+      }
+      return await bot.updateQueue({ sessionId, itemId, action: args.action })
+    }
+    case 'approvalRespond': {
+      const rpcId = asString(args.rpcId).trim()
+      const sessionId = asString(args.sessionId).trim()
+      const approvalId = asString(args.approvalId).trim()
+      const outcome = asString(args.outcome)
+      if (rpcId === '' || sessionId === '' || approvalId === '') {
+        throw new DshBotError('invalid-input', 'rpcId, sessionId, approvalId are required')
+      }
+      if (outcome !== 'allowed-once' && outcome !== 'rejected') {
+        throw new DshBotError('invalid-input', 'outcome must be allowed-once or rejected')
+      }
+      if (bot.approvalRespond === undefined) {
+        throw new DshBotError('respond-unavailable', 'apiProxy.respond is unavailable')
+      }
+      return await bot.approvalRespond({ rpcId, sessionId, approvalId, outcome })
+    }
+    case 'questionRespond': {
+      const rpcId = asString(args.rpcId).trim()
+      const sessionId = asString(args.sessionId).trim()
+      if (rpcId === '' || sessionId === '') {
+        throw new DshBotError('invalid-input', 'rpcId and sessionId are required')
+      }
+      if (bot.questionRespond === undefined) {
+        throw new DshBotError('respond-unavailable', 'apiProxy.respond is unavailable')
+      }
+      return await bot.questionRespond({ rpcId, sessionId, answer: args.answer })
+    }
     default:
       return undefined
   }
@@ -450,6 +503,7 @@ function parsePrompt(args: Record<string, unknown>): PromptRequest {
   return {
     sessionId,
     text: asString(args.text),
+    ...args.mode === 'steer' ? { mode: 'steer' as const } : args.mode === 'queue' ? { mode: 'queue' as const } : {},
   }
 }
 
