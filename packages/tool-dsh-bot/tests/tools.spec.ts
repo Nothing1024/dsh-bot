@@ -18,9 +18,9 @@ function stubExec() {
 
 function register(): {
   defs: Map<string, ToolDefinition>
-  dshBot: { askBot: ReturnType<typeof vi.fn> }
+  dshBot: { askBot: ReturnType<typeof vi.fn>; sendToPeer: ReturnType<typeof vi.fn> }
 } {
-  const dshBot = { askBot: vi.fn() }
+  const dshBot = { askBot: vi.fn(), sendToPeer: vi.fn() }
   const defs = new Map<string, ToolDefinition>()
   const ctx = {
     tools: { register: vi.fn((definition: ToolDefinition) => { defs.set(definition.name, definition) }) },
@@ -39,7 +39,7 @@ async function run(definition: ToolDefinition, args: unknown) {
 describe('tool-dsh-bot', () => {
   it('registers dsh_bot_ask as a generic card with no locations', () => {
     const { defs } = register()
-    expect([...defs.keys()]).toEqual(['dsh_bot_ask'])
+    expect([...defs.keys()]).toEqual(['dsh_bot_ask', 'dsh_bot_send'])
     const view = defs.get('dsh_bot_ask')!.presentCall?.({ prompt: 'hi' })
     expect(view?.card).toBe('generic')
     expect((view as { locations?: unknown } | undefined)?.locations).toBeUndefined()
@@ -78,3 +78,22 @@ describe('tool-dsh-bot', () => {
     await expect(execute({ prompt: 'hi' }, { signal: new AbortController().signal })).rejects.toThrow(/calling agent/)
   })
 })
+
+  it('registers dsh_bot_send and returns accepted before wait', async () => {
+    const { defs, dshBot } = register()
+    dshBot.sendToPeer.mockResolvedValue({ ok: true, accepted: true, sessionId: 'peer-1' })
+    const value = await run(defs.get('dsh_bot_send')!, { toBot: 'shiren-xiaobei', text: '封面用深蓝' })
+    expect(dshBot.sendToPeer).toHaveBeenCalledWith({
+      toBot: 'shiren-xiaobei',
+      text: '封面用深蓝',
+      fromSessionId: 'caller',
+    })
+    expect(value).toEqual({ accepted: true, session_id: 'peer-1' })
+  })
+
+  it('fails dsh_bot_send on host rejection', async () => {
+    const { defs, dshBot } = register()
+    dshBot.sendToPeer.mockResolvedValue({ ok: false, error: 'cannot-send-to-self' })
+    await expect(run(defs.get('dsh_bot_send')!, { toBot: 'shiren-xiaobei', text: 'x' })).rejects.toThrow(/cannot-send-to-self/)
+  })
+

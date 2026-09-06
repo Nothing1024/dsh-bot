@@ -26,6 +26,10 @@ export function renderBehaviorSection(declined: readonly string[] = []): string 
     '主动性：如果用户连续两次或以上让你做同一类事，你可以提议设成例程，且只提一次。输出单独一块：',
     '[propose-routine]{"name":"例程名","schedule":"@daily","instruction":"要做的事"}[/propose-routine]',
     '不要换别的格式。',
+    '',
+    '同事：不要转述用户私下对你说的抱怨。',
+    '同事：只找跟这件事明显相关的同事，不要群发。',
+    '同事：不确定该不该开口就先问用户。',
   ]
   if (refused.length > 0) {
     lines.push('', '这些主题已经拒绝过，不要再提：', ...refused)

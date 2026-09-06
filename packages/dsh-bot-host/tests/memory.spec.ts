@@ -14,6 +14,7 @@ import {
   shouldExtract,
   stripMemorySection,
 } from '../src/memory.ts'
+import { renderBehaviorSection } from '../src/routine-behavior.ts'
 
 const homes: string[] = []
 
@@ -188,4 +189,14 @@ describe('stripMemorySection + composePersona', () => {
   it('leaves a clean base unchanged', () => {
     expect(stripMemorySection('你是小安。')).toBe('你是小安。')
   })
+
+  it('keeps peer etiquette inside the same behavior section string', () => {
+    const base = '你是校对阿宁。'
+    const composed = composePersona(base, { behavior: renderBehaviorSection() })
+    expect(composed).toContain('## 行为规范')
+    expect(composed).toContain('同事：不要转述用户私下对你说的抱怨。')
+    expect(composed).toContain('同事：只找跟这件事明显相关的同事，不要群发。')
+    expect(composed).toContain('同事：不确定该不该开口就先问用户。')
+  })
 })
+

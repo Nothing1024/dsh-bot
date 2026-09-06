@@ -98,6 +98,7 @@ export interface WorkbenchBotsFace {
     outcome: 'allowed-once' | 'rejected'
   }): Promise<unknown>
   questionRespond?(input: { rpcId: string; sessionId: string; answer: unknown }): Promise<unknown>
+  peerLog?(input?: { botId?: string }): Promise<unknown>
 }
 
 function send(res: ServerResponse, status: number, body: string | Buffer, contentType: string): void {
@@ -367,6 +368,11 @@ export async function dispatchWorkbenchApi(
         throw new DshBotError('respond-unavailable', 'apiProxy.respond is unavailable')
       }
       return await bot.questionRespond({ rpcId, sessionId, answer: args.answer })
+    }
+    case 'peerLog': {
+      if (bot.peerLog === undefined) throw new DshBotError('internal', 'peerLog is unavailable')
+      const botId = asString(args.botId).trim()
+      return await bot.peerLog(botId === '' ? {} : { botId })
     }
     default:
       return undefined

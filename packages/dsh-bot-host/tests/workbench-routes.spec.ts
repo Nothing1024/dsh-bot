@@ -238,3 +238,15 @@ describe('live-transcript RPC dispatch', () => {
     })
   })
 })
+
+describe('peers RPC dispatch', () => {
+  it('routes peerLog', async () => {
+    const peerLog = vi.fn(async () => [{ from: 'a', to: 'b', ts: 1, sessionId: 's' }])
+    const bot = { peerLog } as unknown as Parameters<typeof dispatchWorkbenchApi>[0]
+    await expect(dispatchWorkbenchApi(bot, 'peerLog', { botId: 'a' })).resolves.toEqual([
+      { from: 'a', to: 'b', ts: 1, sessionId: 's' },
+    ])
+    expect(peerLog).toHaveBeenCalledWith({ botId: 'a' })
+  })
+})
+

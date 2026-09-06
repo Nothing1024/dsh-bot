@@ -91,4 +91,61 @@ export function apply(ctx: Context): void {
     },
     presentCall: args => askCard('Ask DSH Bot', args.title ?? args.prompt),
   }))
+
+  ctx.tools.register(defineTool({
+    name: 'dsh_bot_send',
+    description:
+      'Send an asynchronous note to another DSH Bot on this user roster. '
+      + 'Returns immediately as accepted; does not wait for the recipient to finish speaking. '
+      + '`toBot` is the recipient bot id; `text` is the note.',
+    parameters: {
+      toBot: {
+        type: 'string',
+        required: true,
+        description: 'Recipient bot id from this user roster. Cannot be yourself.',
+      },
+      text: {
+        type: 'string',
+        required: true,
+        description: 'Non-empty note to deliver.',
+      },
+    },
+    output: {
+      schema: {
+        type: 'object',
+        additionalProperties: false,
+        properties: {
+          accepted: { type: 'boolean', required: true },
+          session_id: { type: 'string', required: true },
+        },
+      },
+      render: (_args, value) => [{
+        type: 'text',
+        text: value.accepted === true ? 'accepted' : 'failed',
+      }],
+    },
+    async execute(args, exec) {
+      try {
+        const result = await ctx.dshBot.sendToPeer({
+          toBot: args.toBot,
+          text: args.text,
+          ...exec.agent === undefined ? {} : { fromSessionId: exec.agent.id },
+        })
+        if (!result.ok) {
+          throw new Error(result.error)
+        }
+        return { accepted: true, session_id: result.sessionId }
+      } catch (error) {
+        if (error instanceof DshBotError) {
+          throw new Error(
+            `${error.code}: ${error.message}`
+            + (error.sessionId === undefined ? '' : ` (session ${error.sessionId})`),
+            { cause: error },
+          )
+        }
+        throw error
+      }
+    },
+    presentCall: args => askCard('Send DSH Bot', args.toBot),
+  }))
 }

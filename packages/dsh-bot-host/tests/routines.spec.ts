@@ -136,6 +136,7 @@ describe('behavior section + propose parse', () => {
     expect(section).toContain('## 行为规范')
     expect(section).toContain('这些主题已经拒绝过，不要再提：')
     expect(section).toContain('- 校稿')
+    expect(section).toContain('同事：不要转述用户私下对你说的抱怨。')
     const parsed = parseProposeRoutine('先记下\n[propose-routine]{"name":"校稿","schedule":"@daily","instruction":"校今天的稿"}[/propose-routine]')
     expect(parsed.proposals).toEqual([{ name: '校稿', schedule: '@daily', instruction: '校今天的稿' }])
     expect(parsed.text).toBe('先记下')
