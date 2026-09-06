@@ -1,0 +1,24 @@
+{
+  "ok": true,
+  "value": {
+    "ok": true,
+    "skipped": [],
+    "sections": [
+      {
+        "id": "pinned",
+        "name": "置顶",
+        "order": 0
+      },
+      {
+        "id": "work",
+        "name": "工作",
+        "order": 1
+      },
+      {
+        "id": "life",
+        "name": "生活",
+        "order": 2
+      }
+    ]
+  }
+}

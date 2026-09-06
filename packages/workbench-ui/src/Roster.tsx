@@ -297,7 +297,7 @@ export function Roster(props: RosterProps) {
                         <div>{item.modelLabel ?? '默认模型'}</div>
                         <div>例行 {item.routineCount ?? 0}</div>
                         <div>会话 {item.sessionCount ?? 0}</div>
-                        <div>{item.preview}</div>
+                        <div>{item.preview.trim() === '' ? '还没聊过' : item.preview}</div>
                       </div>
                     ) : null}
                     <span className={`avatarWrap${item.working ? ' isWorking' : ''}`}>

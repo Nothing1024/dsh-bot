@@ -11,6 +11,6 @@
 10,P3:通知与快捷键,静音跳过 Notification,spec.md#task-10,3,./node_modules/.bin/vitest run packages/workbench-ui/tests/notify.spec.ts packages/workbench-ui/tests/app.spec.tsx → 通过,已完成,
 11,P3:通知与快捷键,⌘1-9 ⌥↑↓ ⌘B,spec.md#task-11,5,./node_modules/.bin/vitest run packages/workbench-ui/tests/keyboard.spec.tsx → 通过,已完成,
 12,P3:通知与快捷键,执行 Phase 3 回归验证,spec.md#task-12,10;11,pnpm run typecheck && ./node_modules/.bin/vitest run packages/workbench-ui/tests/keyboard.spec.tsx packages/workbench-ui/tests/notify.spec.ts → 通过,已完成,
-13,P4:收尾,同步 README 名册说明,spec.md#task-13,12,rg -n "已隐藏" README.md → ≥1,待开始,
-14,P4:收尾,执行 spec 5.2 真实场景全套测试,spec.md#task-14,12,按 5.2 执行矩阵逐行回放 → 全部通过,待开始,
-15,P4:收尾,执行 Phase 4 回归验证,spec.md#task-15,13;14,pnpm run typecheck && pnpm run build && pnpm test && pnpm run standard:check → 全绿,待开始,
+13,P4:收尾,同步 README 名册说明,spec.md#task-13,12,rg -n "已隐藏" README.md → ≥1,已完成,
+14,P4:收尾,执行 spec 5.2 真实场景全套测试,spec.md#task-14,12,按 5.2 执行矩阵逐行回放 → 全部通过,已完成,5.2 真机 Playwright chrome；UF-034 通知以 muted 门闩为准
+15,P4:收尾,执行 Phase 4 回归验证,spec.md#task-15,13;14,pnpm run typecheck && pnpm run build && pnpm test && pnpm run standard:check → 全绿,已阻塞:typecheck SessionId brand clash 本仓 0.1.2-rc.1 vs vibee 0.1.0-rc.7 via session-tool paths,"build/test/standard 绿；邻仓零改"

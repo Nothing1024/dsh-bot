@@ -1,0 +1,431 @@
+=== typecheck ===
+$ tsc -p tsconfig.json
+packages/dsh-bot-host/src/ask.ts(266,5): error TS2322: Type 'SessionId' is not assignable to type 'SessionId | undefined'.
+  Type 'import("/Users/nothing/workspace/dsh/plugin/vibee/plugin/node_modules/.pnpm/@deepseek-ai+dsh-session@0.1.0-rc.7_1dcde9bfc9fa0140c66648fbcb67b346/node_modules/@deepseek-ai/dsh-session/lib/types/types").SessionId' is not assignable to type 'import("/Users/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin/node_modules/.pnpm/@deepseek-ai+dsh-session@0.1.2-rc.1_@deepseek-ai+cordis@4.0.2_@deepseek-ai+dsh-scope@0._a751bf1897b40ba5dd12e8eef9379f87/node_modules/@deepseek-ai/dsh-session/lib/types/types").SessionId'.
+    Property '[BRAND]' is missing in type 'String & { readonly [BRAND]: "SessionId"; }' but required in type '{ readonly [BRAND]: "SessionId"; }'.
+packages/dsh-bot-host/src/ask.ts(267,25): error TS2345: Argument of type 'SessionId | undefined' is not assignable to parameter of type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+packages/dsh-bot-host/src/ask.ts(268,35): error TS2345: Argument of type 'SessionId | undefined' is not assignable to parameter of type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+packages/dsh-bot-host/src/ask.ts(269,33): error TS2345: Argument of type 'SessionId | undefined' is not assignable to parameter of type 'SessionId'.
+  Type 'undefined' is not assignable to type 'SessionId'.
+    Type 'undefined' is not assignable to type 'string'.
+packages/dsh-bot-host/src/ask.ts(270,37): error TS2345: Argument of type 'SessionId | undefined' is not assignable to parameter of type 'SessionId'.
+  Type 'undefined' is not assignable to type 'SessionId'.
+    Type 'undefined' is not assignable to type 'string'.
+packages/dsh-bot-host/src/ask.ts(271,51): error TS2345: Argument of type 'SessionId | undefined' is not assignable to parameter of type 'SessionId'.
+  Type 'undefined' is not assignable to type 'SessionId'.
+    Type 'undefined' is not assignable to type 'string'.
+packages/dsh-bot-host/src/ask.ts(279,9): error TS2379: Argument of type '{ sessionId: SessionId | undefined; }' is not assignable to parameter of type 'ErrorOptions & { sessionId?: string; }' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+  Type '{ sessionId: SessionId | undefined; }' is not assignable to type '{ sessionId?: string; }' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+    Types of property 'sessionId' are incompatible.
+      Type 'SessionId | undefined' is not assignable to type 'string'.
+        Type 'undefined' is not assignable to type 'string'.
+packages/dsh-bot-host/src/ask.ts(283,29): error TS2345: Argument of type 'SessionId | undefined' is not assignable to parameter of type 'SessionId'.
+  Type 'undefined' is not assignable to type 'SessionId'.
+    Type 'undefined' is not assignable to type 'string'.
+packages/dsh-bot-host/src/ask.ts(285,49): error TS2345: Argument of type 'SessionId | undefined' is not assignable to parameter of type 'SessionId'.
+  Type 'undefined' is not assignable to type 'SessionId'.
+    Type 'undefined' is not assignable to type 'string'.
+packages/dsh-bot-host/src/ask.ts(288,29): error TS2345: Argument of type 'SessionId | undefined' is not assignable to parameter of type 'SessionId'.
+  Type 'undefined' is not assignable to type 'SessionId'.
+    Type 'undefined' is not assignable to type 'string'.
+packages/dsh-bot-host/src/ask.ts(290,14): error TS2322: Type 'SessionId | undefined' is not assignable to type 'SessionId'.
+  Type 'undefined' is not assignable to type 'SessionId'.
+    Type 'undefined' is not assignable to type 'string'.
+packages/dsh-bot-host/src/ask.ts(321,5): error TS2322: Type 'SessionId' is not assignable to type 'SessionId | undefined'.
+  Type 'import("/Users/nothing/workspace/dsh/plugin/vibee/plugin/node_modules/.pnpm/@deepseek-ai+dsh-session@0.1.0-rc.7_1dcde9bfc9fa0140c66648fbcb67b346/node_modules/@deepseek-ai/dsh-session/lib/types/types").SessionId' is not assignable to type 'import("/Users/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin/node_modules/.pnpm/@deepseek-ai+dsh-session@0.1.2-rc.1_@deepseek-ai+cordis@4.0.2_@deepseek-ai+dsh-scope@0._a751bf1897b40ba5dd12e8eef9379f87/node_modules/@deepseek-ai/dsh-session/lib/types/types").SessionId'.
+    Property '[BRAND]' is missing in type 'String & { readonly [BRAND]: "SessionId"; }' but required in type '{ readonly [BRAND]: "SessionId"; }'.
+packages/dsh-bot-host/src/ask.ts(322,25): error TS2345: Argument of type 'SessionId | undefined' is not assignable to parameter of type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+packages/dsh-bot-host/src/ask.ts(323,33): error TS2345: Argument of type 'SessionId | undefined' is not assignable to parameter of type 'SessionId'.
+  Type 'undefined' is not assignable to type 'SessionId'.
+    Type 'undefined' is not assignable to type 'string'.
+packages/dsh-bot-host/src/ask.ts(324,14): error TS2322: Type 'SessionId | undefined' is not assignable to type 'SessionId'.
+  Type 'undefined' is not assignable to type 'SessionId'.
+    Type 'undefined' is not assignable to type 'string'.
+packages/dsh-bot-host/src/group-engine.ts(298,51): error TS2345: Argument of type 'import("/Users/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin/node_modules/.pnpm/@deepseek-ai+dsh-session@0.1.2-rc.1_@deepseek-ai+cordis@4.0.2_@deepseek-ai+dsh-scope@0._a751bf1897b40ba5dd12e8eef9379f87/node_modules/@deepseek-ai/dsh-session/lib/types/types").SessionId' is not assignable to parameter of type 'import("/Users/nothing/workspace/dsh/plugin/vibee/plugin/node_modules/.pnpm/@deepseek-ai+dsh-session@0.1.0-rc.7_1dcde9bfc9fa0140c66648fbcb67b346/node_modules/@deepseek-ai/dsh-session/lib/types/types").SessionId'.
+  Property '[BRAND]' is missing in type 'String & { readonly [BRAND]: "SessionId"; }' but required in type '{ readonly [BRAND]: "SessionId"; }'.
+packages/dsh-bot-host/src/group-engine.ts(350,52): error TS2345: Argument of type 'import("/Users/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin/node_modules/.pnpm/@deepseek-ai+dsh-session@0.1.2-rc.1_@deepseek-ai+cordis@4.0.2_@deepseek-ai+dsh-scope@0._a751bf1897b40ba5dd12e8eef9379f87/node_modules/@deepseek-ai/dsh-session/lib/types/types").SessionId' is not assignable to parameter of type 'import("/Users/nothing/workspace/dsh/plugin/vibee/plugin/node_modules/.pnpm/@deepseek-ai+dsh-session@0.1.0-rc.7_1dcde9bfc9fa0140c66648fbcb67b346/node_modules/@deepseek-ai/dsh-session/lib/types/types").SessionId'.
+  Property '[BRAND]' is missing in type 'String & { readonly [BRAND]: "SessionId"; }' but required in type '{ readonly [BRAND]: "SessionId"; }'.
+packages/dsh-bot-host/src/group-engine.ts(351,66): error TS2345: Argument of type 'import("/Users/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin/node_modules/.pnpm/@deepseek-ai+dsh-session@0.1.2-rc.1_@deepseek-ai+cordis@4.0.2_@deepseek-ai+dsh-scope@0._a751bf1897b40ba5dd12e8eef9379f87/node_modules/@deepseek-ai/dsh-session/lib/types/types").SessionId' is not assignable to parameter of type 'import("/Users/nothing/workspace/dsh/plugin/vibee/plugin/node_modules/.pnpm/@deepseek-ai+dsh-session@0.1.0-rc.7_1dcde9bfc9fa0140c66648fbcb67b346/node_modules/@deepseek-ai/dsh-session/lib/types/types").SessionId'.
+  Property '[BRAND]' is missing in type 'String & { readonly [BRAND]: "SessionId"; }' but required in type '{ readonly [BRAND]: "SessionId"; }'.
+packages/dsh-bot-host/src/index.ts(355,24): error TS2339: Property 'sessionTool' does not exist on type 'Context'.
+packages/dsh-bot-host/src/index.ts(402,38): error TS2339: Property 'sessionTool' does not exist on type 'Context'.
+packages/dsh-bot-host/src/index.ts(409,55): error TS2339: Property 'sessionTool' does not exist on type 'Context'.
+packages/dsh-bot-host/src/index.ts(416,43): error TS2339: Property 'sessionTool' does not exist on type 'Context'.
+packages/dsh-bot-host/src/index.ts(480,16): error TS2339: Property 'sessionTool' does not exist on type 'Context'.
+packages/dsh-bot-host/src/index.ts(492,39): error TS2339: Property 'sessionTool' does not exist on type 'Context'.
+packages/dsh-bot-host/src/index.ts(530,64): error TS2339: Property 'sessionTool' does not exist on type 'Context'.
+packages/dsh-bot-host/src/index.ts(558,56): error TS2339: Property 'sessionTool' does not exist on type 'Context'.
+packages/dsh-bot-host/src/index.ts(563,29): error TS2339: Property 'sessionTool' does not exist on type 'Context'.
+packages/dsh-bot-host/src/index.ts(677,61): error TS2339: Property 'sessionTool' does not exist on type 'Context'.
+packages/dsh-bot-host/src/index.ts(686,28): error TS2339: Property 'sessionTool' does not exist on type 'Context'.
+packages/dsh-bot-host/src/index.ts(687,43): error TS2339: Property 'sessionTool' does not exist on type 'Context'.
+packages/dsh-bot-host/src/index.ts(692,41): error TS2339: Property 'sessionTool' does not exist on type 'Context'.
+packages/dsh-bot-host/src/index.ts(697,26): error TS2339: Property 'sessionTool' does not exist on type 'Context'.
+packages/dsh-bot-host/src/index.ts(864,57): error TS2339: Property 'sessionTool' does not exist on type 'Context'.
+packages/dsh-bot-host/src/index.ts(872,20): error TS2339: Property 'sessionTool' does not exist on type 'Context'.
+packages/dsh-bot-host/src/index.ts(883,26): error TS2339: Property 'sessionTool' does not exist on type 'Context'.
+packages/dsh-bot-host/src/index.ts(887,39): error TS2339: Property 'sessionTool' does not exist on type 'Context'.
+packages/dsh-bot-host/src/index.ts(893,39): error TS2339: Property 'sessionTool' does not exist on type 'Context'.
+packages/dsh-bot-host/src/index.ts(898,57): error TS2339: Property 'sessionTool' does not exist on type 'Context'.
+packages/dsh-bot-host/src/index.ts(907,20): error TS2339: Property 'sessionTool' does not exist on type 'Context'.
+packages/dsh-bot-host/src/memory-extract.ts(173,7): error TS2322: Type 'SessionId' is not assignable to type 'SessionId | undefined'.
+  Type 'import("/Users/nothing/workspace/dsh/plugin/vibee/plugin/node_modules/.pnpm/@deepseek-ai+dsh-session@0.1.0-rc.7_1dcde9bfc9fa0140c66648fbcb67b346/node_modules/@deepseek-ai/dsh-session/lib/types/types").SessionId' is not assignable to type 'import("/Users/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin/node_modules/.pnpm/@deepseek-ai+dsh-session@0.1.2-rc.1_@deepseek-ai+cordis@4.0.2_@deepseek-ai+dsh-scope@0._a751bf1897b40ba5dd12e8eef9379f87/node_modules/@deepseek-ai/dsh-session/lib/types/types").SessionId'.
+    Property '[BRAND]' is missing in type 'String & { readonly [BRAND]: "SessionId"; }' but required in type '{ readonly [BRAND]: "SessionId"; }'.
+packages/dsh-bot-host/src/memory-extract.ts(174,27): error TS2345: Argument of type 'SessionId | undefined' is not assignable to parameter of type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+packages/dsh-bot-host/src/memory-extract.ts(175,42): error TS2345: Argument of type 'SessionId | undefined' is not assignable to parameter of type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+packages/dsh-bot-host/src/memory-extract.ts(176,47): error TS2345: Argument of type 'SessionId | undefined' is not assignable to parameter of type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+packages/dsh-bot-host/src/memory-extract.ts(177,48): error TS2345: Argument of type 'SessionId | undefined' is not assignable to parameter of type 'SessionId'.
+  Type 'undefined' is not assignable to type 'SessionId'.
+    Type 'undefined' is not assignable to type 'string'.
+packages/dsh-bot-host/src/memory-extract.ts(178,62): error TS2345: Argument of type 'SessionId | undefined' is not assignable to parameter of type 'SessionId'.
+  Type 'undefined' is not assignable to type 'SessionId'.
+    Type 'undefined' is not assignable to type 'string'.
+packages/dsh-bot-host/src/memory-extract.ts(185,60): error TS2345: Argument of type 'SessionId | undefined' is not assignable to parameter of type 'SessionId'.
+  Type 'undefined' is not assignable to type 'SessionId'.
+    Type 'undefined' is not assignable to type 'string'.
+packages/dsh-bot-host/src/workbench-sessions.ts(159,12): error TS2322: Type '{ tags: string[]; status: "idle" | "live"; createdAt: number; title?: string; sessionId: SessionId; }[]' is not assignable to type 'readonly SessionToolListRow[]'.
+  Type '{ tags: string[]; status: "idle" | "live"; createdAt: number; title?: string; sessionId: SessionId; }' is not assignable to type 'SessionToolListRow' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+    Types of property 'sessionId' are incompatible.
+      Type 'import("/Users/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin/node_modules/.pnpm/@deepseek-ai+dsh-session@0.1.2-rc.1_@deepseek-ai+cordis@4.0.2_@deepseek-ai+dsh-scope@0._a751bf1897b40ba5dd12e8eef9379f87/node_modules/@deepseek-ai/dsh-session/lib/types/types").SessionId' is not assignable to type 'import("/Users/nothing/workspace/dsh/plugin/vibee/plugin/node_modules/.pnpm/@deepseek-ai+dsh-session@0.1.0-rc.7_1dcde9bfc9fa0140c66648fbcb67b346/node_modules/@deepseek-ai/dsh-session/lib/types/types").SessionId'.
+        Property '[BRAND]' is missing in type 'String & { readonly [BRAND]: "SessionId"; }' but required in type '{ readonly [BRAND]: "SessionId"; }'.
+packages/dsh-bot-host/src/workbench-sessions.ts(421,46): error TS2345: Argument of type 'import("/Users/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin/node_modules/.pnpm/@deepseek-ai+dsh-session@0.1.2-rc.1_@deepseek-ai+cordis@4.0.2_@deepseek-ai+dsh-scope@0._a751bf1897b40ba5dd12e8eef9379f87/node_modules/@deepseek-ai/dsh-session/lib/types/types").SessionId' is not assignable to parameter of type 'import("/Users/nothing/workspace/dsh/plugin/vibee/plugin/node_modules/.pnpm/@deepseek-ai+dsh-session@0.1.0-rc.7_1dcde9bfc9fa0140c66648fbcb67b346/node_modules/@deepseek-ai/dsh-session/lib/types/types").SessionId'.
+  Property '[BRAND]' is missing in type 'String & { readonly [BRAND]: "SessionId"; }' but required in type '{ readonly [BRAND]: "SessionId"; }'.
+packages/dsh-bot-host/src/workbench-sessions.ts(513,53): error TS2345: Argument of type 'import("/Users/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin/node_modules/.pnpm/@deepseek-ai+dsh-session@0.1.2-rc.1_@deepseek-ai+cordis@4.0.2_@deepseek-ai+dsh-scope@0._a751bf1897b40ba5dd12e8eef9379f87/node_modules/@deepseek-ai/dsh-session/lib/types/types").SessionId' is not assignable to parameter of type 'import("/Users/nothing/workspace/dsh/plugin/vibee/plugin/node_modules/.pnpm/@deepseek-ai+dsh-session@0.1.0-rc.7_1dcde9bfc9fa0140c66648fbcb67b346/node_modules/@deepseek-ai/dsh-session/lib/types/types").SessionId'.
+  Property '[BRAND]' is missing in type 'String & { readonly [BRAND]: "SessionId"; }' but required in type '{ readonly [BRAND]: "SessionId"; }'.
+packages/dsh-bot-host/src/workbench-sessions.ts(544,43): error TS2345: Argument of type 'import("/Users/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin/node_modules/.pnpm/@deepseek-ai+dsh-session@0.1.2-rc.1_@deepseek-ai+cordis@4.0.2_@deepseek-ai+dsh-scope@0._a751bf1897b40ba5dd12e8eef9379f87/node_modules/@deepseek-ai/dsh-session/lib/types/types").SessionId' is not assignable to parameter of type 'import("/Users/nothing/workspace/dsh/plugin/vibee/plugin/node_modules/.pnpm/@deepseek-ai+dsh-session@0.1.0-rc.7_1dcde9bfc9fa0140c66648fbcb67b346/node_modules/@deepseek-ai/dsh-session/lib/types/types").SessionId'.
+  Property '[BRAND]' is missing in type 'String & { readonly [BRAND]: "SessionId"; }' but required in type '{ readonly [BRAND]: "SessionId"; }'.
+packages/dsh-bot-host/tests/ask.spec.ts(27,51): error TS2322: Type 'import("/Users/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin/node_modules/.pnpm/@deepseek-ai+dsh-session@0.1.2-rc.1_@deepseek-ai+cordis@4.0.2_@deepseek-ai+dsh-scope@0._a751bf1897b40ba5dd12e8eef9379f87/node_modules/@deepseek-ai/dsh-session/lib/types/types").SessionId' is not assignable to type 'import("/Users/nothing/workspace/dsh/plugin/vibee/plugin/node_modules/.pnpm/@deepseek-ai+dsh-session@0.1.0-rc.7_1dcde9bfc9fa0140c66648fbcb67b346/node_modules/@deepseek-ai/dsh-session/lib/types/types").SessionId'.
+  Property '[BRAND]' is missing in type 'String & { readonly [BRAND]: "SessionId"; }' but required in type '{ readonly [BRAND]: "SessionId"; }'.
+packages/dsh-bot-host/tests/ask.spec.ts(58,9): error TS2416: Property 'create' in type 'StubSessionTool' is not assignable to the same property in base type 'SessionToolService'.
+  Type '(caller: SessionToolCaller, options: SessionToolCreateOptions) => Promise<{ sessionId: SessionId; }>' is not assignable to type '(caller: SessionToolCaller, options: SessionToolCreateOptions) => Promise<SessionToolCreateResult>'.
+    Type 'Promise<{ sessionId: SessionId; }>' is not assignable to type 'Promise<SessionToolCreateResult>'.
+      Type '{ sessionId: SessionId; }' is not assignable to type 'SessionToolCreateResult'.
+        Types of property 'sessionId' are incompatible.
+          Type 'import("/Users/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin/node_modules/.pnpm/@deepseek-ai+dsh-session@0.1.2-rc.1_@deepseek-ai+cordis@4.0.2_@deepseek-ai+dsh-scope@0._a751bf1897b40ba5dd12e8eef9379f87/node_modules/@deepseek-ai/dsh-session/lib/types/types").SessionId' is not assignable to type 'import("/Users/nothing/workspace/dsh/plugin/vibee/plugin/node_modules/.pnpm/@deepseek-ai+dsh-session@0.1.0-rc.7_1dcde9bfc9fa0140c66648fbcb67b346/node_modules/@deepseek-ai/dsh-session/lib/types/types").SessionId'.
+            Property '[BRAND]' is missing in type 'String & { readonly [BRAND]: "SessionId"; }' but required in type '{ readonly [BRAND]: "SessionId"; }'.
+packages/dsh-bot-host/tests/ask.spec.ts(65,9): error TS2416: Property 'write' in type 'StubSessionTool' is not assignable to the same property in base type 'SessionToolService'.
+  Type '(_caller: SessionToolCaller, sessionId: SessionId, content: string) => Promise<{ sessionId: SessionId; }>' is not assignable to type '(caller: SessionToolCaller, sessionId: SessionId, content: string) => Promise<SessionToolWriteResult>'.
+    Types of parameters 'sessionId' and 'sessionId' are incompatible.
+      Type 'import("/Users/nothing/workspace/dsh/plugin/vibee/plugin/node_modules/.pnpm/@deepseek-ai+dsh-session@0.1.0-rc.7_1dcde9bfc9fa0140c66648fbcb67b346/node_modules/@deepseek-ai/dsh-session/lib/types/types").SessionId' is not assignable to type 'import("/Users/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin/node_modules/.pnpm/@deepseek-ai+dsh-session@0.1.2-rc.1_@deepseek-ai+cordis@4.0.2_@deepseek-ai+dsh-scope@0._a751bf1897b40ba5dd12e8eef9379f87/node_modules/@deepseek-ai/dsh-session/lib/types/types").SessionId'.
+        Property '[BRAND]' is missing in type 'String & { readonly [BRAND]: "SessionId"; }' but required in type '{ readonly [BRAND]: "SessionId"; }'.
+packages/dsh-bot-host/tests/ask.spec.ts(70,9): error TS2416: Property 'wait' in type 'StubSessionTool' is not assignable to the same property in base type 'SessionToolService'.
+  Type '(_caller: SessionToolCaller, sessionId: SessionId, options: SessionToolWaitOptions) => Promise<{ lastTurnEndReason?: string; sessionId: SessionId; status: SessionToolWaitStatus; }>' is not assignable to type '(caller: SessionToolCaller, sessionId: SessionId, options: SessionToolWaitOptions) => Promise<SessionToolWaitResult>'.
+    Types of parameters 'sessionId' and 'sessionId' are incompatible.
+      Type 'import("/Users/nothing/workspace/dsh/plugin/vibee/plugin/node_modules/.pnpm/@deepseek-ai+dsh-session@0.1.0-rc.7_1dcde9bfc9fa0140c66648fbcb67b346/node_modules/@deepseek-ai/dsh-session/lib/types/types").SessionId' is not assignable to type 'import("/Users/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin/node_modules/.pnpm/@deepseek-ai+dsh-session@0.1.2-rc.1_@deepseek-ai+cordis@4.0.2_@deepseek-ai+dsh-scope@0._a751bf1897b40ba5dd12e8eef9379f87/node_modules/@deepseek-ai/dsh-session/lib/types/types").SessionId'.
+        Property '[BRAND]' is missing in type 'String & { readonly [BRAND]: "SessionId"; }' but required in type '{ readonly [BRAND]: "SessionId"; }'.
+packages/dsh-bot-host/tests/ask.spec.ts(79,9): error TS2416: Property 'read' in type 'StubSessionTool' is not assignable to the same property in base type 'SessionToolService'.
+  Type '(_caller: SessionToolCaller, sessionId: SessionId, _options: SessionToolReadOptions) => Promise<{ sessionId: SessionId; messages: SessionToolMessageRow[]; }>' is not assignable to type '(caller: SessionToolCaller, sessionId: SessionId, options: SessionToolReadOptions) => Promise<SessionToolReadResult>'.
+    Types of parameters 'sessionId' and 'sessionId' are incompatible.
+      Type 'import("/Users/nothing/workspace/dsh/plugin/vibee/plugin/node_modules/.pnpm/@deepseek-ai+dsh-session@0.1.0-rc.7_1dcde9bfc9fa0140c66648fbcb67b346/node_modules/@deepseek-ai/dsh-session/lib/types/types").SessionId' is not assignable to type 'import("/Users/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin/node_modules/.pnpm/@deepseek-ai+dsh-session@0.1.2-rc.1_@deepseek-ai+cordis@4.0.2_@deepseek-ai+dsh-scope@0._a751bf1897b40ba5dd12e8eef9379f87/node_modules/@deepseek-ai/dsh-session/lib/types/types").SessionId'.
+        Property '[BRAND]' is missing in type 'String & { readonly [BRAND]: "SessionId"; }' but required in type '{ readonly [BRAND]: "SessionId"; }'.
+packages/dsh-bot-host/tests/ask.spec.ts(93,9): error TS2416: Property 'rename' in type 'StubSessionTool' is not assignable to the same property in base type 'SessionToolService'.
+  Type '(_caller: SessionToolCaller, sessionId: SessionId) => Promise<{ sessionId: SessionId; }>' is not assignable to type '(caller: SessionToolCaller, sessionId: SessionId, options: SessionToolRenameOptions) => Promise<SessionToolRenameResult>'.
+    Types of parameters 'sessionId' and 'sessionId' are incompatible.
+      Type 'import("/Users/nothing/workspace/dsh/plugin/vibee/plugin/node_modules/.pnpm/@deepseek-ai+dsh-session@0.1.0-rc.7_1dcde9bfc9fa0140c66648fbcb67b346/node_modules/@deepseek-ai/dsh-session/lib/types/types").SessionId' is not assignable to type 'import("/Users/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin/node_modules/.pnpm/@deepseek-ai+dsh-session@0.1.2-rc.1_@deepseek-ai+cordis@4.0.2_@deepseek-ai+dsh-scope@0._a751bf1897b40ba5dd12e8eef9379f87/node_modules/@deepseek-ai/dsh-session/lib/types/types").SessionId'.
+        Property '[BRAND]' is missing in type 'String & { readonly [BRAND]: "SessionId"; }' but required in type '{ readonly [BRAND]: "SessionId"; }'.
+packages/dsh-bot-host/tests/ask.spec.ts(485,11): error TS2322: Type 'import("/Users/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin/node_modules/.pnpm/@deepseek-ai+dsh-session@0.1.2-rc.1_@deepseek-ai+cordis@4.0.2_@deepseek-ai+dsh-scope@0._a751bf1897b40ba5dd12e8eef9379f87/node_modules/@deepseek-ai/dsh-session/lib/types/types").SessionId' is not assignable to type 'import("/Users/nothing/workspace/dsh/plugin/vibee/plugin/node_modules/.pnpm/@deepseek-ai+dsh-session@0.1.0-rc.7_1dcde9bfc9fa0140c66648fbcb67b346/node_modules/@deepseek-ai/dsh-session/lib/types/types").SessionId'.
+  Property '[BRAND]' is missing in type 'String & { readonly [BRAND]: "SessionId"; }' but required in type '{ readonly [BRAND]: "SessionId"; }'.
+packages/dsh-bot-host/tests/ask.spec.ts(492,11): error TS2322: Type 'import("/Users/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin/node_modules/.pnpm/@deepseek-ai+dsh-session@0.1.2-rc.1_@deepseek-ai+cordis@4.0.2_@deepseek-ai+dsh-scope@0._a751bf1897b40ba5dd12e8eef9379f87/node_modules/@deepseek-ai/dsh-session/lib/types/types").SessionId' is not assignable to type 'import("/Users/nothing/workspace/dsh/plugin/vibee/plugin/node_modules/.pnpm/@deepseek-ai+dsh-session@0.1.0-rc.7_1dcde9bfc9fa0140c66648fbcb67b346/node_modules/@deepseek-ai/dsh-session/lib/types/types").SessionId'.
+  Property '[BRAND]' is missing in type 'String & { readonly [BRAND]: "SessionId"; }' but required in type '{ readonly [BRAND]: "SessionId"; }'.
+packages/dsh-bot-host/tests/group-engine.spec.ts(36,7): error TS2739: Type '{ id: string; name: string; avatar: { color: string; }; presetId: string; createdAt: number; persona: string; protected: true; }' is missing the following properties from type 'BotView': pinned, section, hidden, order, muted
+packages/dsh-bot-host/tests/group-engine.spec.ts(46,7): error TS2739: Type '{ id: string; name: string; avatar: { color: string; emoji: string; }; presetId: string; createdAt: number; persona: string; protected: false; }' is missing the following properties from type 'BotView': pinned, section, hidden, order, muted
+packages/dsh-bot-host/tests/group-engine.spec.ts(67,9): error TS2416: Property 'create' in type 'StubSessionTool' is not assignable to the same property in base type 'SessionToolService'.
+  Type '() => Promise<{ sessionId: SessionId; }>' is not assignable to type '(caller: SessionToolCaller, options: SessionToolCreateOptions) => Promise<SessionToolCreateResult>'.
+    Type 'Promise<{ sessionId: SessionId; }>' is not assignable to type 'Promise<SessionToolCreateResult>'.
+      Type '{ sessionId: SessionId; }' is not assignable to type 'SessionToolCreateResult'.
+        Types of property 'sessionId' are incompatible.
+          Type 'import("/Users/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin/node_modules/.pnpm/@deepseek-ai+dsh-session@0.1.2-rc.1_@deepseek-ai+cordis@4.0.2_@deepseek-ai+dsh-scope@0._a751bf1897b40ba5dd12e8eef9379f87/node_modules/@deepseek-ai/dsh-session/lib/types/types").SessionId' is not assignable to type 'import("/Users/nothing/workspace/dsh/plugin/vibee/plugin/node_modules/.pnpm/@deepseek-ai+dsh-session@0.1.0-rc.7_1dcde9bfc9fa0140c66648fbcb67b346/node_modules/@deepseek-ai/dsh-session/lib/types/types").SessionId'.
+            Property '[BRAND]' is missing in type 'String & { readonly [BRAND]: "SessionId"; }' but required in type '{ readonly [BRAND]: "SessionId"; }'.
+packages/dsh-bot-host/tests/group-engine.spec.ts(71,9): error TS2416: Property 'write' in type 'StubSessionTool' is not assignable to the same property in base type 'SessionToolService'.
+  Type '(_caller: SessionToolCaller, sessionId: SessionId, content: string) => Promise<{ sessionId: SessionId; }>' is not assignable to type '(caller: SessionToolCaller, sessionId: SessionId, content: string) => Promise<SessionToolWriteResult>'.
+    Types of parameters 'sessionId' and 'sessionId' are incompatible.
+      Type 'import("/Users/nothing/workspace/dsh/plugin/vibee/plugin/node_modules/.pnpm/@deepseek-ai+dsh-session@0.1.0-rc.7_1dcde9bfc9fa0140c66648fbcb67b346/node_modules/@deepseek-ai/dsh-session/lib/types/types").SessionId' is not assignable to type 'import("/Users/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin/node_modules/.pnpm/@deepseek-ai+dsh-session@0.1.2-rc.1_@deepseek-ai+cordis@4.0.2_@deepseek-ai+dsh-scope@0._a751bf1897b40ba5dd12e8eef9379f87/node_modules/@deepseek-ai/dsh-session/lib/types/types").SessionId'.
+        Property '[BRAND]' is missing in type 'String & { readonly [BRAND]: "SessionId"; }' but required in type '{ readonly [BRAND]: "SessionId"; }'.
+packages/dsh-bot-host/tests/group-engine.spec.ts(76,9): error TS2416: Property 'wait' in type 'StubSessionTool' is not assignable to the same property in base type 'SessionToolService'.
+  Type '(_caller: SessionToolCaller, sessionId: SessionId) => Promise<{ sessionId: SessionId; status: "idle" | "failed" | "timeout"; }>' is not assignable to type '(caller: SessionToolCaller, sessionId: SessionId, options: SessionToolWaitOptions) => Promise<SessionToolWaitResult>'.
+    Types of parameters 'sessionId' and 'sessionId' are incompatible.
+      Type 'import("/Users/nothing/workspace/dsh/plugin/vibee/plugin/node_modules/.pnpm/@deepseek-ai+dsh-session@0.1.0-rc.7_1dcde9bfc9fa0140c66648fbcb67b346/node_modules/@deepseek-ai/dsh-session/lib/types/types").SessionId' is not assignable to type 'import("/Users/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin/node_modules/.pnpm/@deepseek-ai+dsh-session@0.1.2-rc.1_@deepseek-ai+cordis@4.0.2_@deepseek-ai+dsh-scope@0._a751bf1897b40ba5dd12e8eef9379f87/node_modules/@deepseek-ai/dsh-session/lib/types/types").SessionId'.
+        Property '[BRAND]' is missing in type 'String & { readonly [BRAND]: "SessionId"; }' but required in type '{ readonly [BRAND]: "SessionId"; }'.
+packages/dsh-bot-host/tests/group-engine.spec.ts(83,9): error TS2416: Property 'read' in type 'StubSessionTool' is not assignable to the same property in base type 'SessionToolService'.
+  Type '(_caller: SessionToolCaller, sessionId: SessionId) => Promise<{ sessionId: SessionId; messages: readonly SessionToolMessageRow[]; }>' is not assignable to type '(caller: SessionToolCaller, sessionId: SessionId, options: SessionToolReadOptions) => Promise<SessionToolReadResult>'.
+    Types of parameters 'sessionId' and 'sessionId' are incompatible.
+      Type 'import("/Users/nothing/workspace/dsh/plugin/vibee/plugin/node_modules/.pnpm/@deepseek-ai+dsh-session@0.1.0-rc.7_1dcde9bfc9fa0140c66648fbcb67b346/node_modules/@deepseek-ai/dsh-session/lib/types/types").SessionId' is not assignable to type 'import("/Users/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin/node_modules/.pnpm/@deepseek-ai+dsh-session@0.1.2-rc.1_@deepseek-ai+cordis@4.0.2_@deepseek-ai+dsh-scope@0._a751bf1897b40ba5dd12e8eef9379f87/node_modules/@deepseek-ai/dsh-session/lib/types/types").SessionId'.
+        Property '[BRAND]' is missing in type 'String & { readonly [BRAND]: "SessionId"; }' but required in type '{ readonly [BRAND]: "SessionId"; }'.
+packages/dsh-bot-host/tests/group-engine.spec.ts(91,9): error TS2416: Property 'rename' in type 'StubSessionTool' is not assignable to the same property in base type 'SessionToolService'.
+  Type '(_caller: SessionToolCaller, sessionId: SessionId) => Promise<{ sessionId: SessionId; }>' is not assignable to type '(caller: SessionToolCaller, sessionId: SessionId, options: SessionToolRenameOptions) => Promise<SessionToolRenameResult>'.
+    Types of parameters 'sessionId' and 'sessionId' are incompatible.
+      Type 'import("/Users/nothing/workspace/dsh/plugin/vibee/plugin/node_modules/.pnpm/@deepseek-ai+dsh-session@0.1.0-rc.7_1dcde9bfc9fa0140c66648fbcb67b346/node_modules/@deepseek-ai/dsh-session/lib/types/types").SessionId' is not assignable to type 'import("/Users/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin/node_modules/.pnpm/@deepseek-ai+dsh-session@0.1.2-rc.1_@deepseek-ai+cordis@4.0.2_@deepseek-ai+dsh-scope@0._a751bf1897b40ba5dd12e8eef9379f87/node_modules/@deepseek-ai/dsh-session/lib/types/types").SessionId'.
+        Property '[BRAND]' is missing in type 'String & { readonly [BRAND]: "SessionId"; }' but required in type '{ readonly [BRAND]: "SessionId"; }'.
+packages/dsh-bot-host/tests/group-engine.spec.ts(157,7): error TS2741: Property 'updateLayout' is missing in type '{ listBots(): Promise<{ bots: BotView[]; }>; getBot(id: string): Promise<BotView>; createBot(): Promise<never>; updateBot(): Promise<never>; deleteBot(): Promise<...>; rewritePresetPersona(): Promise<...>; declineTopic(): Promise<...>; }' but required in type 'BotsRuntime'.
+packages/dsh-bot-host/tests/group-engine.spec.ts(313,7): error TS2322: Type 'StubSessionTool' is not assignable to type 'SessionToolService'.
+  The types returned by 'create(...)' are incompatible between these types.
+    Type 'Promise<{ sessionId: SessionId; }>' is not assignable to type 'Promise<SessionToolCreateResult>'.
+      Type '{ sessionId: SessionId; }' is not assignable to type 'SessionToolCreateResult'.
+        Types of property 'sessionId' are incompatible.
+          Type 'import("/Users/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin/node_modules/.pnpm/@deepseek-ai+dsh-session@0.1.2-rc.1_@deepseek-ai+cordis@4.0.2_@deepseek-ai+dsh-scope@0._a751bf1897b40ba5dd12e8eef9379f87/node_modules/@deepseek-ai/dsh-session/lib/types/types").SessionId' is not assignable to type 'import("/Users/nothing/workspace/dsh/plugin/vibee/plugin/node_modules/.pnpm/@deepseek-ai+dsh-session@0.1.0-rc.7_1dcde9bfc9fa0140c66648fbcb67b346/node_modules/@deepseek-ai/dsh-session/lib/types/types").SessionId'.
+            Property '[BRAND]' is missing in type 'String & { readonly [BRAND]: "SessionId"; }' but required in type '{ readonly [BRAND]: "SessionId"; }'.
+packages/dsh-bot-host/tests/group-engine.spec.ts(346,7): error TS2322: Type 'StubSessionTool' is not assignable to type 'SessionToolService'.
+  The types returned by 'create(...)' are incompatible between these types.
+    Type 'Promise<{ sessionId: SessionId; }>' is not assignable to type 'Promise<SessionToolCreateResult>'.
+      Type '{ sessionId: SessionId; }' is not assignable to type 'SessionToolCreateResult'.
+        Types of property 'sessionId' are incompatible.
+          Type 'import("/Users/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin/node_modules/.pnpm/@deepseek-ai+dsh-session@0.1.2-rc.1_@deepseek-ai+cordis@4.0.2_@deepseek-ai+dsh-scope@0._a751bf1897b40ba5dd12e8eef9379f87/node_modules/@deepseek-ai/dsh-session/lib/types/types").SessionId' is not assignable to type 'import("/Users/nothing/workspace/dsh/plugin/vibee/plugin/node_modules/.pnpm/@deepseek-ai+dsh-session@0.1.0-rc.7_1dcde9bfc9fa0140c66648fbcb67b346/node_modules/@deepseek-ai/dsh-session/lib/types/types").SessionId'.
+            Property '[BRAND]' is missing in type 'String & { readonly [BRAND]: "SessionId"; }' but required in type '{ readonly [BRAND]: "SessionId"; }'.
+packages/dsh-bot-host/tests/group-engine.spec.ts(375,7): error TS2322: Type 'StubSessionTool' is not assignable to type 'SessionToolService'.
+  The types returned by 'create(...)' are incompatible between these types.
+    Type 'Promise<{ sessionId: SessionId; }>' is not assignable to type 'Promise<SessionToolCreateResult>'.
+      Type '{ sessionId: SessionId; }' is not assignable to type 'SessionToolCreateResult'.
+        Types of property 'sessionId' are incompatible.
+          Type 'import("/Users/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin/node_modules/.pnpm/@deepseek-ai+dsh-session@0.1.2-rc.1_@deepseek-ai+cordis@4.0.2_@deepseek-ai+dsh-scope@0._a751bf1897b40ba5dd12e8eef9379f87/node_modules/@deepseek-ai/dsh-session/lib/types/types").SessionId' is not assignable to type 'import("/Users/nothing/workspace/dsh/plugin/vibee/plugin/node_modules/.pnpm/@deepseek-ai+dsh-session@0.1.0-rc.7_1dcde9bfc9fa0140c66648fbcb67b346/node_modules/@deepseek-ai/dsh-session/lib/types/types").SessionId'.
+            Property '[BRAND]' is missing in type 'String & { readonly [BRAND]: "SessionId"; }' but required in type '{ readonly [BRAND]: "SessionId"; }'.
+packages/dsh-bot-host/tests/group-engine.spec.ts(396,7): error TS2322: Type 'StubSessionTool' is not assignable to type 'SessionToolService'.
+  The types returned by 'create(...)' are incompatible between these types.
+    Type 'Promise<{ sessionId: SessionId; }>' is not assignable to type 'Promise<SessionToolCreateResult>'.
+      Type '{ sessionId: SessionId; }' is not assignable to type 'SessionToolCreateResult'.
+        Types of property 'sessionId' are incompatible.
+          Type 'import("/Users/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin/node_modules/.pnpm/@deepseek-ai+dsh-session@0.1.2-rc.1_@deepseek-ai+cordis@4.0.2_@deepseek-ai+dsh-scope@0._a751bf1897b40ba5dd12e8eef9379f87/node_modules/@deepseek-ai/dsh-session/lib/types/types").SessionId' is not assignable to type 'import("/Users/nothing/workspace/dsh/plugin/vibee/plugin/node_modules/.pnpm/@deepseek-ai+dsh-session@0.1.0-rc.7_1dcde9bfc9fa0140c66648fbcb67b346/node_modules/@deepseek-ai/dsh-session/lib/types/types").SessionId'.
+            Property '[BRAND]' is missing in type 'String & { readonly [BRAND]: "SessionId"; }' but required in type '{ readonly [BRAND]: "SessionId"; }'.
+packages/dsh-bot-host/tests/group-engine.spec.ts(423,7): error TS2322: Type 'StubSessionTool' is not assignable to type 'SessionToolService'.
+  The types returned by 'create(...)' are incompatible between these types.
+    Type 'Promise<{ sessionId: SessionId; }>' is not assignable to type 'Promise<SessionToolCreateResult>'.
+      Type '{ sessionId: SessionId; }' is not assignable to type 'SessionToolCreateResult'.
+        Types of property 'sessionId' are incompatible.
+          Type 'import("/Users/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin/node_modules/.pnpm/@deepseek-ai+dsh-session@0.1.2-rc.1_@deepseek-ai+cordis@4.0.2_@deepseek-ai+dsh-scope@0._a751bf1897b40ba5dd12e8eef9379f87/node_modules/@deepseek-ai/dsh-session/lib/types/types").SessionId' is not assignable to type 'import("/Users/nothing/workspace/dsh/plugin/vibee/plugin/node_modules/.pnpm/@deepseek-ai+dsh-session@0.1.0-rc.7_1dcde9bfc9fa0140c66648fbcb67b346/node_modules/@deepseek-ai/dsh-session/lib/types/types").SessionId'.
+            Property '[BRAND]' is missing in type 'String & { readonly [BRAND]: "SessionId"; }' but required in type '{ readonly [BRAND]: "SessionId"; }'.
+packages/dsh-bot-host/tests/group-engine.spec.ts(446,7): error TS2322: Type 'StubSessionTool' is not assignable to type 'SessionToolService'.
+  The types returned by 'create(...)' are incompatible between these types.
+    Type 'Promise<{ sessionId: SessionId; }>' is not assignable to type 'Promise<SessionToolCreateResult>'.
+      Type '{ sessionId: SessionId; }' is not assignable to type 'SessionToolCreateResult'.
+        Types of property 'sessionId' are incompatible.
+          Type 'import("/Users/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin/node_modules/.pnpm/@deepseek-ai+dsh-session@0.1.2-rc.1_@deepseek-ai+cordis@4.0.2_@deepseek-ai+dsh-scope@0._a751bf1897b40ba5dd12e8eef9379f87/node_modules/@deepseek-ai/dsh-session/lib/types/types").SessionId' is not assignable to type 'import("/Users/nothing/workspace/dsh/plugin/vibee/plugin/node_modules/.pnpm/@deepseek-ai+dsh-session@0.1.0-rc.7_1dcde9bfc9fa0140c66648fbcb67b346/node_modules/@deepseek-ai/dsh-session/lib/types/types").SessionId'.
+            Property '[BRAND]' is missing in type 'String & { readonly [BRAND]: "SessionId"; }' but required in type '{ readonly [BRAND]: "SessionId"; }'.
+packages/dsh-bot-host/tests/group-engine.spec.ts(474,25): error TS2345: Argument of type '{ sessionTool: StubSessionTool; platform: StubPlatform; bots: BotsRuntime; groups: GroupsRuntime; config: DshBotRuntimeConfig; tracker: RoundTracker; createCwd: () => string; }' is not assignable to parameter of type 'GroupEngineDeps'.
+  The types returned by 'sessionTool.create(...)' are incompatible between these types.
+    Type 'Promise<{ sessionId: SessionId; }>' is not assignable to type 'Promise<SessionToolCreateResult>'.
+      Type '{ sessionId: SessionId; }' is not assignable to type 'SessionToolCreateResult'.
+        Types of property 'sessionId' are incompatible.
+          Type 'import("/Users/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin/node_modules/.pnpm/@deepseek-ai+dsh-session@0.1.2-rc.1_@deepseek-ai+cordis@4.0.2_@deepseek-ai+dsh-scope@0._a751bf1897b40ba5dd12e8eef9379f87/node_modules/@deepseek-ai/dsh-session/lib/types/types").SessionId' is not assignable to type 'import("/Users/nothing/workspace/dsh/plugin/vibee/plugin/node_modules/.pnpm/@deepseek-ai+dsh-session@0.1.0-rc.7_1dcde9bfc9fa0140c66648fbcb67b346/node_modules/@deepseek-ai/dsh-session/lib/types/types").SessionId'.
+            Property '[BRAND]' is missing in type 'String & { readonly [BRAND]: "SessionId"; }' but required in type '{ readonly [BRAND]: "SessionId"; }'.
+packages/dsh-bot-host/tests/group-engine.spec.ts(477,25): error TS2345: Argument of type '{ sessionTool: StubSessionTool; platform: StubPlatform; bots: BotsRuntime; groups: GroupsRuntime; config: DshBotRuntimeConfig; tracker: RoundTracker; createCwd: () => string; }' is not assignable to parameter of type 'GroupEngineDeps'.
+  The types returned by 'sessionTool.create(...)' are incompatible between these types.
+    Type 'Promise<{ sessionId: SessionId; }>' is not assignable to type 'Promise<SessionToolCreateResult>'.
+      Type '{ sessionId: SessionId; }' is not assignable to type 'SessionToolCreateResult'.
+        Types of property 'sessionId' are incompatible.
+          Type 'import("/Users/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin/node_modules/.pnpm/@deepseek-ai+dsh-session@0.1.2-rc.1_@deepseek-ai+cordis@4.0.2_@deepseek-ai+dsh-scope@0._a751bf1897b40ba5dd12e8eef9379f87/node_modules/@deepseek-ai/dsh-session/lib/types/types").SessionId' is not assignable to type 'import("/Users/nothing/workspace/dsh/plugin/vibee/plugin/node_modules/.pnpm/@deepseek-ai+dsh-session@0.1.0-rc.7_1dcde9bfc9fa0140c66648fbcb67b346/node_modules/@deepseek-ai/dsh-session/lib/types/types").SessionId'.
+            Property '[BRAND]' is missing in type 'String & { readonly [BRAND]: "SessionId"; }' but required in type '{ readonly [BRAND]: "SessionId"; }'.
+packages/dsh-bot-host/tests/reconcile.spec.ts(45,9): error TS2416: Property 'create' in type 'StubSessionTool' is not assignable to the same property in base type 'SessionToolService'.
+  Type '() => Promise<{ sessionId: SessionId; }>' is not assignable to type '(caller: SessionToolCaller, options: SessionToolCreateOptions) => Promise<SessionToolCreateResult>'.
+    Type 'Promise<{ sessionId: SessionId; }>' is not assignable to type 'Promise<SessionToolCreateResult>'.
+      Type '{ sessionId: SessionId; }' is not assignable to type 'SessionToolCreateResult'.
+        Types of property 'sessionId' are incompatible.
+          Type 'import("/Users/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin/node_modules/.pnpm/@deepseek-ai+dsh-session@0.1.2-rc.1_@deepseek-ai+cordis@4.0.2_@deepseek-ai+dsh-scope@0._a751bf1897b40ba5dd12e8eef9379f87/node_modules/@deepseek-ai/dsh-session/lib/types/types").SessionId' is not assignable to type 'import("/Users/nothing/workspace/dsh/plugin/vibee/plugin/node_modules/.pnpm/@deepseek-ai+dsh-session@0.1.0-rc.7_1dcde9bfc9fa0140c66648fbcb67b346/node_modules/@deepseek-ai/dsh-session/lib/types/types").SessionId'.
+            Property '[BRAND]' is missing in type 'String & { readonly [BRAND]: "SessionId"; }' but required in type '{ readonly [BRAND]: "SessionId"; }'.
+packages/dsh-bot-host/tests/reconcile.spec.ts(48,9): error TS2416: Property 'write' in type 'StubSessionTool' is not assignable to the same property in base type 'SessionToolService'.
+  Type '(_caller: SessionToolCaller, sessionId: SessionId) => Promise<{ sessionId: SessionId; }>' is not assignable to type '(caller: SessionToolCaller, sessionId: SessionId, content: string) => Promise<SessionToolWriteResult>'.
+    Types of parameters 'sessionId' and 'sessionId' are incompatible.
+      Type 'import("/Users/nothing/workspace/dsh/plugin/vibee/plugin/node_modules/.pnpm/@deepseek-ai+dsh-session@0.1.0-rc.7_1dcde9bfc9fa0140c66648fbcb67b346/node_modules/@deepseek-ai/dsh-session/lib/types/types").SessionId' is not assignable to type 'import("/Users/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin/node_modules/.pnpm/@deepseek-ai+dsh-session@0.1.2-rc.1_@deepseek-ai+cordis@4.0.2_@deepseek-ai+dsh-scope@0._a751bf1897b40ba5dd12e8eef9379f87/node_modules/@deepseek-ai/dsh-session/lib/types/types").SessionId'.
+        Property '[BRAND]' is missing in type 'String & { readonly [BRAND]: "SessionId"; }' but required in type '{ readonly [BRAND]: "SessionId"; }'.
+packages/dsh-bot-host/tests/reconcile.spec.ts(51,9): error TS2416: Property 'wait' in type 'StubSessionTool' is not assignable to the same property in base type 'SessionToolService'.
+  Type '(_caller: SessionToolCaller, sessionId: SessionId) => Promise<{ sessionId: SessionId; status: "idle"; }>' is not assignable to type '(caller: SessionToolCaller, sessionId: SessionId, options: SessionToolWaitOptions) => Promise<SessionToolWaitResult>'.
+    Types of parameters 'sessionId' and 'sessionId' are incompatible.
+      Type 'import("/Users/nothing/workspace/dsh/plugin/vibee/plugin/node_modules/.pnpm/@deepseek-ai+dsh-session@0.1.0-rc.7_1dcde9bfc9fa0140c66648fbcb67b346/node_modules/@deepseek-ai/dsh-session/lib/types/types").SessionId' is not assignable to type 'import("/Users/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin/node_modules/.pnpm/@deepseek-ai+dsh-session@0.1.2-rc.1_@deepseek-ai+cordis@4.0.2_@deepseek-ai+dsh-scope@0._a751bf1897b40ba5dd12e8eef9379f87/node_modules/@deepseek-ai/dsh-session/lib/types/types").SessionId'.
+        Property '[BRAND]' is missing in type 'String & { readonly [BRAND]: "SessionId"; }' but required in type '{ readonly [BRAND]: "SessionId"; }'.
+packages/dsh-bot-host/tests/reconcile.spec.ts(54,9): error TS2416: Property 'read' in type 'StubSessionTool' is not assignable to the same property in base type 'SessionToolService'.
+  Type '(_caller: SessionToolCaller, sessionId: SessionId) => Promise<{ sessionId: SessionId; messages: SessionToolMessageRow[]; }>' is not assignable to type '(caller: SessionToolCaller, sessionId: SessionId, options: SessionToolReadOptions) => Promise<SessionToolReadResult>'.
+    Types of parameters 'sessionId' and 'sessionId' are incompatible.
+      Type 'import("/Users/nothing/workspace/dsh/plugin/vibee/plugin/node_modules/.pnpm/@deepseek-ai+dsh-session@0.1.0-rc.7_1dcde9bfc9fa0140c66648fbcb67b346/node_modules/@deepseek-ai/dsh-session/lib/types/types").SessionId' is not assignable to type 'import("/Users/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin/node_modules/.pnpm/@deepseek-ai+dsh-session@0.1.2-rc.1_@deepseek-ai+cordis@4.0.2_@deepseek-ai+dsh-scope@0._a751bf1897b40ba5dd12e8eef9379f87/node_modules/@deepseek-ai/dsh-session/lib/types/types").SessionId'.
+        Property '[BRAND]' is missing in type 'String & { readonly [BRAND]: "SessionId"; }' but required in type '{ readonly [BRAND]: "SessionId"; }'.
+packages/dsh-bot-host/tests/reconcile.spec.ts(60,9): error TS2416: Property 'rename' in type 'StubSessionTool' is not assignable to the same property in base type 'SessionToolService'.
+  Type '(_caller: SessionToolCaller, sessionId: SessionId) => Promise<{ sessionId: SessionId; }>' is not assignable to type '(caller: SessionToolCaller, sessionId: SessionId, options: SessionToolRenameOptions) => Promise<SessionToolRenameResult>'.
+    Types of parameters 'sessionId' and 'sessionId' are incompatible.
+      Type 'import("/Users/nothing/workspace/dsh/plugin/vibee/plugin/node_modules/.pnpm/@deepseek-ai+dsh-session@0.1.0-rc.7_1dcde9bfc9fa0140c66648fbcb67b346/node_modules/@deepseek-ai/dsh-session/lib/types/types").SessionId' is not assignable to type 'import("/Users/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin/node_modules/.pnpm/@deepseek-ai+dsh-session@0.1.2-rc.1_@deepseek-ai+cordis@4.0.2_@deepseek-ai+dsh-scope@0._a751bf1897b40ba5dd12e8eef9379f87/node_modules/@deepseek-ai/dsh-session/lib/types/types").SessionId'.
+        Property '[BRAND]' is missing in type 'String & { readonly [BRAND]: "SessionId"; }' but required in type '{ readonly [BRAND]: "SessionId"; }'.
+packages/dsh-bot-host/tests/routes.spec.ts(88,5): error TS2322: Type 'Mock<() => Promise<{ bots: { id: string; name: string; avatar: { color: string; }; presetId: string; createdAt: number; persona: string; protected: boolean; }[]; }>>' is not assignable to type '() => Promise<ListBotsResult>'.
+  Type 'Promise<{ bots: { id: string; name: string; avatar: { color: string; }; presetId: string; createdAt: number; persona: string; protected: boolean; }[]; }>' is not assignable to type 'Promise<ListBotsResult>'.
+    Type '{ bots: { id: string; name: string; avatar: { color: string; }; presetId: string; createdAt: number; persona: string; protected: boolean; }[]; }' is not assignable to type 'ListBotsResult'.
+      Types of property 'bots' are incompatible.
+        Type '{ id: string; name: string; avatar: { color: string; }; presetId: string; createdAt: number; persona: string; protected: boolean; }[]' is not assignable to type 'readonly BotView[]'.
+          Type '{ id: string; name: string; avatar: { color: string; }; presetId: string; createdAt: number; persona: string; protected: boolean; }' is missing the following properties from type 'BotView': pinned, section, hidden, order, muted
+packages/dsh-bot-host/tests/routes.spec.ts(89,5): error TS2322: Type 'Mock<() => Promise<{ id: string; name: string; avatar: { color: string; }; presetId: string; createdAt: number; persona: string; protected: boolean; }>>' is not assignable to type '(input: CreateBotInput) => Promise<BotView>'.
+  Type 'Promise<{ id: string; name: string; avatar: { color: string; }; presetId: string; createdAt: number; persona: string; protected: boolean; }>' is not assignable to type 'Promise<BotView>'.
+    Type '{ id: string; name: string; avatar: { color: string; }; presetId: string; createdAt: number; persona: string; protected: boolean; }' is missing the following properties from type 'BotView': pinned, section, hidden, order, muted
+packages/dsh-bot-host/tests/routes.spec.ts(90,5): error TS2322: Type 'Mock<() => Promise<{ id: string; name: string; avatar: { color: string; }; presetId: string; createdAt: number; persona: string; protected: boolean; }>>' is not assignable to type '(input: UpdateBotInput) => Promise<BotView>'.
+  Type 'Promise<{ id: string; name: string; avatar: { color: string; }; presetId: string; createdAt: number; persona: string; protected: boolean; }>' is not assignable to type 'Promise<BotView>'.
+    Type '{ id: string; name: string; avatar: { color: string; }; presetId: string; createdAt: number; persona: string; protected: boolean; }' is missing the following properties from type 'BotView': pinned, section, hidden, order, muted
+packages/dsh-bot-host/tests/routes.spec.ts(110,5): error TS2322: Type 'Mock<() => Promise<{ id: string; name: string; memberIds: string[]; createdAt: number; }>>' is not assignable to type '(input: CreateGroupInput) => Promise<GroupView>'.
+  Type 'Promise<{ id: string; name: string; memberIds: string[]; createdAt: number; }>' is not assignable to type 'Promise<GroupView>'.
+    Type '{ id: string; name: string; memberIds: string[]; createdAt: number; }' is missing the following properties from type 'GroupView': section, order
+packages/dsh-bot-host/tests/routes.spec.ts(116,5): error TS2322: Type 'Mock<() => Promise<{ id: string; name: string; memberIds: string[]; createdAt: number; }>>' is not assignable to type '(input: UpdateGroupInput) => Promise<GroupView>'.
+  Type 'Promise<{ id: string; name: string; memberIds: string[]; createdAt: number; }>' is not assignable to type 'Promise<GroupView>'.
+    Type '{ id: string; name: string; memberIds: string[]; createdAt: number; }' is missing the following properties from type 'GroupView': section, order
+packages/dsh-bot-host/tests/workbench-sessions.spec.ts(50,9): error TS2416: Property 'create' in type 'StubSessionTool' is not assignable to the same property in base type 'SessionToolService'.
+  Type '(caller: SessionToolCaller, options: SessionToolCreateOptions) => Promise<{ sessionId: SessionId; }>' is not assignable to type '(caller: SessionToolCaller, options: SessionToolCreateOptions) => Promise<SessionToolCreateResult>'.
+    Type 'Promise<{ sessionId: SessionId; }>' is not assignable to type 'Promise<SessionToolCreateResult>'.
+      Type '{ sessionId: SessionId; }' is not assignable to type 'SessionToolCreateResult'.
+        Types of property 'sessionId' are incompatible.
+          Type 'import("/Users/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin/node_modules/.pnpm/@deepseek-ai+dsh-session@0.1.2-rc.1_@deepseek-ai+cordis@4.0.2_@deepseek-ai+dsh-scope@0._a751bf1897b40ba5dd12e8eef9379f87/node_modules/@deepseek-ai/dsh-session/lib/types/types").SessionId' is not assignable to type 'import("/Users/nothing/workspace/dsh/plugin/vibee/plugin/node_modules/.pnpm/@deepseek-ai+dsh-session@0.1.0-rc.7_1dcde9bfc9fa0140c66648fbcb67b346/node_modules/@deepseek-ai/dsh-session/lib/types/types").SessionId'.
+            Property '[BRAND]' is missing in type 'String & { readonly [BRAND]: "SessionId"; }' but required in type '{ readonly [BRAND]: "SessionId"; }'.
+packages/dsh-bot-host/tests/workbench-sessions.spec.ts(55,9): error TS2416: Property 'write' in type 'StubSessionTool' is not assignable to the same property in base type 'SessionToolService'.
+  Type '(_caller: SessionToolCaller, sessionId: SessionId, content: string) => Promise<{ sessionId: SessionId; }>' is not assignable to type '(caller: SessionToolCaller, sessionId: SessionId, content: string) => Promise<SessionToolWriteResult>'.
+    Types of parameters 'sessionId' and 'sessionId' are incompatible.
+      Type 'import("/Users/nothing/workspace/dsh/plugin/vibee/plugin/node_modules/.pnpm/@deepseek-ai+dsh-session@0.1.0-rc.7_1dcde9bfc9fa0140c66648fbcb67b346/node_modules/@deepseek-ai/dsh-session/lib/types/types").SessionId' is not assignable to type 'import("/Users/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin/node_modules/.pnpm/@deepseek-ai+dsh-session@0.1.2-rc.1_@deepseek-ai+cordis@4.0.2_@deepseek-ai+dsh-scope@0._a751bf1897b40ba5dd12e8eef9379f87/node_modules/@deepseek-ai/dsh-session/lib/types/types").SessionId'.
+        Property '[BRAND]' is missing in type 'String & { readonly [BRAND]: "SessionId"; }' but required in type '{ readonly [BRAND]: "SessionId"; }'.
+packages/dsh-bot-host/tests/workbench-sessions.spec.ts(60,9): error TS2416: Property 'wait' in type 'StubSessionTool' is not assignable to the same property in base type 'SessionToolService'.
+  Type '(_caller: SessionToolCaller, sessionId: SessionId) => Promise<{ sessionId: SessionId; status: "idle"; }>' is not assignable to type '(caller: SessionToolCaller, sessionId: SessionId, options: SessionToolWaitOptions) => Promise<SessionToolWaitResult>'.
+    Types of parameters 'sessionId' and 'sessionId' are incompatible.
+      Type 'import("/Users/nothing/workspace/dsh/plugin/vibee/plugin/node_modules/.pnpm/@deepseek-ai+dsh-session@0.1.0-rc.7_1dcde9bfc9fa0140c66648fbcb67b346/node_modules/@deepseek-ai/dsh-session/lib/types/types").SessionId' is not assignable to type 'import("/Users/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin/node_modules/.pnpm/@deepseek-ai+dsh-session@0.1.2-rc.1_@deepseek-ai+cordis@4.0.2_@deepseek-ai+dsh-scope@0._a751bf1897b40ba5dd12e8eef9379f87/node_modules/@deepseek-ai/dsh-session/lib/types/types").SessionId'.
+        Property '[BRAND]' is missing in type 'String & { readonly [BRAND]: "SessionId"; }' but required in type '{ readonly [BRAND]: "SessionId"; }'.
+packages/dsh-bot-host/tests/workbench-sessions.spec.ts(64,9): error TS2416: Property 'read' in type 'StubSessionTool' is not assignable to the same property in base type 'SessionToolService'.
+  Type '(_caller: SessionToolCaller, sessionId: SessionId, options: SessionToolReadOptions) => Promise<{ sessionId: SessionId; messages: readonly SessionToolMessageRow[]; }>' is not assignable to type '(caller: SessionToolCaller, sessionId: SessionId, options: SessionToolReadOptions) => Promise<SessionToolReadResult>'.
+    Types of parameters 'sessionId' and 'sessionId' are incompatible.
+      Type 'import("/Users/nothing/workspace/dsh/plugin/vibee/plugin/node_modules/.pnpm/@deepseek-ai+dsh-session@0.1.0-rc.7_1dcde9bfc9fa0140c66648fbcb67b346/node_modules/@deepseek-ai/dsh-session/lib/types/types").SessionId' is not assignable to type 'import("/Users/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin/node_modules/.pnpm/@deepseek-ai+dsh-session@0.1.2-rc.1_@deepseek-ai+cordis@4.0.2_@deepseek-ai+dsh-scope@0._a751bf1897b40ba5dd12e8eef9379f87/node_modules/@deepseek-ai/dsh-session/lib/types/types").SessionId'.
+        Property '[BRAND]' is missing in type 'String & { readonly [BRAND]: "SessionId"; }' but required in type '{ readonly [BRAND]: "SessionId"; }'.
+packages/dsh-bot-host/tests/workbench-sessions.spec.ts(81,9): error TS2416: Property 'rename' in type 'StubSessionTool' is not assignable to the same property in base type 'SessionToolService'.
+  Type '(_caller: SessionToolCaller, sessionId: SessionId) => Promise<{ sessionId: SessionId; }>' is not assignable to type '(caller: SessionToolCaller, sessionId: SessionId, options: SessionToolRenameOptions) => Promise<SessionToolRenameResult>'.
+    Types of parameters 'sessionId' and 'sessionId' are incompatible.
+      Type 'import("/Users/nothing/workspace/dsh/plugin/vibee/plugin/node_modules/.pnpm/@deepseek-ai+dsh-session@0.1.0-rc.7_1dcde9bfc9fa0140c66648fbcb67b346/node_modules/@deepseek-ai/dsh-session/lib/types/types").SessionId' is not assignable to type 'import("/Users/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin/node_modules/.pnpm/@deepseek-ai+dsh-session@0.1.2-rc.1_@deepseek-ai+cordis@4.0.2_@deepseek-ai+dsh-scope@0._a751bf1897b40ba5dd12e8eef9379f87/node_modules/@deepseek-ai/dsh-session/lib/types/types").SessionId'.
+        Property '[BRAND]' is missing in type 'String & { readonly [BRAND]: "SessionId"; }' but required in type '{ readonly [BRAND]: "SessionId"; }'.
+packages/dsh-bot-host/tests/workbench-sessions.spec.ts(372,11): error TS2322: Type 'import("/Users/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin/node_modules/.pnpm/@deepseek-ai+dsh-session@0.1.2-rc.1_@deepseek-ai+cordis@4.0.2_@deepseek-ai+dsh-scope@0._a751bf1897b40ba5dd12e8eef9379f87/node_modules/@deepseek-ai/dsh-session/lib/types/types").SessionId' is not assignable to type 'import("/Users/nothing/workspace/dsh/plugin/vibee/plugin/node_modules/.pnpm/@deepseek-ai+dsh-session@0.1.0-rc.7_1dcde9bfc9fa0140c66648fbcb67b346/node_modules/@deepseek-ai/dsh-session/lib/types/types").SessionId'.
+  Property '[BRAND]' is missing in type 'String & { readonly [BRAND]: "SessionId"; }' but required in type '{ readonly [BRAND]: "SessionId"; }'.
+packages/dsh-bot-host/tests/workbench-sessions.spec.ts(379,11): error TS2322: Type 'import("/Users/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin/node_modules/.pnpm/@deepseek-ai+dsh-session@0.1.2-rc.1_@deepseek-ai+cordis@4.0.2_@deepseek-ai+dsh-scope@0._a751bf1897b40ba5dd12e8eef9379f87/node_modules/@deepseek-ai/dsh-session/lib/types/types").SessionId' is not assignable to type 'import("/Users/nothing/workspace/dsh/plugin/vibee/plugin/node_modules/.pnpm/@deepseek-ai+dsh-session@0.1.0-rc.7_1dcde9bfc9fa0140c66648fbcb67b346/node_modules/@deepseek-ai/dsh-session/lib/types/types").SessionId'.
+  Property '[BRAND]' is missing in type 'String & { readonly [BRAND]: "SessionId"; }' but required in type '{ readonly [BRAND]: "SessionId"; }'.
+packages/dsh-bot-host/tests/workbench-sessions.spec.ts(386,11): error TS2322: Type 'import("/Users/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin/node_modules/.pnpm/@deepseek-ai+dsh-session@0.1.2-rc.1_@deepseek-ai+cordis@4.0.2_@deepseek-ai+dsh-scope@0._a751bf1897b40ba5dd12e8eef9379f87/node_modules/@deepseek-ai/dsh-session/lib/types/types").SessionId' is not assignable to type 'import("/Users/nothing/workspace/dsh/plugin/vibee/plugin/node_modules/.pnpm/@deepseek-ai+dsh-session@0.1.0-rc.7_1dcde9bfc9fa0140c66648fbcb67b346/node_modules/@deepseek-ai/dsh-session/lib/types/types").SessionId'.
+  Property '[BRAND]' is missing in type 'String & { readonly [BRAND]: "SessionId"; }' but required in type '{ readonly [BRAND]: "SessionId"; }'.
+packages/dsh-bot-host/tests/workbench-sessions.spec.ts(393,11): error TS2322: Type 'import("/Users/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin/node_modules/.pnpm/@deepseek-ai+dsh-session@0.1.2-rc.1_@deepseek-ai+cordis@4.0.2_@deepseek-ai+dsh-scope@0._a751bf1897b40ba5dd12e8eef9379f87/node_modules/@deepseek-ai/dsh-session/lib/types/types").SessionId' is not assignable to type 'import("/Users/nothing/workspace/dsh/plugin/vibee/plugin/node_modules/.pnpm/@deepseek-ai+dsh-session@0.1.0-rc.7_1dcde9bfc9fa0140c66648fbcb67b346/node_modules/@deepseek-ai/dsh-session/lib/types/types").SessionId'.
+  Property '[BRAND]' is missing in type 'String & { readonly [BRAND]: "SessionId"; }' but required in type '{ readonly [BRAND]: "SessionId"; }'.
+packages/dsh-bot-host/tests/workbench-sessions.spec.ts(400,11): error TS2322: Type 'import("/Users/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin/node_modules/.pnpm/@deepseek-ai+dsh-session@0.1.2-rc.1_@deepseek-ai+cordis@4.0.2_@deepseek-ai+dsh-scope@0._a751bf1897b40ba5dd12e8eef9379f87/node_modules/@deepseek-ai/dsh-session/lib/types/types").SessionId' is not assignable to type 'import("/Users/nothing/workspace/dsh/plugin/vibee/plugin/node_modules/.pnpm/@deepseek-ai+dsh-session@0.1.0-rc.7_1dcde9bfc9fa0140c66648fbcb67b346/node_modules/@deepseek-ai/dsh-session/lib/types/types").SessionId'.
+  Property '[BRAND]' is missing in type 'String & { readonly [BRAND]: "SessionId"; }' but required in type '{ readonly [BRAND]: "SessionId"; }'.
+packages/tool-dsh-bot/src/index.ts(27,5): error TS2322: Type 'import("/Users/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin/node_modules/.pnpm/@deepseek-ai+dsh-session@0.1.2-rc.1_@deepseek-ai+cordis@4.0.2_@deepseek-ai+dsh-scope@0._a751bf1897b40ba5dd12e8eef9379f87/node_modules/@deepseek-ai/dsh-session/lib/types/types").SessionId' is not assignable to type 'import("/Users/nothing/workspace/dsh/plugin/vibee/plugin/node_modules/.pnpm/@deepseek-ai+dsh-session@0.1.0-rc.7_1dcde9bfc9fa0140c66648fbcb67b346/node_modules/@deepseek-ai/dsh-session/lib/types/types").SessionId'.
+  Property '[BRAND]' is missing in type 'String & { readonly [BRAND]: "SessionId"; }' but required in type '{ readonly [BRAND]: "SessionId"; }'.
+packages/workbench-ui/src/App.tsx(357,11): error TS2322: Type '{ sessionCount: number; sessions?: readonly RosterSession[]; id: string; name: string; avatar: WorkbenchBotAvatar; preview: string; updatedAt: number; working: boolean; ... 10 more ...; routineCount: number; }[]' is not assignable to type 'RosterItem[]'.
+  Type '{ sessionCount: number; sessions?: readonly RosterSession[]; id: string; name: string; avatar: WorkbenchBotAvatar; preview: string; updatedAt: number; working: boolean; ... 10 more ...; routineCount: number; }' is not assignable to type 'RosterItem' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+    Types of property 'section' are incompatible.
+      Type 'string | undefined' is not assignable to type 'string'.
+        Type 'undefined' is not assignable to type 'string'.
+packages/workbench-ui/src/App.tsx(380,11): error TS2322: Type '{ sessionCount: number; sessions?: readonly RosterSession[]; id: string; name: string; avatar: {}; preview: string; updatedAt: number; working: boolean; selected: boolean; protected: false; kind: "group"; section: string | undefined; order: number | undefined; members: { ...; }[]; }[]' is not assignable to type 'RosterItem[]'.
+  Type '{ sessionCount: number; sessions?: readonly RosterSession[]; id: string; name: string; avatar: {}; preview: string; updatedAt: number; working: boolean; selected: boolean; protected: false; kind: "group"; section: string | undefined; order: number | undefined; members: { ...; }[]; }' is not assignable to type 'RosterItem' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+    Types of property 'section' are incompatible.
+      Type 'string | undefined' is not assignable to type 'string'.
+        Type 'undefined' is not assignable to type 'string'.
+packages/workbench-ui/tests/keyboard.spec.tsx(14,21): error TS2379: Argument of type '{ paletteOpen: boolean; onTogglePalette: () => void; onClosePalette: () => void; onRosterIndex: ((index: number) => void) | undefined; onRosterMove: ((delta: -1 | 1) => void) | undefined; onToggleRoster: (() => void) | undefined; }' is not assignable to parameter of type 'GlobalKeyboardOptions' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+  Types of property 'onRosterIndex' are incompatible.
+    Type '((index: number) => void) | undefined' is not assignable to type '(index: number) => void'.
+      Type 'undefined' is not assignable to type '(index: number) => void'.
+[ELIFECYCLE] Command failed with exit code 2.
+TYPECHECK_RC=2
+=== build ===
+$ pnpm -r --filter './packages/*' run build
+Scope: 4 of 8 workspace projects
+packages/ui-dsh-bot build$ tsc -p tsconfig.build.json && tsdown
+packages/workbench-ui build$ tsdown && cp index.html lib/index.html && cp src/styles.css lib/workbench.css
+packages/workbench-ui build: ℹ tsdown v0.22.14 powered by rolldown v1.2.6
+packages/workbench-ui build: ℹ config file: /Users/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin/packages/workbench-ui/tsdown.config.ts 
+packages/workbench-ui build: ℹ entry: src/main.tsx
+packages/workbench-ui build: ℹ target: es2022
+packages/workbench-ui build: ℹ tsconfig: tsconfig.json
+packages/workbench-ui build: ℹ Build start
+packages/workbench-ui build: ℹ Cleaning 4 files
+packages/workbench-ui build: ℹ lib/workbench.js      402.63 kB │ gzip:  96.24 kB
+packages/workbench-ui build: ℹ lib/workbench.js.map  695.37 kB │ gzip: 158.54 kB
+packages/workbench-ui build: ℹ 2 files, total: 1.10 MB
+packages/workbench-ui build: ✔ Build complete in 67ms
+packages/workbench-ui build: Done
+packages/ui-dsh-bot build: ℹ tsdown v0.22.14 powered by rolldown v1.2.6
+packages/ui-dsh-bot build: ℹ config file: /Users/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin/packages/ui-dsh-bot/tsdown.config.ts 
+packages/ui-dsh-bot build: ℹ [ui-dsh-bot] entry: src/index.ts
+packages/ui-dsh-bot build: ℹ [ui-dsh-bot] target: es2024
+packages/ui-dsh-bot build: ℹ [ui-dsh-bot] tsconfig: tsconfig.json
+packages/ui-dsh-bot build: ℹ [ui-dsh-bot/client] entry: src/client/index.ts
+packages/ui-dsh-bot build: ℹ [ui-dsh-bot/client] tsconfig: tsconfig.json
+packages/ui-dsh-bot build:  WARN  `external` is deprecated. Use `deps.neverBundle` instead.
+packages/ui-dsh-bot build:  WARN  `noExternal` is deprecated. Use `deps.alwaysBundle` instead.
+packages/ui-dsh-bot build: ℹ Build start
+packages/ui-dsh-bot build: ℹ [ui-dsh-bot] [ESM] lib/index.js  0.30 kB │ gzip: 0.24 kB
+packages/ui-dsh-bot build: ℹ [ui-dsh-bot] [ESM] 1 files, total: 0.30 kB
+packages/ui-dsh-bot build: ✔ [ui-dsh-bot] Build complete in 10ms
+packages/ui-dsh-bot build: ℹ [ui-dsh-bot/client] [CJS] lib/client.js      21.55 kB │ gzip:  6.72 kB
+packages/ui-dsh-bot build: ℹ [ui-dsh-bot/client] [CJS] lib/client.js.map  35.35 kB │ gzip: 10.65 kB
+packages/ui-dsh-bot build: ℹ [ui-dsh-bot/client] [CJS] 2 files, total: 56.91 kB
+packages/ui-dsh-bot build: ✔ [ui-dsh-bot/client] Build complete in 23ms
+packages/ui-dsh-bot build: Done
+packages/dsh-bot-host build$ tsdown
+packages/dsh-bot-host build: ℹ tsdown v0.22.14 powered by rolldown v1.2.6
+packages/dsh-bot-host build: ℹ config file: /Users/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin/packages/dsh-bot-host/tsdown.config.ts 
+packages/dsh-bot-host build: ℹ entry: src/index.ts
+packages/dsh-bot-host build: ℹ target: es2024
+packages/dsh-bot-host build: ℹ tsconfig: tsconfig.json
+packages/dsh-bot-host build:  WARN  `external` is deprecated. Use `deps.neverBundle` instead.
+packages/dsh-bot-host build: ℹ Build start
+packages/dsh-bot-host build: ℹ lib/index.js        174.41 kB │ gzip: 43.68 kB
+packages/dsh-bot-host build: ℹ lib/index.js.map    373.39 kB │ gzip: 84.27 kB
+packages/dsh-bot-host build: ℹ lib/index.d.ts.map    9.49 kB │ gzip:  2.77 kB
+packages/dsh-bot-host build: ℹ lib/index.d.ts       47.21 kB │ gzip: 11.13 kB
+packages/dsh-bot-host build: ℹ 4 files, total: 604.51 kB
+packages/dsh-bot-host build: ✔ Build complete in 711ms
+packages/dsh-bot-host build: Done
+packages/tool-dsh-bot build$ tsdown
+packages/tool-dsh-bot build: ℹ tsdown v0.22.14 powered by rolldown v1.2.6
+packages/tool-dsh-bot build: ℹ config file: /Users/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin/packages/tool-dsh-bot/tsdown.config.ts 
+packages/tool-dsh-bot build: ℹ entry: src/index.ts
+packages/tool-dsh-bot build: ℹ target: es2024
+packages/tool-dsh-bot build: ℹ tsconfig: tsconfig.json
+packages/tool-dsh-bot build:  WARN  `external` is deprecated. Use `deps.neverBundle` instead.
+packages/tool-dsh-bot build: ℹ Build start
+packages/tool-dsh-bot build: ℹ lib/index.js        3.88 kB │ gzip: 1.34 kB
+packages/tool-dsh-bot build: ℹ lib/index.js.map    7.01 kB │ gzip: 2.18 kB
+packages/tool-dsh-bot build: ℹ lib/index.d.ts.map  0.12 kB │ gzip: 0.13 kB
+packages/tool-dsh-bot build: ℹ lib/index.d.ts      0.30 kB │ gzip: 0.23 kB
+packages/tool-dsh-bot build: ℹ 4 files, total: 11.31 kB
+packages/tool-dsh-bot build: ✔ Build complete in 458ms
+packages/tool-dsh-bot build: Done
+BUILD_RC=0
+=== test ===
+$ vitest run
+
+ RUN  v4.1.11 /Users/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin
+
+
+ Test Files  46 passed (46)
+      Tests  344 passed (344)
+   Start at  00:31:50
+   Duration  1.58s (transform 2.10s, setup 0ms, import 5.69s, tests 3.71s, environment 6.27s)
+
+TEST_RC=0
+=== standard ===
+$ node standards/validate.mjs
+
+== manifest 校验（packages/*/dsh-plugin.json） ==
+✓ tool-dsh-bot (io.github.nothing1024.tool-dsh-bot)
+✓ ui-dsh-bot (io.github.nothing1024.ui-dsh-bot)
+
+== 协商（manifest × host-descriptor） ==
+✓ tool-dsh-bot: compatible
+✓ ui-dsh-bot: compatible
+
+== fixtures 自检 ==
+✓ valid/full.json
+✓ valid/minimal.json
+✓ valid/tool-dsh-bot.json
+✓ invalid/missing-schema.json → [missing-schema]
+✓ invalid/wrong-manifest-version.json → [wrong-manifest-version]
+✓ invalid/missing-facets.json → [missing-facets]
+✓ invalid/bad-id.json → [bad-id]
+✓ invalid/unknown-field.json → [unknown-field]
+✓ invalid/provides-rejected.json → [provides-rejected]
+✓ invalid/requires-services-rejected.json → [requires-services-rejected]
+✓ invalid/reserved-facet-client.json → [reserved-facet]
+✓ invalid/duplicate-contributes-id.json → [duplicate-contributes-id]
+✓ invalid/entry-outside-root.json → [entry-outside-root]
+
+== adapter 审计（上游触点基线） ==
+✓ 无未评审的新增上游触点
+
+结论：全部通过
+STANDARD_RC=0
+=== redline ===
