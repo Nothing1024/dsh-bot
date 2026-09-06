@@ -1,8 +1,8 @@
-shiren-xiaobei/
-shiren-xiaobei/log.jsonl
-shiren-xiaobei/profile.md
-xiaodui-aning/
-xiaodui-aning/log.jsonl
-xiaodui-aning/profile.md
-yunwei-yeban/
-yunwei-yeban/log.jsonl
+shiren-xiaobei
+shiren-xiaobei/log.jsonl 
+shiren-xiaobei/profile.md 
+xiaodui-aning
+xiaodui-aning/log.jsonl {"id":"1788691339618-bc3bzz","ts":1788691339618,"kind":"log","text":"校对时术语保留英文",
+xiaodui-aning/profile.md <!-- dsh-mem p-uf801-term 1788691339616 --> - 术语保留英文 
+yunwei-yeban
+yunwei-yeban/log.jsonl {"id":"1788692450833-ut4n3j","ts":1788692450833,"kind":"log","text":"用户叫 Nothing

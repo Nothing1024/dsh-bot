@@ -262,7 +262,7 @@ P0 前置检查(1) → P1 记忆包全量(2) → P2 例程包全量(3) → P3 �
 | 1 | 前置检查与共享面基线 | 无 | `python3 ~/.claude/skills/prd-workflow/scripts/validate_package.py docs/dsh-bot-memory --repo .` 与 `... docs/dsh-bot-routines --repo .` 均 0 FAIL；`git status --porcelain packages/` 记录基线 | 已完成 | 豁免回归:P0 单实现任务；见 evidence/phase-final/baseline.md |
 | 2 | 执行子包 dsh-bot-memory 全量 | 1 | 其 tasks.csv 13 条全部已完成（或诚实已阻塞）且其 validate 0 FAIL | 已完成 | 诚实已阻塞见其子 CSV；validate 0 FAIL / 1 WARN |
 | 3 | 执行子包 dsh-bot-routines 全量 | 2 | 其 tasks.csv 14 条全部已完成（或诚实已阻塞）且其 validate 0 FAIL | 已完成 | 诚实已阻塞见其子 CSV；validate 0 FAIL / 1 WARN |
-| 4 | 执行 spec 5.2 真实场景全套测试（跨包联合回放） | 3 | 5.2 执行矩阵 UF-101~103 全行通过并落 evidence | 已阻塞:grok-4.6 503 无唤醒发言 | 三段 compose 已证；见 evidence/phase-final/report.md |
+| 4 | 执行 spec 5.2 真实场景全套测试（跨包联合回放） | 3 | 5.2 执行矩阵 UF-101~103 全行通过并落 evidence | 已阻塞:listBotSessions 401；v1 工具卡未跑完 | UF-101/102 唤醒+📌 已过；UF-103 小组/v2 已过；见 report.md |
 | 5 | 执行母包总回归验证（收尾） | 4 | `pnpm run typecheck && pnpm run build && pnpm test && pnpm run standard:check` 全绿 + INV-103 命令干净 + 总报告落盘 | 已阻塞:tsc SessionId brand + pnpm frozen lockfile | 红线空；三包 validate 0 FAIL；报告已落盘 |
 
 ### Phase 0: 前置检查

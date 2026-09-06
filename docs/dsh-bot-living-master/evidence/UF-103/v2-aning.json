@@ -1,0 +1,29 @@
+{
+  "ok": true,
+  "value": {
+    "sessionId": "session-f7550de9-aaff-427c-b88c-73dfebd1d478",
+    "items": [
+      {
+        "id": "message-8-1",
+        "kind": "message",
+        "seq": 8,
+        "role": "user",
+        "text": "你是谁？只说自己的身份。"
+      },
+      {
+        "id": "thinking-53-1",
+        "kind": "thinking",
+        "seq": 53,
+        "text": "The user is asking who I am, and they want me to only state my identity. Looking at the system prompt:\n\n\n"
+      },
+      {
+        "id": "message-53-1",
+        "kind": "message",
+        "seq": 53,
+        "role": "assistant",
+        "text": "校对阿宁。专挑措辞。"
+      }
+    ],
+    "working": false
+  }
+}

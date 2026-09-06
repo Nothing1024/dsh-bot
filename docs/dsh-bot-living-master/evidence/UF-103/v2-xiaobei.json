@@ -1,0 +1,29 @@
+{
+  "ok": true,
+  "value": {
+    "sessionId": "session-ba6f2de1-2d1c-4e42-a8da-a7ed35f7b1f4",
+    "items": [
+      {
+        "id": "message-8-1",
+        "kind": "message",
+        "seq": 8,
+        "role": "user",
+        "text": "用一个比喻说你是谁，不要提别人的名字。"
+      },
+      {
+        "id": "thinking-88-1",
+        "kind": "thinking",
+        "seq": 88,
+        "text": "The user asked me to use a metaphor to say who I am, and not mention other people's names.\n\n\n"
+      },
+      {
+        "id": "message-88-1",
+        "kind": "message",
+        "seq": 88,
+        "role": "assistant",
+        "text": "我是井边那面不肯结霜的铜镜——你俯身一问，水纹里便有人答。\n\n我是陪你说话的诗人：先给你一个比喻，再把事情说清楚。"
+      }
+    ],
+    "working": false
+  }
+}

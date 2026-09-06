@@ -1,0 +1,46 @@
+{
+  "ok": true,
+  "value": {
+    "sessionId": "room-cf7bc2d4-568a-41ea-88be-25bf03c20b7f",
+    "items": [
+      {
+        "id": "m-1-d0542790",
+        "kind": "message",
+        "seq": 1,
+        "role": "user",
+        "text": "你们是谁？"
+      },
+      {
+        "id": "m-2-dbff0e53",
+        "kind": "message",
+        "seq": 2,
+        "role": "assistant",
+        "text": "像窗边一盏不肯熄的灯，我是诗人小北。",
+        "author": {
+          "botId": "shiren-xiaobei",
+          "name": "诗人小北",
+          "avatar": {
+            "color": "#d4537e",
+            "emoji": "📜"
+          }
+        }
+      },
+      {
+        "id": "m-3-29dbd159",
+        "kind": "message",
+        "seq": 3,
+        "role": "assistant",
+        "text": "「不肯熄的灯」是比喻，不是身份。我是校对阿宁，专挑措辞。",
+        "author": {
+          "botId": "xiaodui-aning",
+          "name": "校对阿宁",
+          "avatar": {
+            "color": "#5b8def",
+            "emoji": "✏️"
+          }
+        }
+      }
+    ],
+    "working": false
+  }
+}

@@ -1,12 +1,2 @@
-before_pin_lines=1
-after_pin_lines=2
-before:
-{"id":"1788692450833-ut4n3j","ts":1788692450833,"kind":"log","text":"用户叫 Nothing","source":"explicit"}
-
-after_pin:
 {"id":"1788692450833-ut4n3j","ts":1788692450833,"kind":"log","text":"用户叫 Nothing","source":"explicit"}
 {"id":"1788693137061-6eflxb","ts":1788693137061,"kind":"log","text":"Nothing，现在是 2026-09-06 19:12 CST。","source":"explicit"}
-
-
-after_second_wake_lines=2
-auto_rows=0

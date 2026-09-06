@@ -1,0 +1,75 @@
+{
+  "ok": true,
+  "value": [
+    {
+      "id": "r-1788692459058-bldp78m8",
+      "botId": "yunwei-yeban",
+      "name": "报时",
+      "schedule": "@every 1m",
+      "instruction": "报告时间并用名字称呼我",
+      "enabled": true,
+      "notify": true,
+      "createdAt": 1788692459058,
+      "runs": [
+        {
+          "ts": 1788692459063,
+          "outcome": "error",
+          "ms": 16604
+        },
+        {
+          "ts": 1788692475670,
+          "outcome": "error",
+          "ms": 5667
+        },
+        {
+          "ts": 1788692481340,
+          "outcome": "error",
+          "ms": 5000
+        },
+        {
+          "ts": 1788692593909,
+          "outcome": "error",
+          "ms": 8730
+        },
+        {
+          "ts": 1788692662682,
+          "outcome": "error",
+          "ms": 8053
+        },
+        {
+          "ts": 1788692730777,
+          "outcome": "error",
+          "ms": 10303
+        },
+        {
+          "ts": 1788692801128,
+          "outcome": "error",
+          "ms": 6370
+        },
+        {
+          "ts": 1788692867543,
+          "outcome": "error",
+          "ms": 6392
+        },
+        {
+          "ts": 1788692915725,
+          "outcome": "error",
+          "ms": 7078
+        },
+        {
+          "ts": 1788692982848,
+          "outcome": "error",
+          "ms": 6415
+        },
+        {
+          "ts": 1788693119548,
+          "outcome": "spoke",
+          "ms": 7569
+        }
+      ],
+      "sessionId": "session-44502c29-7576-43bf-9239-df8800e682d0",
+      "lastRunAt": 1788693119548,
+      "lastOutcome": "spoke"
+    }
+  ]
+}
