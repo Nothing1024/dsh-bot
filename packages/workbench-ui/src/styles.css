@@ -1529,3 +1529,61 @@ body,
   color: #8a5a00;
   margin-right: 6px;
 }
+
+.foldCard,
+.actionCard {
+  margin: 6px 16px;
+  border: 1px solid var(--wb-border);
+  border-radius: 8px;
+  background: var(--wb-panel);
+  max-width: min(72%, 560px);
+}
+
+.foldCardHead {
+  appearance: none;
+  width: 100%;
+  text-align: left;
+  border: 0;
+  background: transparent;
+  color: var(--wb-muted);
+  padding: 6px 10px;
+  cursor: pointer;
+  font-size: 12px;
+}
+
+.foldCardBody,
+.actionCardText,
+.actionCardDone {
+  padding: 0 10px 8px;
+  color: var(--wb-text);
+  font-size: 12px;
+  white-space: pre-wrap;
+}
+
+.actionCard {
+  padding: 8px 0 4px;
+}
+
+.actionCardRow {
+  display: flex;
+  gap: 8px;
+  padding: 0 10px 8px;
+}
+
+.actionCard.isDone {
+  opacity: 0.72;
+}
+
+.streamCursor {
+  display: inline-block;
+  width: 6px;
+  height: 12px;
+  margin-left: 2px;
+  background: var(--wb-accent);
+  animation: streamBlink 1s step-end infinite;
+  vertical-align: text-bottom;
+}
+
+@keyframes streamBlink {
+  50% { opacity: 0; }
+}

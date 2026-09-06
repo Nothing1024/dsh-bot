@@ -48,11 +48,51 @@ describe('Transcript', () => {
     expect(screen.getByTestId('transcript-msg-2').className).toMatch(/assistant/)
   })
 
-  it('hides thinking and tool process from the chat', () => {
+  it('renders thinking and tool as fold cards', () => {
     render(<Transcript items={items} working={false} />)
-    expect(screen.queryByTestId('transcript-thinking-2')).toBeNull()
-    expect(screen.queryByTestId('transcript-tool-2')).toBeNull()
+    expect(screen.getByTestId('transcript-thinking-2')).toBeTruthy()
+    expect(screen.queryByTestId('transcript-thinking-2-body')).toBeNull()
+    fireEvent.click(screen.getByTestId('transcript-thinking-2-toggle'))
+    expect(screen.getByTestId('transcript-thinking-2-body').textContent).toMatch(/remember I am a poet/)
+    expect(screen.getByTestId('transcript-tool-2')).toBeTruthy()
+    expect(screen.getByTestId('transcript-tool-2-body').textContent).toMatch(/bash/)
     expect(screen.getByTestId('transcript-msg-2').textContent).toMatch(/我是诗人小北/)
+  })
+
+  it('renders pending approval and question cards, then a read-only done state', () => {
+    const onApproval = vi.fn()
+    const onQuestion = vi.fn()
+    render(
+      <Transcript
+        items={[
+          { id: 'a-1', kind: 'approval', seq: 3, text: '允许 bash?', pending: true, rpcId: 'rpc-1', approvalId: 'ap-1' },
+          { id: 'q-1', kind: 'question', seq: 4, text: '模型?', pending: true, rpcId: 'rpc-2' },
+          { id: 'a-2', kind: 'approval', seq: 5, text: '已答过', pending: false },
+        ]}
+        working={false}
+        onApproval={onApproval}
+        onQuestion={onQuestion}
+      />,
+    )
+    fireEvent.click(screen.getByTestId('transcript-approval-3-allow'))
+    expect(onApproval).toHaveBeenCalledWith(
+      expect.objectContaining({ id: 'a-1' }),
+      'allowed-once',
+    )
+    fireEvent.change(screen.getByTestId('transcript-question-4-input'), { target: { value: 'grok' } })
+    fireEvent.click(screen.getByTestId('transcript-question-4-submit'))
+    expect(onQuestion).toHaveBeenCalledWith(expect.objectContaining({ id: 'q-1' }), 'grok')
+    expect(screen.getByTestId('transcript-approval-5-done').textContent).toMatch(/已处理/)
+  })
+
+  it('shows a stream cursor on the last assistant bubble', () => {
+    render(
+      <Transcript
+        items={[{ id: 'm-9', kind: 'message', seq: 9, role: 'assistant', text: '正在', streaming: true }]}
+        working={false}
+      />,
+    )
+    expect(screen.getByTestId('transcript-stream-9')).toBeTruthy()
   })
 
   it('renders assistant markdown like DSH chat prose', () => {

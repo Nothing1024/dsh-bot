@@ -46,6 +46,7 @@ import { GroupForm } from './GroupForm.tsx'
 import type { GroupFormValues } from './GroupForm.tsx'
 import { Roster } from './Roster.tsx'
 import type { RosterItem, RosterSession } from './Roster.tsx'
+import { useBotEvents } from './useBotEvents.ts'
 import { useGlobalKeyboard } from './useGlobalKeyboard.ts'
 
 type ShellStatus = 'loading' | 'idle' | 'error'
@@ -68,6 +69,8 @@ function overrideFromForm(values: BotFormValues): WorkbenchModelOverride | undef
  * Root layout. Loads listBots; conversation identity follows the selected row.
  */
 export function App() {
+  const live = useBotEvents()
+  const sseReady = live.sseReady
   const [status, setStatus] = useState<ShellStatus>('loading')
   const [error, setError] = useState<string | null>(null)
   const [bots, setBots] = useState<readonly WorkbenchBot[]>([])
@@ -283,6 +286,9 @@ export function App() {
       })
     }
     void tick()
+    if (sseReady) {
+      return () => { cancelled = true }
+    }
     const timer = setInterval(() => { void tick() }, 2000)
     const onVis = (): void => {
       if (typeof document !== 'undefined' && !document.hidden) void tick()
@@ -293,7 +299,7 @@ export function App() {
       clearInterval(timer)
       document.removeEventListener('visibilitychange', onVis)
     }
-  }, [bots, groups, status])
+  }, [bots, groups, status, sseReady])
 
   const selected = useMemo(
     () => bots.find(bot => bot.id === selectedId) ?? null,
@@ -759,6 +765,8 @@ export function App() {
                 refreshEpoch={refreshEpoch}
                 preferredSessionId={preferredSessionId}
                 paletteOpen={paletteOpen}
+                sseReady={live.sseReady}
+                live={live}
                 onEditMembers={() => {
                   setFormError(null)
                   setForm({ kind: 'edit-group', group: selectedGroup })
@@ -801,6 +809,8 @@ export function App() {
                 refreshEpoch={refreshEpoch}
                 preferredSessionId={preferredSessionId}
                 paletteOpen={paletteOpen}
+                sseReady={live.sseReady}
+                live={live}
                 onEdit={() => {
                   setFormError(null)
                   setForm({ kind: 'edit', bot: selected })

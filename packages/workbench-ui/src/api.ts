@@ -154,7 +154,12 @@ export interface WorkbenchHistoryAuthor {
 
 export interface WorkbenchHistoryItem {
   readonly id: string
-  readonly kind: 'message' | 'thinking' | 'tool' | 'propose-routine'
+  readonly kind: 'message' | 'thinking' | 'tool' | 'propose-routine' | 'approval' | 'question'
+  readonly sessionId?: string
+  readonly rpcId?: string
+  readonly approvalId?: string
+  readonly pending?: boolean
+  readonly streaming?: boolean
   readonly schedule?: string
   readonly instruction?: string
   readonly origin?: 'routine'
@@ -200,8 +205,45 @@ export function history(sessionId: string, sinceSeq?: number): Promise<RpcResult
   })
 }
 
-export function prompt(sessionId: string, text: string): Promise<RpcResult<PromptValue>> {
-  return workbenchCall<PromptValue>('prompt', { sessionId, text })
+export function prompt(
+  sessionId: string,
+  text: string,
+  mode?: 'queue' | 'steer',
+): Promise<RpcResult<PromptValue>> {
+  return workbenchCall<PromptValue>('prompt', {
+    sessionId,
+    text,
+    ...mode === undefined ? {} : { mode },
+  })
+}
+
+export function cancel(sessionId: string): Promise<RpcResult<{ accepted: true }>> {
+  return workbenchCall('cancel', { sessionId })
+}
+
+export function updateQueue(
+  sessionId: string,
+  itemId: string,
+  action: unknown,
+): Promise<RpcResult<{ accepted: true }>> {
+  return workbenchCall('updateQueue', { sessionId, itemId, action })
+}
+
+export function approvalRespond(input: {
+  rpcId: string
+  sessionId: string
+  approvalId: string
+  outcome: 'allowed-once' | 'rejected'
+}): Promise<RpcResult<unknown>> {
+  return workbenchCall('approvalRespond', { ...input })
+}
+
+export function questionRespond(input: {
+  rpcId: string
+  sessionId: string
+  answer: unknown
+}): Promise<RpcResult<unknown>> {
+  return workbenchCall('questionRespond', { ...input })
 }
 
 export interface ReconcileAssigned {

@@ -59,20 +59,65 @@ describe('Composer', () => {
     expect(onDraft).toHaveBeenCalledWith('bot-a', '草稿给甲')
   })
 
-  it('disables send while working/sending', () => {
+  it('stays editable while working and turns send into stop', () => {
+    const onSend = vi.fn()
+    const onStop = vi.fn()
     render(
       <Composer
         botId="bot-a"
         botName="甲"
-        disabled
+        disabled={false}
         sending={false}
+        working
+        error={null}
+        onSend={onSend}
+        onStop={onStop}
+      />,
+    )
+    const input = screen.getByTestId('composer-input') as HTMLTextAreaElement
+    expect(input.disabled).toBe(false)
+    fireEvent.change(input, { target: { value: 'second' } })
+    expect(screen.getByTestId('composer-send').textContent).toBe('停止')
+    expect((screen.getByTestId('composer-send') as HTMLButtonElement).disabled).toBe(false)
+    fireEvent.click(screen.getByTestId('composer-send'))
+    expect(onStop).toHaveBeenCalledTimes(1)
+    expect(onSend).not.toHaveBeenCalled()
+  })
+
+  it('does not send an empty message when stopping', () => {
+    const onSend = vi.fn()
+    const onStop = vi.fn()
+    render(
+      <Composer
+        botId="bot-a"
+        botName="甲"
+        disabled={false}
+        sending={false}
+        working
+        error={null}
+        onSend={onSend}
+        onStop={onStop}
+      />,
+    )
+    fireEvent.click(screen.getByTestId('composer-send'))
+    expect(onStop).toHaveBeenCalledTimes(1)
+    expect(onSend).not.toHaveBeenCalled()
+  })
+
+  it('disables send while sending but keeps the textarea editable', () => {
+    render(
+      <Composer
+        botId="bot-a"
+        botName="甲"
+        disabled={false}
+        sending
         error={null}
         onSend={vi.fn()}
       />,
     )
     fireEvent.change(screen.getByTestId('composer-input'), { target: { value: 'hi' } })
     expect((screen.getByTestId('composer-send') as HTMLButtonElement).disabled).toBe(true)
-    expect((screen.getByTestId('composer-input') as HTMLTextAreaElement).disabled).toBe(true)
+    expect((screen.getByTestId('composer-input') as HTMLTextAreaElement).disabled).toBe(false)
   })
 
   it('keeps the draft and shows the host error code on failure, then retries', async () => {

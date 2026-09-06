@@ -1,7 +1,7 @@
 /**
  * Conversation transcript: user right / assistant left. Thinking and tool
- * process stay out of the chat (Grok-like). Assistant markdown is DSH-shaped
- * GFM. No large avatar beside 1:1 assistant (BR-205).
+ * process render as fold cards; approval/question are actionable.
+ * Assistant markdown is DSH-shaped GFM. No large avatar beside 1:1 assistant (BR-205).
  */
 import { useEffect, useRef, useState, type Ref, type UIEvent } from 'react'
 import { routineCreate, routineDecline } from './api.ts'
@@ -41,6 +41,8 @@ export interface TranscriptProps {
   readonly members?: readonly WorkbenchBot[]
   readonly pinPick?: string | null
   readonly onPickMember?: (botId: string, item: WorkbenchHistoryItem) => void
+  readonly onApproval?: (item: WorkbenchHistoryItem, outcome: 'allowed-once' | 'rejected') => void
+  readonly onQuestion?: (item: WorkbenchHistoryItem, answer: string) => void
 }
 
 function markFor(text: string | undefined, marks: readonly TranscriptReplyMark[] | undefined): TranscriptReplyTo | undefined {
@@ -160,6 +162,8 @@ export function Transcript(props: TranscriptProps) {
                 props.onPickMember?.(botId, item)
               },
             }}
+            {...props.onApproval === undefined ? {} : { onApproval: props.onApproval }}
+            {...props.onQuestion === undefined ? {} : { onQuestion: props.onQuestion }}
           />
         )
       })}
@@ -255,10 +259,21 @@ function TranscriptRow(props: {
   pinPick?: boolean
   members?: readonly WorkbenchBot[]
   onPickMember?: (botId: string) => void
+  onApproval?: (item: WorkbenchHistoryItem, outcome: 'allowed-once' | 'rejected') => void
+  onQuestion?: (item: WorkbenchHistoryItem, answer: string) => void
 }) {
   const item = props.item
   if (item.kind === 'thinking' || item.kind === 'tool') {
-    return null
+    return <FoldCard item={item} />
+  }
+  if (item.kind === 'approval' || item.kind === 'question') {
+    return (
+      <ActionCard
+        item={item}
+        {...props.onApproval === undefined ? {} : { onApproval: props.onApproval }}
+        {...props.onQuestion === undefined ? {} : { onQuestion: props.onQuestion }}
+      />
+    )
   }
   const role = item.role === 'user' ? 'user' : 'assistant'
   const author = item.author
@@ -323,6 +338,7 @@ function TranscriptRow(props: {
             {role === 'assistant' && item.text !== undefined
               ? <Markdown text={item.text} />
               : item.text}
+            {item.streaming === true ? <span className="streamCursor" data-testid={`transcript-stream-${item.seq}`} /> : null}
           </div>
         )}
       </div>
@@ -387,6 +403,87 @@ function TranscriptRow(props: {
           ) : null}
         </div>
       ) : null}
+    </div>
+  )
+}
+
+function FoldCard(props: { item: WorkbenchHistoryItem }) {
+  const item = props.item
+  const thinking = item.kind === 'thinking'
+  const [open, setOpen] = useState(!thinking)
+  const testId = thinking ? `transcript-thinking-${item.seq}` : `transcript-tool-${item.seq}`
+  const title = thinking ? '思考' : (item.name ?? item.summary ?? '工具')
+  return (
+    <div className="foldCard" data-testid={testId} data-kind={item.kind}>
+      <button
+        type="button"
+        className="foldCardHead"
+        data-testid={`${testId}-toggle`}
+        onClick={() => { setOpen(current => !current) }}
+      >
+        {open ? '▾' : '▸'} {title}
+        {!thinking && item.summary !== undefined && item.summary !== title ? ` · ${item.summary}` : ''}
+      </button>
+      {open ? (
+        <div className="foldCardBody" data-testid={`${testId}-body`}>
+          {item.text ?? item.summary ?? ''}
+        </div>
+      ) : null}
+    </div>
+  )
+}
+
+function ActionCard(props: {
+  item: WorkbenchHistoryItem
+  onApproval?: (item: WorkbenchHistoryItem, outcome: 'allowed-once' | 'rejected') => void
+  onQuestion?: (item: WorkbenchHistoryItem, answer: string) => void
+}) {
+  const item = props.item
+  const pending = item.pending !== false
+  const [answer, setAnswer] = useState('')
+  const testId = item.kind === 'approval' ? `transcript-approval-${item.seq}` : `transcript-question-${item.seq}`
+  return (
+    <div className={`actionCard${pending ? '' : ' isDone'}`} data-testid={testId} data-kind={item.kind}>
+      <p className="actionCardText">{item.text}</p>
+      {!pending ? (
+        <p className="actionCardDone" data-testid={`${testId}-done`}>已处理</p>
+      ) : item.kind === 'approval' ? (
+        <div className="actionCardRow">
+          <button
+            type="button"
+            className="primaryBtn"
+            data-testid={`${testId}-allow`}
+            onClick={() => props.onApproval?.(item, 'allowed-once')}
+          >
+            允许一次
+          </button>
+          <button
+            type="button"
+            data-testid={`${testId}-reject`}
+            onClick={() => props.onApproval?.(item, 'rejected')}
+          >
+            拒绝
+          </button>
+        </div>
+      ) : (
+        <div className="actionCardRow">
+          <input
+            className="composerInput"
+            data-testid={`${testId}-input`}
+            value={answer}
+            onChange={event => setAnswer(event.target.value)}
+          />
+          <button
+            type="button"
+            className="primaryBtn"
+            data-testid={`${testId}-submit`}
+            disabled={answer.trim() === ''}
+            onClick={() => props.onQuestion?.(item, answer.trim())}
+          >
+            提交
+          </button>
+        </div>
+      )}
     </div>
   )
 }

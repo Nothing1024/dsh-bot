@@ -7,6 +7,7 @@ import type { HistoryValue, RpcResult, WorkbenchHistoryItem } from '../src/api.t
 function Probe(props: {
   sessionId: string | null
   enabled: boolean
+  sseReady?: boolean
   load: (sessionId: string, sinceSeq?: number) => Promise<RpcResult<HistoryValue>>
 }) {
   const state = useSessionPoll(props)
@@ -68,6 +69,23 @@ describe('useSessionPoll', () => {
       await vi.advanceTimersByTimeAsync(POLL_WORKING_MS * 3)
     })
     expect(load.mock.calls.length).toBe(pausedAt)
+  })
+
+  it('does not schedule further polls when sseReady', async () => {
+    vi.useFakeTimers()
+    const load = vi.fn(async (): Promise<RpcResult<HistoryValue>> => ({
+      ok: true,
+      value: { sessionId: 's1', working: false, items: [] },
+    }))
+    render(<Probe sessionId="s1" enabled sseReady load={load} />)
+    await act(async () => {
+      await Promise.resolve()
+    })
+    expect(load).toHaveBeenCalledTimes(1)
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(POLL_IDLE_MS * 3)
+    })
+    expect(load).toHaveBeenCalledTimes(1)
   })
 
   it('replaces the inclusive last seq instead of duplicating thinking/assistant rows', async () => {

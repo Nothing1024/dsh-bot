@@ -63,7 +63,9 @@ describe('Conversation', () => {
     expect(await screen.findByTestId('conversation-working')).toBeTruthy()
     expect((await screen.findByTestId('composer-input')).getAttribute('placeholder')).toBe('给 诗人小北 发消息')
     expect(await screen.findByTestId('transcript-msg-2')).toBeTruthy()
-    expect((screen.getByTestId('composer-send') as HTMLButtonElement).disabled).toBe(true)
+    expect((screen.getByTestId('composer-input') as HTMLTextAreaElement).disabled).toBe(false)
+    expect(screen.getByTestId('composer-send').textContent).toBe('停止')
+    expect((screen.getByTestId('composer-send') as HTMLButtonElement).disabled).toBe(false)
   })
 
   it('creates a session then prompts, showing a pending user bubble', async () => {
@@ -96,7 +98,7 @@ describe('Conversation', () => {
     })
   })
 
-  it('keeps send disabled after prompt until history reports the turn idle', async () => {
+  it('keeps the composer editable after prompt and turns send into stop', async () => {
     vi.stubGlobal('fetch', vi.fn(async (url: string) => {
       const path = String(url)
       if (path.includes('listBotSessions')) {
@@ -125,7 +127,8 @@ describe('Conversation', () => {
     fireEvent.click(screen.getByTestId('composer-send'))
     expect(await screen.findByTestId('transcript-pending')).toBeTruthy()
     await vi.waitFor(() => {
-      expect((screen.getByTestId('composer-input') as HTMLTextAreaElement).disabled).toBe(true)
+      expect((screen.getByTestId('composer-input') as HTMLTextAreaElement).disabled).toBe(false)
+      expect(screen.getByTestId('composer-send').textContent).toBe('停止')
     })
     expect(screen.getByTestId('conversation-working')).toBeTruthy()
     expect(screen.queryByTestId('transcript')).toBeTruthy()

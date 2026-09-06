@@ -18,6 +18,7 @@ export interface SessionPollState {
 export interface UseSessionPollOptions {
   readonly sessionId: string | null
   readonly enabled: boolean
+  readonly sseReady?: boolean
   readonly load: (sessionId: string, sinceSeq?: number) => Promise<RpcResult<HistoryValue>>
 }
 
@@ -50,7 +51,7 @@ export function mergeHistoryItems(
  * Poll `history` for one session. `sinceSeq` is used after the first page.
  */
 export function useSessionPoll(options: UseSessionPollOptions): SessionPollState & { refresh: () => void } {
-  const { sessionId, enabled, load } = options
+  const { sessionId, enabled, load, sseReady = false } = options
   const [items, setItems] = useState<readonly WorkbenchHistoryItem[]>([])
   const [working, setWorking] = useState(false)
   const [error, setError] = useState<WorkbenchWireError | null>(null)
@@ -102,7 +103,7 @@ export function useSessionPoll(options: UseSessionPollOptions): SessionPollState
   }, [enabled, pull, sessionId])
 
   useEffect(() => {
-    if (sessionId === null || !enabled) return
+    if (sessionId === null || !enabled || sseReady) return
     let cancelled = false
     let timer: ReturnType<typeof setTimeout> | undefined
     const delay = (): number => (workingRef.current ? WORKING_MS : IDLE_MS)
@@ -129,7 +130,7 @@ export function useSessionPoll(options: UseSessionPollOptions): SessionPollState
       if (timer !== undefined) clearTimeout(timer)
       document.removeEventListener('visibilitychange', onVis)
     }
-  }, [enabled, pull, sessionId])
+  }, [enabled, pull, sessionId, sseReady])
 
   return { items, working, error, ready, speaking, refresh }
 }

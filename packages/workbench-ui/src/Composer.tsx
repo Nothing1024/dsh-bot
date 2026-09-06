@@ -30,7 +30,9 @@ export interface ComposerProps {
   readonly toast?: string | null
   readonly paletteOpen?: boolean
   readonly replyTo?: ComposerReplyTo | null
+  readonly working?: boolean
   readonly onSend: (text: string) => Promise<boolean>
+  readonly onStop?: () => void
   readonly onDraft?: (botId: string, text: string) => void
   readonly onClearReply?: () => void
 }
@@ -149,7 +151,7 @@ export function Composer(props: ComposerProps) {
 
   const send = async (): Promise<void> => {
     const next = text.trim()
-    if (next === '' || props.disabled || props.sending) return
+    if (next === '' || props.sending) return
     const ok = await props.onSend(next)
     if (ok) {
       setText('')
@@ -247,7 +249,8 @@ export function Composer(props: ComposerProps) {
     void send()
   }
 
-  const locked = props.disabled || props.sending
+  const locked = props.sending
+  const working = props.working === true
   const placeholder = `给 ${props.botName} 发消息`
   const replyTo = props.replyTo
 
@@ -306,7 +309,6 @@ export function Composer(props: ComposerProps) {
             data-testid="composer-input"
             placeholder={placeholder}
             value={text}
-            disabled={locked}
             rows={2}
             onChange={event => change(event.target.value)}
             onKeyDown={onKeyDown}
@@ -371,10 +373,16 @@ export function Composer(props: ComposerProps) {
           type="button"
           className="primaryBtn composerSend"
           data-testid="composer-send"
-          disabled={locked || text.trim() === ''}
-          onClick={() => { void send() }}
+          disabled={working ? false : (locked || text.trim() === '')}
+          onClick={() => {
+            if (working) {
+              props.onStop?.()
+              return
+            }
+            void send()
+          }}
         >
-          {props.sending ? '发送中…' : '发送'}
+          {working ? '停止' : props.sending ? '发送中…' : '发送'}
         </button>
       </div>
     </div>

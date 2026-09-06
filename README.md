@@ -53,6 +53,14 @@ bash scripts/manual-test.sh --no-write      # 只建会话 / 设 override / 查 
 
 先 who 再 RPC。网关没起时 `dsh-session-cat.sh <DSH_HOME> <session_id>` 直接读磁盘。
 
+## 工作台实时
+
+工作台通过同一 :3084 的 `GET /dsh-bot/events`（SSE）桥接平台 `events.mux` / `events.host`，只转发 `bot:` / `group-room:` 会话。
+
+- 工作中输入框不灰；发送键变为「停止」（`sessions.cancel`）；回车仍可排队 `sessions.prompt({mode:'queue'})`。
+- Transcript 显示可折叠思考/工具卡，以及可点的审批/提问卡。
+- 有 `assistant/chunk` 时最后一个气泡增量更新；SSE `ready` 后停掉 history / listBotSessions / 页签 2s 轮询，断线回落再重连。
+
 ## 日常使用
 
 工作台是本插件自己服务的网页，**两个入口功能等价**（roster / 对话 / 人设 CRUD 全可用）：

@@ -1,7 +1,7 @@
 /**
  * Browser-side HTTP RPC against `/dsh-bot/<method>` with `{args}` plus a
- * polling observable. No SSE (MVP). Polling pauses when the sidebar panel
- * is closed.
+ * polling observable. SSE `/dsh-bot/events` ready stops POLL_MS; disconnect
+ * falls back to 2s polling.
  */
 
 export interface DshBotSessionRow {
@@ -140,9 +140,56 @@ export function createRpcDshBot(): IDshBotClient {
     }
   }
 
+  let sse: EventSource | undefined
+  let sseReady = false
+  let reconnectMs = 500
+  let reconnectTimer: ReturnType<typeof setTimeout> | undefined
+
   const startPoll = (): void => {
-    if (timer !== undefined || disposed || !panelOpen) return
+    if (timer !== undefined || disposed || !panelOpen || sseReady) return
     timer = setInterval(() => { void pull() }, POLL_MS)
+  }
+
+  const stopSse = (): void => {
+    if (reconnectTimer !== undefined) {
+      clearTimeout(reconnectTimer)
+      reconnectTimer = undefined
+    }
+    sse?.close()
+    sse = undefined
+  }
+
+  const startSse = (): void => {
+    if (disposed || !panelOpen || typeof EventSource === 'undefined' || sse !== undefined) return
+    try {
+      sse = new EventSource('/dsh-bot/events')
+    } catch {
+      return
+    }
+    sse.onmessage = event => {
+      try {
+        const data = JSON.parse(String(event.data)) as { type?: string }
+        if (data.type === 'ready') {
+          sseReady = true
+          reconnectMs = 500
+          stopPoll()
+        }
+      } catch {
+        // ignore malformed frames
+      }
+    }
+    sse.onerror = () => {
+      sseReady = false
+      sse?.close()
+      sse = undefined
+      if (disposed || !panelOpen) return
+      startPoll()
+      reconnectTimer = setTimeout(() => {
+        reconnectTimer = undefined
+        startSse()
+      }, reconnectMs)
+      reconnectMs = Math.min(reconnectMs * 2, 10_000)
+    }
   }
 
   const pull = async (): Promise<void> => {
@@ -200,9 +247,12 @@ export function createRpcDshBot(): IDshBotClient {
       panelOpen = open
       if (open) {
         void pull()
+        startSse()
         startPoll()
         return
       }
+      stopSse()
+      sseReady = false
       stopPoll()
     },
     createSession: async (title, cwd) => {
@@ -215,6 +265,7 @@ export function createRpcDshBot(): IDshBotClient {
     },
     dispose: () => {
       disposed = true
+      stopSse()
       stopPoll()
     },
   }

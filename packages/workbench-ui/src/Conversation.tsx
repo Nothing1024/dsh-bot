@@ -18,7 +18,10 @@ import {
   routineCreate,
   routineUpdate,
   routineDelete,
+  approvalRespond,
+  cancel,
   prompt,
+  questionRespond,
 } from './api.ts'
 import type {
   MemoryListValue,
@@ -52,6 +55,8 @@ import {
   sessionDisplayTitle,
   writeLastSession,
 } from './session-binding.ts'
+import { mergeLiveItems } from './useBotEvents.ts'
+import type { BotLiveState } from './useBotEvents.ts'
 import { useSessionPoll } from './useSessionPoll.ts'
 
 export interface ConversationProps {
@@ -71,6 +76,8 @@ export interface ConversationProps {
   readonly onDraft?: (botId: string, text: string) => void
   readonly onActiveSession?: (sessionId: string | null) => void
   readonly onSessions?: (sessions: readonly WorkbenchSessionRow[]) => void
+  readonly sseReady?: boolean
+  readonly live?: Pick<BotLiveState, 'stream' | 'cards' | 'epoch'>
 }
 
 function formatError(error: WorkbenchWireError): string {
@@ -280,8 +287,17 @@ export function Conversation(props: ConversationProps) {
   const poll = useSessionPoll({
     sessionId,
     enabled: sessionId !== null,
+    sseReady: props.sseReady === true,
     load: (id, sinceSeq) => history(id, sinceSeq),
   })
+
+  const liveItems = mergeLiveItems(
+    poll.items,
+    sessionId,
+    props.live?.stream ?? null,
+    props.live?.cards ?? [],
+  )
+  const streaming = liveItems.some(item => item.streaming === true)
 
   const historySeq = poll.items.reduce((max, item) => item.seq > max ? item.seq : max, 0)
   useEffect(() => {
@@ -326,6 +342,12 @@ export function Conversation(props: ConversationProps) {
     const preview = lastPreview(poll.items)
     if (preview !== '') onPreview?.(identityId, preview)
   }, [identityId, onPreview, poll.items])
+
+  const liveEpoch = props.live?.epoch ?? 0
+  useEffect(() => {
+    if (liveEpoch === 0) return
+    poll.refresh()
+  }, [liveEpoch, poll.refresh])
 
   useEffect(() => {
     if (!awaitingTurn) return
@@ -410,7 +432,7 @@ export function Conversation(props: ConversationProps) {
       if (isGroup && parseMentions(text, members.map(row => ({ id: row.id, name: row.name }))).unmatched) {
         setToast('未匹配成员,已发给全员')
       }
-      const outcome = await prompt(id, text)
+      const outcome = await prompt(id, text, 'queue')
       if (!outcome.ok) {
         setSendError(outcome.error.message)
         setSendCode(outcome.error.code ?? 'internal')
@@ -438,8 +460,20 @@ export function Conversation(props: ConversationProps) {
     ? (bot.avatar.color !== '' ? bot.avatar.color : hashAvatarColor(bot.id))
     : '#5b8def'
   const empty = poll.ready && poll.items.length === 0 && pending === null && !working && poll.error === null && listError === null
-  const composerLocked = poll.working || awaitingTurn || sending
+  const composerWorking = poll.working || awaitingTurn
   const speaking = resolveSpeaking(poll.speaking, members)
+
+  const stopGeneration = async (): Promise<void> => {
+    if (sessionId === null) return
+    const outcome = await cancel(sessionId)
+    if (!outcome.ok) {
+      setSendError(outcome.error.message)
+      setSendCode(outcome.error.code ?? 'internal')
+      return
+    }
+    setAwaitingTurn(false)
+    poll.refresh()
+  }
 
   return (
     <div className="conversationPane" data-testid="conversation-pane" data-kind={isGroup ? 'group' : 'bot'}>
@@ -689,9 +723,9 @@ export function Conversation(props: ConversationProps) {
       ) : (
         <Transcript
           {...bot?.id === undefined ? {} : { botId: bot.id }}
-          items={poll.items}
+          items={liveItems}
           pending={pending}
-          working={working}
+          working={working && !streaming}
           {...speaking === null ? {} : { speaking }}
           onRemember={async (item: WorkbenchHistoryItem) => {
             const text = (item.text ?? '').slice(0, 200)
@@ -707,6 +741,23 @@ export function Conversation(props: ConversationProps) {
               const listed = await memoryList(bot.id)
               if (listed.ok) setMemory(listed.value)
             }
+          }}
+          onApproval={async (item, outcome) => {
+            if (item.rpcId === undefined || item.approvalId === undefined || sessionId === null) return
+            const result = await approvalRespond({
+              rpcId: item.rpcId,
+              sessionId,
+              approvalId: item.approvalId,
+              outcome,
+            })
+            setToast(result.ok ? '已处理审批' : '审批失败')
+            poll.refresh()
+          }}
+          onQuestion={async (item, answer) => {
+            if (item.rpcId === undefined || sessionId === null) return
+            const result = await questionRespond({ rpcId: item.rpcId, sessionId, answer })
+            setToast(result.ok ? '已提交回答' : '提问提交失败')
+            poll.refresh()
           }}
           {...isGroup ? {
             groupMode: true,
@@ -737,8 +788,9 @@ export function Conversation(props: ConversationProps) {
       <Composer
         botId={identityId}
         botName={identityName}
-        disabled={composerLocked}
+        disabled={false}
         sending={sending}
+        working={composerWorking}
         error={sendError}
         errorCode={sendCode}
         toast={toast}
@@ -747,6 +799,7 @@ export function Conversation(props: ConversationProps) {
         onClearReply={() => setReplyTo(null)}
         {...isGroup ? { storageKey: groupDraftStorageKey(group.id), members } : {}}
         onSend={send}
+        onStop={() => { void stopGeneration() }}
         {...props.onDraft === undefined ? {} : { onDraft: props.onDraft }}
       />
     </div>
