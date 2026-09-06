@@ -368,9 +368,9 @@ export function App() {
         kind: 'bot',
         unread: bot.unread ?? 0,
         pinned: bot.pinned === true,
-        section: bot.section,
+        section: bot.section ?? 'work',
         hidden: bot.hidden === true,
-        order: bot.order,
+        order: bot.order ?? bot.createdAt,
         muted: bot.muted === true,
         modelLabel: bot.modelOverride?.model ?? botModel?.model ?? '默认模型',
         routineCount: routineCountByBot[bot.id] ?? 0,
@@ -389,8 +389,8 @@ export function App() {
         selected,
         protected: false,
         kind: 'group',
-        section: group.section,
-        order: group.order,
+        section: group.section ?? 'work',
+        order: group.order ?? group.createdAt,
         members: group.memberIds.map(id => {
           const bot = bots.find(row => row.id === id)
           return {

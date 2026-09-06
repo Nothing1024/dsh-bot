@@ -14,4 +14,4 @@
 13,P4:轮询与流式,执行 Phase 4 回归验证,spec.md#task-13,12,pnpm run typecheck && ./node_modules/.bin/vitest run packages/workbench-ui/tests → 通过,已完成,
 14,P5:收尾,同步 README 实时说明,spec.md#task-14,13,"rg -n ""dsh-bot/events"" README.md → ≥1 命中",已完成,
 15,P5:收尾,执行 spec 5.2 真实场景全套测试,spec.md#task-15,13,按 5.2 执行矩阵逐行回放 → 全部通过,已完成,UF-013 本轮无 approval/requested 诚实缺口；卡组件单测覆盖；其余 UF 真机已回放
-16,P5:收尾,执行 Phase 5 回归验证,spec.md#task-16,14;15,pnpm run typecheck && pnpm run build && pnpm test && pnpm run standard:check → 全绿,已阻塞:typecheck SessionId brand clash 本仓 0.1.2-rc.1 vs vibee 0.1.0-rc.7 via session-tool paths,build/test/standard 绿；邻仓零改
+16,P5:收尾,执行 Phase 5 回归验证,spec.md#task-16,14;15,pnpm run typecheck && pnpm run build && pnpm test && pnpm run standard:check → 全绿,已完成,typecheck 夹具同步于9ec26a5

@@ -78,6 +78,11 @@ const BOT_VIEW = {
   createdAt: 1,
   persona: '你是 DSH Bot。',
   protected: true,
+  pinned: false,
+  section: 'work',
+  hidden: false,
+  order: 1,
+  muted: false,
 }
 
 function stub(overrides: Partial<DshBotHttpFace> = {}): DshBotHttpFace {
@@ -112,12 +117,16 @@ function stub(overrides: Partial<DshBotHttpFace> = {}): DshBotHttpFace {
       name: '编辑室',
       memberIds: ['dsh-bot', 'shiren-xiaobei'],
       createdAt: 1,
+      section: 'work',
+      order: 1,
     })),
     updateGroup: vi.fn(async () => ({
       id: 'bianjishi',
       name: '编辑室',
       memberIds: ['dsh-bot', 'shiren-xiaobei'],
       createdAt: 1,
+      section: 'work',
+      order: 1,
     })),
     deleteGroup: vi.fn(async () => ({ id: 'bianjishi', deleted: true as const })),
     createGroupSession: vi.fn(async () => ({
@@ -359,6 +368,8 @@ describe('dsh-bot HTTP face', () => {
         name: '编辑室',
         memberIds: ['dsh-bot', 'shiren-xiaobei'],
         createdAt: 1,
+        section: 'work',
+        order: 1,
       },
     })
     expect(bot.createGroup).toHaveBeenCalledWith({

@@ -15,9 +15,9 @@ function Harness(props: {
     paletteOpen: props.open,
     onTogglePalette: props.onToggle,
     onClosePalette: props.onClose,
-    onRosterIndex: props.onRosterIndex,
-    onRosterMove: props.onRosterMove,
-    onToggleRoster: props.onToggleRoster,
+    ...props.onRosterIndex === undefined ? {} : { onRosterIndex: props.onRosterIndex },
+    ...props.onRosterMove === undefined ? {} : { onRosterMove: props.onRosterMove },
+    ...props.onToggleRoster === undefined ? {} : { onToggleRoster: props.onToggleRoster },
   })
   return <textarea data-testid="focus" />
 }

@@ -2,7 +2,7 @@
 
 | 包 | 完成 | 阻塞 |
 |---|---|---|
-| dsh-bot-roster | 14/15 | Task 15 typecheck 邻仓 SessionId brand clash（本仓 0.1.2-rc.1 vs vibee 0.1.0-rc.7）；build/test/standard 绿；邻仓零改 |
+| dsh-bot-roster | 15/15 | 无。Task 15 typecheck 夹具同步于9ec26a5；原邻仓 SessionId clash 诊断不成立 |
 
 ## 5.2
 

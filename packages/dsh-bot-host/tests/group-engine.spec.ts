@@ -41,6 +41,11 @@ const DSH: BotView = {
   createdAt: 1,
   persona: '你是 DSH Bot。',
   protected: true,
+  pinned: false,
+  section: 'work',
+  hidden: false,
+  order: 1,
+  muted: false,
 }
 
 const POET: BotView = {
@@ -51,6 +56,11 @@ const POET: BotView = {
   createdAt: 2,
   persona: '你是一位诗人。',
   protected: false,
+  pinned: false,
+  section: 'work',
+  hidden: false,
+  order: 2,
+  muted: false,
 }
 
 class StubSessionTool implements SessionToolService {
@@ -175,6 +185,9 @@ const fakeBots: BotsRuntime = {
   async rewritePresetPersona() {},
   async declineTopic() {
     throw new DshBotError('internal', 'unused')
+  },
+  async updateLayout() {
+    return { ok: true as const, skipped: [] }
   },
 }
 
