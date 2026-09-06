@@ -14,10 +14,16 @@ import {
   memoryList,
   memoryRemember,
   memoryClear,
+  routineList,
+  routineCreate,
+  routineUpdate,
+  routineDelete,
+  markRead,
   prompt,
 } from './api.ts'
 import type {
   MemoryListValue,
+  RoutineRow,
   WorkbenchBot,
   WorkbenchGroup,
   WorkbenchHistoryItem,
@@ -30,6 +36,7 @@ import { Persona } from './Persona.tsx'
 import { Composer } from './Composer.tsx'
 import type { ComposerReplyTo } from './Composer.tsx'
 import { MemoryPanel } from './MemoryPanel.tsx'
+import { RoutinesPanel } from './RoutinesPanel.tsx'
 import { Transcript } from './Transcript.tsx'
 import type { TranscriptSpeaker } from './Transcript.tsx'
 
@@ -145,6 +152,8 @@ export function Conversation(props: ConversationProps) {
   const [memoryOpen, setMemoryOpen] = useState(false)
   const [memory, setMemory] = useState<MemoryListValue | null>(null)
   const [memoryUnavailable, setMemoryUnavailable] = useState(false)
+  const [routinesOpen, setRoutinesOpen] = useState(false)
+  const [routines, setRoutines] = useState<readonly RoutineRow[]>([])
   const [pinPick, setPinPick] = useState<string | null>(null)
   const [switcherOpen, setSwitcherOpen] = useState(false)
   const [currentMenuOpen, setCurrentMenuOpen] = useState(false)
@@ -293,6 +302,14 @@ export function Conversation(props: ConversationProps) {
     })
     return () => { cancelled = true }
   }, [bot, isGroup, poll.ready, poll.working, historySeq])
+
+  useEffect(() => {
+    if (isGroup || bot === undefined) return
+    void routineList(bot.id).then(result => {
+      if (result.ok) setRoutines(Array.isArray(result.value) ? result.value : [])
+    })
+    void markRead(bot.id)
+  }, [bot, isGroup])
 
   const working = poll.working || sending || awaitingTurn
   const onWorking = props.onWorking
@@ -471,6 +488,50 @@ export function Conversation(props: ConversationProps) {
               >
                 🧠 {memoryCount(memory ?? undefined)}
               </button>
+              <button
+                type="button"
+                className="memoryPill"
+                data-testid="routines-open"
+                title="例程"
+                onClick={() => setRoutinesOpen(open => !open)}
+              >
+                ⏰ {routines.length}
+              </button>
+              {routinesOpen ? (
+                <RoutinesPanel
+                  open
+                  botId={bot?.id ?? ''}
+                  botName={identityName}
+                  rows={routines}
+                  onClose={() => setRoutinesOpen(false)}
+                  onCreate={async input => {
+                    if (bot === undefined) return false
+                    const result = await routineCreate({ botId: bot.id, ...input })
+                    if (!result.ok) return false
+                    const listed = await routineList(bot.id)
+                    if (listed.ok) setRoutines(Array.isArray(listed.value) ? listed.value : [])
+                    return true
+                  }}
+                  onToggle={async (id, enabled) => {
+                    const result = await routineUpdate({ id, enabled })
+                    if (!result.ok) return false
+                    if (bot !== undefined) {
+                      const listed = await routineList(bot.id)
+                      if (listed.ok) setRoutines(Array.isArray(listed.value) ? listed.value : [])
+                    }
+                    return true
+                  }}
+                  onDelete={async id => {
+                    const result = await routineDelete(id)
+                    if (!result.ok) return false
+                    if (bot !== undefined) {
+                      const listed = await routineList(bot.id)
+                      if (listed.ok) setRoutines(Array.isArray(listed.value) ? listed.value : [])
+                    }
+                    return true
+                  }}
+                />
+              ) : null}
               {memoryOpen ? (
                 <MemoryPanel
                   open
@@ -628,6 +689,7 @@ export function Conversation(props: ConversationProps) {
         </div>
       ) : (
         <Transcript
+            botId={bot?.id}
           items={poll.items}
           pending={pending}
           working={working}

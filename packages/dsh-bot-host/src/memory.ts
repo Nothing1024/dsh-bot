@@ -210,10 +210,14 @@ export function shouldExtract(text: string): boolean {
  * Later packages may pass `behavior`; they must not rewrite this function.
  */
 export function stripMemorySection(persona: string): string {
-  const marker = '\n## 你记得的事'
-  const idx = persona.indexOf(marker)
-  if (idx >= 0) return persona.slice(0, idx).replace(/\s+$/u, '')
-  if (persona.startsWith('## 你记得的事')) return ''
+  const headings = ['## 你记得的事', '## 行为规范']
+  let cut = -1
+  for (const heading of headings) {
+    if (persona.startsWith(heading)) return ''
+    const idx = persona.indexOf(`\n${heading}`)
+    if (idx >= 0 && (cut < 0 || idx < cut)) cut = idx
+  }
+  if (cut >= 0) return persona.slice(0, cut).replace(/\s+$/u, '')
   return persona
 }
 

@@ -149,4 +149,15 @@ describe('Roster', () => {
     fireEvent.keyDown(input, { key: 'Enter' })
     expect(onRename).toHaveBeenCalledWith('shiren-xiaobei', '北北')
   })
+
+  it('shows an unread badge for a bot with unread > 0', () => {
+    render(
+      <Roster
+        items={[item({ id: 'ops', name: '运维夜班', unread: 2, selected: true, protected: false })]}
+        onSelect={() => undefined}
+        onCreate={() => undefined}
+      />,
+    )
+    expect(screen.getByTestId('roster-unread-ops').textContent).toBe('2')
+  })
 })

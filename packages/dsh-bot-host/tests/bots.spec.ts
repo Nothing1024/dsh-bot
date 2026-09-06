@@ -326,3 +326,19 @@ describe('rewritePresetPersona / INV-801', () => {
     expect(readPersonaText(composition)).toBe('旧人设')
   })
 })
+
+
+describe('declineTopic / behavior section', () => {
+  it('records declined topics without rewriting persona', async () => {
+    const { home, bots } = runtime()
+    const created = await bots.createBot({ name: '校对阿宁', persona: '你是校对阿宁。' })
+    const next = await bots.declineTopic(created.id, '校稿')
+    expect(next.declined).toEqual(['校稿'])
+    const registry = JSON.parse(readFileSync(join(home, 'dsh-bot', 'bots.json'), 'utf8')) as {
+      bots: Array<{ id: string; persona?: string; declined?: string[] }>
+    }
+    const row = registry.bots.find(item => item.id === created.id)
+    expect(row?.persona).toBe('你是校对阿宁。')
+    expect(row?.declined).toEqual(['校稿'])
+  })
+})

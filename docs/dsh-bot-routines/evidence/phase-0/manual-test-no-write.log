@@ -1,0 +1,508 @@
+# dsh-bot 一键 CLI 矩阵（含工作台 createBot 链）
+时间：20260906-190135
+ROOT：/Users/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin
+DSH_HOME：/Users/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin/env
+网关：http://127.0.0.1:3084 pid=16898 home=/Users/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin/env
+CLI：node /Users/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin/../../session-tool/plugin/packages/session-tool-cli/lib/bin.js
+write：0
+本轮标题前缀：dsh-bot-manual-20260906-190135
+说明：不要再 boot --profile gb。须本仓 DSH_HOME。先 who 再 RPC。
+
+## who :3084
+$ /Users/nothing/.agents/skills/dsh-plugin-debug/scripts/dsh-rpc-who.sh 3084
+退出码 0
+--- 标准输出 ---
+127.0.0.1:3084  pid=16898  DSH_HOME=/Users/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin/env  cwd=/Users/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin
+--- 标准错误 ---
+（空）
+
+核对 who-本仓：通过
+监听：
+COMMAND   PID    USER   FD   TYPE             DEVICE SIZE/OFF NODE NAME
+node    16898 nothing   15u  IPv4 0x19465db2a346e565      0t0  TCP 127.0.0.1:3084 (LISTEN)
+
+=== 装配：pluginInventory 本仓行 active ===
+
+## pluginInventory/list
+$ /Users/nothing/.agents/skills/dsh-plugin-debug/scripts/dsh-rpc.sh 3084 pluginInventory/list {}
+退出码 0
+--- 标准输出 ---
+{"type":"server-response","rpcId":"dbg","result":{"ok":true,"value":{"entries":[{"entryId":"include","moduleName":"cordis:include","enabled":true,"fiberPhase":"active"},{"entryId":"include:timer","moduleName":"@deepseek-ai/cordis-plugin-timer","enabled":true,"fiberPhase":"active"},{"entryId":"include:hmr","moduleName":"@deepseek-ai/cordis-plugin-hmr","enabled":false,"fiberPhase":null},{"entryId":"include:llm","moduleName":"@deepseek-ai/dsh-llm","enabled":true,"fiberPhase":"active"},{"entryId":"include:session","moduleName":"@deepseek-ai/dsh-session","enabled":true,"fiberPhase":"active"},{"entryId":"include:typert","moduleName":"@deepseek-ai/dsh-typert-registry","enabled":true,"fiberPhase":"active"},{"entryId":"include:typert-loader","moduleName":"@deepseek-ai/dsh-typert-loader","enabled":true,"fiberPhase":"active"},{"entryId":"include:typert-gateway","moduleName":"@deepseek-ai/dsh-api-gateway","enabled":true,"fiberPhase":"active"},{"entryId":"include:session-title","moduleName":"@deepseek-ai/dsh-session-title","enabled":true,"fiberPhase":"active"},{"entryId":"include:session-title-llm","moduleName":"@deepseek-ai/dsh-session-title-first-prompt-llm","enabled":true,"fiberPhase":"active"},{"entryId":"include:user-questions","moduleName":"@deepseek-ai/dsh-user-questions","enabled":true,"fiberPhase":"active"},{"entryId":"include:agent","moduleName":"@deepseek-ai/dsh-agent","enabled":true,"fiberPhase":"active"},{"entryId":"include:agent-default-model","moduleName":"@deepseek-ai/dsh-agent-default-model","enabled":true,"fiberPhase":"active"},{"entryId":"include:jobs","moduleName":"@deepseek-ai/dsh-jobs-local","enabled":true,"fiberPhase":"active"},{"entryId":"include:llm-retry","moduleName":"@deepseek-ai/dsh-llm-retry","enabled":true,"fiberPhase":"active"},{"entryId":"include:settings","moduleName":"@deepseek-ai/dsh-settings-file","enabled":true,"fiberPhase":"active"},{"entryId":"include:credentials","moduleName":"@deepseek-ai/dsh-credentials-local","enabled":true,"fiberPhase":"active"},{"entryId":"include:llm-pi-ai","moduleName":"@deepseek-ai/dsh-llm-pi-ai","enabled":true,"fiberPhase":"active"},{"entryId":"include:session-persistence-jsonl","moduleName":"@deepseek-ai/dsh-session-persistence-jsonl","enabled":true,"fiberPhase":"active"},{"entryId":"include:attachment-local","moduleName":"@deepseek-ai/dsh-attachment-local","enabled":true,"fiberPhase":"active"},{"entryId":"include:session-query-sqlite","moduleName":"@deepseek-ai/dsh-session-query-sqlite","enabled":true,"fiberPhase":"active"},{"entryId":"include:session-projection","moduleName":"@deepseek-ai/dsh-session-projection","enabled":true,"fiberPhase":"active"},{"entryId":"include:session-telemetry-otel","moduleName":"@deepseek-ai/dsh-session-telemetry-otel","enabled":false,"fiberPhase":null},{"entryId":"include:subprocess","moduleName":"@deepseek-ai/dsh-subprocess-local","enabled":true,"fiberPhase":"active"},{"entryId":"include:sandbox","moduleName":"@deepseek-ai/dsh-sandbox-local","enabled":true,"fiberPhase":"active"},{"entryId":"include:sandbox-policy","moduleName":"@deepseek-ai/dsh-sandbox-policy","enabled":true,"fiberPhase":"active"},{"entryId":"include:bash-sandbox","moduleName":"@deepseek-ai/dsh-bash-sandbox","enabled":true,"fiberPhase":"active"},{"entryId":"include:pwsh-sandbox","moduleName":"@deepseek-ai/dsh-pwsh-sandbox","enabled":false,"fiberPhase":null},{"entryId":"include:approval","moduleName":"@deepseek-ai/dsh-user-approval","enabled":true,"fiberPhase":"active"},{"entryId":"include:permission","moduleName":"@deepseek-ai/dsh-permission-presets","enabled":true,"fiberPhase":"active"},{"entryId":"include:shell-env","moduleName":"@deepseek-ai/dsh-shell-env","enabled":true,"fiberPhase":"active"},{"entryId":"include:tool-bash","moduleName":"@deepseek-ai/dsh-tool-bash","enabled":false,"fiberPhase":null},{"entryId":"include:tool-pwsh","moduleName":"@deepseek-ai/dsh-tool-pwsh","enabled":false,"fiberPhase":null},{"entryId":"include:tool-jobs","moduleName":"@deepseek-ai/dsh-tool-jobs","enabled":false,"fiberPhase":null},{"entryId":"include:fs-observation-policy","moduleName":"@deepseek-ai/dsh-fs-observation-policy","enabled":true,"fiberPhase":"active"},{"entryId":"include:tool-fs","moduleName":"@deepseek-ai/dsh-tool-fs","enabled":false,"fiberPhase":null},{"entryId":"include:tool-fs-search","moduleName":"@deepseek-ai/dsh-tool-fs-search","enabled":false,"fiberPhase":null},{"entryId":"include:agent-instructions","moduleName":"@deepseek-ai/dsh-agent-instructions","enabled":false,"fiberPhase":null},{"entryId":"include:skill","moduleName":"@deepseek-ai/dsh-skill","enabled":true,"fiberPhase":"active"},{"entryId":"include:skill-filesystem","moduleName":"@deepseek-ai/dsh-skill-filesystem","enabled":false,"fiberPhase":null},{"entryId":"include:skill-badge","moduleName":"@deepseek-ai/dsh-skill-badge","enabled":false,"fiberPhase":null},{"entryId":"include:tool-skill","moduleName":"@deepseek-ai/dsh-tool-skill","enabled":false,"fiberPhase":null},{"entryId":"include:commands","moduleName":"@deepseek-ai/dsh-commands","enabled":true,"fiberPhase":"active"},{"entryId":"include:command-feedback","moduleName":"@deepseek-ai/dsh-command-feedback","enabled":true,"fiberPhase":"active"},{"entryId":"include:goal","moduleName":"@deepseek-ai/dsh-goal","enabled":true,"fiberPhase":"active"},{"entryId":"include:goal-round-driver","moduleName":"@deepseek-ai/dsh-goal-round-driver","enabled":true,"fiberPhase":"active"},{"entryId":"include:command-goal","moduleName":"@deepseek-ai/dsh-command-goal","enabled":true,"fiberPhase":"active"},{"entryId":"include:plan-mode","moduleName":"@deepseek-ai/dsh-plan-mode","enabled":false,"fiberPhase":null},{"entryId":"include:token-meter","moduleName":"@deepseek-ai/dsh-token-meter","enabled":true,"fiberPhase":"active"},{"entryId":"include:compaction-basic","moduleName":"@deepseek-ai/dsh-compaction-basic","enabled":false,"fiberPhase":null},{"entryId":"include:command-compact","moduleName":"@deepseek-ai/dsh-command-compact","enabled":false,"fiberPhase":null},{"entryId":"include:subagent","moduleName":"@deepseek-ai/dsh-subagent","enabled":true,"fiberPhase":"active"},{"entryId":"include:subagent-spawn-in-process","moduleName":"@deepseek-ai/dsh-subagent-spawn-in-process","enabled":true,"fiberPhase":"active"},{"entryId":"include:subagent-fork-in-process","moduleName":"@deepseek-ai/dsh-subagent-fork-in-process","enabled":true,"fiberPhase":"active"},{"entryId":"include:tool-subagent-control","moduleName":"@deepseek-ai/dsh-tool-subagent-control","enabled":false,"fiberPhase":null},{"entryId":"include:tool-subagent-list-agents","moduleName":"@deepseek-ai/dsh-tool-subagent-control/list-agents","enabled":false,"fiberPhase":null},{"entryId":"include:tool-subagent","moduleName":"@deepseek-ai/dsh-tool-subagent","enabled":false,"fiberPhase":null},{"entryId":"include:tool-subagent-fork","moduleName":"@deepseek-ai/dsh-tool-subagent","enabled":false,"fiberPhase":null},{"entryId":"include:tool-subagent-report","moduleName":"@deepseek-ai/dsh-tool-subagent-report","enabled":true,"fiberPhase":"active"},{"entryId":"include:workflow-worker-thread","moduleName":"@deepseek-ai/dsh-workflow-worker-thread","enabled":false,"fiberPhase":null},{"entryId":"include:tool-workflow","moduleName":"@deepseek-ai/dsh-tool-workflow","enabled":false,"fiberPhase":null},{"entryId":"include:timeout-policy","moduleName":"@deepseek-ai/dsh-tool-call-timeout-policy","enabled":true,"fiberPhase":"active"},{"entryId":"include:spill-local","moduleName":"@deepseek-ai/dsh-spill-local","enabled":true,"fiberPhase":"active"},{"entryId":"include:spill-policy","moduleName":"@deepseek-ai/dsh-spill-policy","enabled":true,"fiberPhase":"active"},{"entryId":"include:session-checkpoint-policy","moduleName":"@deepseek-ai/dsh-session-checkpoint-policy","enabled":true,"fiberPhase":"active"},{"entryId":"include:tool-result-pruner","moduleName":"@deepseek-ai/dsh-compaction-tool-result-pruner","enabled":false,"fiberPhase":null},{"entryId":"include:tool-todo","moduleName":"@deepseek-ai/dsh-tool-todo","enabled":false,"fiberPhase":null},{"entryId":"include:tool-goal","moduleName":"@deepseek-ai/dsh-tool-goal","enabled":false,"fiberPhase":null},{"entryId":"include:tool-ralph","moduleName":"@deepseek-ai/dsh-tool-ralph","enabled":false,"fiberPhase":null},{"entryId":"include:tool-str-replace-editor","moduleName":"@deepseek-ai/dsh-tool-str-replace-editor","enabled":false,"fiberPhase":null},{"entryId":"include:repeat-tool-reminder","moduleName":"@deepseek-ai/dsh-repeat-tool-reminder","enabled":true,"fiberPhase":"active"},{"entryId":"include:web","moduleName":"@deepseek-ai/dsh-web","enabled":true,"fiberPhase":"active"},{"entryId":"include:web-search-deepseek","moduleName":"@deepseek-ai/dsh-web-search-deepseek","enabled":true,"fiberPhase":"active"},{"entryId":"include:tool-web","moduleName":"@deepseek-ai/dsh-tool-web","enabled":false,"fiberPhase":null},{"entryId":"include:tools","moduleName":"@deepseek-ai/dsh-tools","enabled":true,"fiberPhase":"active"},{"entryId":"include:system-prompt","moduleName":"@deepseek-ai/dsh-system-prompt","enabled":true,"fiberPhase":"active"},{"entryId":"include:agent-loop","moduleName":"@deepseek-ai/dsh-agent-loop","enabled":true,"fiberPhase":"active"},{"entryId":"include:fs-sandbox","moduleName":"@deepseek-ai/dsh-fs-sandbox","enabled":true,"fiberPhase":"active"},{"entryId":"include:llm-deepseek","moduleName":"@deepseek-ai/dsh-llm-deepseek","enabled":true,"fiberPhase":"active"},{"entryId":"include:code-runtime","moduleName":"@deepseek-ai/dsh-code-runtime-worker-thread","enabled":true,"fiberPhase":"active"},{"entryId":"include:storage","moduleName":"@deepseek-ai/dsh-storage","enabled":true,"fiberPhase":"active"},{"entryId":"include:storage-json","moduleName":"@deepseek-ai/dsh-storage-json","enabled":true,"fiberPhase":"active"},{"entryId":"include:storage-domain","moduleName":"@deepseek-ai/dsh-storage-domain","enabled":true,"fiberPhase":"active"},{"entryId":"include:message-feedback","moduleName":"@deepseek-ai/dsh-message-feedback","enabled":true,"fiberPhase":"active"},{"entryId":"include:session-log-download","moduleName":"@deepseek-ai/dsh-session-log-export","enabled":true,"fiberPhase":"active"},{"entryId":"include:workspace","moduleName":"@deepseek-ai/dsh-workspace","enabled":true,"fiberPhase":"active"},{"entryId":"include:session-projection-cache","moduleName":"@deepseek-ai/dsh-session-projection-cache","enabled":true,"fiberPhase":"active"},{"entryId":"include:session-reference","moduleName":"@deepseek-ai/dsh-session-reference","enabled":true,"fiberPhase":"active"},{"entryId":"include:file-reference-local","moduleName":"@deepseek-ai/dsh-file-reference-local","enabled":true,"fiberPhase":"active"},{"entryId":"include:session-stats","moduleName":"@deepseek-ai/dsh-session-stats","enabled":true,"fiberPhase":"active"},{"entryId":"include:directory-picker","moduleName":"@deepseek-ai/dsh-host-directory-picker-auto","enabled":true,"fiberPhase":"active"},{"entryId":"include:plugin-inventory","moduleName":"@deepseek-ai/dsh-host-plugin-inventory","enabled":true,"fiberPhase":"active"},{"entryId":"include:api-gateway","moduleName":"@deepseek-ai/dsh-host-apiproxy","enabled":true,"fiberPhase":"active"},{"entryId":"include:cordis-host-runner","moduleName":"@deepseek-ai/dsh-cordis-host-runner","enabled":true,"fiberPhase":"active"},{"entryId":"include:web-startup","moduleName":"@deepseek-ai/dsh-web-app/startup","enabled":true,"fiberPhase":"active"},{"entryId":"include:webserver","moduleName":"@deepseek-ai/dsh-host-webserver","enabled":true,"fiberPhase":"active"},{"entryId":"include:web-runtime","moduleName":"@deepseek-ai/dsh-web-app","enabled":true,"fiberPhase":"active"},{"entryId":"include:client-hmr","moduleName":"@deepseek-ai/dsh-client-hmr","enabled":true,"fiberPhase":"active"},{"entryId":"include:modules","moduleName":"@deepseek-ai/dsh-client-modules","enabled":true,"fiberPhase":"active"},{"entryId":"include:connection","moduleName":"@deepseek-ai/dsh-client-connection","enabled":true,"fiberPhase":"active"},{"entryId":"include:api-remotes","moduleName":"@deepseek-ai/dsh-api-remotes","enabled":true,"fiberPhase":"active"},{"entryId":"include:client-runtime","moduleName":"@deepseek-ai/dsh-client-runtime","enabled":true,"fiberPhase":"active"},{"entryId":"include:cordis-client-runner","moduleName":"@deepseek-ai/dsh-cordis-client-runner","enabled":true,"fiberPhase":"active"},{"entryId":"include:ui-theme","moduleName":"@deepseek-ai/dsh-client-ui-theme","enabled":true,"fiberPhase":"active"},{"entryId":"include:locale","moduleName":"@deepseek-ai/dsh-client-locale","enabled":true,"fiberPhase":"active"},{"entryId":"include:ui-layout","moduleName":"@deepseek-ai/dsh-client-ui-layout","enabled":true,"fiberPhase":"active"},{"entryId":"include:ui-renderer","moduleName":"@deepseek-ai/dsh-client-ui-renderer","enabled":true,"fiberPhase":"active"},{"entryId":"include:ui-sidebar","moduleName":"@deepseek-ai/dsh-client-ui-sidebar","enabled":true,"fiberPhase":"active"},{"entryId":"include:ui-settings","moduleName":"@deepseek-ai/dsh-client-ui-settings","enabled":true,"fiberPhase":"active"},{"entryId":"include:ui-settings-general","moduleName":"@deepseek-ai/dsh-client-ui-settings-general","enabled":true,"fiberPhase":"active"},{"entryId":"include:ui-settings-models","moduleName":"@deepseek-ai/dsh-client-ui-settings-models","enabled":true,"fiberPhase":"active"},{"entryId":"include:ui-settings-plugin-inventory","moduleName":"@deepseek-ai/dsh-client-ui-settings-plugin-inventory","enabled":true,"fiberPhase":"active"},{"entryId":"include:ui-conversation","moduleName":"@deepseek-ai/dsh-client-ui-conversation","enabled":true,"fiberPhase":"active"},{"entryId":"include:ui-brand-official","moduleName":"@deepseek-ai/dsh-client-ui-brand-official","enabled":true,"fiberPhase":"active"},{"entryId":"include:ui-attachment","moduleName":"@deepseek-ai/dsh-client-ui-attachment","enabled":true,"fiberPhase":"active"},{"entryId":"include:ui-tool","moduleName":"@deepseek-ai/dsh-client-ui-tool","enabled":true,"fiberPhase":"active"},{"entryId":"include:ui-cordis","moduleName":"@deepseek-ai/dsh-client-ui-cordis","enabled":true,"fiberPhase":"active"},{"entryId":"include:ui-workflow-run","moduleName":"@deepseek-ai/dsh-client-ui-workflow-run","enabled":true,"fiberPhase":"active"},{"entryId":"include:ui-deliverables","moduleName":"@deepseek-ai/dsh-client-ui-deliverables","enabled":true,"fiberPhase":"active"},{"entryId":"include:ui-workspace","moduleName":"@deepseek-ai/dsh-client-ui-workspace","enabled":true,"fiberPhase":"active"},{"entryId":"include:ui-input-trigger","moduleName":"@deepseek-ai/dsh-client-ui-input-trigger","enabled":true,"fiberPhase":"active"},{"entryId":"include:ui-commands","moduleName":"@deepseek-ai/dsh-client-ui-commands","enabled":true,"fiberPhase":"active"},{"entryId":"include:ui-skill","moduleName":"@deepseek-ai/dsh-client-ui-skill","enabled":true,"fiberPhase":"active"},{"entryId":"include:ui-subagent","moduleName":"@deepseek-ai/dsh-client-ui-subagent","enabled":true,"fiberPhase":"active"},{"entryId":"include:ui-reference","moduleName":"@deepseek-ai/dsh-client-ui-reference","enabled":true,"fiberPhase":"active"},{"entryId":"include:ui-jobs","moduleName":"@deepseek-ai/dsh-client-ui-jobs","enabled":true,"fiberPhase":"active"},{"entryId":"include:ui-goal","moduleName":"@deepseek-ai/dsh-client-ui-goal","enabled":true,"fiberPhase":"active"},{"entryId":"include:ui-message-feedback","moduleName":"@deepseek-ai/dsh-client-ui-message-feedback","enabled":true,"fiberPhase":"active"},{"entryId":"include:ui-model-selection","moduleName":"@deepseek-ai/dsh-client-ui-model-selection","enabled":true,"fiberPhase":"active"},{"entryId":"include:ui-permission","moduleName":"@deepseek-ai/dsh-client-ui-permission-presets","enabled":true,"fiberPhase":"active"},{"entryId":"include:ui-agent-preset","moduleName":"@deepseek-ai/dsh-client-ui-agent-preset","enabled":true,"fiberPhase":"active"},{"entryId":"include:ui-settings-plugins","moduleName":"@deepseek-ai/dsh-client-ui-settings-plugins","enabled":true,"fiberPhase":"active"},{"entryId":"include:ui-plan","moduleName":"@deepseek-ai/dsh-client-ui-plan","enabled":true,"fiberPhase":"active"},{"entryId":"include:ui-user-questions","moduleName":"@deepseek-ai/dsh-client-ui-user-questions","enabled":true,"fiberPhase":"active"},{"entryId":"include:ui-trajectory","moduleName":"@deepseek-ai/dsh-client-ui-trajectory","enabled":true,"fiberPhase":"active"},{"entryId":"include:agent-presets","moduleName":"@deepseek-ai/dsh-agent-presets","enabled":true,"fiberPhase":"active"},{"entryId":"include:agent-presets:persona","moduleName":"@deepseek-ai/dsh-persona","enabled":true,"fiberPhase":"active"},{"entryId":"include:agent-presets:agent-instructions","moduleName":"@deepseek-ai/dsh-agent-instructions","enabled":true,"fiberPhase":"active"},{"entryId":"include:agent-presets:tool-bash","moduleName":"@deepseek-ai/dsh-tool-bash","enabled":true,"fiberPhase":"active"},{"entryId":"include:agent-presets:tool-pwsh","moduleName":"@deepseek-ai/dsh-tool-pwsh","enabled":false,"fiberPhase":null},{"entryId":"include:agent-presets:tool-fs","moduleName":"@deepseek-ai/dsh-tool-fs","enabled":true,"fiberPhase":"active"},{"entryId":"include:agent-presets:tool-fs-search","moduleName":"@deepseek-ai/dsh-tool-fs-search","enabled":true,"fiberPhase":"active"},{"entryId":"include:agent-presets:tool-jobs","moduleName":"@deepseek-ai/dsh-tool-jobs","enabled":true,"fiberPhase":"active"},{"entryId":"include:agent-presets:skill-filesystem","moduleName":"@deepseek-ai/dsh-skill-filesystem","enabled":true,"fiberPhase":"active"},{"entryId":"include:agent-presets:tool-skill","moduleName":"@deepseek-ai/dsh-tool-skill","enabled":true,"fiberPhase":"active"},{"entryId":"include:agent-presets:tool-goal","moduleName":"@deepseek-ai/dsh-tool-goal","enabled":true,"fiberPhase":"active"},{"entryId":"include:agent-presets:tool-ask-user","moduleName":"@deepseek-ai/dsh-tool-ask-user","enabled":true,"fiberPhase":"active"},{"entryId":"include:agent-presets:tool-todo","moduleName":"@deepseek-ai/dsh-tool-todo","enabled":true,"fiberPhase":"active"},{"entryId":"include:agent-presets:tool-web","moduleName":"@deepseek-ai/dsh-tool-web","enabled":true,"fiberPhase":"active"},{"entryId":"include:agent-presets:plan-mode","moduleName":"@deepseek-ai/dsh-plan-mode","enabled":true,"fiberPhase":"active"},{"entryId":"include:agent-presets:compaction-basic","moduleName":"@deepseek-ai/dsh-compaction-basic","enabled":true,"fiberPhase":"active"},{"entryId":"include:agent-presets:command-compact","moduleName":"@deepseek-ai/dsh-command-compact","enabled":true,"fiberPhase":"active"},{"entryId":"include:agent-presets:tool-result-pruner","moduleName":"@deepseek-ai/dsh-compaction-tool-result-pruner","enabled":true,"fiberPhase":"active"},{"entryId":"include:agent-presets:tool-subagent-control","moduleName":"@deepseek-ai/dsh-tool-subagent-control","enabled":true,"fiberPhase":"active"},{"entryId":"include:agent-presets:tool-subagent-list-agents","moduleName":"@deepseek-ai/dsh-tool-subagent-control/list-agents","enabled":true,"fiberPhase":"active"},{"entryId":"include:agent-presets:tool-subagent","moduleName":"@deepseek-ai/dsh-tool-subagent","enabled":true,"fiberPhase":"active"},{"entryId":"include:agent-presets:tool-subagent-fork","moduleName":"@deepseek-ai/dsh-tool-subagent","enabled":true,"fiberPhase":"active"},{"entryId":"include:agent-presets:tool-subagent-codex","moduleName":"@deepseek-ai/dsh-tool-subagent","enabled":false,"fiberPhase":null},{"entryId":"include:agent-presets:tool-subagent-claude-code","moduleName":"@deepseek-ai/dsh-tool-subagent","enabled":false,"fiberPhase":null},{"entryId":"include:agent-presets:workflow-worker-thread","moduleName":"@deepseek-ai/dsh-workflow-worker-thread","enabled":true,"fiberPhase":"active"},{"entryId":"include:agent-presets:tool-workflow","moduleName":"@deepseek-ai/dsh-tool-workflow","enabled":true,"fiberPhase":"active"},{"entryId":"include:agent-presets:tool-ralph","moduleName":"@deepseek-ai/dsh-tool-ralph","enabled":true,"fiberPhase":"active"},{"entryId":"include:better-sidebar","moduleName":"dsh-better-sidebar","enabled":true,"fiberPhase":"active"},{"entryId":"include:session-tool-local","moduleName":"session-tool-local","enabled":true,"fiberPhase":"active"},{"entryId":"include:tool-session","moduleName":"tool-session","enabled":true,"fiberPhase":"active"},{"entryId":"include:dsh-bot-host","moduleName":"dsh-bot-host","enabled":true,"fiberPhase":"active"},{"entryId":"include:tool-dsh-bot","moduleName":"tool-dsh-bot","enabled":true,"fiberPhase":"active"},{"entryId":"include:ui-dsh-bot","moduleName":"ui-dsh-bot","enabled":true,"fiberPhase":"active"},{"entryId":"dbd3b10f","moduleName":"@deepseek-ai/dsh-host-directory-picker-native","enabled":true,"fiberPhase":"active"},{"entryId":"9368b4b2","moduleName":"@deepseek-ai/dsh-client-ui-directory-picker-native","enabled":true,"fiberPhase":"active"},{"entryId":"0c5dd089","moduleName":"@deepseek-ai/cordis-plugin-hmr","enabled":true,"fiberPhase":"active"}]}}}
+--- 标准错误 ---
+（空）
+
+核对 库存-退出码：通过
+核对 库存-dsh-bot-host：通过
+核对 库存-tool-dsh-bot：通过
+核对 库存-ui-dsh-bot：通过
+=== UF-001 建会话冒烟（session.create 吃默认 preset=dsh-bot） ===
+
+## UF-001 session.create
+$ /Users/nothing/.agents/skills/dsh-plugin-debug/scripts/dsh-rpc.sh 3084 session.create '{"cwd":"/Users/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin"}'
+退出码 0
+--- 标准输出 ---
+{"type":"server-response","rpcId":"dbg","result":{"ok":true,"value":{"sessionId":"session-135e0ad2-909b-414e-8f18-df94b9c63e09","agentPreset":"dsh-bot"}}}
+--- 标准错误 ---
+（空）
+
+核对 UF-001-退出码：通过
+核对 UF-001-rpc-ok：通过
+核对 UF-001-有id：通过
+核对 UF-001-preset：通过
+
+## UF-001 session.models（全局默认）
+$ /Users/nothing/.agents/skills/dsh-plugin-debug/scripts/dsh-rpc.sh 3084 session.models '{"sessionId":"session-135e0ad2-909b-414e-8f18-df94b9c63e09"}'
+退出码 0
+--- 标准输出 ---
+{"type":"server-response","rpcId":"dbg","result":{"ok":true,"value":{"current":{"provider":"anthropic","model":"grok-4.6","reasoningEffort":"xhigh"},"routable":true,"groups":[{"id":"deepseek-official","name":"DeepSeek","models":[{"id":"deepseek-v4-flash","name":"DeepSeek-V4-Flash","reasoning":{"efforts":[{"id":"off","name":"Off"},{"id":"low","name":"Low"},{"id":"high","name":"High"},{"id":"max","name":"Max"}],"defaultEffort":"max"}},{"id":"deepseek-v4-pro","name":"DeepSeek-V4-Pro","reasoning":{"efforts":[{"id":"off","name":"Off"},{"id":"low","name":"Low"},{"id":"high","name":"High"},{"id":"max","name":"Max"}],"defaultEffort":"max"}},{"id":"deepseek-v4-flash-vision-exp","name":"DeepSeek-V4-Flash-Vision-Exp","reasoning":{"efforts":[{"id":"off","name":"Off"},{"id":"low","name":"Low"},{"id":"high","name":"High"},{"id":"max","name":"Max"}],"defaultEffort":"max"}}]},{"id":"anthropic","name":"Anthropic","models":[{"id":"grok-4.6","name":"grok-4.6","reasoning":{"efforts":[{"id":"off","name":"Off"},{"id":"low","name":"Low"},{"id":"medium","name":"Medium"},{"id":"high","name":"High"},{"id":"xhigh","name":"Xhigh"}],"defaultEffort":"xhigh"}}]}],"failures":[]}}}
+--- 标准错误 ---
+（空）
+
+全局模型：anthropic/grok-4.6
+override 候选：deepseek-official/deepseek-v4-flash distinct=true
+核对 UF-001-有全局模型：通过
+=== UF-002 CLI 驱动委托（--no-write 走 /dsh-bot/createSession；--write 另打 dsh_bot_ask） ===
+
+## UF-002 /dsh-bot/createSession
+$ curl -sS -X POST http://127.0.0.1:3084/dsh-bot/createSession -H 'Content-Type: application/json' -d '{"args":{"title":"dsh-bot-manual-20260906-190135-plugin","cwd":"/Users/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin"}}'
+退出码 0
+--- 标准输出 ---
+{"ok":true,"value":{"sessionId":"session-6581ee52-ac48-42ed-861d-4346b860c749","title":"dsh-bot-manual-20260906-190135-plugin"}}
+--- 标准错误 ---
+（空）
+
+核对 UF-002-http-ok：通过
+核对 UF-002-有id：通过
+=== UF-006 override 设置 / 清空，经插件创建并核 session.models ===
+
+## settings.describe 快照
+$ /Users/nothing/.agents/skills/dsh-plugin-debug/scripts/dsh-rpc.sh 3084 settings.describe {}
+退出码 0
+--- 标准输出 ---
+{"type":"server-response","rpcId":"dbg","result":{"ok":true,"value":{"writable":true,"hasDocument":true,"namespaces":[{"ns":"agent-default-model","schema":{"uid":36,"refs":{"32":{"type":"string","meta":{"required":true}},"34":{"type":"string","meta":{"required":true}},"35":{"type":"string","meta":{}},"36":{"type":"object","meta":{"default":{}},"dict":{"provider":32,"model":34,"reasoningEffort":35}}}},"value":{"provider":"anthropic","model":"grok-4.6","reasoningEffort":"xhigh"},"base":{"provider":"deepseek-official","model":"deepseek-v4-flash"},"user":{"provider":"anthropic","model":"grok-4.6","reasoningEffort":"xhigh"},"applies":"live","secrets":[],"revision":0},{"ns":"web-search-deepseek","schema":{"uid":209,"refs":{"192":{"type":"string","meta":{"role":"secret"}},"195":{"type":"string","meta":{"role":"credential-ref","default":"DEEPSEEK_API_KEY"}},"196":{"type":"string","meta":{}},"198":{"type":"string","meta":{"default":"deepseek-v4-flash"}},"200":{"type":"string","meta":{"default":"2023-06-01"}},"204":{"type":"number","meta":{"step":1,"min":1,"default":4096}},"208":{"type":"number","meta":{"step":1,"min":1,"default":5}},"209":{"type":"object","meta":{"default":{}},"dict":{"apiKey":192,"apiKeyEnv":195,"baseURL":196,"model":198,"apiVersion":200,"maxTokens":204,"maxUses":208}}}},"value":{"apiKeyEnv":"DEEPSEEK_API_KEY","baseURL":"https://panpanpan.59188888.xyz/v1","model":"grok-4.6","apiVersion":"2023-06-01","maxTokens":4096,"maxUses":5},"base":{"apiKeyEnv":"DEEPSEEK_API_KEY","model":"deepseek-v4-flash","apiVersion":"2023-06-01","maxTokens":4096,"maxUses":5},"user":{"baseURL":"https://panpanpan.59188888.xyz/v1","model":"grok-4.6"},"applies":"live","secrets":[{"path":["apiKey"],"set":false}],"revision":0},{"ns":"llm-deepseek","schema":{"uid":315,"refs":{"2":{"type":"number","meta":{"max":2147483647,"default":500}},"5":{"type":"number","meta":{"max":2147483647,"default":10000}},"9":{"type":"number","meta":{"min":0,"max":1,"default":0.1}},"10":{"type":"object","meta":{"default":{}},"dict":{"initialDelayMs":2,"maxDelayMs":5,"jitterRatio":9}},"12":{"type":"const","meta":{"required":true},"value":"normal"},"17":{"type":"number","meta":{"step":1,"min":0,"max":9007199254740991,"default":5}},"18":{"type":"string","meta":{}},"20":{"type":"array","meta":{"default":["EMPTY_RESPONSE","RATE_LIMIT","SERVER","TIMEOUT","TRANSPORT"]},"inner":18},"21":{"type":"object","meta":{"default":{}},"dict":{"mode":12,"maxRetries":17,"retryableCodes":20,"backoff":10}},"23":{"type":"const","meta":{"required":true},"value":"always"},"24":{"type":"object","meta":{"default":{}},"dict":{"mode":23,"backoff":10}},"25":{"type":"union","meta":{},"list":[21,24]},"211":{"type":"string","meta":{"required":true}},"212":{"type":"string","meta":{}},"213":{"type":"string","meta":{}},"216":{"type":"number","meta":{"step":1,"min":1}},"219":{"type":"number","meta":{"step":1,"min":1}},"220":{"type":"union","meta":{},"list":[222,224]},"222":{"type":"const","meta":{"required":true},"value":"text"},"224":{"type":"const","meta":{"required":true},"value":"image"},"227":{"type":"array","meta":{"default":["text"],"min":1},"inner":220},"230":{"type":"number","meta":{"step":1,"min":1}},"233":{"type":"number","meta":{"step":1,"min":1}},"234":{"type":"union","meta":{},"list":[236,238]},"236":{"type":"const","meta":{"required":true},"value":"auto"},"238":{"type":"const","meta":{"required":true},"value":"low"},"239":{"type":"object","meta":{"default":{}},"dict":{"id":211,"name":212,"description":213,"contextWindow":216,"maxTokens":219,"inputModalities":227,"imagePixelBudget":230,"imageMaxBytes":233,"imageDetail":234}},"242":{"type":"string","meta":{"role":"credential-ref","default":"DEEPSEEK_API_KEY"}},"243":{"type":"string","meta":{}},"244":{"type":"union","meta":{},"list":[246,248]},"246":{"type":"const","meta":{"required":true},"value":"enabled"},"248":{"type":"const","meta":{"required":true},"value":"disabled"},"249":{"type":"union","meta":{},"list":[251,253,255,257]},"251":{"type":"const","meta":{"required":true},"value":"off"},"253":{"type":"const","meta":{"required":true},"value":"low"},"255":{"type":"const","meta":{"required":true},"value":"high"},"257":{"type":"const","meta":{"required":true},"value":"max"},"262":{"type":"number","meta":{"step":1,"min":1,"max":9007199254740991,"default":256000}},"266":{"type":"number","meta":{"step":1,"min":1,"default":1000000}},"268":{"type":"array","meta":{"default":[{"id":"deepseek-v4-flash","name":"DeepSeek-V4-Flash","contextWindow":1000000},{"id":"deepseek-v4-pro","name":"DeepSeek-V4-Pro","contextWindow":1000000},{"id":"deepseek-v4-flash-vision-exp","name":"DeepSeek-V4-Flash-Vision-Exp","contextWindow":1000000,"inputModalities":["text","image"],"imagePixelBudget":640000,"imageMaxBytes":1048576}]},"inner":239},"272":{"type":"number","meta":{"min":5e-324,"max":2147483647,"default":300000}},"276":{"type":"number","meta":{"step":1,"min":1,"default":134217728}},"280":{"type":"number","meta":{"step":1,"min":1,"default":20971520}},"284":{"type":"number","meta":{"step":1,"min":1,"default":600}},"288":{"type":"number","meta":{"step":1,"min":1,"default":67108864}},"292":{"type":"number","meta":{"step":1,"min":1,"default":10485760}},"296":{"type":"number","meta":{"step":1,"min":1,"default":20}},"300":{"type":"number","meta":{"min":5e-324,"max":2147483647,"default":60000}},"305":{"type":"number","meta":{"step":1,"min":3600,"max":2592000,"default":604800}},"309":{"type":"number","meta":{"step":1,"min":0,"default":3600}},"314":{"type":"number","meta":{"step":1,"min":1,"max":1000,"default":100}},"315":{"type":"object","meta":{"default":{}},"dict":{"apiKeyEnv":242,"baseURL":243,"thinking":244,"reasoningEffort":249,"maxTokens":262,"defaultContextWindow":266,"models":268,"streamIdleTimeoutMs":272,"maxRequestFilesBytes":276,"maxInlineRequestImageBytes":280,"maxImagesPerRequest":284,"imageOffloadByteQuantum":288,"inlineImageOffloadByteQuantum":292,"imageOffloadCountQuantum":296,"filesApiTimeoutMs":300,"fileExpiresAfterSeconds":305,"fileRefreshMarginSeconds":309,"fileQuotaCleanupBatch":314,"retryPolicy":25}}}},"value":{"apiKeyEnv":"DEEPSEEK_API_KEY","baseURL":"https://panpanpan.59188888.xyz/v1","reasoningEffort":"max","maxTokens":256000,"defaultContextWindow":1000000,"models":[{"id":"deepseek-v4-flash","name":"DeepSeek-V4-Flash","contextWindow":1000000,"inputModalities":["text"]},{"id":"deepseek-v4-pro","name":"DeepSeek-V4-Pro","contextWindow":1000000,"inputModalities":["text"]},{"id":"deepseek-v4-flash-vision-exp","name":"DeepSeek-V4-Flash-Vision-Exp","contextWindow":1000000,"inputModalities":["text","image"],"imagePixelBudget":640000,"imageMaxBytes":1048576}],"streamIdleTimeoutMs":300000,"maxRequestFilesBytes":134217728,"maxInlineRequestImageBytes":20971520,"maxImagesPerRequest":600,"imageOffloadByteQuantum":67108864,"inlineImageOffloadByteQuantum":10485760,"imageOffloadCountQuantum":20,"filesApiTimeoutMs":60000,"fileExpiresAfterSeconds":604800,"fileRefreshMarginSeconds":3600,"fileQuotaCleanupBatch":100,"retryPolicy":{"mode":"normal","maxRetries":5,"retryableCodes":["EMPTY_RESPONSE","RATE_LIMIT","SERVER","TIMEOUT","TRANSPORT"],"backoff":{"initialDelayMs":500,"maxDelayMs":10000,"jitterRatio":0.1}}},"base":{"apiKeyEnv":"DEEPSEEK_API_KEY","maxTokens":256000,"defaultContextWindow":1000000,"models":[{"id":"deepseek-v4-flash","name":"DeepSeek-V4-Flash","contextWindow":1000000,"inputModalities":["text"]},{"id":"deepseek-v4-pro","name":"DeepSeek-V4-Pro","contextWindow":1000000,"inputModalities":["text"]},{"id":"deepseek-v4-flash-vision-exp","name":"DeepSeek-V4-Flash-Vision-Exp","contextWindow":1000000,"inputModalities":["text","image"],"imagePixelBudget":640000,"imageMaxBytes":1048576}],"streamIdleTimeoutMs":300000,"maxRequestFilesBytes":134217728,"maxInlineRequestImageBytes":20971520,"maxImagesPerRequest":600,"imageOffloadByteQuantum":67108864,"inlineImageOffloadByteQuantum":10485760,"imageOffloadCountQuantum":20,"filesApiTimeoutMs":60000,"fileExpiresAfterSeconds":604800,"fileRefreshMarginSeconds":3600,"fileQuotaCleanupBatch":100},"user":{"baseURL":"https://panpanpan.59188888.xyz/v1","reasoningEffort":"max","retryPolicy":{"mode":"normal","maxRetries":5}},"applies":"live","secrets":[],"revision":0},{"ns":"ui-theme","schema":{"uid":446,"refs":{"440":{"type":"const","meta":{"required":true},"value":"light"},"442":{"type":"const","meta":{"required":true},"value":"dark"},"444":{"type":"const","meta":{"required":true},"value":"system"},"445":{"type":"union","meta":{"default":"system"},"list":[440,442,444]},"446":{"type":"object","meta":{"default":{}},"dict":{"preference":445}}}},"value":{"preference":"light"},"user":{"preference":"light"},"applies":"live","secrets":[],"revision":0},{"ns":"locale","schema":{"uid":453,"refs":{"449":{"type":"const","meta":{"required":true},"value":"zh"},"451":{"type":"const","meta":{"required":true},"value":"en"},"452":{"type":"union","meta":{"required":false},"list":[449,451]},"453":{"type":"object","meta":{"default":{}},"dict":{"preference":452}}}},"value":{},"applies":"live","secrets":[],"revision":0},{"ns":"ui-onboarding","schema":{"uid":455,"refs":{"454":{"type":"string","meta":{}},"455":{"type":"object","meta":{"default":{}},"dict":{"welcomeNoticeVersion":454}}}},"value":{"welcomeNoticeVersion":"2026-08-13.1"},"user":{"welcomeNoticeVersion":"2026-08-13.1"},"applies":"live","secrets":[],"revision":0},{"ns":"ui-conversation","schema":{"uid":462,"refs":{"458":{"type":"const","meta":{"required":true},"value":"queue"},"460":{"type":"const","meta":{"required":true},"value":"steer"},"461":{"type":"union","meta":{"default":"queue"},"list":[458,460]},"462":{"type":"object","meta":{"default":{}},"dict":{"busyEnter":461}}}},"value":{"busyEnter":"queue"},"applies":"live","secrets":[],"revision":0},{"ns":"agent-presets","schema":{"uid":480,"refs":{"479":{"type":"string","meta":{}},"480":{"type":"object","meta":{"default":{}},"dict":{"default":479}}}},"value":{"default":"dsh-bot"},"base":{"default":"standard"},"user":{"default":"dsh-bot"},"applies":"live","secrets":[],"revision":0},{"ns":"agent-loop","schema":{"uid":124,"refs":{"123":{"type":"number","meta":{"step":1,"min":1,"default":10}},"124":{"type":"object","meta":{"default":{}},"dict":{"maxParallelToolCalls":123}}}},"value":{"maxParallelToolCalls":10},"base":{"maxParallelToolCalls":10},"applies":"live","secrets":[],"revision":0},{"ns":"shell","schema":{"uid":544,"refs":{"533":{"type":"string","meta":{}},"535":{"type":"number","meta":{"default":120000}},"537":{"type":"number","meta":{"default":600000}},"539":{"type":"number","meta":{"default":64000}},"541":{"type":"number","meta":{"default":67108864}},"543":{"type":"number","meta":{"default":3000}},"544":{"type":"object","meta":{"default":{}},"dict":{"cwd":533,"timeoutMs":535,"maxTimeoutMs":537,"maxOutputBytes":539,"maxSpillBytes":541,"graceMs":543}}}},"value":{"timeoutMs":60000,"maxTimeoutMs":600000,"maxOutputBytes":64000,"maxSpillBytes":67108864,"graceMs":3000},"base":{"timeoutMs":60000,"maxTimeoutMs":600000,"maxOutputBytes":64000,"maxSpillBytes":67108864,"graceMs":3000},"applies":"live","secrets":[],"revision":0},{"ns":"dsh-bot","schema":{"uid":890,"refs":{"873":{"type":"string","meta":{"default":"http://127.0.0.1:3084"}},"877":{"type":"number","meta":{"step":1,"min":1,"default":180000}},"879":{"type":"string","meta":{"default":""}},"881":{"type":"string","meta":{"default":""}},"882":{"type":"string","meta":{}},"883":{"type":"object","meta":{"default":{}},"dict":{"provider":879,"model":881,"reasoningEffort":882}},"885":{"type":"boolean","meta":{"default":true}},"886":{"type":"object","meta":{"default":{}},"dict":{"enabled":885}},"888":{"type":"boolean","meta":{"default":true}},"889":{"type":"object","meta":{"default":{}},"dict":{"enabled":888}},"890":{"type":"object","meta":{"default":{}},"dict":{"webUrl":873,"askTimeoutMs":877,"model":883,"memory":886,"routines":889}}}},"value":{"memoryEnabled":true,"routinesEnabled":true,"webUrl":"http://127.0.0.1:3084","askTimeoutMs":180000,"model":{"provider":"","model":""},"memory":{"enabled":true},"routines":{"enabled":true}},"base":{"memoryEnabled":true,"routinesEnabled":true,"webUrl":"http://127.0.0.1:3084","askTimeoutMs":180000,"model":{"provider":"","model":""}},"user":{"askTimeoutMs":180000,"model":{"provider":"","model":""}},"applies":"live","secrets":[],"revision":0},{"ns":"permission","schema":{"uid":968,"refs":{"963":{"type":"const","meta":{},"value":"read-only"},"964":{"type":"const","meta":{},"value":"workspace-write"},"965":{"type":"const","meta":{},"value":"danger-full-access"},"967":{"type":"union","meta":{"required":true},"list":[963,964,965]},"968":{"type":"object","meta":{"default":{}},"dict":{"defaultPreset":967}}}},"value":{"defaultPreset":"workspace-write"},"base":{"defaultPreset":"workspace-write"},"applies":"live","secrets":[],"revision":0},{"ns":"llm-pi-ai","schema":{"uid":1162,"refs":{"2":{"type":"number","meta":{"max":2147483647,"default":500}},"5":{"type":"number","meta":{"max":2147483647,"default":10000}},"9":{"type":"number","meta":{"min":0,"max":1,"default":0.1}},"10":{"type":"object","meta":{"default":{}},"dict":{"initialDelayMs":2,"maxDelayMs":5,"jitterRatio":9}},"12":{"type":"const","meta":{"required":true},"value":"normal"},"17":{"type":"number","meta":{"step":1,"min":0,"max":9007199254740991,"default":5}},"18":{"type":"string","meta":{}},"20":{"type":"array","meta":{"default":["EMPTY_RESPONSE","RATE_LIMIT","SERVER","TIMEOUT","TRANSPORT"]},"inner":18},"21":{"type":"object","meta":{"default":{}},"dict":{"mode":12,"maxRetries":17,"retryableCodes":20,"backoff":10}},"23":{"type":"const","meta":{"required":true},"value":"always"},"24":{"type":"object","meta":{"default":{}},"dict":{"mode":23,"backoff":10}},"25":{"type":"union","meta":{},"list":[21,24]},"969":{"type":"number","meta":{}},"970":{"type":"number","meta":{}},"971":{"type":"number","meta":{}},"972":{"type":"number","meta":{}},"973":{"type":"object","meta":{"default":{}},"dict":{"minimal":969,"low":970,"medium":971,"high":972}},"974":{"type":"string","meta":{}},"975":{"type":"number","meta":{}},"976":{"type":"boolean","meta":{}},"977":{"type":"const","meta":{},"value":null},"980":{"type":"const","meta":{"required":true},"value":"thinking.enabled"},"982":{"type":"const","meta":{"required":true},"value":"thinking.effort"},"983":{"type":"union","meta":{"required":true},"list":[980,982]},"984":{"type":"boolean","meta":{}},"985":{"type":"object","meta":{"default":{}},"dict":{"$var":983,"omitWhenOff":984}},"986":{"type":"union","meta":{},"list":[974,975,976,977,985]},"987":{"type":"boolean","meta":{}},"988":{"type":"boolean","meta":{}},"989":{"type":"boolean","meta":{}},"990":{"type":"boolean","meta":{}},"991":{"type":"union","meta":{},"list":[993,995]},"993":{"type":"const","meta":{"required":true},"value":"max_completion_tokens"},"995":{"type":"const","meta":{"required":true},"value":"max_tokens"},"996":{"type":"boolean","meta":{}},"997":{"type":"boolean","meta":{}},"998":{"type":"boolean","meta":{}},"999":{"type":"boolean","meta":{}},"1000":{"type":"union","meta":{},"list":[1002,1004,1006,1008,1010,1012,1014,1016,1018,1020]},"1002":{"type":"const","meta":{"required":true},"value":"openai"},"1004":{"type":"const","meta":{"required":true},"value":"deepseek"},"1006":{"type":"const","meta":{"required":true},"value":"openrouter"},"1008":{"type":"const","meta":{"required":true},"value":"together"},"1010":{"type":"const","meta":{"required":true},"value":"zai"},"1012":{"type":"const","meta":{"required":true},"value":"qwen"},"1014":{"type":"const","meta":{"required":true},"value":"chat-template"},"1016":{"type":"const","meta":{"required":true},"value":"qwen-chat-template"},"1018":{"type":"const","meta":{"required":true},"value":"string-thinking"},"1020":{"type":"const","meta":{"required":true},"value":"ant-ling"},"1021":{"type":"dict","meta":{"default":{}},"inner":986,"sKey":1022},"1022":{"type":"string","meta":{}},"1023":{"type":"boolean","meta":{}},"1024":{"type":"union","meta":{},"list":[1026]},"1026":{"type":"const","meta":{"required":true},"value":"anthropic"},"1027":{"type":"boolean","meta":{}},"1028":{"type":"boolean","meta":{}},"1029":{"type":"boolean","meta":{}},"1030":{"type":"boolean","meta":{}},"1031":{"type":"boolean","meta":{}},"1032":{"type":"boolean","meta":{}},"1033":{"type":"boolean","meta":{}},"1034":{"type":"object","meta":{"default":{}},"dict":{"supportsStore":987,"supportsDeveloperRole":988,"supportsReasoningEffort":989,"supportsUsageInStreaming":990,"maxTokensField":991,"requiresToolResultName":996,"requiresAssistantAfterToolResult":997,"requiresThinkingAsText":998,"requiresReasoningContentOnAssistantMessages":999,"thinkingFormat":1000,"chatTemplateKwargs":1021,"supportsStrictMode":1023,"cacheControlFormat":1024,"supportsLongCacheRetention":1027,"supportsEagerToolInputStreaming":1028,"supportsCacheControlOnTools":1029,"supportsTemperature":1030,"forceAdaptiveThinking":1031,"allowEmptySignature":1032,"supportsStrictTools":1033}},"1035":{"type":"string","meta":{}},"1036":{"type":"const","meta":{},"value":null},"1037":{"type":"union","meta":{},"list":[1035,1036]},"1038":{"type":"union","meta":{},"list":[1040,1042,1044,1046,1048,1050,1052]},"1040":{"type":"const","meta":{"required":true},"value":"off"},"1042":{"type":"const","meta":{"required":true},"value":"minimal"},"1044":{"type":"const","meta":{"required":true},"value":"low"},"1046":{"type":"const","meta":{"required":true},"value":"medium"},"1048":{"type":"const","meta":{"required":true},"value":"high"},"1050":{"type":"const","meta":{"required":true},"value":"xhigh"},"1052":{"type":"const","meta":{"required":true},"value":"max"},"1053":{"type":"dict","meta":{"default":{}},"inner":1037,"sKey":1038},"1054":{"type":"string","meta":{}},"1057":{"type":"number","meta":{"step":1,"min":1}},"1060":{"type":"number","meta":{"step":1,"min":1}},"1061":{"type":"union","meta":{},"list":[1063,1065]},"1063":{"type":"const","meta":{"required":true},"value":"text"},"1065":{"type":"const","meta":{"required":true},"value":"image"},"1066":{"type":"array","meta":{"default":[]},"inner":1061},"1067":{"type":"const","meta":{},"value":false},"1068":{"type":"union","meta":{},"list":[1067,1053]},"1070":{"type":"string","meta":{"required":true}},"1071":{"type":"object","meta":{"default":{}},"dict":{"id":1070,"name":1054,"contextWindow":1057,"maxTokens":1060,"input":1066,"reasoningEfforts":1068,"compat":1034}},"1072":{"type":"object","meta":{"default":{}},"dict":{"name":1054,"contextWindow":1057,"maxTokens":1060,"input":1066,"reasoningEfforts":1068,"compat":1034}},"1074":{"type":"string","meta":{"role":"credential-ref"}},"1075":{"type":"string","meta":{}},"1076":{"type":"union","meta":{},"list":[1078,1080,1082]},"1078":{"type":"const","meta":{"required":true},"value":"openai-completions"},"1080":{"type":"const","meta":{"required":true},"value":"openai-responses"},"1082":{"type":"const","meta":{"required":true},"value":"anthropic-messages"},"1083":{"type":"string","meta":{}},"1084":{"type":"array","meta":{"default":[]},"inner":1071},"1085":{"type":"dict","meta":{"default":{}},"inner":1072,"sKey":1086},"1086":{"type":"string","meta":{}},"1090":{"type":"number","meta":{"step":1,"min":1,"default":262144}},"1094":{"type":"number","meta":{"step":1,"min":1,"default":32768}},"1095":{"type":"union","meta":{},"list":[1097,1099]},"1097":{"type":"const","meta":{"required":true},"value":"text"},"1099":{"type":"const","meta":{"required":true},"value":"image"},"1101":{"type":"array","meta":{"default":["text"]},"inner":1095},"1102":{"type":"string","meta":{}},"1103":{"type":"dict","meta":{"default":{}},"inner":1102,"sKey":1104},"1104":{"type":"string","meta":{}},"1105":{"type":"union","meta":{},"list":[1107,1109,1111,1113,1115,1117,1119]},"1107":{"type":"const","meta":{"required":true},"value":"off"},"1109":{"type":"const","meta":{"required":true},"value":"minimal"},"1111":{"type":"const","meta":{"required":true},"value":"low"},"1113":{"type":"const","meta":{"required":true},"value":"medium"},"1115":{"type":"const","meta":{"required":true},"value":"high"},"1117":{"type":"const","meta":{"required":true},"value":"xhigh"},"1119":{"type":"const","meta":{"required":true},"value":"max"},"1120":{"type":"union","meta":{},"list":[1122,1124,1126]},"1122":{"type":"const","meta":{"required":true},"value":"none"},"1124":{"type":"const","meta":{"required":true},"value":"short"},"1126":{"type":"const","meta":{"required":true},"value":"long"},"1127":{"type":"union","meta":{},"list":[1129,1131,1133,1135]},"1129":{"type":"const","meta":{"required":true},"value":"sse"},"1131":{"type":"const","meta":{"required":true},"value":"websocket"},"1133":{"type":"const","meta":{"required":true},"value":"websocket-cached"},"1135":{"type":"const","meta":{"required":true},"value":"auto"},"1138":{"type":"number","meta":{"step":1,"min":0}},"1141":{"type":"number","meta":{"step":1,"min":0}},"1145":{"type":"number","meta":{"min":5e-324,"max":2147483647,"default":300000}},"1149":{"type":"number","meta":{"step":1,"min":1,"default":20971520}},"1153":{"type":"number","meta":{"step":1,"min":1,"default":4194304}},"1157":{"type":"number","meta":{"step":1,"min":1,"default":1048576}},"1158":{"type":"object","meta":{"default":{}},"dict":{"apiKeyEnv":1074,"displayName":1075,"api":1076,"baseURL":1083,"models":1084,"modelOverrides":1085,"compat":1034,"defaultContextWindow":1090,"defaultMaxTokens":1094,"defaultInput":1101,"headers":1103,"reasoning":1105,"thinkingBudgets":973,"cacheRetention":1120,"transport":1127,"timeoutMs":1138,"websocketConnectTimeoutMs":1141,"streamIdleTimeoutMs":1145,"maxRequestImageBytes":1149,"requestImagePixelBudget":1153,"requestImageMaxBytes":1157,"retryPolicy":25}},"1160":{"type":"string","meta":{}},"1161":{"type":"dict","meta":{"default":{}},"inner":1158,"sKey":1160},"1162":{"type":"object","meta":{"default":{}},"dict":{"providers":1161}}}},"value":{"providers":{"anthropic":{"apiKeyEnv":"ANTHROPIC_API_KEY","displayName":"Anthropic","api":"openai-completions","baseURL":"https://panpanpan.59188888.xyz/v1","models":[{"id":"grok-4.6","name":"grok-4.6","contextWindow":2000000,"maxTokens":128000,"input":["text","image"],"reasoningEfforts":{"off":null,"low":"low","medium":"medium","high":"high","xhigh":"xhigh"},"compat":{"chatTemplateKwargs":{}}}],"modelOverrides":{},"compat":{"supportsReasoningEffort":true,"thinkingFormat":"openai","chatTemplateKwargs":{}},"defaultContextWindow":262144,"defaultMaxTokens":32768,"defaultInput":["text"],"headers":{},"reasoning":"xhigh","thinkingBudgets":{},"streamIdleTimeoutMs":300000,"maxRequestImageBytes":20971520,"requestImagePixelBudget":4194304,"requestImageMaxBytes":1048576}}},"base":{"providers":{}},"user":{"providers":{"anthropic":{"apiKeyEnv":"ANTHROPIC_API_KEY","displayName":"Anthropic","api":"openai-completions","baseURL":"https://panpanpan.59188888.xyz/v1","models":[{"id":"grok-4.6","name":"grok-4.6","contextWindow":2000000,"maxTokens":128000,"input":["text","image"],"reasoningEfforts":{"off":null,"low":"low","medium":"medium","high":"high","xhigh":"xhigh"}}],"compat":{"supportsReasoningEffort":true,"thinkingFormat":"openai"},"reasoning":"xhigh"}}},"applies":"live","secrets":[],"revision":0},{"ns":"dsh-better-sidebar","schema":{"uid":431,"refs":{"373":{"type":"boolean","meta":{"default":false}},"378":{"type":"number","meta":{"step":1,"min":20,"max":60,"default":35}},"380":{"type":"boolean","meta":{"default":true}},"382":{"type":"boolean","meta":{"default":true}},"384":{"type":"boolean","meta":{"default":false}},"386":{"type":"boolean","meta":{"default":true}},"388":{"type":"string","meta":{"default":""}},"393":{"type":"number","meta":{"step":1,"min":9,"max":32,"default":13}},"395":{"type":"boolean","meta":{"default":true}},"397":{"type":"boolean","meta":{"default":true}},"399":{"type":"boolean","meta":{"default":false}},"404":{"type":"number","meta":{"step":1,"min":0,"max":120,"default":40}},"406":{"type":"boolean","meta":{"default":false}},"408":{"type":"boolean","meta":{"default":false}},"410":{"type":"boolean","meta":{"default":false}},"412":{"type":"boolean","meta":{"default":true}},"414":{"type":"boolean","meta":{"default":true}},"416":{"type":"boolean","meta":{"default":false}},"417":{"type":"boolean","meta":{}},"419":{"type":"string","meta":{}},"420":{"type":"dict","meta":{"default":{}},"inner":417,"sKey":419},"421":{"type":"boolean","meta":{}},"423":{"type":"string","meta":{}},"424":{"type":"dict","meta":{"default":{}},"inner":421,"sKey":423},"425":{"type":"any","meta":{}},"426":{"type":"dict","meta":{"default":{}},"inner":425,"sKey":427},"427":{"type":"string","meta":{}},"429":{"type":"string","meta":{}},"430":{"type":"dict","meta":{"default":{}},"inner":426,"sKey":429},"431":{"type":"object","meta":{"default":{}},"dict":{"openByDefault":373,"defaultWidthPercent":378,"autoOpenSubagent":380,"autoOpenJobs":382,"agentTerminalTools":384,"bottomPanelAutoTerminal":386,"terminalFontFamily":388,"terminalFontSize":393,"interceptOpenPath":395,"editorExplorer":397,"titleBarCompat":399,"titleBarStripPx":404,"htmlViewerNoSandbox":406,"htmlViewerDefaultUnsafe":408,"browserNoSandbox":410,"browserInterceptLinks":412,"browserInterceptHttp":414,"browserInterceptHttps":416,"tabsEnabled":420,"viewersEnabled":424,"pluginSettings":430}}}},"value":{"openByDefault":false,"defaultWidthPercent":35,"autoOpenSubagent":true,"autoOpenJobs":true,"agentTerminalTools":false,"bottomPanelAutoTerminal":true,"terminalFontFamily":"","terminalFontSize":13,"interceptOpenPath":true,"editorExplorer":true,"titleBarCompat":false,"titleBarStripPx":40,"htmlViewerNoSandbox":false,"htmlViewerDefaultUnsafe":false,"browserNoSandbox":false,"browserInterceptLinks":true,"browserInterceptHttp":true,"browserInterceptHttps":false,"tabsEnabled":{},"viewersEnabled":{},"pluginSettings":{}},"applies":"live","secrets":[],"revision":0}]}}}
+--- 标准错误 ---
+（空）
+
+
+## UF-006 写入 override
+$ /Users/nothing/.agents/skills/dsh-plugin-debug/scripts/dsh-rpc.sh 3084 settings.update '{"ns":"dsh-bot","patch":{"model":{"provider":"deepseek-official","model":"deepseek-v4-flash"}}}'
+退出码 0
+--- 标准输出 ---
+{"type":"server-response","rpcId":"dbg","result":{"ok":true,"value":{"ns":"dsh-bot","schema":{"uid":890,"refs":{"873":{"type":"string","meta":{"default":"http://127.0.0.1:3084"}},"877":{"type":"number","meta":{"step":1,"min":1,"default":180000}},"879":{"type":"string","meta":{"default":""}},"881":{"type":"string","meta":{"default":""}},"882":{"type":"string","meta":{}},"883":{"type":"object","meta":{"default":{}},"dict":{"provider":879,"model":881,"reasoningEffort":882}},"885":{"type":"boolean","meta":{"default":true}},"886":{"type":"object","meta":{"default":{}},"dict":{"enabled":885}},"888":{"type":"boolean","meta":{"default":true}},"889":{"type":"object","meta":{"default":{}},"dict":{"enabled":888}},"890":{"type":"object","meta":{"default":{}},"dict":{"webUrl":873,"askTimeoutMs":877,"model":883,"memory":886,"routines":889}}}},"value":{"memoryEnabled":true,"routinesEnabled":true,"webUrl":"http://127.0.0.1:3084","askTimeoutMs":180000,"model":{"provider":"deepseek-official","model":"deepseek-v4-flash"},"memory":{"enabled":true},"routines":{"enabled":true}},"base":{"memoryEnabled":true,"routinesEnabled":true,"webUrl":"http://127.0.0.1:3084","askTimeoutMs":180000,"model":{"provider":"","model":""}},"user":{"askTimeoutMs":180000,"model":{"provider":"deepseek-official","model":"deepseek-v4-flash"}},"applies":"live","secrets":[],"revision":1}}}
+--- 标准错误 ---
+（空）
+
+核对 UF-006-update-ok：通过
+
+## UF-006 listSessions（override 开）
+$ curl -sS -X POST http://127.0.0.1:3084/dsh-bot/listSessions -H 'Content-Type: application/json' -d '{"args":{"includeHidden":true}}'
+退出码 0
+--- 标准输出 ---
+{"ok":false,"error":{"code":"web-unreachable","message":"web gateway unreachable for workspace/follow: HTTP 401"}}
+--- 标准错误 ---
+（空）
+
+核对 UF-006-list-ok：失败
+核对 UF-006-botModel-source：失败
+核对 UF-006-botModel-provider：失败
+核对 UF-006-botModel-model：失败
+
+## UF-006 插件新建（override 开）
+$ curl -sS -X POST http://127.0.0.1:3084/dsh-bot/createSession -H 'Content-Type: application/json' -d '{"args":{"title":"dsh-bot-manual-20260906-190135-override-on","cwd":"/Users/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin"}}'
+退出码 0
+--- 标准输出 ---
+{"ok":true,"value":{"sessionId":"session-90b9250a-8bda-4faf-a2ca-9a2125039bc6","title":"dsh-bot-manual-20260906-190135-override-on"}}
+--- 标准错误 ---
+（空）
+
+核对 UF-006-on-ok：通过
+核对 UF-006-on-id：通过
+
+## UF-006 session.models 插件会话
+$ /Users/nothing/.agents/skills/dsh-plugin-debug/scripts/dsh-rpc.sh 3084 session.models '{"sessionId":"session-90b9250a-8bda-4faf-a2ca-9a2125039bc6"}'
+退出码 0
+--- 标准输出 ---
+{"type":"server-response","rpcId":"dbg","result":{"ok":true,"value":{"current":{"provider":"deepseek-official","model":"deepseek-v4-flash","reasoningEffort":"max"},"routable":true,"groups":[{"id":"deepseek-official","name":"DeepSeek","models":[{"id":"deepseek-v4-flash","name":"DeepSeek-V4-Flash","reasoning":{"efforts":[{"id":"off","name":"Off"},{"id":"low","name":"Low"},{"id":"high","name":"High"},{"id":"max","name":"Max"}],"defaultEffort":"max"}},{"id":"deepseek-v4-pro","name":"DeepSeek-V4-Pro","reasoning":{"efforts":[{"id":"off","name":"Off"},{"id":"low","name":"Low"},{"id":"high","name":"High"},{"id":"max","name":"Max"}],"defaultEffort":"max"}},{"id":"deepseek-v4-flash-vision-exp","name":"DeepSeek-V4-Flash-Vision-Exp","reasoning":{"efforts":[{"id":"off","name":"Off"},{"id":"low","name":"Low"},{"id":"high","name":"High"},{"id":"max","name":"Max"}],"defaultEffort":"max"}}]},{"id":"anthropic","name":"Anthropic","models":[{"id":"grok-4.6","name":"grok-4.6","reasoning":{"efforts":[{"id":"off","name":"Off"},{"id":"low","name":"Low"},{"id":"medium","name":"Medium"},{"id":"high","name":"High"},{"id":"xhigh","name":"Xhigh"}],"defaultEffort":"xhigh"}}]}],"failures":[]}}}
+--- 标准错误 ---
+（空）
+
+核对 UF-006-on-provider：通过
+核对 UF-006-on-model：通过
+
+## UF-006 GUI 直建（应不受 override）
+$ /Users/nothing/.agents/skills/dsh-plugin-debug/scripts/dsh-rpc.sh 3084 session.create '{"cwd":"/Users/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin"}'
+退出码 0
+--- 标准输出 ---
+{"type":"server-response","rpcId":"dbg","result":{"ok":true,"value":{"sessionId":"session-bc2cc925-4cae-414b-9d6e-22477e96431b","agentPreset":"dsh-bot"}}}
+--- 标准错误 ---
+（空）
+
+核对 UF-006-gui-id：通过
+
+## UF-006 session.models GUI 直建
+$ /Users/nothing/.agents/skills/dsh-plugin-debug/scripts/dsh-rpc.sh 3084 session.models '{"sessionId":"session-bc2cc925-4cae-414b-9d6e-22477e96431b"}'
+退出码 0
+--- 标准输出 ---
+{"type":"server-response","rpcId":"dbg","result":{"ok":true,"value":{"current":{"provider":"anthropic","model":"grok-4.6","reasoningEffort":"xhigh"},"routable":true,"groups":[{"id":"deepseek-official","name":"DeepSeek","models":[{"id":"deepseek-v4-flash","name":"DeepSeek-V4-Flash","reasoning":{"efforts":[{"id":"off","name":"Off"},{"id":"low","name":"Low"},{"id":"high","name":"High"},{"id":"max","name":"Max"}],"defaultEffort":"max"}},{"id":"deepseek-v4-pro","name":"DeepSeek-V4-Pro","reasoning":{"efforts":[{"id":"off","name":"Off"},{"id":"low","name":"Low"},{"id":"high","name":"High"},{"id":"max","name":"Max"}],"defaultEffort":"max"}},{"id":"deepseek-v4-flash-vision-exp","name":"DeepSeek-V4-Flash-Vision-Exp","reasoning":{"efforts":[{"id":"off","name":"Off"},{"id":"low","name":"Low"},{"id":"high","name":"High"},{"id":"max","name":"Max"}],"defaultEffort":"max"}}]},{"id":"anthropic","name":"Anthropic","models":[{"id":"grok-4.6","name":"grok-4.6","reasoning":{"efforts":[{"id":"off","name":"Off"},{"id":"low","name":"Low"},{"id":"medium","name":"Medium"},{"id":"high","name":"High"},{"id":"xhigh","name":"Xhigh"}],"defaultEffort":"xhigh"}}]}],"failures":[]}}}
+--- 标准错误 ---
+（空）
+
+核对 UF-006-gui-provider：通过
+核对 UF-006-gui-model：通过
+
+## UF-006 清空 override
+$ /Users/nothing/.agents/skills/dsh-plugin-debug/scripts/dsh-rpc.sh 3084 settings.update '{"ns":"dsh-bot","patch":{"model":{"provider":"","model":""}}}'
+退出码 0
+--- 标准输出 ---
+{"type":"server-response","rpcId":"dbg","result":{"ok":true,"value":{"ns":"dsh-bot","schema":{"uid":890,"refs":{"873":{"type":"string","meta":{"default":"http://127.0.0.1:3084"}},"877":{"type":"number","meta":{"step":1,"min":1,"default":180000}},"879":{"type":"string","meta":{"default":""}},"881":{"type":"string","meta":{"default":""}},"882":{"type":"string","meta":{}},"883":{"type":"object","meta":{"default":{}},"dict":{"provider":879,"model":881,"reasoningEffort":882}},"885":{"type":"boolean","meta":{"default":true}},"886":{"type":"object","meta":{"default":{}},"dict":{"enabled":885}},"888":{"type":"boolean","meta":{"default":true}},"889":{"type":"object","meta":{"default":{}},"dict":{"enabled":888}},"890":{"type":"object","meta":{"default":{}},"dict":{"webUrl":873,"askTimeoutMs":877,"model":883,"memory":886,"routines":889}}}},"value":{"memoryEnabled":true,"routinesEnabled":true,"webUrl":"http://127.0.0.1:3084","askTimeoutMs":180000,"model":{"provider":"","model":""},"memory":{"enabled":true},"routines":{"enabled":true}},"base":{"memoryEnabled":true,"routinesEnabled":true,"webUrl":"http://127.0.0.1:3084","askTimeoutMs":180000,"model":{"provider":"","model":""}},"user":{"askTimeoutMs":180000,"model":{"provider":"","model":""}},"applies":"live","secrets":[],"revision":2}}}
+--- 标准错误 ---
+（空）
+
+核对 UF-006-clear-ok：通过
+
+## UF-006 listSessions（override 关）
+$ curl -sS -X POST http://127.0.0.1:3084/dsh-bot/listSessions -H 'Content-Type: application/json' -d '{"args":{}}'
+退出码 0
+--- 标准输出 ---
+{"ok":false,"error":{"code":"web-unreachable","message":"web gateway unreachable for workspace/follow: HTTP 401"}}
+--- 标准错误 ---
+（空）
+
+核对 UF-006-off-source：失败
+
+## UF-006 插件新建（override 关）
+$ curl -sS -X POST http://127.0.0.1:3084/dsh-bot/createSession -H 'Content-Type: application/json' -d '{"args":{"title":"dsh-bot-manual-20260906-190135-override-off","cwd":"/Users/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin"}}'
+退出码 0
+--- 标准输出 ---
+{"ok":true,"value":{"sessionId":"session-42157980-fffc-453a-a885-22570c9c52d2","title":"dsh-bot-manual-20260906-190135-override-off"}}
+--- 标准错误 ---
+（空）
+
+核对 UF-006-off-id：通过
+
+## UF-006 session.models 清空后插件会话
+$ /Users/nothing/.agents/skills/dsh-plugin-debug/scripts/dsh-rpc.sh 3084 session.models '{"sessionId":"session-42157980-fffc-453a-a885-22570c9c52d2"}'
+退出码 0
+--- 标准输出 ---
+{"type":"server-response","rpcId":"dbg","result":{"ok":true,"value":{"current":{"provider":"anthropic","model":"grok-4.6","reasoningEffort":"xhigh"},"routable":true,"groups":[{"id":"deepseek-official","name":"DeepSeek","models":[{"id":"deepseek-v4-flash","name":"DeepSeek-V4-Flash","reasoning":{"efforts":[{"id":"off","name":"Off"},{"id":"low","name":"Low"},{"id":"high","name":"High"},{"id":"max","name":"Max"}],"defaultEffort":"max"}},{"id":"deepseek-v4-pro","name":"DeepSeek-V4-Pro","reasoning":{"efforts":[{"id":"off","name":"Off"},{"id":"low","name":"Low"},{"id":"high","name":"High"},{"id":"max","name":"Max"}],"defaultEffort":"max"}},{"id":"deepseek-v4-flash-vision-exp","name":"DeepSeek-V4-Flash-Vision-Exp","reasoning":{"efforts":[{"id":"off","name":"Off"},{"id":"low","name":"Low"},{"id":"high","name":"High"},{"id":"max","name":"Max"}],"defaultEffort":"max"}}]},{"id":"anthropic","name":"Anthropic","models":[{"id":"grok-4.6","name":"grok-4.6","reasoning":{"efforts":[{"id":"off","name":"Off"},{"id":"low","name":"Low"},{"id":"medium","name":"Medium"},{"id":"high","name":"High"},{"id":"xhigh","name":"Xhigh"}],"defaultEffort":"xhigh"}}]}],"failures":[]}}}
+--- 标准错误 ---
+（空）
+
+核对 UF-006-off-provider：通过
+核对 UF-006-off-model：通过
+=== UF-004 marks list --kind kind:dsh-bot ===
+
+## UF-004 marks list kind:dsh-bot
+$ env DSH_HOME=/Users/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin/env node /Users/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin/../../session-tool/plugin/packages/session-tool-cli/lib/bin.js marks list --kind kind:dsh-bot
+退出码 0
+--- 标准输出 ---
+session-9690590f-6953-4d68-bbcd-ab31cb7bba88 bot:dsh-bot,kind:delegated,kind:dsh-bot,kind:hidden
+session-71e5d33c-7ff5-48c2-b8fe-b95460d8c24e bot:dsh-bot,kind:delegated,kind:dsh-bot,kind:hidden
+session-747f1342-5c76-4d9a-9cea-cd8913318e28 bot:dsh-bot,kind:delegated,kind:dsh-bot,kind:hidden
+session-be2f46a2-7b03-4fd9-b949-3a3f0383c3ce bot:dsh-bot,kind:delegated,kind:dsh-bot,kind:hidden
+session-a95ca6c4-c52d-4b25-8808-6798aef81b88 bot:dsh-bot,kind:delegated,kind:dsh-bot,kind:hidden
+session-32fba176-9cfa-4e43-b6aa-f9f60055ef44 bot:dsh-bot,kind:delegated,kind:dsh-bot,kind:hidden
+session-c15b2d4f-c252-487b-9c04-22324afa2496 bot:dsh-bot,kind:delegated,kind:dsh-bot,kind:hidden
+session-8ee512c7-c26d-4d4f-8509-1532944b5267 bot:dsh-bot,kind:delegated,kind:dsh-bot,kind:hidden
+session-c3f06b07-fd28-4ec5-9e6f-1bc52cffa8f9 bot:dsh-bot,kind:dsh-bot
+session-dddc4011-1a20-4899-9b69-a173efce0ddf bot:dsh-bot,kind:dsh-bot
+session-88a1b386-957c-4e22-98a2-c1f972f2541e bot:dsh-bot,kind:delegated,kind:dsh-bot,kind:hidden
+session-cb74c0e8-651f-49d0-b1a8-32303d119088 bot:dsh-bot,kind:dsh-bot
+session-ec196f3b-0d96-4e05-afb7-1d6fed6de927 bot:dsh-bot,kind:dsh-bot
+session-fd3b472a-9a71-4f13-821f-d1dafaf838a2 bot:dsh-bot,kind:delegated,kind:dsh-bot,kind:hidden
+session-5a0ca88e-49dc-4397-afd6-3e56e81b9e7a bot:dsh-bot,kind:dsh-bot
+session-91293f51-624b-4826-9144-b82cd32c3f67 bot:dsh-bot,kind:dsh-bot
+session-4cac60d2-bbc2-48f9-85fe-b0a8653c27c3 bot:dsh-bot,kind:dsh-bot
+session-3547ba86-a71d-419e-bc2e-f9313f46670e bot:dsh-bot,kind:dsh-bot
+session-73cd91e8-4682-408b-b328-2eeb29586e80 bot:dsh-bot,kind:delegated,kind:dsh-bot,kind:hidden
+session-7536feeb-3710-48e8-ac11-8acecfe45da8 bot:dsh-bot,kind:delegated,kind:dsh-bot,kind:hidden
+session-69d25432-cab5-42b6-bd0f-0a6f6b210aa1 bot:dsh-bot,kind:dsh-bot
+session-63e5e637-fce6-453c-aa82-4e8d4922c247 bot:dsh-bot,kind:delegated,kind:dsh-bot,kind:hidden
+session-269180a7-1860-4f94-a0af-850adf455c03 bot:dsh-bot,kind:delegated,kind:dsh-bot,kind:hidden
+session-1ff44ae2-3d81-442d-8e17-b4548b62533f bot:dsh-bot,kind:dsh-bot
+session-a7a05c6f-f13b-42b4-9cdb-80412f1b1f98 bot:dsh-bot,kind:dsh-bot
+session-f4915e9e-4c61-47fd-877e-8b44e6977631 bot:dsh-bot,kind:delegated,kind:dsh-bot,kind:hidden
+session-6f1cfce9-77f0-4f87-b9a9-f5238f18ea61 bot:dsh-bot,kind:delegated,kind:dsh-bot,kind:hidden
+session-98739248-3724-45dd-a8b2-d8dc46ddf917 bot:dsh-bot,kind:dsh-bot
+session-ee514ee9-eaa8-4034-8622-ed2d19562c4f bot:dsh-bot,kind:delegated,kind:dsh-bot,kind:hidden
+session-f739533d-e387-4c33-bc8b-e0662de807eb bot:dsh-bot,kind:delegated,kind:dsh-bot,kind:hidden
+session-b90b1404-3f83-4dcb-8af8-512825887bbd bot:dsh-bot,kind:dsh-bot
+session-5384934e-28ca-4585-a6fb-31ee0ff078d3 bot:dsh-bot,kind:delegated,kind:dsh-bot,kind:hidden
+session-9284699c-6297-444e-8454-38b9a1b27bc9 bot:dsh-bot,kind:dsh-bot
+session-2a0d4835-b676-43a5-bf94-86f058f33f1f bot:shiren-xiaobei,kind:dsh-bot
+session-4eb8a30c-24ac-47d2-a1d9-fdb76bd6c651 bot:dsh-bot,kind:dsh-bot
+session-aae82a55-e593-42dd-9e33-88d96d76fe8a bot:dsh-bot,kind:dsh-bot
+session-4e542079-254d-4c66-a6d6-0f7df382464a bot:dsh-bot,kind:dsh-bot
+session-933effaf-abfa-426d-a42a-9bc79706144d bot:dsh-bot,kind:dsh-bot
+session-e53c5413-29ed-4ce3-a4b2-9d77cbc9385f bot:dsh-bot,kind:dsh-bot
+session-898fcbaa-964f-4620-9666-aa012cb46301 bot:dsh-bot,kind:dsh-bot
+session-d0556073-e165-4c01-9c4e-75f536c6e121 bot:dsh-bot,kind:dsh-bot
+session-fc686803-b7b3-4809-bc20-4d62a0f1518d bot:dsh-bot,kind:dsh-bot
+session-b1ee3d6d-60f4-40f4-9b1c-85831f0bd399 bot:dsh-bot,kind:dsh-bot
+session-2aa78f06-f2ed-48b8-ab3a-2db3b33e4dee bot:dsh-bot,kind:dsh-bot
+session-58e3ccb3-d287-4e7d-aa61-3e8750a21c9d bot:dsh-bot,kind:dsh-bot
+session-6caa66fc-26f8-4eb7-baab-db47516c50b5 bot:dsh-bot,kind:dsh-bot
+session-6edbb151-4695-4be6-a4a7-cadecc8f1156 bot:dsh-bot,kind:dsh-bot
+session-aaaf4884-4f05-40df-9ba7-6e6cc25ee6d3 bot:dsh-bot,kind:dsh-bot
+session-e0d98567-34de-46bc-903f-8f331852245e bot:dsh-bot,kind:dsh-bot
+session-70f607dc-53fc-42a5-a14c-911c71b05a43 bot:dsh-bot,kind:dsh-bot
+session-8aee925d-cf47-429e-aeb7-1f9a9c60df02 bot:dsh-bot,kind:dsh-bot
+session-757c7963-761d-45fc-9ee8-9b3d44e07a8d bot:dsh-bot,kind:dsh-bot
+session-38f8223e-49d8-4370-882b-f7e137cb7719 bot:dsh-bot,kind:dsh-bot
+session-88d174f6-111b-48a8-85ac-9e0d3a8c3898 bot:dsh-bot,kind:dsh-bot
+session-50c7d0c5-c536-4c5a-a676-de68b9ea8ef7 bot:dsh-bot,kind:dsh-bot
+session-05363849-2c31-47ff-a6dc-5efeb5dce722 bot:dsh-bot,kind:dsh-bot
+session-27c4c050-c102-4940-b61e-8e942d892832 bot:dsh-bot,kind:dsh-bot
+session-673bfc8b-9cff-4b9c-9820-054923bd3203 bot:dsh-bot,kind:dsh-bot
+session-c90530be-cc5d-4f18-8a51-682e54bbe4fc bot:dsh-bot,kind:dsh-bot
+session-fa07d396-5d9e-4ee9-bdec-f979403ac002 bot:dsh-bot,kind:dsh-bot
+session-38fa804e-83b3-485f-ad41-5d25dad9adc9 bot:dsh-bot,kind:dsh-bot
+session-31895962-2802-46d7-b56f-0a18ea770a4d bot:dsh-bot,kind:dsh-bot
+session-d7c15291-a7ab-4b0a-9710-72fa16a15800 bot:dsh-bot,kind:dsh-bot
+session-c8cf1b3a-d154-4d34-bed9-f8f03135100c bot:dsh-bot,kind:dsh-bot
+session-7fea7b21-7b39-4284-a8ce-ade847679a82 bot:dsh-bot,kind:dsh-bot
+session-974d85e9-fb4b-4eed-9eaa-7eb5e9915806 bot:dsh-bot,kind:dsh-bot
+session-05601033-098e-41f5-8510-58c89514db09 bot:dsh-bot,kind:dsh-bot
+session-9dde0639-7b3e-405c-9687-9a7633bd8a26 bot:dsh-bot,kind:dsh-bot
+session-acf3c86d-943b-4c10-8a7f-2f5025c9ae0d bot:dsh-bot,kind:dsh-bot
+session-f626f8c1-a5fe-4df7-891d-f7f68cad1019 bot:dsh-bot,kind:dsh-bot
+session-470456ed-49f6-46b5-bc23-75d970536a1f bot:dsh-bot,kind:dsh-bot
+session-cdcea0e1-cb4a-4940-b5d3-14423391280c bot:dsh-bot,kind:dsh-bot
+session-57549b6e-5e78-4035-9b4b-067bd0fd639a bot:shiren-xiaobei,kind:dsh-bot
+session-69786851-2a00-4f6c-8df6-2e57e9cfd0c2 bot:rukou-zhikai,kind:dsh-bot
+session-c095a1c2-c06d-4470-91e6-7a160bfa9294 bot:rukou-yeqian,kind:dsh-bot
+session-bb1c3789-f5f3-4360-9a59-6d0034a5d694 bot:yeqian-fuhe,kind:dsh-bot
+session-f2faaf97-74d3-409a-9827-cfb550f794a1 bot:dsh-bot,kind:dsh-bot
+session-d1e9b14c-fdc8-447a-b5f2-0413e7f9e30c bot:dsh-bot,kind:dsh-bot
+session-cfc5bfa5-39bb-4a99-83c3-de94deec2af1 bot:dsh-bot,kind:dsh-bot
+session-b2cf89a0-67e6-4829-a8b4-81e65d28f486 bot:wb-mtx-20260830-183331,kind:dsh-bot
+session-2aa3001b-cf21-42a3-abaf-792a7ac69e6a bot:dsh-bot,kind:dsh-bot
+session-777d4b50-b42c-4449-8720-6f187af60744 bot:dsh-bot,kind:dsh-bot
+session-fa5a87e9-abc2-4606-bfe7-8a46927db813 bot:yeqian-fuhe,kind:dsh-bot
+session-0dbea7f3-3664-405b-b992-0eaa6e300045 bot:shiren-xiaobei,kind:dsh-bot
+session-831f95af-4893-452f-8c73-2475ce234c68 bot:dsh-bot,kind:dsh-bot
+session-c09c250e-ad3e-4b95-9371-05f7378a743b bot:shiren-xiaobei,kind:dsh-bot
+session-61a3ec52-3b34-4d0e-abde-43e22e901959 bot:shiren-xiaobei,kind:dsh-bot
+session-7cbdd12a-c4bd-429c-af9d-e4f11a7bdc17 bot:dsh-bot,kind:dsh-bot
+session-39c84391-3556-41bb-a947-276e7425175c bot:dsh-bot,kind:dsh-bot
+session-e6c7059d-c8b8-4d45-8e8d-d032f0e65a65 bot:dsh-bot,kind:dsh-bot
+session-42b88f14-2eae-4287-8932-4f7ff9e8bf3d bot:dsh-bot,kind:dsh-bot
+session-727b7627-147f-4380-af31-a9c04267fcc0 bot:dsh-bot,kind:delegated,kind:dsh-bot,kind:hidden
+session-41f479ce-3e16-48be-aa8b-b9f899f9a18d bot:dsh-bot,kind:dsh-bot
+session-59892c0b-5e24-4716-9666-2fbbb18f6b4a bot:dsh-bot,kind:dsh-bot
+session-bc67440a-6b18-4ec4-b7a8-d0d077e1a088 bot:dsh-bot,kind:dsh-bot
+session-b26bd0f6-2c2c-4dd4-84cb-d22443c61bd3 bot:shiren-xiaobei,kind:dsh-bot
+session-1654764e-c477-4bca-ba1d-da68c95200d6 bot:dsh-bot,kind:dsh-bot
+session-4e935608-8bb3-4481-9e8e-62bfcf144c4c bot:shiren-xiaobei,kind:dsh-bot
+session-3fc105de-4d2e-4ec3-be6d-0f348ac26c89 bot:dsh-bot,kind:dsh-bot
+session-e563e8bd-25d8-4e1d-9a9f-c3fdb06c0c76 bot:shiren-xiaobei,kind:dsh-bot
+session-44576a1a-771f-4216-b5cf-56e246b29e06 bot:shiren-xiaobei,kind:dsh-bot
+session-d16abe04-d0f6-4268-9e80-dbad6dcc3011 bot:dsh-bot,kind:dsh-bot
+session-dd659ba6-a8c6-43ee-bcdc-bd3460500d7f bot:dsh-bot,kind:dsh-bot
+session-69a43a6f-73e1-4ac6-9712-9a4984afa163 bot:dsh-bot,kind:dsh-bot
+session-212c25a1-5a3b-4ec8-913c-997a9687690a bot:dsh-bot,kind:dsh-bot
+session-803d8cfb-aeee-4505-870c-a30e8d860c4b bot:dsh-bot,kind:dsh-bot
+session-822eeff1-bfd4-4bfa-a9e4-d8ba8dd05e1b bot:dsh-bot,group-room:calibration,group:calibration,kind:dsh-bot,kind:hidden
+session-44dc0d51-c8d6-451e-aad2-56af07d81c87 bot:dsh-bot,group-room:room-d27c47d6-5721-4746-8e7c-dbff4ad45615,group:bianji-shi,kind:dsh-bot,kind:hidden
+session-5fa42457-765d-44bd-8265-f9b3905817fb bot:shiren-xiaobei,group-room:room-d27c47d6-5721-4746-8e7c-dbff4ad45615,group:bianji-shi,kind:dsh-bot,kind:hidden
+session-641af85b-e387-48c5-90c2-03e1b02b0c1d bot:xiaodui-aning,group-room:room-d27c47d6-5721-4746-8e7c-dbff4ad45615,group:bianji-shi,kind:dsh-bot,kind:hidden
+session-2747b158-d7d8-41ab-956c-d182f9219ada bot:dsh-bot,kind:delegated,kind:dsh-bot,kind:hidden
+session-1b699b4c-8bc0-4645-a87e-13ef389aab5a bot:dsh-bot,kind:dsh-bot
+session-90b5e899-e6c0-4016-a472-c556183e7d43 bot:dsh-bot,kind:dsh-bot
+session-2af1c306-9712-4c9c-862a-4339a14fa198 bot:dsh-bot,kind:dsh-bot
+session-1d15541b-cfae-48c6-a64e-b98c4bcc52e8 bot:dsh-bot,kind:dsh-bot
+session-f7bbddae-237a-4e0a-a10b-67b92d3e4c27 bot:wb-mtx-20260830-223715,kind:dsh-bot
+session-0e106e06-3223-4991-a7f6-f2aee7274fad bot:dsh-bot,kind:dsh-bot
+session-596a36c2-1f8b-4e95-8d8b-a3350d8271bd bot:dsh-bot,kind:dsh-bot
+session-b18fde52-ca36-48f7-8c8e-199dfe5fcc5f bot:dsh-bot,group-room:room-e19ffd9c-0fcd-4485-9f13-e7c417d5490e,group:wangguan-sice,kind:dsh-bot,kind:hidden
+session-a574eb24-e7fb-4cda-8517-966ef3aa73ae bot:shiren-xiaobei,group-room:room-e19ffd9c-0fcd-4485-9f13-e7c417d5490e,group:wangguan-sice,kind:dsh-bot,kind:hidden
+session-b1d0fae3-be2d-45a4-a4c7-4883ae067d2f bot:dsh-bot,group-room:room-987f22af-c2f4-4ac6-a5b7-c7bbf7d8dcc7,group:wangguan-sice,kind:dsh-bot,kind:hidden
+session-32a3a3ba-c46e-4a6f-bb25-3f033405b898 bot:shiren-xiaobei,group-room:room-987f22af-c2f4-4ac6-a5b7-c7bbf7d8dcc7,group:wangguan-sice,kind:dsh-bot,kind:hidden
+session-59c12095-6d3f-4f9e-bc8f-f6f50d8a153f bot:dsh-bot,group-room:room-c39c5c47-6cff-4752-874b-6cb95579a004,group:wangguan-sice,kind:dsh-bot,kind:hidden
+session-8e7ffe1a-c917-4cfe-902d-8f2b2ed1fe98 bot:shiren-xiaobei,group-room:room-c39c5c47-6cff-4752-874b-6cb95579a004,group:wangguan-sice,kind:dsh-bot,kind:hidden
+session-17bec9cb-14db-469e-9517-8a03ae4ac1d5 bot:dsh-bot,kind:dsh-bot
+session-974c0fc9-afa6-4a7c-a316-d0186ba7fd42 bot:dsh-bot,kind:dsh-bot,kind:hidden
+session-f3d91875-899a-4411-835c-4356c952d32c bot:dsh-bot,kind:dsh-bot
+session-a9d4ea94-3b17-45ae-88f3-0dbfe2372c56 bot:dsh-bot,kind:dsh-bot
+session-cbc3190c-c88b-4960-a2b7-e23da8b20d79 bot:dsh-bot,kind:dsh-bot
+session-3488435c-5397-43cd-b05f-e17c3bd79311 bot:dsh-bot,kind:dsh-bot
+session-9ca2d2a2-4956-4b31-a701-12260046ec20 bot:shiren-xiaobei,kind:dsh-bot
+session-462a49d6-6085-46c9-8b21-1390be56fe44 bot:shiren-xiaobei,kind:dsh-bot
+session-0781d10d-69a9-4930-83ad-4810d8ecaf3d bot:shiren-xiaobei,kind:dsh-bot
+session-16600aee-6400-4cbe-b0b6-5eccf48a36e9 bot:shiren-xiaobei,kind:dsh-bot
+session-41b91de3-498e-49b6-b33c-0e2acab9a84c bot:shiren-xiaobei,group-room:room-155e85b3-f07d-40fb-a810-1d495e1b1a2a,group:bianji-shi,kind:dsh-bot,kind:hidden
+session-fe8f433a-bdb5-4c65-91f8-0a48fb8e263c bot:xiaodui-aning,group-room:room-155e85b3-f07d-40fb-a810-1d495e1b1a2a,group:bianji-shi,kind:dsh-bot,kind:hidden
+session-d2f471b6-cfee-4f4a-9fa1-6e5b519db0a7 bot:dsh-bot,kind:dsh-bot
+session-fb8573f8-ac96-4d11-89b0-a9137fcc4f35 bot:xiaodui-aning,kind:dsh-bot
+session-810c23bb-8802-4d87-a1f1-ce1cbbb11e99 bot:xiaodui-aning,kind:dsh-bot
+session-029bf2c8-b213-462f-9ca6-62d2702f774f bot:xiaodui-aning,kind:dsh-bot
+session-910d15b6-315a-45ff-a406-d17f90aeab26 bot:xiaodui-aning,kind:dsh-bot
+session-8da5f4b8-11fa-489e-9a7b-64dfee347b80 bot:xiaodui-aning,kind:dsh-bot
+session-0f601a6c-1b96-47af-b407-9b267b0a0c6b bot:xiaodui-aning,kind:dsh-bot
+session-4713378d-bf3f-4b45-aa78-e6fcfaa33dcf bot:xiaodui-aning,kind:dsh-bot
+session-cd4bd930-75da-415c-97a8-e14c1b6875a6 bot:xiaodui-aning,kind:dsh-bot
+session-d716b563-fa8e-4c26-b8b6-07f2f68b3cc6 bot:xiaodui-aning,kind:dsh-bot
+session-5b8a3b81-6050-453c-815d-e8bb0824a3eb bot:yunwei-yeban,kind:dsh-bot
+session-44502c29-7576-43bf-9239-df8800e682d0 bot:yunwei-yeban,kind:dsh-bot,routine:r-1788692459058-bldp78m8
+session-6581ee52-ac48-42ed-861d-4346b860c749 kind:dsh-bot
+session-90b9250a-8bda-4faf-a2ca-9a2125039bc6 kind:dsh-bot
+session-42157980-fffc-453a-a885-22570c9c52d2 kind:dsh-bot
+--- 标准错误 ---
+（空）
+
+核对 UF-004-退出码：通过
+核对 UF-004-有插件会话：通过
+核对 UF-004-含kind：通过
+
+## UF-004 空 kind
+$ env DSH_HOME=/Users/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin/env node /Users/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin/../../session-tool/plugin/packages/session-tool-cli/lib/bin.js marks list --kind kind:dsh-bot-no-such
+退出码 0
+--- 标准输出 ---
+(no marks)
+--- 标准错误 ---
+（空）
+
+核对 UF-004-空-退出码：通过
+核对 UF-004-空提示：通过
+=== 工作台：createBot → createBotSession → prompt(--write) → history → deleteBot ===
+
+## WB createBot
+$ curl -sS -X POST http://127.0.0.1:3084/dsh-bot/createBot -H 'Content-Type: application/json' -d '{"args":{"name":"wb-mtx-20260906-190135","persona":"Workbench matrix bot. Reply briefly."}}'
+退出码 0
+--- 标准输出 ---
+{"ok":true,"value":{"id":"wb-mtx-20260906-190135","name":"wb-mtx-20260906-190135","avatar":{"color":"#3db88a"},"presetId":"dsh-bot--wb-mtx-20260906-190135","persona":"Workbench matrix bot. Reply briefly.","createdAt":1788692498353,"protected":false}}
+--- 标准错误 ---
+（空）
+
+核对 WB-createBot-ok：通过
+核对 WB-createBot-有id：通过
+
+## WB listBots
+$ curl -sS -X POST http://127.0.0.1:3084/dsh-bot/listBots -H 'Content-Type: application/json' -d '{"args":{}}'
+退出码 0
+--- 标准输出 ---
+{"ok":true,"value":{"bots":[{"id":"dsh-bot","name":"DSH Bot","avatar":{"color":"#3db88a"},"presetId":"dsh-bot","createdAt":1788068523794,"persona":"你是 DSH Bot，运行在本机 DSH 插件环境里的常驻对话助手。说话直率，先查证再下结论，不确定就明说不知道，不要编造。当前模型是 {{model}}，工作区是 {{cwd}}。你不是任何外部品牌或桌面产品的复刻。优先把事情做对，其次才简洁。","protected":true,"unread":0},{"id":"shiren-xiaobei","name":"诗人小北","avatar":{"color":"#d4537e","emoji":"📜"},"presetId":"dsh-bot--shiren-xiaobei","createdAt":1788099206976,"persona":"你是一位诗人，说话先用一个比喻，再直接回答。不要说你是 DSH Bot。","protected":false,"unread":0},{"id":"xiaodui-aning","name":"校对阿宁","avatar":{"color":"#5b8def","emoji":"✏️"},"presetId":"dsh-bot--xiaodui-aning","createdAt":1788099647169,"persona":"你是校对阿宁，专挑措辞，说话短句，先指出含糊处再给一版更干净的句子。不要说你是 DSH Bot 或诗人。","protected":false,"unread":0},{"id":"yunwei-yeban","name":"运维夜班","avatar":{"color":"#5b8def"},"presetId":"dsh-bot--yunwei-yeban","persona":"你是运维夜班。值班时说话短，先报现象再给建议。","createdAt":1788692450763,"protected":false,"unread":0},{"id":"wb-mtx-20260906-190135","name":"wb-mtx-20260906-190135","avatar":{"color":"#3db88a"},"presetId":"dsh-bot--wb-mtx-20260906-190135","persona":"Workbench matrix bot. Reply briefly.","createdAt":1788692498353,"protected":false,"unread":0}]}}
+--- 标准错误 ---
+（空）
+
+核对 WB-listBots-含新bot：通过
+
+## WB createBotSession
+$ curl -sS -X POST http://127.0.0.1:3084/dsh-bot/createBotSession -H 'Content-Type: application/json' -d '{"args":{"botId":"wb-mtx-20260906-190135","title":"dsh-bot-manual-20260906-190135-wb","cwd":"/Users/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin"}}'
+退出码 0
+--- 标准输出 ---
+{"ok":true,"value":{"sessionId":"session-4892d1a3-e014-4fed-ae9c-17a08a14de37","title":"dsh-bot-manual-20260906-190135-wb","botId":"wb-mtx-20260906-190135","presetId":"dsh-bot--wb-mtx-20260906-190135"}}
+--- 标准错误 ---
+（空）
+
+核对 WB-createBotSession-ok：通过
+核对 WB-createBotSession-有id：通过
+核对 WB-createBotSession-botId：通过
+
+## WB listBotSessions
+$ curl -sS -X POST http://127.0.0.1:3084/dsh-bot/listBotSessions -H 'Content-Type: application/json' -d '{"args":{"botId":"wb-mtx-20260906-190135"}}'
+退出码 0
+--- 标准输出 ---
+{"ok":false,"error":{"code":"web-unreachable","message":"web gateway unreachable for workspace/follow: HTTP 401"}}
+--- 标准错误 ---
+（空）
+
+核对 WB-listBotSessions-含新会话：失败
+工作台 --no-write：跳过 prompt / history 回复核
+=== 工作台小组：createGroup → listGroups → createGroupSession → deleteGroup ===
+
+## WB createGroup
+$ curl -sS -X POST http://127.0.0.1:3084/dsh-bot/createGroup -H 'Content-Type: application/json' -d '{"args":{"name":"mtx-group-20260906-190135","memberIds":["wb-mtx-20260906-190135","dsh-bot"]}}'
+退出码 0
+--- 标准输出 ---
+{"ok":true,"value":{"id":"mtx-group-20260906-190135","name":"mtx-group-20260906-190135","memberIds":["wb-mtx-20260906-190135","dsh-bot"],"createdAt":1788692499015}}
+--- 标准错误 ---
+（空）
+
+核对 WB-createGroup-ok：通过
+核对 WB-createGroup-有id：通过
+
+## WB listGroups
+$ curl -sS -X POST http://127.0.0.1:3084/dsh-bot/listGroups -H 'Content-Type: application/json' -d '{"args":{}}'
+退出码 0
+--- 标准输出 ---
+{"ok":true,"value":{"groups":[{"id":"bianji-shi","name":"编辑室","memberIds":["shiren-xiaobei","xiaodui-aning"],"createdAt":1788372693619},{"id":"xiaodui-zu","name":"校对组","memberIds":["xiaodui-aning","dsh-bot"],"createdAt":1788372693647},{"id":"mtx-group-20260906-190135","name":"mtx-group-20260906-190135","memberIds":["wb-mtx-20260906-190135","dsh-bot"],"createdAt":1788692499015}]}}
+--- 标准错误 ---
+（空）
+
+核对 WB-listGroups-含新组：通过
+
+## WB createGroupSession
+$ curl -sS -X POST http://127.0.0.1:3084/dsh-bot/createGroupSession -H 'Content-Type: application/json' -d '{"args":{"groupId":"mtx-group-20260906-190135"}}'
+退出码 0
+--- 标准输出 ---
+{"ok":true,"value":{"roomId":"room-89969d05-440f-466b-a234-500307d84a2d","groupId":"mtx-group-20260906-190135","createdAt":1788692499276,"updatedAt":1788692499276}}
+--- 标准错误 ---
+（空）
+
+核对 WB-createGroupSession-ok：通过
+核对 WB-createGroupSession-有room：通过
+
+## WB deleteGroup
+$ curl -sS -X POST http://127.0.0.1:3084/dsh-bot/deleteGroup -H 'Content-Type: application/json' -d '{"args":{"id":"mtx-group-20260906-190135"}}'
+退出码 0
+--- 标准输出 ---
+{"ok":true,"value":{"id":"mtx-group-20260906-190135","deleted":true}}
+--- 标准错误 ---
+（空）
+
+核对 WB-deleteGroup-ok：通过
+
+## WB listGroups（删组后）
+$ curl -sS -X POST http://127.0.0.1:3084/dsh-bot/listGroups -H 'Content-Type: application/json' -d '{"args":{}}'
+退出码 0
+--- 标准输出 ---
+{"ok":true,"value":{"groups":[{"id":"bianji-shi","name":"编辑室","memberIds":["shiren-xiaobei","xiaodui-aning"],"createdAt":1788372693619},{"id":"xiaodui-zu","name":"校对组","memberIds":["xiaodui-aning","dsh-bot"],"createdAt":1788372693647}]}}
+--- 标准错误 ---
+（空）
+
+核对 WB-deleteGroup-零残留：通过
+
+## WB listBots（删组后成员仍在）
+$ curl -sS -X POST http://127.0.0.1:3084/dsh-bot/listBots -H 'Content-Type: application/json' -d '{"args":{}}'
+退出码 0
+--- 标准输出 ---
+{"ok":true,"value":{"bots":[{"id":"dsh-bot","name":"DSH Bot","avatar":{"color":"#3db88a"},"presetId":"dsh-bot","createdAt":1788068523794,"persona":"你是 DSH Bot，运行在本机 DSH 插件环境里的常驻对话助手。说话直率，先查证再下结论，不确定就明说不知道，不要编造。当前模型是 {{model}}，工作区是 {{cwd}}。你不是任何外部品牌或桌面产品的复刻。优先把事情做对，其次才简洁。","protected":true,"unread":0},{"id":"shiren-xiaobei","name":"诗人小北","avatar":{"color":"#d4537e","emoji":"📜"},"presetId":"dsh-bot--shiren-xiaobei","createdAt":1788099206976,"persona":"你是一位诗人，说话先用一个比喻，再直接回答。不要说你是 DSH Bot。","protected":false,"unread":0},{"id":"xiaodui-aning","name":"校对阿宁","avatar":{"color":"#5b8def","emoji":"✏️"},"presetId":"dsh-bot--xiaodui-aning","createdAt":1788099647169,"persona":"你是校对阿宁，专挑措辞，说话短句，先指出含糊处再给一版更干净的句子。不要说你是 DSH Bot 或诗人。","protected":false,"unread":0},{"id":"yunwei-yeban","name":"运维夜班","avatar":{"color":"#5b8def"},"presetId":"dsh-bot--yunwei-yeban","persona":"你是运维夜班。值班时说话短，先报现象再给建议。","createdAt":1788692450763,"protected":false,"unread":0},{"id":"wb-mtx-20260906-190135","name":"wb-mtx-20260906-190135","avatar":{"color":"#3db88a"},"presetId":"dsh-bot--wb-mtx-20260906-190135","persona":"Workbench matrix bot. Reply briefly.","createdAt":1788692498353,"protected":false,"unread":0}]}}
+--- 标准错误 ---
+（空）
+
+核对 WB-deleteGroup-成员仍在：通过
+
+## WB deleteBot
+$ curl -sS -X POST http://127.0.0.1:3084/dsh-bot/deleteBot -H 'Content-Type: application/json' -d '{"args":{"id":"wb-mtx-20260906-190135"}}'
+退出码 0
+--- 标准输出 ---
+{"ok":true,"value":{"id":"wb-mtx-20260906-190135","deleted":true}}
+--- 标准错误 ---
+（空）
+
+核对 WB-deleteBot-ok：通过
+核对 WB-deleteBot-deleted：通过
+
+## WB listBots（删除后）
+$ curl -sS -X POST http://127.0.0.1:3084/dsh-bot/listBots -H 'Content-Type: application/json' -d '{"args":{}}'
+退出码 0
+--- 标准输出 ---
+{"ok":true,"value":{"bots":[{"id":"dsh-bot","name":"DSH Bot","avatar":{"color":"#3db88a"},"presetId":"dsh-bot","createdAt":1788068523794,"persona":"你是 DSH Bot，运行在本机 DSH 插件环境里的常驻对话助手。说话直率，先查证再下结论，不确定就明说不知道，不要编造。当前模型是 {{model}}，工作区是 {{cwd}}。你不是任何外部品牌或桌面产品的复刻。优先把事情做对，其次才简洁。","protected":true,"unread":0},{"id":"shiren-xiaobei","name":"诗人小北","avatar":{"color":"#d4537e","emoji":"📜"},"presetId":"dsh-bot--shiren-xiaobei","createdAt":1788099206976,"persona":"你是一位诗人，说话先用一个比喻，再直接回答。不要说你是 DSH Bot。","protected":false,"unread":0},{"id":"xiaodui-aning","name":"校对阿宁","avatar":{"color":"#5b8def","emoji":"✏️"},"presetId":"dsh-bot--xiaodui-aning","createdAt":1788099647169,"persona":"你是校对阿宁，专挑措辞，说话短句，先指出含糊处再给一版更干净的句子。不要说你是 DSH Bot 或诗人。","protected":false,"unread":0},{"id":"yunwei-yeban","name":"运维夜班","avatar":{"color":"#5b8def"},"presetId":"dsh-bot--yunwei-yeban","persona":"你是运维夜班。值班时说话短，先报现象再给建议。","createdAt":1788692450763,"protected":false,"unread":0}]}}
+--- 标准错误 ---
+（空）
+
+核对 WB-deleteBot-零残留：通过
+
+=== 本轮会话对照 ===
+打开 http://127.0.0.1:3084
+UF-001 GUI/默认 preset  session-135e0ad2-909b-414e-8f18-df94b9c63e09
+UF-002 插件新建         session-6581ee52-ac48-42ed-861d-4346b860c749
+UF-006 override 开      session-90b9250a-8bda-4faf-a2ca-9a2125039bc6
+UF-006 GUI 直建         session-bc2cc925-4cae-414b-9d6e-22477e96431b
+UF-006 override 关      session-42157980-fffc-453a-a885-22570c9c52d2
+WB 人设（已删）         wb-mtx-20260906-190135
+WB 会话                 session-4892d1a3-e014-4fed-ae9c-17a08a14de37
+
+核对 46 通过 / 6 失败
+完整记录：docs/dsh-bot-routines/evidence/phase-0/manual-test-no-write.log

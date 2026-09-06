@@ -1,0 +1,32 @@
+[
+  {
+    "id": "r-1788692459058-bldp78m8",
+    "botId": "yunwei-yeban",
+    "name": "报时",
+    "schedule": "@every 1m",
+    "instruction": "报告当前时间，一句话。",
+    "enabled": true,
+    "notify": true,
+    "createdAt": 1788692459058,
+    "runs": [
+      {
+        "ts": 1788692459063,
+        "outcome": "error",
+        "ms": 16604
+      },
+      {
+        "ts": 1788692475670,
+        "outcome": "error",
+        "ms": 5667
+      },
+      {
+        "ts": 1788692481340,
+        "outcome": "error",
+        "ms": 5000
+      }
+    ],
+    "sessionId": "session-44502c29-7576-43bf-9239-df8800e682d0",
+    "lastRunAt": 1788692481340,
+    "lastOutcome": "error"
+  }
+]

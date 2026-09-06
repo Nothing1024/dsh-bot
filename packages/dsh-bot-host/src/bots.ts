@@ -52,6 +52,7 @@ export interface BotRegistryRow {
   readonly avatar: BotAvatar
   readonly presetId: string
   readonly persona?: string
+  readonly declined?: readonly string[]
   readonly modelOverride?: DshBotModelRef
   readonly createdAt: number
 }
@@ -106,6 +107,7 @@ export interface BotsRuntime {
   updateBot(input: UpdateBotInput): Promise<BotView>
   deleteBot(input: { id: string }): Promise<DeleteBotResult>
   rewritePresetPersona(botId: string, fullText: string): Promise<void>
+  declineTopic(botId: string, topic: string): Promise<BotView>
 }
 
 export interface BotsRuntimeOptions {
@@ -488,6 +490,26 @@ export function createBotsRuntime(options: BotsRuntimeOptions): BotsRuntime {
     return { id, deleted: true }
   }
 
+
+  const declineTopic = async (botId: string, topic: string): Promise<BotView> => {
+    const home = homeOf()
+    const trimmed = botId.trim()
+    const text = topic.trim()
+    if (trimmed === '') throw new DshBotError('invalid-input', 'bot id is required')
+    if (text === '') throw new DshBotError('invalid-input', 'topic is required')
+    const rows = await loadRegistry(home, nowOf)
+    const index = rows.findIndex(item => item.id === trimmed)
+    if (index < 0) throw new DshBotError('bot-not-found', `bot ${JSON.stringify(trimmed)} is not in the registry`)
+    const current = rows[index]!
+    const declined = [...(current.declined ?? [])]
+    if (!declined.includes(text)) declined.push(text)
+    const next = { ...current, declined }
+    const copy = [...rows]
+    copy[index] = next
+    await saveRegistry(home, copy)
+    return toView(home, next)
+  }
+
   const rewritePresetPersona = async (botId: string, fullText: string): Promise<void> => {
     const home = homeOf()
     const trimmed = botId.trim()
@@ -524,6 +546,7 @@ export function createBotsRuntime(options: BotsRuntimeOptions): BotsRuntime {
     updateBot: input => withLock(() => updateBot(input)),
     deleteBot: input => withLock(() => deleteBot(input)),
     rewritePresetPersona: (botId, fullText) => withLock(() => rewritePresetPersona(botId, fullText)),
+    declineTopic: (botId, topic) => withLock(() => declineTopic(botId, topic)),
   }
 }
 
@@ -735,12 +758,16 @@ function parseRow(value: unknown, index: number): BotRegistryRow {
   const avatar: BotAvatar = emoji === undefined ? { color } : { color, emoji }
   const modelOverride = rec.modelOverride === undefined ? undefined : normalizeOverride(asModel(rec.modelOverride))
   const persona = typeof rec.persona === 'string' && rec.persona.trim() !== '' ? rec.persona : undefined
+  const declined = Array.isArray(rec.declined)
+    ? rec.declined.filter((item): item is string => typeof item === 'string' && item.trim() !== '')
+    : undefined
   return {
     id,
     name,
     avatar,
     presetId,
     ...persona === undefined ? {} : { persona },
+    ...declined === undefined || declined.length === 0 ? {} : { declined },
     ...modelOverride === undefined ? {} : { modelOverride },
     createdAt,
   }

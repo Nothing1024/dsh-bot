@@ -1,0 +1,14 @@
+{
+  "ok": true,
+  "value": {
+    "id": "r-1788692459058-bldp78m8",
+    "botId": "yunwei-yeban",
+    "name": "报时",
+    "schedule": "@every 1m",
+    "instruction": "报告当前时间，一句话",
+    "enabled": true,
+    "notify": true,
+    "createdAt": 1788692459058,
+    "runs": []
+  }
+}

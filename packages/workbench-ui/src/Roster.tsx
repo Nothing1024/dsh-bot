@@ -35,6 +35,7 @@ export interface RosterItem {
   readonly kind?: 'bot' | 'group'
   readonly members?: readonly RosterMemberAvatar[]
   readonly sessionCount?: number
+  readonly unread?: number
   readonly sessions?: readonly RosterSession[]
 }
 
@@ -226,6 +227,9 @@ export function Roster(props: RosterProps) {
                       <span className="rosterPreview" data-testid={`roster-preview-${item.id}`}>{item.preview}</span>
                     </span>
                     <span className="rosterMeta">
+                      {item.unread !== undefined && item.unread > 0 ? (
+                        <span className="unreadBadge" data-testid={`roster-unread-${item.id}`}>{item.unread}</span>
+                      ) : null}
                       {item.sessionCount !== undefined && item.sessionCount > 1 ? (
                         <span
                           className="sessionCount"

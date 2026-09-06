@@ -2,6 +2,7 @@
  * Workbench shell: 280px roster + conversation stage (reference-ui-notes §A).
  */
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { notifyRoutineSpoke } from './notify.ts'
 import {
   createBot,
   createBotSession,
@@ -124,6 +125,30 @@ export function App() {
   useEffect(() => {
     void load()
   }, [load])
+
+  useEffect(() => {
+    let cancelled = false
+    const prev = new Map<string, number>()
+    const tick = async (): Promise<void> => {
+      const outcome = await listBots()
+      if (!outcome.ok || cancelled) return
+      const rows = outcome.value.bots
+      for (const bot of rows) {
+        const unread = bot.unread ?? 0
+        const before = prev.get(bot.id) ?? 0
+        if (unread > before) notifyRoutineSpoke(bot.id, bot.name, `有 ${unread} 条未读例程消息`)
+        prev.set(bot.id, unread)
+      }
+      setBots(rows)
+    }
+    void tick()
+    const timer = window.setInterval(() => { void tick() }, 2000)
+    return () => {
+      cancelled = true
+      window.clearInterval(timer)
+    }
+  }, [])
+
 
   useEffect(() => {
     if (bots.length === 0 && groups.length === 0) return
@@ -316,6 +341,7 @@ export function App() {
         selected,
         protected: bot.protected,
         kind: 'bot',
+        unread: bot.unread ?? 0,
         ...boundSessions(bot.id, bot.name, selected),
       }
     })

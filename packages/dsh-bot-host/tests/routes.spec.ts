@@ -131,6 +131,13 @@ function stub(overrides: Partial<DshBotHttpFace> = {}): DshBotHttpFace {
     memoryRemember: vi.fn(async () => ({ id: 'm1' })),
     memoryForget: vi.fn(async () => ({ ok: true as const })),
     memoryClear: vi.fn(async () => ({ ok: true as const })),
+    routineList: vi.fn(async () => []),
+    routineCreate: vi.fn(async () => ({ id: 'r1' })),
+    routineUpdate: vi.fn(async () => ({ id: 'r1' })),
+    routineDelete: vi.fn(async () => ({ id: 'r1', deleted: true as const })),
+    routineRunNow: vi.fn(async () => ({ outcome: 'spoke', ms: 1 })),
+    routineDecline: vi.fn(async () => ({ ok: true as const, declined: [] })),
+    markRead: vi.fn(async () => ({ ok: true as const, unread: 0 })),
     ...overrides,
   }
 }

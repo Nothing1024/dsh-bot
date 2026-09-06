@@ -23,11 +23,15 @@ import type { BotsRuntime } from './bots.ts'
 import { DshBotError } from './errors.ts'
 import {
   DSH_BOT_HIDDEN_KIND,
+  DSH_BOT_MEMORY_HIDDEN_TITLE_PREFIX,
   botMark,
   mergeBotMarks,
+  parseRoutineMark,
 } from './marks.ts'
 import type { RoomState } from './groups.ts'
 import { applyModelOverride } from './platform.ts'
+import { isRoutineInjection } from './routine-wake.ts'
+import { parseProposeRoutine } from './routine-behavior.ts'
 import type { DshBotPlatform } from './platform.ts'
 
 function defaultCreateCwd(): string {
@@ -40,7 +44,7 @@ const CLI_CALLER: SessionToolCaller = { kind: 'cli' }
 
 const promptLocks = new Map<string, Promise<void>>()
 
-function withPromptLock<T>(sessionId: string, fn: () => Promise<T>): Promise<T> {
+export function withPromptLock<T>(sessionId: string, fn: () => Promise<T>): Promise<T> {
   const previous = promptLocks.get(sessionId) ?? Promise.resolve()
   const next = previous.then(fn, fn)
   promptLocks.set(sessionId, next.then(() => undefined, () => undefined))
@@ -72,6 +76,7 @@ export interface OwnedSessionRow {
   readonly updatedAt: number
   readonly hidden: boolean
   readonly working: boolean
+  readonly routine?: string
 }
 
 export interface ListOwnedSessionsRequest {
@@ -96,7 +101,7 @@ export interface WorkbenchHistoryAuthor {
 
 export interface WorkbenchHistoryItem {
   readonly id: string
-  readonly kind: 'message' | 'thinking' | 'tool'
+  readonly kind: 'message' | 'thinking' | 'tool' | 'propose-routine'
   readonly seq: number
   readonly role?: 'user' | 'assistant'
   readonly text?: string
@@ -104,6 +109,9 @@ export interface WorkbenchHistoryItem {
   readonly summary?: string
   readonly author?: WorkbenchHistoryAuthor
   readonly error?: { readonly code: string; readonly message: string }
+  readonly schedule?: string
+  readonly instruction?: string
+  readonly origin?: 'routine'
 }
 
 export interface HistoryResult {
@@ -162,6 +170,7 @@ export function isPlatformInjection(text: string): boolean {
   if (t.startsWith('Current runtime context')) return true
   if (t.includes('<system-reminder>')) return true
   if (t.includes('<available_skills>')) return true
+  if (isRoutineInjection(t)) return true
   return false
 }
 
@@ -231,13 +240,27 @@ export function projectWorkbenchHistory(
     const text = texts.join('\n').trim()
     if (text !== '' && (row.role === 'user' || row.role === 'assistant')) {
       if (row.role === 'user' && isPlatformInjection(text)) continue
-      messageN += 1
-      items.push({
-        id: `message-${seq}-${messageN}`,
-        kind: 'message',
-        seq,
-        role: row.role,
-        text,
+      const parsed = row.role === 'assistant' ? parseProposeRoutine(text) : { text, proposals: [] as const }
+      if (parsed.text !== '') {
+        messageN += 1
+        items.push({
+          id: `message-${seq}-${messageN}`,
+          kind: 'message',
+          seq,
+          role: row.role,
+          text: parsed.text,
+          ...row.role === 'assistant' && isRoutineInjection(text) ? { origin: 'routine' as const } : {},
+        })
+      }
+      parsed.proposals.forEach((proposal, index) => {
+        items.push({
+          id: `propose-${seq}-${index + 1}`,
+          kind: 'propose-routine',
+          seq,
+          name: proposal.name,
+          schedule: proposal.schedule,
+          instruction: proposal.instruction,
+        })
       })
     }
   }
@@ -420,9 +443,12 @@ export async function listOwnedSessions(
     const meta = byId.get(mark.id)
     if (meta === undefined) continue
     const tags = [...meta.tags]
-    const hidden = tags.includes(DSH_BOT_HIDDEN_KIND) || isTitleHidden(meta.title, ['~'])
+    const hidden = tags.includes(DSH_BOT_HIDDEN_KIND)
+      || isTitleHidden(meta.title, ['~'])
+      || (meta.title ?? '').startsWith(DSH_BOT_MEMORY_HIDDEN_TITLE_PREFIX)
     if (!includeHidden && hidden) continue
     const gate = runningById.get(mark.id)
+    const routineId = parseRoutineMark(tags) ?? parseRoutineMark(mark.tags)
     sessions.push({
       sessionId: String(meta.sessionId),
       ...meta.title === undefined ? {} : { title: meta.title },
@@ -432,6 +458,7 @@ export async function listOwnedSessions(
       updatedAt: gate !== undefined && gate.updatedAt > 0 ? gate.updatedAt : meta.createdAt,
       hidden,
       working: gate?.running === true,
+      ...routineId === undefined ? {} : { routine: routineId },
     })
   }
   sessions.sort((a, b) => {

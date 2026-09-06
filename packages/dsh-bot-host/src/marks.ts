@@ -32,8 +32,27 @@ export function botMark(botId: string): string {
 }
 
 const BOT_MARK_PREFIX = 'bot:'
+const ROUTINE_MARK_PREFIX = 'routine:'
 const GROUP_MARK_PREFIX = 'group:'
 const GROUP_ROOM_MARK_PREFIX = 'group-room:'
+
+/** Example: `routine:<routineId>` on the visible routine thread (INV-902). */
+export function routineMark(routineId: string): string {
+  const id = routineId.trim()
+  if (id === '') {
+    throw new Error('routine:<id> mark requires a non-empty routine id')
+  }
+  return `${ROUTINE_MARK_PREFIX}${id}`
+}
+
+export function parseRoutineMark(tags: readonly string[]): string | undefined {
+  for (const tag of tags) {
+    if (!tag.startsWith(ROUTINE_MARK_PREFIX)) continue
+    const id = tag.slice(ROUTINE_MARK_PREFIX.length).trim()
+    if (id !== '') return id
+  }
+  return undefined
+}
 
 /**
  * First `bot:<id>` token in a mark set, if any.

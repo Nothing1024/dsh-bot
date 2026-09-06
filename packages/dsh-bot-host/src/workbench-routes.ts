@@ -82,6 +82,13 @@ export interface WorkbenchBotsFace {
   memoryRemember(input: { botId: string; text: string; sessionId?: string }): Promise<unknown>
   memoryForget(input: { botId: string; id: string }): Promise<unknown>
   memoryClear(input: { botId: string }): Promise<unknown>
+  routineList(input?: { botId?: string }): Promise<unknown>
+  routineCreate(input: { botId: string; name: string; schedule: string; instruction: string; notify?: boolean }): Promise<unknown>
+  routineUpdate(input: { id: string; name?: string; schedule?: string; instruction?: string; enabled?: boolean; notify?: boolean }): Promise<unknown>
+  routineDelete(input: { id: string }): Promise<unknown>
+  routineRunNow(input: { id: string }): Promise<unknown>
+  routineDecline(input: { botId: string; topic: string }): Promise<unknown>
+  markRead(input: { botId: string }): Promise<unknown>
 }
 
 function send(res: ServerResponse, status: number, body: string | Buffer, contentType: string): void {
@@ -254,6 +261,59 @@ export async function dispatchWorkbenchApi(
       const botId = asString(args.botId).trim()
       if (botId === '') throw new DshBotError('invalid-input', 'botId is required')
       return await bot.memoryClear({ botId })
+    }
+    case 'routineList': {
+      const botId = asString(args.botId).trim()
+      return await bot.routineList(botId === '' ? {} : { botId })
+    }
+    case 'routineCreate': {
+      const botId = asString(args.botId).trim()
+      const name = asString(args.name).trim()
+      const schedule = asString(args.schedule)
+      const instruction = asString(args.instruction)
+      if (botId === '' || name === '' || schedule.trim() === '' || instruction.trim() === '') {
+        throw new DshBotError('invalid-input', 'botId, name, schedule, instruction are required')
+      }
+      return await bot.routineCreate({
+        botId,
+        name,
+        schedule,
+        instruction,
+        ...args.notify === false ? { notify: false } : {},
+      })
+    }
+    case 'routineUpdate': {
+      const id = asString(args.id).trim()
+      if (id === '') throw new DshBotError('invalid-input', 'id is required')
+      return await bot.routineUpdate({
+        id,
+        ...asString(args.name).trim() === '' ? {} : { name: asString(args.name).trim() },
+        ...asString(args.schedule).trim() === '' ? {} : { schedule: asString(args.schedule) },
+        ...asString(args.instruction).trim() === '' ? {} : { instruction: asString(args.instruction) },
+        ...typeof args.enabled === 'boolean' ? { enabled: args.enabled } : {},
+        ...typeof args.notify === 'boolean' ? { notify: args.notify } : {},
+      })
+    }
+    case 'routineDelete': {
+      const id = asString(args.id).trim()
+      if (id === '') throw new DshBotError('invalid-input', 'id is required')
+      return await bot.routineDelete({ id })
+    }
+    case 'routineRunNow': {
+      const id = asString(args.id).trim()
+      if (id === '') throw new DshBotError('invalid-input', 'id is required')
+      return await bot.routineRunNow({ id })
+    }
+    case 'routineDecline': {
+      const botId = asString(args.botId).trim()
+      const topic = asString(args.topic).trim()
+      if (botId === '' || topic === '') throw new DshBotError('invalid-input', 'botId and topic are required')
+      return await bot.routineDecline({ botId, topic })
+    }
+    case 'markRead': {
+      const botId = asString(args.botId).trim()
+      if (botId === '') throw new DshBotError('invalid-input', 'botId is required')
+      return await bot.markRead({ botId })
     }
     default:
       return undefined

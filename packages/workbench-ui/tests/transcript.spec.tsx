@@ -191,4 +191,31 @@ describe('Transcript', () => {
     fireEvent.click(screen.getByTestId('transcript-pin-member-shiren-xiaobei'))
     expect(onPickMember.mock.calls[0]?.[0]).toBe('shiren-xiaobei')
   })
+
+
+  it('renders a propose-routine card with accept and decline', () => {
+    const fetchMock = vi.fn(async () => ({
+      ok: true,
+      json: async () => ({ ok: true, value: { id: 'r1' } }),
+    }))
+    vi.stubGlobal('fetch', fetchMock)
+    render(
+      <Transcript
+        botId="ops"
+        items={[{
+          id: 'p-1',
+          kind: 'propose-routine',
+          seq: 9,
+          name: '校稿',
+          schedule: '@daily',
+          instruction: '校今天的稿',
+        }]}
+        working={false}
+      />,
+    )
+    expect(screen.getByTestId('propose-p-1').textContent).toContain('设成例程：校稿')
+    fireEvent.click(screen.getByTestId('propose-accept-p-1'))
+    fireEvent.click(screen.getByTestId('propose-decline-p-1'))
+    expect(fetchMock).toHaveBeenCalled()
+  })
 })

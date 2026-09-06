@@ -38,6 +38,8 @@ export interface DshBotRuntimeConfig {
   readonly webUrl: string
   readonly askTimeoutMs: number
   readonly model?: DshBotModelRef
+  readonly memoryEnabled?: boolean
+  readonly routinesEnabled?: boolean
 }
 
 /** Options for {@link askBot}. */

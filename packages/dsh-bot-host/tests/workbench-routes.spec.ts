@@ -132,6 +132,34 @@ describe('memory RPC dispatch', () => {
       calls.push(`clear:${input.botId}`)
       return { ok: true }
     },
+    async routineList(input: { botId?: string } = {}) {
+      calls.push(`rlist:${input.botId ?? ''}`)
+      return []
+    },
+    async routineCreate(input: { botId: string; name: string; schedule: string; instruction: string }) {
+      calls.push(`rcreate:${input.botId}:${input.name}`)
+      return { id: 'r1', ...input }
+    },
+    async routineUpdate(input: { id: string }) {
+      calls.push(`rupd:${input.id}`)
+      return { id: input.id }
+    },
+    async routineDelete(input: { id: string }) {
+      calls.push(`rdel:${input.id}`)
+      return { id: input.id, deleted: true as const }
+    },
+    async routineRunNow(input: { id: string }) {
+      calls.push(`rnow:${input.id}`)
+      return { outcome: 'spoke', ms: 1 }
+    },
+    async routineDecline(input: { botId: string; topic: string }) {
+      calls.push(`rdec:${input.botId}:${input.topic}`)
+      return { ok: true as const, declined: [input.topic] }
+    },
+    async markRead(input: { botId: string }) {
+      calls.push(`read:${input.botId}`)
+      return { ok: true as const, unread: 0 }
+    },
   }
 
   it('dispatches the four memory methods', async () => {
@@ -155,5 +183,26 @@ describe('memory RPC dispatch', () => {
       'forget:xiaodui-aning:1',
       'clear:xiaodui-aning',
     ])
+  })
+})
+
+
+describe('routine RPC dispatch', () => {
+  it('routes routineList and markRead', async () => {
+    const { dispatchWorkbenchApi } = await import('../src/workbench-routes.ts')
+    const calls: string[] = []
+    const bot = {
+      async routineList(input: { botId?: string } = {}) {
+        calls.push(`rlist:${input.botId ?? ''}`)
+        return []
+      },
+      async markRead(input: { botId: string }) {
+        calls.push(`read:${input.botId}`)
+        return { ok: true as const, unread: 0 }
+      },
+    }
+    expect(await dispatchWorkbenchApi(bot as never, 'routineList', { botId: 'ops' })).toEqual([])
+    expect(await dispatchWorkbenchApi(bot as never, 'markRead', { botId: 'ops' })).toEqual({ ok: true, unread: 0 })
+    expect(calls).toEqual(['rlist:ops', 'read:ops'])
   })
 })

@@ -44,7 +44,16 @@ import { composePersona, createMemoryStore, renderMemorySection, shouldExtract, 
 import type { MemoryStore } from './memory.ts'
 import { createExtractAsk, extractMemory } from './memory-extract.ts'
 import type { ExtractAsk } from './memory-extract.ts'
-import { parseBotMark } from './marks.ts'
+import { botMark, mergeBotMarks, parseBotMark, routineMark } from './marks.ts'
+import { createRoutineStore, parseSchedule } from './routines.ts'
+import type { RoutineRow, RoutineStore } from './routines.ts'
+import { createScheduler } from './routine-scheduler.ts'
+import type { RoutineScheduler } from './routine-scheduler.ts'
+import { wakeRoutine } from './routine-wake.ts'
+import { renderBehaviorSection } from './routine-behavior.ts'
+import { extractAssistantAnswer } from './ask.ts'
+import { SessionId } from '@deepseek-ai/dsh-session'
+
 import { attachDshBotHttp } from './routes.ts'
 import type { DshBotModelInfo } from './routes.ts'
 import {
@@ -58,6 +67,7 @@ import {
   listOwnedSessions,
   projectRoomHistory,
   promptOwnedSession,
+  withPromptLock,
   readOwnedHistory,
 } from './workbench-sessions.ts'
 import type {
@@ -129,6 +139,7 @@ export {
   projectRoomHistory,
   projectWorkbenchHistory,
   promptOwnedSession,
+  withPromptLock,
   readOwnedHistory,
   turnIsOpen,
 } from './workbench-sessions.ts'
@@ -221,12 +232,14 @@ export interface DshBotConfig {
   readonly model?: DshBotModelRef
   /** Memory extract + inject. Default enabled. */
   readonly memory?: { readonly enabled?: boolean }
+  readonly routines?: { readonly enabled?: boolean }
 }
 
 export interface DshBotServiceExtras {
   readonly memory?: MemoryStore
   readonly extractAsk?: ExtractAsk
   readonly behaviorSection?: (bot: BotView) => string
+  readonly routines?: RoutineStore
 }
 
 declare module '@deepseek-ai/cordis' {
@@ -257,6 +270,9 @@ class DshBotService extends Service {
     memory: z.object({
       enabled: z.boolean().default(true),
     }),
+    routines: z.object({
+      enabled: z.boolean().default(true),
+    }),
   })
 
   private source: () => DshBotRuntimeConfig
@@ -267,6 +283,10 @@ class DshBotService extends Service {
   private readonly memoryStore: MemoryStore
   private readonly extractAsk: ExtractAsk
   private readonly behaviorSection?: (bot: BotView) => string
+  private readonly routineStore: RoutineStore
+  private readonly scheduler: RoutineScheduler
+  private readonly unread = new Map<string, number>()
+  private readonly routineErrors = new Map<string, number>()
   private readonly pendingExtract = new Map<string, {
     readonly botId: string
     readonly sinceSeq: number
@@ -293,6 +313,7 @@ class DshBotService extends Service {
       askTimeoutMs: config.askTimeoutMs,
       ...config.model === undefined ? {} : { model: config.model },
       memoryEnabled: config.memory?.enabled !== false,
+      routinesEnabled: config.routines?.enabled !== false,
     })
     this.source = () => entry
     this.platform = platform ?? createPlatform(ctx)
@@ -310,7 +331,19 @@ class DshBotService extends Service {
       platform: this.platform,
       config: () => this.source(),
     })
-    if (extras?.behaviorSection !== undefined) this.behaviorSection = extras.behaviorSection
+    this.behaviorSection = extras?.behaviorSection ?? (bot => renderBehaviorSection(bot.declined ?? []))
+    this.routineStore = extras?.routines ?? createRoutineStore(() => {
+      const home = process.env.DSH_HOME?.trim()
+      if (home === undefined || home === '') throw new Error('DSH_HOME is not set')
+      return home
+    })
+    this.scheduler = createScheduler({
+      store: this.routineStore,
+      enabled: () => this.source().routinesEnabled !== false,
+      wake: routine => this.performWake(routine),
+    })
+    if (this.source().routinesEnabled !== false) void this.scheduler.rearmAll()
+    ctx.on('dispose', () => this.scheduler.disarmAll())
     this.groupsRuntime = groupsRuntime ?? createGroupsRuntime({
       listBotIds: async () => {
         const listed = await this.botsRuntime.listBots()
@@ -322,7 +355,7 @@ class DshBotService extends Service {
       setSource: (current) => {
         this.source = current
       },
-      onChange: () => {},
+      onChange: () => { void this.scheduler.rearmAll() },
     })
     ctx.inject(['webServer'], (webCtx) => {
       attachDshBotHttp(webCtx, this)
@@ -373,7 +406,12 @@ class DshBotService extends Service {
   }
 
   listBots() {
-    return this.botsRuntime.listBots()
+    return this.botsRuntime.listBots().then(listed => ({
+      bots: listed.bots.map(bot => ({
+        ...bot,
+        unread: this.unread.get(bot.id) ?? 0,
+      })),
+    }))
   }
 
   createBot(input: CreateBotInput) {
@@ -393,6 +431,12 @@ class DshBotService extends Service {
   deleteBot(input: { id: string }) {
     return this.botsRuntime.deleteBot(input).then(async result => {
       await this.memoryStore.remove(input.id)
+      const rows = await this.routineStore.list(input.id)
+      for (const row of rows) {
+        this.scheduler.disarm(row.id)
+        await this.routineStore.remove(row.id)
+      }
+      this.unread.delete(input.id)
       return result
     })
   }
@@ -547,6 +591,81 @@ class DshBotService extends Service {
       await this.memoryStore.clear(input.botId)
       return { ok: true as const }
     })
+  }
+
+
+  routineList(input: { botId?: string } = {}) {
+    return this.routineStore.list(input.botId)
+  }
+
+  async routineCreate(input: { botId: string; name: string; schedule: string; instruction: string; notify?: boolean }) {
+    parseSchedule(input.schedule)
+    const row = await this.routineStore.create(input)
+    await this.scheduler.arm(row.id)
+    return row
+  }
+
+  async routineUpdate(input: { id: string; name?: string; schedule?: string; instruction?: string; enabled?: boolean; notify?: boolean }) {
+    if (input.schedule !== undefined) parseSchedule(input.schedule)
+    const row = await this.routineStore.update(input)
+    if (row.enabled) await this.scheduler.arm(row.id)
+    else this.scheduler.disarm(row.id)
+    return row
+  }
+
+  async routineDelete(input: { id: string }) {
+    this.scheduler.disarm(input.id)
+    return this.routineStore.remove(input.id)
+  }
+
+  routineRunNow(input: { id: string }) {
+    return this.scheduler.runNow(input.id)
+  }
+
+  async routineDecline(input: { botId: string; topic: string }) {
+    const view = await this.botsRuntime.declineTopic(input.botId, input.topic)
+    await this.injectMemory(view.id)
+    return { ok: true as const, declined: view.declined ?? [] }
+  }
+
+  markRead(input: { botId: string }) {
+    this.unread.set(input.botId, 0)
+    return { ok: true as const, unread: 0 }
+  }
+
+  private async performWake(routine: RoutineRow) {
+    return wakeRoutine({
+      store: this.routineStore,
+      unread: this.unread,
+      errors: this.routineErrors,
+      io: {
+        ensureSession: async current => {
+          if (current.sessionId !== undefined && current.sessionId !== '') return current.sessionId
+          await this.injectMemory(current.botId)
+          const created = await createOwnedSession(this.ctx.sessionTool, this.platform, this.botsRuntime, this.source(), {
+            botId: current.botId,
+            title: `例程 · ${current.name}`,
+          })
+          await mergeBotMarks(created.sessionId, [botMark(current.botId), routineMark(current.id)])
+          return created.sessionId
+        },
+        writeWaitRead: async (sessionId, text) => {
+          return await withPromptLock(sessionId, async () => {
+            await this.ctx.sessionTool.write({ kind: 'cli' }, SessionId(sessionId), text)
+            const waited = await this.ctx.sessionTool.wait({ kind: 'cli' }, SessionId(sessionId), {
+              until: 'idle',
+              timeoutMs: this.source().askTimeoutMs,
+            })
+            if (waited.status !== 'idle') throw new Error(`routine wait ${waited.status}`)
+            const read = await this.ctx.sessionTool.read({ kind: 'cli' }, SessionId(sessionId), { maxBlocks: 500 })
+            return extractAssistantAnswer(read.messages)
+          })
+        },
+        writeSystem: async (sessionId, text) => {
+          await this.ctx.sessionTool.write({ kind: 'cli' }, SessionId(sessionId), text)
+        },
+      },
+    }, routine)
   }
 
   async injectMemory(botId: string): Promise<void> {

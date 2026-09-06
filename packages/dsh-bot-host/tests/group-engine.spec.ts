@@ -162,6 +162,9 @@ const fakeBots: BotsRuntime = {
     throw new DshBotError('internal', 'unused')
   },
   async rewritePresetPersona() {},
+  async declineTopic() {
+    throw new DshBotError('internal', 'unused')
+  },
 }
 
 const homes: string[] = []

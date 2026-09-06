@@ -1,15 +1,15 @@
 序号,Phase,名称,详情锚点,前置任务,验证命令,状态,备注
-1,P0:校准,校准 ASM-901~904,spec.md#task-1,无,ls evidence/phase-0/calibration.md → 存在；git diff --stat packages/ 无残留,待开始,豁免回归:单任务校准 Phase
-2,P1:存储与调度,routines.ts 存储与 schedule 解析,spec.md#task-2,1,pnpm test -- routines → 通过,待开始,
-3,P1:存储与调度,routine-scheduler.ts 与服务挂载,spec.md#task-3,2,pnpm test -- routine-scheduler → 通过,待开始,
-4,P1:存储与调度,执行 Phase 1 回归验证,spec.md#task-4,3,pnpm run typecheck && pnpm test → 全过,待开始,
-5,P2:唤醒投递,routine-wake.ts 唤醒链路与静默判定,spec.md#task-5,3,pnpm test -- routine-wake workbench-sessions → 通过,待开始,
-6,P2:唤醒投递,preset 规范段与提议块投影,spec.md#task-6,5,pnpm test -- bots workbench-sessions → 通过,待开始,
-7,P2:唤醒投递,执行 Phase 2 回归验证,spec.md#task-7,5;6,pnpm run typecheck && pnpm test → 全过；真机 routines.json runs 增长,待开始,
-8,P3:RPC 与工作台,七个 RPC,spec.md#task-8,7,pnpm test -- workbench-routes → 通过；curl 六例 ok:true,待开始,
-9,P3:RPC 与工作台,RoutinesPanel 与表单,spec.md#task-9,8,pnpm test -- routines-panel → 通过；真机会话头可见 ⏰,待开始,
-10,P3:RPC 与工作台,名册未读徽标、通知与提议卡,spec.md#task-10,8,pnpm test -- roster transcript notify → 通过,待开始,
-11,P3:RPC 与工作台,执行 Phase 3 回归验证,spec.md#task-11,9;10,pnpm run typecheck && pnpm test && pnpm run build → 全过,待开始,
-12,P4:收尾,同步 README 与设置示例,spec.md#task-12,11,rg -n "例程" README.md → ≥1 命中,待开始,
-13,P4:收尾,执行 spec 5.2 真实场景全套测试,spec.md#task-13,11,按 5.2 执行矩阵逐行回放（含真实等待触发）→ 全部通过,待开始,
-14,P4:收尾,执行 Phase 4 回归验证,spec.md#task-14,12;13,四命令全绿；rg 红线为空；邻仓干净；validate_package.py --repo . → 0 FAIL,待开始,
+1,P0:校准,校准 ASM-901~904,spec.md#task-1,无,ls evidence/phase-0/calibration.md → 存在；git diff --stat packages/ 无残留,已完成,豁免回归:单任务校准 Phase；ASM-903/904 被 grok-4.6 503 挡住；无 debug tick 残留
+2,P1:存储与调度,routines.ts 存储与 schedule 解析,spec.md#task-2,1,./node_modules/.bin/vitest run packages/dsh-bot-host/tests/routines.spec.ts → 通过,已完成,pnpm test 因 frozen lockfile 不可用
+3,P1:存储与调度,routine-scheduler.ts 与服务挂载,spec.md#task-3,2,./node_modules/.bin/vitest run packages/dsh-bot-host/tests/routine-scheduler.spec.ts → 通过,已完成,构造 rearmAll；dispose disarmAll；settings onChange rearm
+4,P1:存储与调度,执行 Phase 1 回归验证,spec.md#task-4,3,pnpm run typecheck && pnpm test → 全过,已阻塞:tsc SessionId brand + pnpm frozen lockfile,改用 vitest；见 phase-1/task2-3-5-tests.log
+5,P2:唤醒投递,routine-wake.ts 唤醒链路与静默判定,spec.md#task-5,3,./node_modules/.bin/vitest run packages/dsh-bot-host/tests/routine-wake.spec.ts packages/dsh-bot-host/tests/workbench-sessions.spec.ts → 通过,已完成,唤醒走 withPromptLock+write/wait/read；不经 promptOwnedSession
+6,P2:唤醒投递,preset 规范段与提议块投影,spec.md#task-6,5,./node_modules/.bin/vitest run packages/dsh-bot-host/tests/bots.spec.ts packages/dsh-bot-host/tests/workbench-sessions.spec.ts → 通过,已完成,composePersona 基础+记忆+规范；真机 cordis 三段齐
+7,P2:唤醒投递,执行 Phase 2 回归验证,spec.md#task-7,5;6,pnpm run typecheck && pnpm test → 全过；真机 routines.json runs 增长,已阻塞:tsc/pnpm；spoke 被模型 503 挡住,runs 以 error 增长；第 3 次写入 [routine-system] 连续失败提示
+8,P3:RPC 与工作台,七个 RPC,spec.md#task-8,7,vitest workbench-routes；curl 六例 ok:true,已完成,evidence/API-907
+9,P3:RPC 与工作台,RoutinesPanel 与表单,spec.md#task-9,8,vitest routines-panel；真机会话头可见 ⏰,已完成,🧠 在 ⏰ 左；empty copy 精确命中
+10,P3:RPC 与工作台,名册未读徽标、通知与提议卡,spec.md#task-10,8,vitest roster transcript notify → 通过,已完成,真机 spoke/通知/提议卡被模型 503 挡住；单测覆盖
+11,P3:RPC 与工作台,执行 Phase 3 回归验证,spec.md#task-11,9;10,pnpm run typecheck && pnpm test && pnpm run build → 全过,已阻塞:同 Task 4 typecheck/pnpm,host+ui 已 tsdown
+12,P4:收尾,同步 README 与设置示例,spec.md#task-12,11,rg -n "例程" README.md → ≥1 命中,已完成,README §例程；settings.example routines.enabled 注释
+13,P4:收尾,执行 spec 5.2 真实场景全套测试,spec.md#task-13,11,按 5.2 执行矩阵逐行回放 → 全部通过,已阻塞:模型 503 无 spoke/silent/通知/提议卡,可测项见 evidence/phase-2/real-run.md
+14,P4:收尾,执行 Phase 4 回归验证,spec.md#task-14,12;13,四命令全绿；rg 红线为空；邻仓干净；validate_package.py --repo . → 0 FAIL,已阻塞:四命令不全绿,红线与 validate 收尾时跑

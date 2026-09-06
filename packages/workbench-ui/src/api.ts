@@ -62,6 +62,8 @@ export interface WorkbenchModelOverride {
 }
 
 export interface WorkbenchBot {
+  readonly unread?: number
+  readonly declined?: readonly string[]
   readonly id: string
   readonly name: string
   readonly avatar: WorkbenchBotAvatar
@@ -152,7 +154,10 @@ export interface WorkbenchHistoryAuthor {
 
 export interface WorkbenchHistoryItem {
   readonly id: string
-  readonly kind: 'message' | 'thinking' | 'tool'
+  readonly kind: 'message' | 'thinking' | 'tool' | 'propose-routine'
+  readonly schedule?: string
+  readonly instruction?: string
+  readonly origin?: 'routine'
   readonly seq: number
   readonly role?: 'user' | 'assistant'
   readonly text?: string
@@ -344,4 +349,58 @@ export function memoryClear(botId: string): Promise<RpcResult<{ ok: true }>> {
 export function memoryCount(value: MemoryListValue | undefined): number {
   if (value === undefined) return 0
   return (value.profile ?? []).length + (value.log ?? []).length
+}
+
+
+export interface RoutineRow {
+  readonly id: string
+  readonly botId: string
+  readonly name: string
+  readonly schedule: string
+  readonly instruction: string
+  readonly enabled: boolean
+  readonly notify: boolean
+  readonly lastRunAt?: number
+  readonly lastOutcome?: 'spoke' | 'silent' | 'error'
+}
+
+export function routineList(botId?: string): Promise<RpcResult<readonly RoutineRow[]>> {
+  return workbenchCall('routineList', botId === undefined || botId === '' ? {} : { botId })
+}
+
+export function routineCreate(input: {
+  botId: string
+  name: string
+  schedule: string
+  instruction: string
+  notify?: boolean
+}): Promise<RpcResult<RoutineRow>> {
+  return workbenchCall('routineCreate', input)
+}
+
+export function routineUpdate(input: {
+  id: string
+  name?: string
+  schedule?: string
+  instruction?: string
+  enabled?: boolean
+  notify?: boolean
+}): Promise<RpcResult<RoutineRow>> {
+  return workbenchCall('routineUpdate', input)
+}
+
+export function routineDelete(id: string): Promise<RpcResult<{ id: string; deleted: true }>> {
+  return workbenchCall('routineDelete', { id })
+}
+
+export function routineRunNow(id: string): Promise<RpcResult<{ outcome: string; ms: number }>> {
+  return workbenchCall('routineRunNow', { id })
+}
+
+export function routineDecline(botId: string, topic: string): Promise<RpcResult<{ ok: true; declined: readonly string[] }>> {
+  return workbenchCall('routineDecline', { botId, topic })
+}
+
+export function markRead(botId: string): Promise<RpcResult<{ ok: true; unread: number }>> {
+  return workbenchCall('markRead', { botId })
 }

@@ -289,6 +289,7 @@ describe('projectWorkbenchHistory', () => {
     ] as SessionToolMessageRow[])
     expect(items.filter(item => item.kind === 'message').map(item => item.text)).toEqual([
       '你是谁?',
+      '诗人小北，现在轮到你在「编辑室」里说话。\n房间里刚说的：\n用户: 你们是谁?\n按你自己的身份接一句。没有要补充的可以沉默。',
       '我是诗人小北',
     ])
   })
@@ -398,10 +399,11 @@ describe('createBotSession / listBotSessions / history / prompt', () => {
     const withHidden = await bot.listBotSessions({ botId: 'dsh-bot', includeHidden: true })
     expect(withHidden.sessions.map(row => row.sessionId)).toEqual([
       'session-new',
+      'session-group',
       'session-hidden',
       'session-old',
     ])
-    expect(withHidden.sessions.some(row => row.sessionId === 'session-group')).toBe(false)
+    expect(withHidden.sessions.some(row => row.sessionId === 'session-group')).toBe(true)
   })
 
   it('reads history through sessionTool and reports working from unmatched turn/start', async () => {
@@ -528,5 +530,27 @@ describe('memory inject + extract hooks', () => {
     await bot.history({ sessionId: 'session-owned-1' })
     await new Promise(resolve => setTimeout(resolve, 20))
     expect(ask).not.toHaveBeenCalled()
+  })
+})
+
+
+describe('routine history projection', () => {
+  it('drops [routine] user wakes and projects propose cards', async () => {
+    const { projectWorkbenchHistory, isPlatformInjection } = await import('../src/workbench-sessions.ts')
+    expect(isPlatformInjection('[routine] 报时\n没有人在等你')).toBe(true)
+    const items = projectWorkbenchHistory([
+      {
+        seq: 1,
+        role: 'user',
+        blocks: [{ type: 'text', text: '[routine] 报时\n没有人在等你' }],
+      },
+      {
+        seq: 2,
+        role: 'assistant',
+        blocks: [{ type: 'text', text: '好的\n[propose-routine]{"name":"校稿","schedule":"@daily","instruction":"校今天的稿"}[/propose-routine]' }],
+      },
+    ] as never)
+    expect(items.some(item => item.kind === 'message' && item.role === 'user')).toBe(false)
+    expect(items.some(item => item.kind === 'propose-routine' && item.name === '校稿')).toBe(true)
   })
 })

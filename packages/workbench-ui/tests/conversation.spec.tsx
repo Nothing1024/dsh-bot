@@ -440,3 +440,16 @@ describe('Conversation', () => {
     expect(screen.getByTestId('memory-profile').textContent).toMatch(/Nothing/)
   })
 })
+
+  it('shows the routines pill next to memory', async () => {
+    vi.stubGlobal('fetch', vi.fn(async (url: string) => {
+      const path = String(url)
+      if (path.includes('listBotSessions')) return jsonOk({ sessions: [] })
+      if (path.includes('routineList')) return jsonOk([])
+      if (path.includes('memoryList')) return jsonOk({ profile: [], log: [] })
+      return jsonOk({})
+    }))
+    render(<Conversation bot={BOT} />)
+    expect(await screen.findByTestId('routines-open')).toBeTruthy()
+    expect(screen.getByTestId('memory-open')).toBeTruthy()
+  })

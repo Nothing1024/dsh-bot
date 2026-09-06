@@ -60,3 +60,5 @@ llm-pi-ai:
 # dsh-bot:
 #   memory:
 #     enabled: true
+#   routines:
+#     enabled: true

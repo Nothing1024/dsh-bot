@@ -1,0 +1,136 @@
+
+ RUN  v4.1.11 /Users/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin
+
+ ✓ packages/dsh-bot-host/tests/routine-wake.spec.ts > buildWakePrompt > is self-written and starts with [routine] 1ms
+ ✓ packages/dsh-bot-host/tests/routine-wake.spec.ts > wakeRoutine > marks silent without incrementing unread 0ms
+ ✓ packages/dsh-bot-host/tests/routine-wake.spec.ts > wakeRoutine > marks spoke and increments unread 0ms
+ ✓ packages/dsh-bot-host/tests/routine-wake.spec.ts > wakeRoutine > writes a system hint after three errors 1ms
+ ✓ packages/dsh-bot-host/tests/workbench-routes.spec.ts > workbench static > serves index.html at /dsh-bot/ui with html content type 3ms
+ ✓ packages/dsh-bot-host/tests/workbench-routes.spec.ts > workbench static > serves js and css with matching types 2ms
+ ✓ packages/dsh-bot-host/tests/workbench-routes.spec.ts > workbench static > rejects path traversal 1ms
+ ✓ packages/dsh-bot-host/tests/workbench-routes.spec.ts > workbench static > returns 404 for missing assets 1ms
+ ✓ packages/dsh-bot-host/tests/workbench-routes.spec.ts > workbench static > registers the /dsh-bot/ui prefix 5ms
+ ✓ packages/dsh-bot-host/tests/workbench-routes.spec.ts > memory RPC dispatch > dispatches the four memory methods 1ms
+ ✓ packages/dsh-bot-host/tests/workbench-routes.spec.ts > routine RPC dispatch > routes routineList and markRead 0ms
+ ✓ packages/dsh-bot-host/tests/routine-scheduler.spec.ts > createScheduler > fires once when due and rearms 10ms
+ ✓ packages/dsh-bot-host/tests/routine-scheduler.spec.ts > createScheduler > does not fire after disable 2ms
+ ✓ packages/dsh-bot-host/tests/routine-scheduler.spec.ts > createScheduler > refuses reentry while a wake is running 4ms
+ ✓ packages/dsh-bot-host/tests/routine-scheduler.spec.ts > createScheduler > rearmAll is idempotent 4ms
+ ✓ packages/dsh-bot-host/tests/routines.spec.ts > parseSchedule > parses @every and aliases 1ms
+ ✓ packages/dsh-bot-host/tests/routines.spec.ts > parseSchedule > rejects empty and out-of-range fields 1ms
+ ✓ packages/dsh-bot-host/tests/routines.spec.ts > parseSchedule > accepts CRON_TZ prefix 11ms
+ ✓ packages/dsh-bot-host/tests/routines.spec.ts > nextRun > adds interval for @every 0ms
+ ✓ packages/dsh-bot-host/tests/routines.spec.ts > nextRun > finds the next cron minute across midnight UTC 0ms
+ ✓ packages/dsh-bot-host/tests/routines.spec.ts > nextRun > respects CRON_TZ 1ms
+ ✓ packages/dsh-bot-host/tests/routines.spec.ts > createRoutineStore > creates, lists, records at most 20 runs, and backups corrupt files 24ms
+ ✓ packages/dsh-bot-host/tests/routines.spec.ts > createRoutineStore > dedups same bot/name/schedule within 60s 1ms
+ ✓ packages/dsh-bot-host/tests/routines.spec.ts > behavior section + propose parse > renders declined topics and strips propose blocks 1ms
+ ✓ packages/dsh-bot-host/tests/bots.spec.ts > slugifyName > groups CJK pinyin in pairs: 诗人小北 → shiren-xiaobei 3ms
+ ✓ packages/dsh-bot-host/tests/bots.spec.ts > slugifyName > hyphenates ASCII words 1ms
+ ✓ packages/dsh-bot-host/tests/bots.spec.ts > yaml persona quoting > single-quotes and doubles apostrophes 1ms
+ ✓ packages/dsh-bot-host/tests/bots.spec.ts > yaml persona quoting > rejects control characters 1ms
+ ✓ packages/dsh-bot-host/tests/bots.spec.ts > yaml persona quoting > round-trips multi-line injection text through a YAML engine 10ms
+ ✓ packages/dsh-bot-host/tests/bots.spec.ts > bots runtime > seeds the default bot bound to the bundled preset 4ms
+ ✓ packages/dsh-bot-host/tests/bots.spec.ts > bots runtime > creates a managed preset, then lists it 5ms
+ ✓ packages/dsh-bot-host/tests/bots.spec.ts > bots runtime > suffixes slugs on collision 5ms
+ ✓ packages/dsh-bot-host/tests/bots.spec.ts > bots runtime > updates name/avatar/modelOverride in the registry and persona on disk 6ms
+ ✓ packages/dsh-bot-host/tests/bots.spec.ts > bots runtime > rolls back a broken create: no directory, no registry row 4ms
+ ✓ packages/dsh-bot-host/tests/bots.spec.ts > bots runtime > rolls back the preset if the registry write fails after rewrite 5ms
+ ✓ packages/dsh-bot-host/tests/bots.spec.ts > bots runtime > rolls back a broken update and keeps the previous composition 6ms
+ ✓ packages/dsh-bot-host/tests/bots.spec.ts > bots runtime > refuses to delete the seed bot and does not touch the bundled preset 1ms
+ ✓ packages/dsh-bot-host/tests/bots.spec.ts > bots runtime > deletes a managed preset directory then the registry row 5ms
+ ✓ packages/dsh-bot-host/tests/bots.spec.ts > bots runtime > does not rewrite the bundled preset when updating the seed name 3ms
+ ✓ packages/dsh-bot-host/tests/bots.spec.ts > bots runtime > fails loud on a corrupt registry without throwing untyped errors 3ms
+ ✓ packages/dsh-bot-host/tests/bots.spec.ts > bots runtime > treats empty modelOverride as follow-global 3ms
+ ✓ packages/dsh-bot-host/tests/bots.spec.ts > rewritePresetPersona / INV-801 > rewrites the preset file twice without changing bots.json.persona 5ms
+ ✓ packages/dsh-bot-host/tests/bots.spec.ts > rewritePresetPersona / INV-801 > rolls back a broken rewrite 5ms
+ ✓ packages/dsh-bot-host/tests/bots.spec.ts > declineTopic / behavior section > records declined topics without rewriting persona 3ms
+ ✓ packages/dsh-bot-host/tests/group-engine.spec.ts > parseMentions > with no mention returns all members in roster order 1ms
+ ✓ packages/dsh-bot-host/tests/group-engine.spec.ts > parseMentions > matches a Chinese name after @ 1ms
+ ✓ packages/dsh-bot-host/tests/group-engine.spec.ts > parseMentions > treats @all as everyone 1ms
+ ✓ packages/dsh-bot-host/tests/group-engine.spec.ts > parseMentions > unmatched handle falls back to everyone 0ms
+ ✓ packages/dsh-bot-host/tests/group-engine.spec.ts > isSkipReply > skips empty and (pass) in any case 0ms
+ ✓ packages/dsh-bot-host/tests/group-engine.spec.ts > buildMemberTurnPrompt > names the speaker and room without host banners 0ms
+ ✓ packages/dsh-bot-host/tests/group-engine.spec.ts > toRoomSpeech > returns the assistant line as room speech 0ms
+ ✓ packages/dsh-bot-host/tests/group-engine.spec.ts > toRoomSpeech > strips an echoed turn prompt 0ms
+ ✓ packages/dsh-bot-host/tests/group-engine.spec.ts > toRoomSpeech > strips leaked host banners 1ms
+ ✓ packages/dsh-bot-host/tests/group-engine.spec.ts > toRoomSpeech > skips pass and empty 0ms
+ ✓ packages/dsh-bot-host/tests/group-engine.spec.ts > runGroupRound > appends two member replies in memberIds order 14ms
+ ✓ packages/dsh-bot-host/tests/group-engine.spec.ts > runGroupRound > mention asks only the named member 9ms
+ ✓ packages/dsh-bot-host/tests/group-engine.spec.ts > runGroupRound > does not copy an echoed turn prompt into the room 9ms
+ ✓ packages/dsh-bot-host/tests/group-engine.spec.ts > runGroupRound > skips (pass) and does not write a member line 8ms
+ ✓ packages/dsh-bot-host/tests/group-engine.spec.ts > runGroupRound > does not copy tool rows into the room 7ms
+ ✓ packages/dsh-bot-host/tests/group-engine.spec.ts > runGroupRound > keeps the first reply when a later member fails 6ms
+ ✓ packages/dsh-bot-host/tests/group-engine.spec.ts > runGroupRound > reuses the hidden session on a second round 11ms
+ ✓ packages/dsh-bot-host/tests/routes.spec.ts > dsh-bot HTTP face > skips register when webServer is absent 3ms
+ ✓ packages/dsh-bot-host/tests/routes.spec.ts > dsh-bot HTTP face > lists sessions with botModel in the value object 55ms
+ ✓ packages/dsh-bot-host/tests/routes.spec.ts > dsh-bot HTTP face > forwards includeHidden 53ms
+ ✓ packages/workbench-ui/tests/notify.spec.ts > notifyRoutineSpoke > skips when the document is visible 1ms
+ ✓ packages/workbench-ui/tests/notify.spec.ts > notifyRoutineSpoke > throttles the same bot within 5s 1ms
+ ✓ packages/dsh-bot-host/tests/workbench-sessions.spec.ts > botMark > formats the bot:<id> token 1ms
+ ✓ packages/dsh-bot-host/tests/workbench-sessions.spec.ts > projectWorkbenchHistory > projects role/text/thinking/tool summary/seq and drops tool arguments 1ms
+ ✓ packages/dsh-bot-host/tests/workbench-sessions.spec.ts > projectWorkbenchHistory > mints stable ids for the same seq whether projected alone or in a full page 1ms
+ ✓ packages/dsh-bot-host/tests/workbench-sessions.spec.ts > projectWorkbenchHistory > drops platform-injected user context from the transcript 0ms
+ ✓ packages/dsh-bot-host/tests/workbench-sessions.spec.ts > turnIsOpen > is true while turn/start has no matching turn/end 0ms
+ ✓ packages/dsh-bot-host/tests/workbench-sessions.spec.ts > createBotSession / listBotSessions / history / prompt > creates via gateway session.create, marks bot:<id>, and skips sessionTool.create 7ms
+ ✓ packages/dsh-bot-host/tests/workbench-sessions.spec.ts > createBotSession / listBotSessions / history / prompt > applies the per-bot modelOverride via the v1 platform gate 4ms
+ ✓ packages/dsh-bot-host/tests/workbench-sessions.spec.ts > createBotSession / listBotSessions / history / prompt > lists bot:<id> intersection, drops hidden by default, newest first 7ms
+ ✓ packages/dsh-bot-host/tests/workbench-sessions.spec.ts > createBotSession / listBotSessions / history / prompt > reads history through sessionTool and reports working from unmatched turn/start 2ms
+ ✓ packages/dsh-bot-host/tests/workbench-sessions.spec.ts > createBotSession / listBotSessions / history / prompt > prompts via sessionTool.write with the CLI caller 1ms
+ ✓ packages/dsh-bot-host/tests/workbench-sessions.spec.ts > createBotSession / listBotSessions / history / prompt > rejects an empty prompt loud 1ms
+ ✓ packages/dsh-bot-host/tests/workbench-sessions.spec.ts > createBotSession / listBotSessions / history / prompt > rejects an unknown botId 2ms
+ ✓ packages/dsh-bot-host/tests/workbench-sessions.spec.ts > createBotSession / listBotSessions / history / prompt > does not change v1 createSession (sessionTool.create, kind:dsh-bot only) 1ms
+ ✓ packages/dsh-bot-host/tests/workbench-sessions.spec.ts > memory inject + extract hooks > injects memory into a managed preset before createOwnedSession 8ms
+ ✓ packages/dsh-bot-host/tests/workbench-sessions.spec.ts > memory inject + extract hooks > extracts once after a turn closes and skips a second poll 76ms
+ ✓ packages/dsh-bot-host/tests/workbench-sessions.spec.ts > memory inject + extract hooks > does not extract when memory.enabled is false 23ms
+ ✓ packages/dsh-bot-host/tests/workbench-sessions.spec.ts > routine history projection > drops [routine] user wakes and projects propose cards 0ms
+ ✓ packages/dsh-bot-host/tests/routes.spec.ts > dsh-bot HTTP face > creates a visible session via CLI caller with a workspace cwd 52ms
+ ✓ packages/workbench-ui/tests/routines-panel.spec.tsx > RoutinesPanel > shows the exact empty copy 16ms
+ ✓ packages/workbench-ui/tests/routines-panel.spec.tsx > RoutinesPanel > submits the create form 8ms
+ ✓ packages/workbench-ui/tests/transcript.spec.tsx > Transcript > shows member avatar and name in group mode 18ms
+ ✓ packages/workbench-ui/tests/transcript.spec.tsx > Transcript > places user on the right and assistant on the left without a large avatar 2ms
+ ✓ packages/workbench-ui/tests/transcript.spec.tsx > Transcript > hides thinking and tool process from the chat 1ms
+ ✓ packages/workbench-ui/tests/transcript.spec.tsx > Transcript > renders assistant markdown like DSH chat prose 3ms
+ ✓ packages/workbench-ui/tests/transcript.spec.tsx > Transcript > shows a working indicator and pending user bubble 2ms
+ ✓ packages/workbench-ui/tests/transcript.spec.tsx > Transcript > shows the speaking member on the typing bubble in group mode 2ms
+ ✓ packages/workbench-ui/tests/transcript.spec.tsx > Transcript > offers a group message menu that calls onReplyTo 6ms
+ ✓ packages/workbench-ui/tests/transcript.spec.tsx > Transcript > renders a reply cite on the user row and a missing-source fallback 1ms
+ ✓ packages/workbench-ui/tests/transcript.spec.tsx > Transcript > pins an assistant row and offers member pick in a room 4ms
+ ✓ packages/workbench-ui/tests/transcript.spec.tsx > Transcript > renders a propose-routine card with accept and decline 1ms
+ ✓ packages/workbench-ui/tests/roster.spec.tsx > Roster > renders avatar, name, preview, relative time, selected and working 19ms
+ ✓ packages/workbench-ui/tests/roster.spec.tsx > Roster > renders a group mosaic row and the new-group control 13ms
+ ✓ packages/workbench-ui/tests/roster.spec.tsx > Roster > opens create from the new-bot button 3ms
+ ✓ packages/workbench-ui/tests/roster.spec.tsx > Roster > disables delete on the default bot and confirms delete for others 8ms
+ ✓ packages/workbench-ui/tests/roster.spec.tsx > Roster > renames on double-click + Enter 5ms
+ ✓ packages/workbench-ui/tests/roster.spec.tsx > Roster > shows an unread badge for a bot with unread > 0 3ms
+ ✓ packages/dsh-bot-host/tests/routes.spec.ts > dsh-bot HTTP face > forwards an explicit cwd from args 50ms
+ ✓ packages/dsh-bot-host/tests/routes.spec.ts > dsh-bot HTTP face > maps sessionTool error codes through 51ms
+ ✓ packages/workbench-ui/tests/conversation.spec.tsx > Conversation > shows header identity, placeholder, and working badge while history.working 34ms
+ ✓ packages/workbench-ui/tests/conversation.spec.tsx > Conversation > creates a session then prompts, showing a pending user bubble 12ms
+ ✓ packages/workbench-ui/tests/conversation.spec.tsx > Conversation > keeps send disabled after prompt until history reports the turn idle 8ms
+ ✓ packages/workbench-ui/tests/conversation.spec.tsx > Conversation > keeps the draft and surfaces the host error code when prompt fails 9ms
+ ✓ packages/workbench-ui/tests/conversation.spec.tsx > Conversation > shows the empty-chat CTA when the bot has no sessions 4ms
+ ✓ packages/workbench-ui/tests/conversation.spec.tsx > Conversation > opens edit from the identity header 3ms
+ ✓ packages/dsh-bot-host/tests/routes.spec.ts > dsh-bot HTTP face > unwraps SessionToolError carried as DshBotError cause 52ms
+ ✓ packages/dsh-bot-host/tests/routes.spec.ts > dsh-bot HTTP face > maps unknown exceptions to internal 53ms
+ ✓ packages/workbench-ui/tests/conversation.spec.tsx > Conversation > defaults to hiding delegated sessions and reloads when 包含隐藏 is on 60ms
+ ✓ packages/workbench-ui/tests/conversation.spec.tsx > Conversation > reopens the remembered session instead of always the newest 55ms
+ ✓ packages/workbench-ui/tests/conversation.spec.tsx > Conversation > does not label every bound session with the bot name 5ms
+ ✓ packages/dsh-bot-host/tests/routes.spec.ts > dsh-bot HTTP face > lists bots on POST /dsh-bot/listBots 51ms
+ ✓ packages/dsh-bot-host/tests/routes.spec.ts > dsh-bot HTTP face > creates a bot with the same {args} wire 53ms
+ ✓ packages/workbench-ui/tests/conversation.spec.tsx > Conversation > offers a current-session menu that copies the id when standalone 12ms
+ ✓ packages/workbench-ui/tests/conversation.spec.tsx > Conversation > does not offer DSH jump on group rooms 5ms
+ ✓ packages/workbench-ui/tests/conversation.spec.tsx > Conversation > sets a reply card from the group message menu and clears it after send 63ms
+ ✓ packages/workbench-ui/tests/conversation.spec.tsx > Conversation > shows the memory pill left of the session switcher and opens the panel 18ms
+ ✓ packages/workbench-ui/tests/conversation.spec.tsx > shows the routines pill next to memory 3ms
+ ✓ packages/dsh-bot-host/tests/routes.spec.ts > dsh-bot HTTP face > creates an owned bot session on POST /dsh-bot/createBotSession 50ms
+ ✓ packages/dsh-bot-host/tests/routes.spec.ts > dsh-bot HTTP face > lists owned sessions newest-first payload on POST /dsh-bot/listBotSessions 53ms
+ ✓ packages/dsh-bot-host/tests/routes.spec.ts > dsh-bot HTTP face > runs POST /dsh-bot/reconcile with the {args} wire 52ms
+ ✓ packages/dsh-bot-host/tests/routes.spec.ts > dsh-bot HTTP face > still serves v1 listSessions after workbench session methods exist 53ms
+ ✓ packages/dsh-bot-host/tests/routes.spec.ts > dsh-bot HTTP face > creates and lists groups on POST /dsh-bot/createGroup and listGroups 105ms
+
+ Test Files  13 passed (13)
+      Tests  127 passed (127)
+   Start at  18:59:25
+   Duration  995ms (transform 780ms, setup 0ms, import 1.41s, tests 1.57s, environment 1.14s)
+

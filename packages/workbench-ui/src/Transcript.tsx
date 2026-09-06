@@ -4,6 +4,7 @@
  * GFM. No large avatar beside 1:1 assistant (BR-205).
  */
 import { useEffect, useRef, useState, type Ref, type UIEvent } from 'react'
+import { routineCreate, routineDecline } from './api.ts'
 import type { WorkbenchBot, WorkbenchHistoryItem } from './api.ts'
 import { hashAvatarColor } from './avatar.ts'
 import { Markdown } from './Markdown.tsx'
@@ -27,6 +28,7 @@ export interface TranscriptReplyMark {
 }
 
 export interface TranscriptProps {
+  readonly botId?: string
   readonly items: readonly WorkbenchHistoryItem[]
   readonly pending?: { readonly text: string; readonly failed?: boolean } | null
   readonly working: boolean
@@ -93,6 +95,42 @@ export function Transcript(props: TranscriptProps) {
       onScroll={onScroll}
     >
       {props.items.map(item => {
+          if (item.kind === 'propose-routine') {
+            return (
+              <div key={item.id} className="proposeCard" data-testid={`propose-${item.id}`}>
+                <div>设成例程：{item.name} · {item.schedule}</div>
+                <div className="hint">{item.instruction}</div>
+                <button
+                  type="button"
+                  className="retry"
+                  data-testid={`propose-accept-${item.id}`}
+                  onClick={() => {
+                    if (props.botId === undefined || item.name === undefined || item.schedule === undefined || item.instruction === undefined) return
+                    void routineCreate({
+                      botId: props.botId,
+                      name: item.name,
+                      schedule: item.schedule,
+                      instruction: item.instruction,
+                    })
+                  }}
+                >
+                  设成例程
+                </button>
+                <button
+                  type="button"
+                  className="retry"
+                  data-testid={`propose-decline-${item.id}`}
+                  onClick={() => {
+                    if (props.botId === undefined || item.name === undefined) return
+                    void routineDecline(props.botId, item.name)
+                  }}
+                >
+                  不用
+                </button>
+              </div>
+            )
+          }
+
         const mark = item.role === 'user' ? markFor(item.text, props.replyMarks) : undefined
         return (
           <TranscriptRow
@@ -264,7 +302,10 @@ function TranscriptRow(props: {
       ) : null}
       <div className="bubbleCol">
         {showAuthor ? (
-          <span className="authorName" data-testid={`transcript-author-${item.seq}`}>{author.name}</span>
+          <>
+            {item.origin === 'routine' ? <span className="routineTag" data-testid={`transcript-routine-${item.seq}`}>主动 · routine</span> : null}
+            <span className="authorName" data-testid={`transcript-author-${item.seq}`}>{author.name}</span>
+          </>
         ) : null}
         {props.replyTo !== undefined ? (
           <ReplyCite
