@@ -1,0 +1,72 @@
+{
+  "list": {
+    "ok": true,
+    "value": {
+      "sessions": [
+        {
+          "sessionId": "session-bbeb73e6-3cd0-47c3-8c3a-43bafbc6cde1",
+          "title": "uf103-auto-extract",
+          "tags": [
+            "bot:yunwei-yeban",
+            "kind:dsh-bot"
+          ],
+          "status": "idle",
+          "createdAt": 1788693717129,
+          "updatedAt": 1788693717129,
+          "hidden": false,
+          "working": false
+        },
+        {
+          "sessionId": "session-44502c29-7576-43bf-9239-df8800e682d0",
+          "title": "例程 · 报时",
+          "tags": [
+            "bot:yunwei-yeban",
+            "kind:dsh-bot",
+            "routine:r-1788692459058-bldp78m8"
+          ],
+          "status": "idle",
+          "createdAt": 1788693276618,
+          "updatedAt": 1788693276618,
+          "hidden": false,
+          "working": false,
+          "routine": "r-1788692459058-bldp78m8"
+        },
+        {
+          "sessionId": "session-c59ff5be-0e39-4780-a61b-d3fcb94663c9",
+          "title": "运维夜班",
+          "tags": [
+            "bot:yunwei-yeban",
+            "kind:dsh-bot"
+          ],
+          "status": "idle",
+          "createdAt": 1788692889789,
+          "updatedAt": 1788692889789,
+          "hidden": false,
+          "working": false
+        },
+        {
+          "sessionId": "session-5b8a3b81-6050-453c-815d-e8bb0824a3eb",
+          "title": "运维夜班",
+          "tags": [
+            "bot:yunwei-yeban",
+            "kind:dsh-bot"
+          ],
+          "status": "idle",
+          "createdAt": 1788692450840,
+          "updatedAt": 1788692450840,
+          "hidden": false,
+          "working": false
+        }
+      ]
+    }
+  },
+  "hiddenCount": 6,
+  "hiddenTitles": [
+    "~dsh-bot-memory: yunwei-yeban",
+    "uf103-auto-extract",
+    "例程 · 报时",
+    "~dsh-bot-memory: yunwei-yeban",
+    "运维夜班",
+    "运维夜班"
+  ]
+}

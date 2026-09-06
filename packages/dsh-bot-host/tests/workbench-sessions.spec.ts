@@ -15,6 +15,7 @@ import type {
   SessionToolMessageRow,
   SessionToolService,
 } from 'session-tool'
+import { SessionWebUnreachableError } from 'session-tool'
 import DshBotService from '../src/index.ts'
 import type { DshBotConfig } from '../src/index.ts'
 import { DshBotError } from '../src/errors.ts'
@@ -39,6 +40,7 @@ class StubSessionTool implements SessionToolService {
   readonly writeCalls: Array<{ sessionId: string; content: string }> = []
   readonly readCalls: Array<{ sessionId: string; sinceSeq?: number }> = []
   listResult: SessionToolListResult = { sessions: [] }
+  listError: Error | undefined
   private readonly replies = new Map<string, readonly SessionToolMessageRow[]>()
 
   setReply(sessionId: string, messages: readonly SessionToolMessageRow[]): void {
@@ -72,6 +74,7 @@ class StubSessionTool implements SessionToolService {
   }
 
   async list() {
+    if (this.listError !== undefined) throw this.listError
     return this.listResult
   }
 
@@ -106,7 +109,7 @@ class StubPlatform implements DshBotPlatform {
   readonly selectCalls: Array<{ sessionId: string; model: DshBotModelRef }> = []
   readonly restoreCalls: DshBotModelRef[] = []
   global: DshBotModelRef = { provider: 'anthropic', model: 'grok-4.6', reasoningEffort: 'xhigh' }
-  gatewayRows: Array<{ sessionId: string; running: boolean; updatedAt: number; agentPreset?: string }> = []
+  gatewayRows: Array<{ sessionId: string; running: boolean; updatedAt: number; agentPreset?: string; title?: string }> = []
   private next = 0
 
   async archiveSession() {}
@@ -404,6 +407,33 @@ describe('createBotSession / listBotSessions / history / prompt', () => {
       'session-old',
     ])
     expect(withHidden.sessions.some(row => row.sessionId === 'session-group')).toBe(true)
+  })
+
+  it('falls back to platform.listSessions when sessionTool.list is web-unreachable', async () => {
+    const sessionTool = new StubSessionTool()
+    sessionTool.listError = new SessionWebUnreachableError('web gateway unreachable for workspace/follow: HTTP 401')
+    const platform = new StubPlatform()
+    await put('session-old', ['kind:dsh-bot', 'bot:dsh-bot'])
+    await put('session-new', ['kind:dsh-bot', 'bot:dsh-bot'])
+    await put('session-hidden', ['kind:dsh-bot', 'bot:dsh-bot', 'kind:hidden'])
+    await put('session-gone', ['kind:dsh-bot', 'bot:dsh-bot'])
+    platform.gatewayRows = [
+      { sessionId: 'session-old', running: false, updatedAt: 10, title: 'Old' },
+      { sessionId: 'session-new', running: true, updatedAt: 90, title: 'New' },
+      { sessionId: 'session-hidden', running: false, updatedAt: 40, title: '~dsh-bot: q' },
+    ]
+    const { bot } = boot({ sessionTool, platform })
+    await bot.listBots()
+    const listed = await bot.listBotSessions({ botId: 'dsh-bot' })
+    expect(listed.sessions.map(row => row.sessionId)).toEqual(['session-new', 'session-old'])
+    expect(listed.sessions[0]?.title).toBe('New')
+    expect(listed.sessions[0]?.working).toBe(true)
+    const withHidden = await bot.listBotSessions({ botId: 'dsh-bot', includeHidden: true })
+    expect(withHidden.sessions.map(row => row.sessionId)).toEqual([
+      'session-new',
+      'session-hidden',
+      'session-old',
+    ])
   })
 
   it('reads history through sessionTool and reports working from unmatched turn/start', async () => {

@@ -34,6 +34,7 @@ export interface GatewaySessionRow {
   readonly running: boolean
   readonly updatedAt: number
   readonly agentPreset?: string
+  readonly title?: string
 }
 
 /**
@@ -81,6 +82,8 @@ interface ApiProxyDuck {
         running?: boolean
         updatedAt?: number
         agentPreset?: string
+        title?: string
+        projections?: { readonly values?: { readonly title?: unknown } }
       }>
     }>>
     selectModel(request: {
@@ -107,6 +110,16 @@ interface AgentDefaultModelDuck {
 
 function mintRpcId(): string {
   return crypto.randomUUID()
+}
+
+function titleOfGatewayItem(item: {
+  readonly title?: string
+  readonly projections?: { readonly values?: { readonly title?: unknown } }
+}): string | undefined {
+  if (typeof item.title === 'string' && item.title.trim() !== '') return item.title
+  const projected = item.projections?.values?.title
+  if (typeof projected === 'string' && projected.trim() !== '') return projected
+  return undefined
 }
 
 /**
@@ -278,11 +291,13 @@ export function createPlatform(ctx: Context): DshBotPlatform {
         const sessionId = typeof item.sessionId === 'string' ? item.sessionId : ''
         if (sessionId === '') continue
         const agentPreset = typeof item.agentPreset === 'string' ? item.agentPreset : undefined
+        const title = titleOfGatewayItem(item)
         rows.push({
           sessionId,
           running: item.running === true,
           updatedAt: typeof item.updatedAt === 'number' && Number.isFinite(item.updatedAt) ? item.updatedAt : 0,
           ...agentPreset === undefined || agentPreset === '' ? {} : { agentPreset },
+          ...title === undefined ? {} : { title },
         })
       }
       return rows

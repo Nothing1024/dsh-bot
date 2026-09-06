@@ -14,6 +14,7 @@ import {
 } from 'session-tool'
 import type {
   SessionToolCaller,
+  SessionToolListResult,
   SessionToolMessageRow,
   SessionToolService,
 } from 'session-tool'
@@ -129,6 +130,32 @@ export interface PromptRequest {
 export interface PromptResult {
   readonly sessionId: string
   readonly unmatchedMentions?: boolean
+}
+
+function isWebUnreachable(error: unknown): boolean {
+  return error instanceof SessionWebUnreachableError
+    || (error instanceof SessionToolError && error.code === 'web-unreachable')
+}
+
+async function listViaPlatform(
+  platform: DshBotPlatform,
+  marked: readonly { readonly id: string; readonly tags: readonly string[] }[],
+): Promise<SessionToolListResult> {
+  const gateway = await platform.listSessions()
+  const byId = new Map(gateway.map(row => [row.sessionId, row]))
+  const sessions = []
+  for (const mark of marked) {
+    const gate = byId.get(mark.id)
+    if (gate === undefined) continue
+    sessions.push({
+      sessionId: SessionId(mark.id),
+      ...gate.title === undefined || gate.title === '' ? {} : { title: gate.title },
+      tags: [...mark.tags],
+      status: gate.running ? 'live' as const : 'idle' as const,
+      createdAt: gate.updatedAt > 0 ? gate.updatedAt : 0,
+    })
+  }
+  return { sessions }
 }
 
 function rethrow(error: unknown, sessionId?: string): never {
@@ -428,7 +455,8 @@ export async function listOwnedSessions(
       includeHidden: true,
     })
   } catch (error) {
-    rethrow(error)
+    if (!isWebUnreachable(error)) rethrow(error)
+    listed = await listViaPlatform(platform, marked)
   }
   const byId = new Map(listed.sessions.map(row => [String(row.sessionId), row]))
   let runningById = new Map<string, { running: boolean; updatedAt: number }>()

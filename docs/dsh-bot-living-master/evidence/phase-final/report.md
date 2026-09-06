@@ -14,7 +14,7 @@ This is not an “all done” report. Two child packages shipped; joint verbal p
 
 **Still blocked**
 
-- `listBotSessions` / `workspace/follow` HTTP 401 — switcher empty.
+- v1 `listSessions` still `workspace/follow` HTTP 401. Workbench `listBotSessions` now falls back to official `session.list`.
 - `pnpm run typecheck` — SessionId brand clash.
 - `pnpm test` — frozen lockfile vs neighbor session-tool; used `./node_modules/.bin/vitest` + `tsdown`.
 
@@ -36,9 +36,9 @@ This is not an “all done” report. Two child packages shipped; joint verbal p
 
 | UF | Result | Notes |
 |---|---|---|
-| UF-101 | PASS named wake + three-section preset | `Nothing，现在是 2026-09-06 19:12 CST。`; cordis 基础+记忆+规范; switcher 401 so no thread bubble screenshot |
+| UF-101 | PASS named wake + switcher | `Nothing，现在是 2026-09-06 19:12 CST。`; cordis 基础+记忆+规范; switcher shows `例程 · 报时` (`evidence/UF-101/session-switcher.png`) |
 | UF-102 | PASS pin + no auto extract + compose stable | `log.jsonl` two `explicit` rows after second spoke; no `source:auto`; 📌 row in MemoryPanel; save persona keeps order + pinned text; `bots.json.persona` base unchanged |
-| UF-103 | PASS v1/v2/group + auto-extract; delete leftover still stale-process | v1 official session `Dsh bot ask tool request` tool card `dsh_bot_ask` → `dsh bot pong.`; hidden `~dsh-bot: uf103-v1-hidden` not in routineList and not a memory dir. v2 + 编辑室 already passed. Auto-extract on 运维夜班 user turn. `listBotSessions` still 401. deleteBot on pid 20928 (started 19:10, before 19:17 lib) still removed the routine row; source/lib already `enabled=false`. |
+| UF-103 | PASS v1/v2/group + auto-extract + delete leftover | v1 `dsh_bot_ask` → `dsh bot pong.`; hidden `~dsh-bot: uf103-v1-hidden` isolated. Auto-extract `source:auto`. After gateway restart (pid 33601) deleteBot leaves routine `enabled=false` and drops the memory dir. |
 
 ## Four commands
 
@@ -47,3 +47,12 @@ Not green. typecheck: SessionId brand. `pnpm test`/`pnpm install`: frozen lockfi
 ## Neighbor / git hygiene
 
 `env/dsh-bot/` stays untracked. Do not mix session-nav / group-chat leftovers into these commits.
+
+
+## After fallback + restart
+
+Workbench `listBotSessions` no longer dies on `workspace/follow` 401: it intersects `bot:<id>` marks with official `session.list` titles (`listViaPlatform`). Evidence: `UF-103/listBotSessions-after-fallback.json`, `UF-101/session-switcher.png`.
+
+`deleteBot` on the new process keeps the routine row at `enabled=false` (`UF-103/delete-bot-after-restart.md`).
+
+Still not all-green: `pnpm run typecheck` SessionId brand (host 0.1.1-rc.2 vs workspace session-tool 0.1.2-rc.1); `pnpm test` frozen lockfile vs neighbor session-tool; v1 `listSessions` RPC still 401; `(silent)` / notification / live propose card not re-driven.
