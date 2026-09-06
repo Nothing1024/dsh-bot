@@ -1418,3 +1418,71 @@ body,
   min-width: 96px;
   margin: 4px 0 0;
 }
+
+
+.memorySwitch {
+  position: relative;
+}
+
+.memoryPill,
+
+.memoryPill:hover,
+
+.memoryPanel {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  z-index: 20;
+  width: min(360px, 80vw);
+  max-height: 70vh;
+  overflow: auto;
+  background: var(--wb-panel);
+  border: 1px solid var(--wb-border);
+  border-radius: 10px;
+  padding: 10px 12px;
+  box-shadow: 0 8px 24px rgb(0 0 0 / 0.35);
+}
+
+.memoryPanelHead,
+.memoryPanelFoot,
+.memoryRowMeta,
+.memoryConfirm {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.memorySection h3 {
+  margin: 12px 0 6px;
+  font-size: 12px;
+  color: var(--wb-muted);
+}
+
+.memorySection ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.memorySection li {
+  padding: 6px 0;
+  border-bottom: 1px solid var(--wb-border);
+}
+
+.memoryRowText {
+  white-space: pre-wrap;
+}
+
+.memoryRowMeta {
+  margin-top: 4px;
+  color: var(--wb-muted);
+  font-size: 11px;
+}
+
+.pinPick {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 4px 0 0;
+}

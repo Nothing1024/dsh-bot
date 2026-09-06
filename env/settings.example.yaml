@@ -55,3 +55,8 @@ llm-pi-ai:
     #   apiKeyEnv: XAI_API_KEY
     #   api: openai-completions
     #   baseURL: https://api.x.ai/v1
+
+# Optional plugin section (hot). Memory extract is on by default.
+# dsh-bot:
+#   memory:
+#     enabled: true

@@ -706,7 +706,7 @@ export function App() {
                 botModel={botModel}
                 busy={formBusy}
                 error={formError}
-                hint={form.kind === 'edit' ? '人设对之后的新对话生效' : null}
+                hint={form.kind === 'edit' ? '人设对之后的新对话生效；记忆会随新会话一起注入' : null}
                 onCancel={() => {
                   if (formBusy) return
                   setForm(null)

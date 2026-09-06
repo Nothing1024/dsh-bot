@@ -10,6 +10,7 @@ import { mkdir, readFile, rename, rm, writeFile } from 'node:fs/promises'
 import { join } from 'node:path'
 import { pinyin } from 'pinyin-pro'
 import { DshBotError } from './errors.ts'
+import { stripMemorySection } from './memory.ts'
 import type { DshBotModelRef } from './platform.ts'
 
 /** Seed bot id, bound to the existing dsh-bot preset and deletion-protected. */
@@ -44,12 +45,13 @@ export interface BotAvatar {
   readonly emoji?: string
 }
 
-/** Durable registry row. Persona is intentionally absent. */
+/** Durable registry row. `persona` is the user-edited base (INV-801). */
 export interface BotRegistryRow {
   readonly id: string
   readonly name: string
   readonly avatar: BotAvatar
   readonly presetId: string
+  readonly persona?: string
   readonly modelOverride?: DshBotModelRef
   readonly createdAt: number
 }
@@ -103,6 +105,7 @@ export interface BotsRuntime {
   createBot(input: CreateBotInput): Promise<BotView>
   updateBot(input: UpdateBotInput): Promise<BotView>
   deleteBot(input: { id: string }): Promise<DeleteBotResult>
+  rewritePresetPersona(botId: string, fullText: string): Promise<void>
 }
 
 export interface BotsRuntimeOptions {
@@ -391,6 +394,7 @@ export function createBotsRuntime(options: BotsRuntimeOptions): BotsRuntime {
       name,
       avatar,
       presetId,
+      persona,
       ...modelOverride === undefined ? {} : { modelOverride },
       createdAt: nowOf(),
     }
@@ -424,11 +428,15 @@ export function createBotsRuntime(options: BotsRuntimeOptions): BotsRuntime {
     let modelOverride = current.modelOverride
     if (input.modelOverride === null) modelOverride = undefined
     else if (input.modelOverride !== undefined) modelOverride = normalizeOverride(input.modelOverride)
+    const persona = input.persona === undefined
+      ? current.persona
+      : normalizePersona(input.persona)
     const nextRow: BotRegistryRow = {
       id: current.id,
       name,
       avatar,
       presetId: current.presetId,
+      ...persona === undefined ? {} : { persona },
       ...modelOverride === undefined ? {} : { modelOverride },
       createdAt: current.createdAt,
     }
@@ -480,12 +488,42 @@ export function createBotsRuntime(options: BotsRuntimeOptions): BotsRuntime {
     return { id, deleted: true }
   }
 
+  const rewritePresetPersona = async (botId: string, fullText: string): Promise<void> => {
+    const home = homeOf()
+    const trimmed = botId.trim()
+    if (trimmed === '') throw new DshBotError('invalid-input', 'bot id is required')
+    const rows = await loadRegistry(home, nowOf)
+    const row = rows.find(item => item.id === trimmed)
+    if (row === undefined) {
+      throw new DshBotError('bot-not-found', `bot ${JSON.stringify(trimmed)} is not in the registry`)
+    }
+    if (!isManagedPreset(row.presetId)) return
+    const dest = join(presetsRoot(home), row.presetId)
+    const compositionPath = join(dest, COMPOSITION_FILE)
+    let previous = ''
+    try {
+      previous = await readFile(compositionPath, 'utf8')
+    } catch {
+      previous = await readFile(join(templateDir(home), COMPOSITION_FILE), 'utf8')
+    }
+    const next = replacePersonaText(previous, fullText)
+    try {
+      await mkdir(dest, { recursive: true })
+      await writeFile(compositionPath, next, 'utf8')
+      await assertPresetHealthy(options.gate, row.presetId, dest)
+    } catch (error) {
+      if (previous !== '') await writeFile(compositionPath, previous, 'utf8')
+      throw error
+    }
+  }
+
   return {
     listBots: () => withLock(listBots),
     getBot: id => withLock(() => getBot(id)),
     createBot: input => withLock(() => createBot(input)),
     updateBot: input => withLock(() => updateBot(input)),
     deleteBot: input => withLock(() => deleteBot(input)),
+    rewritePresetPersona: (botId, fullText) => withLock(() => rewritePresetPersona(botId, fullText)),
   }
 }
 
@@ -696,11 +734,13 @@ function parseRow(value: unknown, index: number): BotRegistryRow {
   const emoji = typeof avatarRec.emoji === 'string' && avatarRec.emoji.trim() !== '' ? avatarRec.emoji : undefined
   const avatar: BotAvatar = emoji === undefined ? { color } : { color, emoji }
   const modelOverride = rec.modelOverride === undefined ? undefined : normalizeOverride(asModel(rec.modelOverride))
+  const persona = typeof rec.persona === 'string' && rec.persona.trim() !== '' ? rec.persona : undefined
   return {
     id,
     name,
     avatar,
     presetId,
+    ...persona === undefined ? {} : { persona },
     ...modelOverride === undefined ? {} : { modelOverride },
     createdAt,
   }
@@ -758,7 +798,7 @@ async function readPresetPersona(home: string, presetId: string): Promise<string
 async function toView(home: string, row: BotRegistryRow): Promise<BotView> {
   return {
     ...row,
-    persona: await readPresetPersona(home, row.presetId),
+    persona: row.persona ?? stripMemorySection(await readPresetPersona(home, row.presetId)),
     protected: row.id === SEED_BOT_ID,
   }
 }

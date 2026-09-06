@@ -111,3 +111,49 @@ describe('workbench static', () => {
     expect(paths).toContain('/dsh-bot/ui')
   })
 })
+
+
+describe('memory RPC dispatch', () => {
+  const calls: string[] = []
+  const face = {
+    async memoryList(input: { botId: string }) {
+      calls.push(`list:${input.botId}`)
+      return { profile: [{ id: '1', text: '用户叫 Nothing', ts: 1 }], log: [] }
+    },
+    async memoryRemember(input: { botId: string; text: string }) {
+      calls.push(`remember:${input.botId}:${input.text}`)
+      return { id: 'n1' }
+    },
+    async memoryForget(input: { botId: string; id: string }) {
+      calls.push(`forget:${input.botId}:${input.id}`)
+      return { ok: true }
+    },
+    async memoryClear(input: { botId: string }) {
+      calls.push(`clear:${input.botId}`)
+      return { ok: true }
+    },
+  }
+
+  it('dispatches the four memory methods', async () => {
+    const { dispatchWorkbenchApi } = await import('../src/workbench-routes.ts')
+    const bot = face as unknown as Parameters<typeof dispatchWorkbenchApi>[0]
+    expect(await dispatchWorkbenchApi(bot, 'memoryList', { botId: 'xiaodui-aning' })).toMatchObject({
+      profile: [{ text: '用户叫 Nothing' }],
+    })
+    expect(await dispatchWorkbenchApi(bot, 'memoryRemember', { botId: 'xiaodui-aning', text: '钉住' })).toEqual({
+      id: 'n1',
+    })
+    expect(await dispatchWorkbenchApi(bot, 'memoryForget', { botId: 'xiaodui-aning', id: '1' })).toEqual({
+      ok: true,
+    })
+    expect(await dispatchWorkbenchApi(bot, 'memoryClear', { botId: 'xiaodui-aning' })).toEqual({
+      ok: true,
+    })
+    expect(calls).toEqual([
+      'list:xiaodui-aning',
+      'remember:xiaodui-aning:钉住',
+      'forget:xiaodui-aning:1',
+      'clear:xiaodui-aning',
+    ])
+  })
+})

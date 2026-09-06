@@ -152,4 +152,43 @@ describe('Transcript', () => {
     )
     expect(screen.getByTestId('transcript-reply-cite-3').textContent).toBe('原消息已删除')
   })
+
+  it('pins an assistant row and offers member pick in a room', () => {
+    const onRemember = vi.fn()
+    const onPickMember = vi.fn()
+    render(
+      <Transcript
+        items={[
+          {
+            id: 'm-2',
+            kind: 'message',
+            seq: 2,
+            role: 'assistant',
+            text: '我是诗人小北',
+            author: { botId: 'shiren-xiaobei', name: '诗人小北', avatar: { color: '#c9a227', emoji: '📜' } },
+          },
+        ]}
+        working={false}
+        groupMode
+        onRemember={onRemember}
+        pinPick="m-2"
+        members={[{
+          id: 'shiren-xiaobei',
+          name: '诗人小北',
+          avatar: { color: '#c9a227', emoji: '📜' },
+          presetId: 'dsh-bot--shiren-xiaobei',
+          createdAt: 1,
+          persona: '你是一位诗人',
+          protected: false,
+        }]}
+        onPickMember={onPickMember}
+      />,
+    )
+    fireEvent.click(screen.getByTestId('transcript-menu-2'))
+    fireEvent.click(screen.getByTestId('transcript-pin-2'))
+    expect(onRemember).toHaveBeenCalledTimes(1)
+    expect(screen.getByTestId('transcript-pin-pick-2')).toBeTruthy()
+    fireEvent.click(screen.getByTestId('transcript-pin-member-shiren-xiaobei'))
+    expect(onPickMember.mock.calls[0]?.[0]).toBe('shiren-xiaobei')
+  })
 })

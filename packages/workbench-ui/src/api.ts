@@ -295,3 +295,53 @@ export function writeDraft(botId: string, text: string): void {
     // private-mode / blocked storage must not break sending
   }
 }
+
+
+export interface MemoryProfileRow {
+  readonly id: string
+  readonly text: string
+  readonly ts: number
+}
+
+export interface MemoryLogRow {
+  readonly id: string
+  readonly kind: 'log' | 'note'
+  readonly text: string
+  readonly ts: number
+  readonly source: 'auto' | 'explicit'
+  readonly sessionId?: string
+}
+
+export interface MemoryListValue {
+  readonly profile: readonly MemoryProfileRow[]
+  readonly log: readonly MemoryLogRow[]
+}
+
+export function memoryList(botId: string): Promise<RpcResult<MemoryListValue>> {
+  return workbenchCall<MemoryListValue>('memoryList', { botId })
+}
+
+export function memoryRemember(
+  botId: string,
+  text: string,
+  sessionId?: string,
+): Promise<RpcResult<{ id: string }>> {
+  return workbenchCall('memoryRemember', {
+    botId,
+    text,
+    ...sessionId === undefined || sessionId === '' ? {} : { sessionId },
+  })
+}
+
+export function memoryForget(botId: string, id: string): Promise<RpcResult<{ ok: true }>> {
+  return workbenchCall('memoryForget', { botId, id })
+}
+
+export function memoryClear(botId: string): Promise<RpcResult<{ ok: true }>> {
+  return workbenchCall('memoryClear', { botId })
+}
+
+export function memoryCount(value: MemoryListValue | undefined): number {
+  if (value === undefined) return 0
+  return (value.profile ?? []).length + (value.log ?? []).length
+}

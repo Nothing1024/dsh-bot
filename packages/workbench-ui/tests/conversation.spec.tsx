@@ -396,4 +396,47 @@ describe('Conversation', () => {
     })
     expect(await screen.findByTestId('transcript-reply-cite-pending')).toBeTruthy()
   })
+
+  it('shows the memory pill left of the session switcher and opens the panel', async () => {
+    vi.stubGlobal('fetch', vi.fn(async (url: string) => {
+      const path = String(url)
+      if (path.includes('listBotSessions')) {
+        return jsonOk({
+          sessions: [{
+            sessionId: 's1',
+            title: '对话 1',
+            tags: ['kind:dsh-bot', 'bot:shiren-xiaobei'],
+            status: 'idle',
+            createdAt: 1,
+            updatedAt: 1,
+            hidden: false,
+            working: false,
+          }],
+        })
+      }
+      if (path.includes('memoryList')) {
+        return jsonOk({
+          profile: [{ id: 'p1', text: '用户叫 Nothing', ts: 1 }],
+          log: [],
+        })
+      }
+      if (path.includes('history')) {
+        return jsonOk({ sessionId: 's1', working: false, items: [] })
+      }
+      return jsonOk({})
+    }))
+    render(<Conversation bot={BOT} />)
+    const pill = await screen.findByTestId('memory-open')
+    expect(pill.textContent).toMatch(/🧠/)
+    await vi.waitFor(() => {
+      expect(pill.textContent).toMatch(/1/)
+    })
+    const head = screen.getByTestId('conversation-pane').querySelector('.headActions')
+    const children = [...(head?.children ?? [])]
+    expect(children[0]?.className).toMatch(/memorySwitch/)
+    expect(children[1]?.className).toMatch(/sessionSwitch/)
+    fireEvent.click(pill)
+    expect(await screen.findByTestId('memory-panel')).toBeTruthy()
+    expect(screen.getByTestId('memory-profile').textContent).toMatch(/Nothing/)
+  })
 })

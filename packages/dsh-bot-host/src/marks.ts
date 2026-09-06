@@ -16,6 +16,8 @@ export const DSH_BOT_HIDDEN_KIND = 'kind:hidden'
 export const DSH_BOT_HIDDEN_TITLE_PREFIX = '~dsh-bot: '
 /** Title prefix for group member-turn hidden sessions (BR-305). */
 export const DSH_BOT_GROUP_HIDDEN_TITLE_PREFIX = '~dsh-bot-group: '
+/** Title prefix for memory-extract hidden sessions (INV-802). */
+export const DSH_BOT_MEMORY_HIDDEN_TITLE_PREFIX = '~dsh-bot-memory: '
 
 /**
  * Workbench ownership token `bot:<id>` (BR-203). Ordinary marks token; not a

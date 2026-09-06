@@ -11,6 +11,7 @@ import { Context, Service } from '@deepseek-ai/cordis'
 import { installSettingsSection, settingsNamespace } from '@deepseek-ai/dsh-settings'
 import z from '@deepseek-ai/schemastery'
 import type { SessionToolCaller } from 'session-tool'
+import { get } from 'session-marks'
 import {
   askBot,
   createBotSession as createVisibleBotSession,
@@ -29,14 +30,21 @@ import type {
 import { createPlatform } from './platform.ts'
 import type { DshBotModelRef, DshBotPlatform } from './platform.ts'
 import {
+  MANAGED_PRESET_PREFIX,
   createBotsRuntime,
   createPresetGate,
 } from './bots.ts'
 import type {
+  BotView,
   BotsRuntime,
   CreateBotInput,
   UpdateBotInput,
 } from './bots.ts'
+import { composePersona, createMemoryStore, renderMemorySection, shouldExtract, stripMemorySection } from './memory.ts'
+import type { MemoryStore } from './memory.ts'
+import { createExtractAsk, extractMemory } from './memory-extract.ts'
+import type { ExtractAsk } from './memory-extract.ts'
+import { parseBotMark } from './marks.ts'
 import { attachDshBotHttp } from './routes.ts'
 import type { DshBotModelInfo } from './routes.ts'
 import {
@@ -73,6 +81,9 @@ import {
 } from './group-engine.ts'
 import type { RoundTracker } from './group-engine.ts'
 
+export { composePersona, createMemoryStore, renderMemorySection, shouldExtract } from './memory.ts'
+export type { MemoryLogEntry, MemoryProfileEntry, MemoryStore } from './memory.ts'
+export { applyExtract, buildExtractPrompt, parseExtractJson } from './memory-extract.ts'
 export { DshBotError } from './errors.ts'
 export type { DshBotErrorCode } from './errors.ts'
 export {
@@ -97,6 +108,7 @@ export {
   DSH_BOT_GROUP_HIDDEN_TITLE_PREFIX,
   DSH_BOT_HIDDEN_KIND,
   DSH_BOT_HIDDEN_TITLE_PREFIX,
+  DSH_BOT_MEMORY_HIDDEN_TITLE_PREFIX,
   DSH_BOT_KIND,
   botMark,
   groupMark,
@@ -207,6 +219,14 @@ export interface DshBotConfig {
   readonly askTimeoutMs: number
   /** Bot-owned model; omit/empty ⇒ follow `agent-default-model`. */
   readonly model?: DshBotModelRef
+  /** Memory extract + inject. Default enabled. */
+  readonly memory?: { readonly enabled?: boolean }
+}
+
+export interface DshBotServiceExtras {
+  readonly memory?: MemoryStore
+  readonly extractAsk?: ExtractAsk
+  readonly behaviorSection?: (bot: BotView) => string
 }
 
 declare module '@deepseek-ai/cordis' {
@@ -234,6 +254,9 @@ class DshBotService extends Service {
       model: z.string().default(''),
       reasoningEffort: z.string(),
     }),
+    memory: z.object({
+      enabled: z.boolean().default(true),
+    }),
   })
 
   private source: () => DshBotRuntimeConfig
@@ -241,6 +264,18 @@ class DshBotService extends Service {
   private readonly botsRuntime: BotsRuntime
   private readonly groupsRuntime: GroupsRuntime
   private readonly roundTracker: RoundTracker
+  private readonly memoryStore: MemoryStore
+  private readonly extractAsk: ExtractAsk
+  private readonly behaviorSection?: (bot: BotView) => string
+  private readonly pendingExtract = new Map<string, {
+    readonly botId: string
+    readonly sinceSeq: number
+    readonly userText: string
+    retries: number
+  }>()
+  private readonly lastExtractedSeq = new Map<string, number>()
+  private readonly lastHistorySeq = new Map<string, number>()
+  private readonly extracting = new Set<string>()
   private readonly reconcileState = createReconcileState()
   private reconcileGate: Promise<void> = Promise.resolve()
 
@@ -250,16 +285,32 @@ class DshBotService extends Service {
     platform?: DshBotPlatform,
     botsRuntime?: BotsRuntime,
     groupsRuntime?: GroupsRuntime,
+    extras?: DshBotServiceExtras,
   ) {
     super(ctx, 'dshBot')
     const entry: DshBotRuntimeConfig = Object.freeze({
       webUrl: config.webUrl,
       askTimeoutMs: config.askTimeoutMs,
       ...config.model === undefined ? {} : { model: config.model },
+      memoryEnabled: config.memory?.enabled !== false,
     })
     this.source = () => entry
     this.platform = platform ?? createPlatform(ctx)
     this.botsRuntime = botsRuntime ?? createBotsRuntime({ gate: createPresetGate(ctx) })
+    this.memoryStore = extras?.memory ?? createMemoryStore(() => {
+      const home = process.env.DSH_HOME?.trim()
+      if (home === undefined || home === '') {
+        throw new Error('DSH_HOME is not set')
+      }
+      return home
+    })
+    this.extractAsk = extras?.extractAsk ?? createExtractAsk({
+      ctx,
+      sessionTool: ctx.sessionTool,
+      platform: this.platform,
+      config: () => this.source(),
+    })
+    if (extras?.behaviorSection !== undefined) this.behaviorSection = extras.behaviorSection
     this.groupsRuntime = groupsRuntime ?? createGroupsRuntime({
       listBotIds: async () => {
         const listed = await this.botsRuntime.listBots()
@@ -326,21 +377,31 @@ class DshBotService extends Service {
   }
 
   createBot(input: CreateBotInput) {
-    return this.botsRuntime.createBot(input)
+    return this.botsRuntime.createBot(input).then(async view => {
+      await this.injectMemory(view.id)
+      return this.botsRuntime.getBot(view.id)
+    })
   }
 
   updateBot(input: UpdateBotInput) {
-    return this.botsRuntime.updateBot(input)
+    return this.botsRuntime.updateBot(input).then(async view => {
+      await this.injectMemory(view.id)
+      return this.botsRuntime.getBot(view.id)
+    })
   }
 
   deleteBot(input: { id: string }) {
-    return this.botsRuntime.deleteBot(input)
+    return this.botsRuntime.deleteBot(input).then(async result => {
+      await this.memoryStore.remove(input.id)
+      return result
+    })
   }
 
   /**
    * Workbench: gateway session.create {agentPreset,cwd} + marks bot:<id>.
    */
-  createBotSession(input: CreateOwnedSessionRequest) {
+  async createBotSession(input: CreateOwnedSessionRequest) {
+    await this.injectMemory(input.botId)
     return createOwnedSession(
       this.ctx.sessionTool,
       this.platform,
@@ -392,7 +453,10 @@ class DshBotService extends Service {
   private async readHistory(input: HistoryRequest): Promise<HistoryResult> {
     const room = await this.groupsRuntime.peekRoom(input.sessionId)
     if (room === undefined) {
-      return await readOwnedHistory(this.ctx, this.ctx.sessionTool, this.platform, input)
+      const result = await readOwnedHistory(this.ctx, this.ctx.sessionTool, this.platform, input)
+      this.lastHistorySeq.set(input.sessionId, maxItemSeq(result.items))
+      this.queueExtract(input.sessionId, result)
+      return result
     }
     const group = await this.groupsRuntime.getGroup(room.header.groupId)
     const members = new Map<string, WorkbenchHistoryAuthor>()
@@ -417,7 +481,9 @@ class DshBotService extends Service {
   private async promptSession(input: PromptRequest): Promise<PromptResult> {
     const room = await this.groupsRuntime.peekRoom(input.sessionId)
     if (room === undefined) {
-      return await promptOwnedSession(this.ctx.sessionTool, input)
+      const result = await promptOwnedSession(this.ctx.sessionTool, input)
+      await this.notePrompt(input.sessionId, input.text)
+      return result
     }
     const result = await runGroupRound({
       sessionTool: this.ctx.sessionTool,
@@ -438,6 +504,140 @@ class DshBotService extends Service {
     }
   }
 
+  memoryList(input: { botId: string }) {
+    return this.botsRuntime.getBot(input.botId).then(async () => {
+      const listed = await this.memoryStore.list(input.botId)
+      return {
+        profile: listed.profile.map(row => ({ id: row.id, text: row.text, ts: row.ts })),
+        log: listed.log.map(row => ({
+          id: row.id,
+          kind: row.kind,
+          text: row.text,
+          ts: row.ts,
+          source: row.source,
+          ...row.sessionId === undefined ? {} : { sessionId: row.sessionId },
+        })),
+      }
+    })
+  }
+
+  memoryRemember(input: { botId: string; text: string; sessionId?: string }) {
+    return this.botsRuntime.getBot(input.botId).then(async () => {
+      const row = await this.memoryStore.appendLog(input.botId, {
+        kind: 'log',
+        text: input.text.slice(0, 200),
+        source: 'explicit',
+        ...input.sessionId === undefined || input.sessionId.trim() === ''
+          ? {}
+          : { sessionId: input.sessionId.trim() },
+      })
+      return { id: row.id }
+    })
+  }
+
+  memoryForget(input: { botId: string; id: string }) {
+    return this.botsRuntime.getBot(input.botId).then(async () => {
+      await this.memoryStore.tombstone(input.botId, input.id)
+      return { ok: true as const }
+    })
+  }
+
+  memoryClear(input: { botId: string }) {
+    return this.botsRuntime.getBot(input.botId).then(async () => {
+      await this.memoryStore.clear(input.botId)
+      return { ok: true as const }
+    })
+  }
+
+  async injectMemory(botId: string): Promise<void> {
+    const bot = await this.botsRuntime.getBot(botId)
+    if (!bot.presetId.startsWith(MANAGED_PRESET_PREFIX)) return
+    const listed = await this.memoryStore.list(bot.id)
+    const memory = renderMemorySection(listed.profile, listed.log)
+    const behavior = this.behaviorSection?.(bot)
+    const full = composePersona(stripMemorySection(bot.persona), {
+      ...memory === '' ? {} : { memory },
+      ...behavior === undefined || behavior.trim() === '' ? {} : { behavior },
+    })
+    await this.botsRuntime.rewritePresetPersona(bot.id, full)
+  }
+
+  private memoryOn(): boolean {
+    return this.source().memoryEnabled !== false
+  }
+
+  private async notePrompt(sessionId: string, text: string): Promise<void> {
+    if (!this.memoryOn()) return
+    try {
+      const tags = await get(sessionId)
+      const botId = parseBotMark(tags ?? [])
+      if (botId === undefined) return
+      this.pendingExtract.set(sessionId, {
+        botId,
+        sinceSeq: this.lastHistorySeq.get(sessionId) ?? 0,
+        userText: text,
+        retries: 0,
+      })
+    } catch {
+      // marks missing: skip; next prompt can register
+    }
+  }
+
+  private queueExtract(sessionId: string, result: HistoryResult): void {
+    if (!this.memoryOn() || result.working) return
+    if (this.extracting.has(sessionId)) return
+    this.extracting.add(sessionId)
+    void this.maybeExtract(sessionId, result).finally(() => {
+      this.extracting.delete(sessionId)
+    })
+  }
+
+  private async maybeExtract(sessionId: string, result: HistoryResult): Promise<void> {
+    const pending = this.pendingExtract.get(sessionId)
+    if (pending === undefined) return
+    const assistant = result.items.some(item => (
+      item.kind === 'message'
+      && item.role === 'assistant'
+      && item.seq > pending.sinceSeq
+    ))
+    if (!assistant) return
+    const lastSeq = maxItemSeq(result.items)
+    if (this.lastExtractedSeq.get(sessionId) === lastSeq) {
+      this.pendingExtract.delete(sessionId)
+      return
+    }
+    if (!shouldExtract(pending.userText)) {
+      this.pendingExtract.delete(sessionId)
+      return
+    }
+    const turnText = result.items
+      .filter(item => item.kind === 'message' && item.seq > pending.sinceSeq && item.text)
+      .map(item => `${item.role ?? 'user'}: ${item.text}`)
+      .join('\n')
+    this.lastExtractedSeq.set(sessionId, lastSeq)
+    try {
+      const extracted = await extractMemory(
+        { memory: this.memoryStore, ask: this.extractAsk },
+        { botId: pending.botId, sessionId, turnText },
+      )
+      if (extracted === null && pending.retries < 1) {
+        pending.retries += 1
+        this.lastExtractedSeq.delete(sessionId)
+        console.warn('[dsh-bot-memory] extract returned empty; will retry once')
+        return
+      }
+      this.pendingExtract.delete(sessionId)
+    } catch (error) {
+      console.warn('[dsh-bot-memory] extract failed', error)
+      if (pending.retries < 1) {
+        pending.retries += 1
+        this.lastExtractedSeq.delete(sessionId)
+        return
+      }
+      this.pendingExtract.delete(sessionId)
+    }
+  }
+
   /**
    * Backfill GUI / v1 sessions onto registry bots (async; does not delete marks).
    */
@@ -452,3 +652,9 @@ class DshBotService extends Service {
 
 export default DshBotService
 export { DshBotService }
+
+
+function maxItemSeq(items: readonly { readonly seq: number }[]): number {
+  return items.reduce((max, item) => item.seq > max ? item.seq : max, 0)
+}
+

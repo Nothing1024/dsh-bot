@@ -1,0 +1,19 @@
+{
+  "hit": {
+    "id": "dsh-bot--xiaodui-aning",
+    "trust": "user",
+    "isDefault": false,
+    "name": "校对阿宁",
+    "description": "你是校对阿宁，专挑措辞，说话短句，先指出含糊处再给一版更干净的句子。不要说你是 DSH Bot 或诗人。"
+  },
+  "count": 7,
+  "ids": [
+    "standard",
+    "code",
+    "minimal",
+    "cordis",
+    "dsh-bot",
+    "dsh-bot--shiren-xiaobei",
+    "dsh-bot--xiaodui-aning"
+  ]
+}

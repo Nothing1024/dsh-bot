@@ -78,6 +78,10 @@ export interface WorkbenchBotsFace {
   deleteGroup(input: { id: string }): Promise<DeleteGroupResult>
   createGroupSession(input: { groupId: string }): Promise<GroupRoomRow>
   listGroupSessions(input: { groupId: string }): Promise<ListGroupRoomsResult>
+  memoryList(input: { botId: string }): Promise<unknown>
+  memoryRemember(input: { botId: string; text: string; sessionId?: string }): Promise<unknown>
+  memoryForget(input: { botId: string; id: string }): Promise<unknown>
+  memoryClear(input: { botId: string }): Promise<unknown>
 }
 
 function send(res: ServerResponse, status: number, body: string | Buffer, contentType: string): void {
@@ -221,6 +225,35 @@ export async function dispatchWorkbenchApi(
       const groupId = asString(args.groupId).trim()
       if (groupId === '') throw new DshBotError('invalid-input', 'groupId is required')
       return await bot.listGroupSessions({ groupId })
+    }
+    case 'memoryList': {
+      const botId = asString(args.botId).trim()
+      if (botId === '') throw new DshBotError('invalid-input', 'botId is required')
+      return await bot.memoryList({ botId })
+    }
+    case 'memoryRemember': {
+      const botId = asString(args.botId).trim()
+      const text = asString(args.text)
+      if (botId === '') throw new DshBotError('invalid-input', 'botId is required')
+      if (text.trim() === '') throw new DshBotError('invalid-input', 'text is required')
+      const sessionId = asString(args.sessionId).trim()
+      return await bot.memoryRemember({
+        botId,
+        text,
+        ...sessionId === '' ? {} : { sessionId },
+      })
+    }
+    case 'memoryForget': {
+      const botId = asString(args.botId).trim()
+      const id = asString(args.id).trim()
+      if (botId === '') throw new DshBotError('invalid-input', 'botId is required')
+      if (id === '') throw new DshBotError('invalid-input', 'id is required')
+      return await bot.memoryForget({ botId, id })
+    }
+    case 'memoryClear': {
+      const botId = asString(args.botId).trim()
+      if (botId === '') throw new DshBotError('invalid-input', 'botId is required')
+      return await bot.memoryClear({ botId })
     }
     default:
       return undefined

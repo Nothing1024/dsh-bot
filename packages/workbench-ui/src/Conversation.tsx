@@ -9,9 +9,15 @@ import {
   history,
   listBotSessions,
   listGroupSessions,
+  memoryCount,
+  memoryForget,
+  memoryList,
+  memoryRemember,
+  memoryClear,
   prompt,
 } from './api.ts'
 import type {
+  MemoryListValue,
   WorkbenchBot,
   WorkbenchGroup,
   WorkbenchHistoryItem,
@@ -23,6 +29,7 @@ import { hashAvatarColor } from './avatar.ts'
 import { Persona } from './Persona.tsx'
 import { Composer } from './Composer.tsx'
 import type { ComposerReplyTo } from './Composer.tsx'
+import { MemoryPanel } from './MemoryPanel.tsx'
 import { Transcript } from './Transcript.tsx'
 import type { TranscriptSpeaker } from './Transcript.tsx'
 
@@ -135,6 +142,10 @@ export function Conversation(props: ConversationProps) {
   const [awaitingTurn, setAwaitingTurn] = useState(false)
   const [includeHidden, setIncludeHidden] = useState(false)
   const [toast, setToast] = useState<string | null>(null)
+  const [memoryOpen, setMemoryOpen] = useState(false)
+  const [memory, setMemory] = useState<MemoryListValue | null>(null)
+  const [memoryUnavailable, setMemoryUnavailable] = useState(false)
+  const [pinPick, setPinPick] = useState<string | null>(null)
   const [switcherOpen, setSwitcherOpen] = useState(false)
   const [currentMenuOpen, setCurrentMenuOpen] = useState(false)
   const [replyTo, setReplyTo] = useState<ComposerReplyTo | null>(null)
@@ -263,6 +274,25 @@ export function Conversation(props: ConversationProps) {
     enabled: sessionId !== null,
     load: (id, sinceSeq) => history(id, sinceSeq),
   })
+
+  const historySeq = poll.items.reduce((max, item) => item.seq > max ? item.seq : max, 0)
+  useEffect(() => {
+    if (isGroup || bot === undefined) return
+    let cancelled = false
+    void memoryList(bot.id).then(result => {
+      if (cancelled) return
+      if (!result.ok) {
+        setMemoryUnavailable(true)
+        return
+      }
+      setMemoryUnavailable(false)
+      setMemory({
+        profile: result.value.profile ?? [],
+        log: result.value.log ?? [],
+      })
+    })
+    return () => { cancelled = true }
+  }, [bot, isGroup, poll.ready, poll.working, historySeq])
 
   const working = poll.working || sending || awaitingTurn
   const onWorking = props.onWorking
@@ -430,6 +460,43 @@ export function Conversation(props: ConversationProps) {
           </button>
         )}
         <span className="headActions">
+          {!isGroup ? (
+            <div className="memorySwitch">
+              <button
+                type="button"
+                className="memoryPill"
+                data-testid="memory-open"
+                title="记忆"
+                onClick={() => setMemoryOpen(open => !open)}
+              >
+                🧠 {memoryCount(memory ?? undefined)}
+              </button>
+              {memoryOpen ? (
+                <MemoryPanel
+                  open
+                  botName={identityName}
+                  data={memory}
+                  unavailable={memoryUnavailable}
+                  onClose={() => setMemoryOpen(false)}
+                  onForget={async id => {
+                    if (bot === undefined) return false
+                    const result = await memoryForget(bot.id, id)
+                    if (!result.ok) return false
+                    const listed = await memoryList(bot.id)
+                    if (listed.ok) setMemory(listed.value)
+                    return true
+                  }}
+                  onClear={async () => {
+                    if (bot === undefined) return false
+                    const result = await memoryClear(bot.id)
+                    if (!result.ok) return false
+                    setMemory({ profile: [], log: [] })
+                    return true
+                  }}
+                />
+              ) : null}
+            </div>
+          ) : null}
           <div className="sessionSwitch" ref={switcherRef}>
             <button
               type="button"
@@ -565,8 +632,31 @@ export function Conversation(props: ConversationProps) {
           pending={pending}
           working={working}
           {...speaking === null ? {} : { speaking }}
+          onRemember={async (item: WorkbenchHistoryItem) => {
+            const text = (item.text ?? '').slice(0, 200)
+            if (text === '') return
+            if (isGroup) {
+              setPinPick(item.id)
+              return
+            }
+            if (bot === undefined) return
+            const result = await memoryRemember(bot.id, text, sessionId ?? undefined)
+            setToast(result.ok ? '已记住' : '记住失败')
+            if (result.ok) {
+              const listed = await memoryList(bot.id)
+              if (listed.ok) setMemory(listed.value)
+            }
+          }}
           {...isGroup ? {
             groupMode: true,
+            members,
+            pinPick,
+            onPickMember: async (memberId: string, item: WorkbenchHistoryItem) => {
+              const text = (item.text ?? '').slice(0, 200)
+              const result = await memoryRemember(memberId, text, sessionId ?? undefined)
+              setPinPick(null)
+              setToast(result.ok ? '已记住' : '记住失败')
+            },
             replyMarks: replyMarks
               .filter(row => row.sessionId === sessionId)
               .map(row => ({ text: row.text, replyTo: row.replyTo })),

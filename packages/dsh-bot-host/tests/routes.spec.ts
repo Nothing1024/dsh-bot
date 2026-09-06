@@ -127,6 +127,10 @@ function stub(overrides: Partial<DshBotHttpFace> = {}): DshBotHttpFace {
       updatedAt: 1,
     })),
     listGroupSessions: vi.fn(async () => ({ rooms: [] })),
+    memoryList: vi.fn(async () => ({ profile: [], log: [] })),
+    memoryRemember: vi.fn(async () => ({ id: 'm1' })),
+    memoryForget: vi.fn(async () => ({ ok: true as const })),
+    memoryClear: vi.fn(async () => ({ ok: true as const })),
     ...overrides,
   }
 }

@@ -4,7 +4,7 @@
  * GFM. No large avatar beside 1:1 assistant (BR-205).
  */
 import { useEffect, useRef, useState, type Ref, type UIEvent } from 'react'
-import type { WorkbenchHistoryItem } from './api.ts'
+import type { WorkbenchBot, WorkbenchHistoryItem } from './api.ts'
 import { hashAvatarColor } from './avatar.ts'
 import { Markdown } from './Markdown.tsx'
 import { Persona } from './Persona.tsx'
@@ -35,6 +35,10 @@ export interface TranscriptProps {
   readonly replyMarks?: readonly TranscriptReplyMark[]
   readonly pendingReply?: TranscriptReplyTo | null
   readonly onReplyTo?: (item: WorkbenchHistoryItem) => void
+  readonly onRemember?: (item: WorkbenchHistoryItem) => void
+  readonly members?: readonly WorkbenchBot[]
+  readonly pinPick?: string | null
+  readonly onPickMember?: (botId: string, item: WorkbenchHistoryItem) => void
 }
 
 function markFor(text: string | undefined, marks: readonly TranscriptReplyMark[] | undefined): TranscriptReplyTo | undefined {
@@ -78,6 +82,8 @@ export function Transcript(props: TranscriptProps) {
   }, [menuSeq])
 
   const canReply = props.onReplyTo !== undefined
+  const canRemember = props.onRemember !== undefined
+  const canMenu = canReply || canRemember
 
   return (
     <div
@@ -92,16 +98,28 @@ export function Transcript(props: TranscriptProps) {
           <TranscriptRow
             key={item.id}
             item={item}
-            menuOpen={canReply && menuSeq === item.seq}
+            menuOpen={canMenu && menuSeq === item.seq}
             {...menuSeq === item.seq ? { menuRef } : {}}
             {...mark === undefined ? {} : { replyTo: mark, sourceGone: sourceMissing(props.items, mark.seq) }}
-            {...canReply ? {
+            {...canMenu ? {
               onOpenMenu: () => setMenuSeq(current => current === item.seq ? null : item.seq),
             } : {}}
             {...props.onReplyTo === undefined ? {} : {
               onReply: () => {
                 setMenuSeq(null)
                 props.onReplyTo?.(item)
+              },
+            }}
+            {...props.onRemember === undefined || item.role !== 'assistant' ? {} : {
+              onRemember: () => {
+                props.onRemember?.(item)
+                if (props.groupMode !== true) setMenuSeq(null)
+              },
+              pinPick: props.pinPick === item.id,
+              members: props.members,
+              onPickMember: (botId: string) => {
+                setMenuSeq(null)
+                props.onPickMember?.(botId, item)
               },
             }}
           />
@@ -195,6 +213,10 @@ function TranscriptRow(props: {
   sourceGone?: boolean
   onOpenMenu?: () => void
   onReply?: () => void
+  onRemember?: () => void
+  pinPick?: boolean
+  members?: readonly WorkbenchBot[]
+  onPickMember?: (botId: string) => void
 }) {
   const item = props.item
   if (item.kind === 'thinking' || item.kind === 'tool') {
@@ -279,13 +301,15 @@ function TranscriptRow(props: {
           </button>
           {props.menuOpen === true ? (
             <div className="rowMenu msgMenuPanel" data-testid={`transcript-menu-panel-${item.seq}`}>
-              <button
-                type="button"
-                data-testid={`transcript-reply-${item.seq}`}
-                onClick={() => props.onReply?.()}
-              >
-                回复
-              </button>
+              {props.onReply !== undefined ? (
+                <button
+                  type="button"
+                  data-testid={`transcript-reply-${item.seq}`}
+                  onClick={() => props.onReply?.()}
+                >
+                  回复
+                </button>
+              ) : null}
               <button
                 type="button"
                 data-testid={`transcript-copy-${item.seq}`}
@@ -295,6 +319,29 @@ function TranscriptRow(props: {
               >
                 复制
               </button>
+              {props.onRemember !== undefined ? (
+                <button
+                  type="button"
+                  data-testid={`transcript-pin-${item.seq}`}
+                  onClick={() => props.onRemember?.()}
+                >
+                  📌 记住这条
+                </button>
+              ) : null}
+              {props.pinPick === true && props.members !== undefined ? (
+                <div className="pinPick" data-testid={`transcript-pin-pick-${item.seq}`}>
+                  {props.members.map(member => (
+                    <button
+                      key={member.id}
+                      type="button"
+                      data-testid={`transcript-pin-member-${member.id}`}
+                      onClick={() => props.onPickMember?.(member.id)}
+                    >
+                      记到 {member.name}
+                    </button>
+                  ))}
+                </div>
+              ) : null}
             </div>
           ) : null}
         </div>

@@ -1,0 +1,46 @@
+{
+  "listBotSessions_before": {
+    "ok": false,
+    "error": {
+      "code": "web-unreachable",
+      "message": "web gateway unreachable for workspace/follow: HTTP 401"
+    }
+  },
+  "session.create": {
+    "type": "server-response",
+    "rpcId": "dbg",
+    "result": {
+      "ok": true,
+      "value": {
+        "sessionId": "session-910d15b6-315a-45ff-a406-d17f90aeab26",
+        "agentPreset": "dsh-bot--xiaodui-aning"
+      }
+    }
+  },
+  "session.create_error": null,
+  "reconcile": {
+    "ok": true,
+    "value": {
+      "scanned": 149,
+      "labeled": 1,
+      "alreadyLabeled": 140,
+      "skippedNonBot": 0,
+      "skippedCached": 8,
+      "assigned": [
+        {
+          "sessionId": "session-910d15b6-315a-45ff-a406-d17f90aeab26",
+          "botId": "xiaodui-aning",
+          "reason": "preset"
+        }
+      ]
+    }
+  },
+  "listBotSessions_after": {
+    "ok": false,
+    "error": {
+      "code": "web-unreachable",
+      "message": "web gateway unreachable for workspace/follow: HTTP 401"
+    }
+  },
+  "session.list_has_aning": true
+}

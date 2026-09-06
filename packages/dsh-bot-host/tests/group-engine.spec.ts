@@ -161,6 +161,7 @@ const fakeBots: BotsRuntime = {
   async deleteBot() {
     throw new DshBotError('internal', 'unused')
   },
+  async rewritePresetPersona() {},
 }
 
 const homes: string[] = []

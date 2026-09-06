@@ -78,7 +78,11 @@ bash scripts/manual-test.sh --no-write      # 只建会话 / 设 override / 查 
 
 - **新建**：roster「+ 新建人设」填名字、人设文本、头像（emoji 或首字+色块）、可选专属模型。每人设生成一个自动 preset `$DSH_HOME/.agent-presets/dsh-bot--<slug>/`（写后校验，失败回滚零残留），并立刻进入空对话。
 - **编辑**：行菜单或 Header「编辑人设」。名字 / 头像即时反映；**人设文本只对之后的新会话生效**（旧会话保持原口吻）。保存后工作台提示「人设对之后的新对话生效」。
-- **删除**：二次确认后 roster 移除该行、删自动 preset 目录。默认 DSH Bot 不可删。历史会话在官方 GUI 仍可见，工作台不再列出。
+- **删除**：二次确认后 roster 移除该行、删自动 preset 目录与该 bot 的记忆目录。默认 DSH Bot 不可删。历史会话在官方 GUI 仍可见，工作台不再列出。
+
+### 记忆
+
+每个 bot 有一份跨会话记忆，存在 `$DSH_HOME/dsh-bot/memory/<botId>/`（`profile.md` 长期事实 + `log.jsonl` 日志/备注）。工作台会话头「🧠 N」打开面板，可忘记单条或清空。助理消息菜单有「📌 记住这条」。轮次闭合后自动抽取；寒暄不记。记忆只注入**之后新建**的会话，不改 `bots.json` 里填写的基础人设。关闭抽取：settings `dsh-bot.memory.enabled: false`。
 
 边界：
 

@@ -1,0 +1,5 @@
+before_lines=3
+after_prompt_谢谢_lines=3
+unchanged=True
+note: model channel grok-4.6 is 503; extract hook requires an assistant row, so this wc only shows prompt did not append log.
+shouldExtract("谢谢")=false (unit: memory.spec.ts)

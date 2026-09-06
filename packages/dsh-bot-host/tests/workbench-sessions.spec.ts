@@ -2,10 +2,10 @@
  * Workbench session chain: ownership marks, hidden exclusion, history
  * projection (Task 8).
  */
-import { mkdtempSync, rmSync } from 'node:fs'
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { afterEach, beforeEach, describe, expect, it } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { Context } from '@deepseek-ai/cordis'
 import { SessionId } from '@deepseek-ai/dsh-session'
 import { get, put } from 'session-marks'
@@ -19,6 +19,8 @@ import DshBotService from '../src/index.ts'
 import type { DshBotConfig } from '../src/index.ts'
 import { DshBotError } from '../src/errors.ts'
 import { botMark } from '../src/marks.ts'
+import { createBotsRuntime } from '../src/bots.ts'
+import type { PresetGate, PresetListEntry } from '../src/bots.ts'
 import type { DshBotModelRef, DshBotPlatform } from '../src/platform.ts'
 import {
   projectWorkbenchHistory,
@@ -138,6 +140,41 @@ class StubPlatform implements DshBotPlatform {
   }
 }
 
+
+const TEMPLATE = `---
+- id: persona
+  name: '@deepseek-ai/dsh-persona'
+  config:
+    text: >-
+      你是 DSH Bot。
+
+- id: tool-bash
+  name: '@deepseek-ai/dsh-tool-bash'
+`
+
+function seedTemplate(home: string): void {
+  const dir = join(home, '.agent-presets', 'dsh-bot')
+  mkdirSync(dir, { recursive: true })
+  writeFileSync(join(dir, 'agent.cordis.yml'), TEMPLATE)
+  writeFileSync(join(dir, 'preset.yml'), 'name: DSH Bot\ndescription: resident.\n')
+}
+
+function fsGate(home: string): PresetGate {
+  return {
+    async list(): Promise<PresetListEntry[]> {
+      const root = join(home, '.agent-presets')
+      if (!existsSync(root)) return []
+      const { readdirSync } = await import('node:fs')
+      const out: PresetListEntry[] = []
+      for (const id of readdirSync(root)) {
+        if (!existsSync(join(root, id, 'agent.cordis.yml'))) continue
+        out.push({ id })
+      }
+      return out
+    },
+  }
+}
+
 const homes: string[] = []
 const previousHome = process.env.DSH_HOME
 
@@ -160,12 +197,21 @@ function boot(options: {
   sessionTool?: StubSessionTool
   platform?: StubPlatform
   config?: DshBotConfig
+  extractAsk?: (prompt: string, botId: string) => Promise<string | null>
+  botsRuntime?: import('../src/bots.ts').BotsRuntime
 } = {}): { bot: DshBotService; sessionTool: StubSessionTool; platform: StubPlatform; ctx: Context } {
   const sessionTool = options.sessionTool ?? new StubSessionTool()
   const platform = options.platform ?? new StubPlatform()
   const ctx = new Context()
   ctx.provide('sessionTool', sessionTool)
-  const bot = new DshBotService(ctx, { ...BASE_CONFIG, ...options.config }, platform)
+  const bot = new DshBotService(
+    ctx,
+    { ...BASE_CONFIG, ...options.config },
+    platform,
+    options.botsRuntime,
+    undefined,
+    options.extractAsk === undefined ? undefined : { extractAsk: options.extractAsk },
+  )
   return { bot, sessionTool, platform, ctx }
 }
 
@@ -238,7 +284,8 @@ describe('projectWorkbenchHistory', () => {
       { seq: 1, role: 'user', blocks: [{ type: 'text', text: '你是谁?' }] },
       { seq: 2, role: 'user', blocks: [{ type: 'text', text: 'Current runtime context. This snapshot supersedes earlier runtime-context snapshots.\n\nCurrent DSH file policy: workspace-write.' }] },
       { seq: 3, role: 'user', blocks: [{ type: 'text', text: '<system-reminder>\nA skill is a reusable set.\n<available_skills></available_skills>\n</system-reminder>' }] },
-      { seq: 4, role: 'assistant', blocks: [{ type: 'text', text: '我是诗人小北' }] },
+      { seq: 4, role: 'user', blocks: [{ type: 'text', text: '诗人小北，现在轮到你在「编辑室」里说话。\n房间里刚说的：\n用户: 你们是谁?\n按你自己的身份接一句。没有要补充的可以沉默。' }] },
+      { seq: 5, role: 'assistant', blocks: [{ type: 'text', text: '我是诗人小北' }] },
     ] as SessionToolMessageRow[])
     expect(items.filter(item => item.kind === 'message').map(item => item.text)).toEqual([
       '你是谁?',
@@ -298,6 +345,7 @@ describe('createBotSession / listBotSessions / history / prompt', () => {
     await put('session-old', ['kind:dsh-bot', 'bot:dsh-bot'])
     await put('session-new', ['kind:dsh-bot', 'bot:dsh-bot'])
     await put('session-hidden', ['kind:dsh-bot', 'bot:dsh-bot', 'kind:hidden'])
+    await put('session-group', ['kind:dsh-bot', 'bot:dsh-bot', 'kind:hidden', 'group:edit', 'group-room:room-1'])
     await put('session-other', ['kind:dsh-bot', 'bot:other'])
     sessionTool.listResult = {
       sessions: [
@@ -323,6 +371,13 @@ describe('createBotSession / listBotSessions / history / prompt', () => {
           createdAt: 40,
         },
         {
+          sessionId: SessionId('session-group'),
+          title: '~dsh-bot-group: 编辑室/DSH Bot',
+          tags: ['kind:dsh-bot', 'bot:dsh-bot', 'kind:hidden', 'group:edit', 'group-room:room-1'],
+          status: 'idle',
+          createdAt: 45,
+        },
+        {
           sessionId: SessionId('session-other'),
           title: 'Other',
           tags: ['kind:dsh-bot', 'bot:other'],
@@ -346,6 +401,7 @@ describe('createBotSession / listBotSessions / history / prompt', () => {
       'session-hidden',
       'session-old',
     ])
+    expect(withHidden.sessions.some(row => row.sessionId === 'session-group')).toBe(false)
   })
 
   it('reads history through sessionTool and reports working from unmatched turn/start', async () => {
@@ -401,5 +457,76 @@ describe('createBotSession / listBotSessions / history / prompt', () => {
     expect(sessionTool.createCalls).toHaveLength(1)
     expect(platform.createCalls).toHaveLength(0)
     expect(await get(created.sessionId)).toEqual(['kind:dsh-bot'])
+  })
+})
+
+
+describe('memory inject + extract hooks', () => {
+  it('injects memory into a managed preset before createOwnedSession', async () => {
+    const home = process.env.DSH_HOME!
+    seedTemplate(home)
+    const botsRuntime = createBotsRuntime({
+      gate: fsGate(home),
+      home: () => home,
+    })
+    const created = await botsRuntime.createBot({ name: '校对阿宁', persona: '你是校对阿宁。' })
+    const dir = join(home, 'dsh-bot', 'memory', created.id)
+    mkdirSync(dir, { recursive: true })
+    writeFileSync(join(dir, 'profile.md'), '<!-- dsh-mem p1 1 -->\n- 用户叫 Nothing\n')
+    const { bot } = boot({ botsRuntime })
+    const session = await bot.createBotSession({ botId: created.id })
+    expect(session.botId).toBe(created.id)
+    const composition = readFileSync(
+      join(home, '.agent-presets', created.presetId, 'agent.cordis.yml'),
+      'utf8',
+    )
+    expect(composition).toContain('你记得的事')
+    expect(composition).toContain('用户叫 Nothing')
+    const registry = JSON.parse(readFileSync(join(home, 'dsh-bot', 'bots.json'), 'utf8')) as {
+      bots: Array<{ id: string; persona?: string }>
+    }
+    expect(registry.bots.find(row => row.id === created.id)?.persona).toBe('你是校对阿宁。')
+  })
+
+  it('extracts once after a turn closes and skips a second poll', async () => {
+    const ask = vi.fn(async () => '{"profile":["用户叫 Nothing"],"log":[],"remove":[]}')
+    const sessionTool = new StubSessionTool()
+    sessionTool.setReply('session-owned-1', [
+      { seq: 1, role: 'user', blocks: [{ type: 'text', text: '我叫 Nothing，术语保留英文' }] },
+      { seq: 2, role: 'assistant', blocks: [{ type: 'text', text: '记下了' }] },
+    ])
+    const { bot } = boot({ sessionTool, extractAsk: ask })
+    await bot.listBots()
+    await put('session-owned-1', ['kind:dsh-bot', 'bot:dsh-bot'])
+    await bot.prompt({ sessionId: 'session-owned-1', text: '我叫 Nothing，术语保留英文' })
+    await bot.history({ sessionId: 'session-owned-1' })
+    await vi.waitFor(() => {
+      expect(ask).toHaveBeenCalledTimes(1)
+    })
+    await bot.history({ sessionId: 'session-owned-1' })
+    await new Promise(resolve => setTimeout(resolve, 20))
+    expect(ask).toHaveBeenCalledTimes(1)
+    const listed = await bot.memoryList({ botId: 'dsh-bot' })
+    expect(listed.profile.map(row => row.text)).toEqual(['用户叫 Nothing'])
+  })
+
+  it('does not extract when memory.enabled is false', async () => {
+    const ask = vi.fn(async () => '{"profile":["x"],"log":[],"remove":[]}')
+    const sessionTool = new StubSessionTool()
+    sessionTool.setReply('session-owned-1', [
+      { seq: 1, role: 'user', blocks: [{ type: 'text', text: '我叫 Nothing，术语保留英文' }] },
+      { seq: 2, role: 'assistant', blocks: [{ type: 'text', text: '记下了' }] },
+    ])
+    const { bot } = boot({
+      sessionTool,
+      extractAsk: ask,
+      config: { ...BASE_CONFIG, memory: { enabled: false } },
+    })
+    await bot.listBots()
+    await put('session-owned-1', ['kind:dsh-bot', 'bot:dsh-bot'])
+    await bot.prompt({ sessionId: 'session-owned-1', text: '我叫 Nothing，术语保留英文' })
+    await bot.history({ sessionId: 'session-owned-1' })
+    await new Promise(resolve => setTimeout(resolve, 20))
+    expect(ask).not.toHaveBeenCalled()
   })
 })

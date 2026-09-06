@@ -284,3 +284,45 @@ describe('bots runtime', () => {
     expect(created.modelOverride).toBeUndefined()
   })
 })
+
+
+describe('rewritePresetPersona / INV-801', () => {
+  it('rewrites the preset file twice without changing bots.json.persona', async () => {
+    const { home, bots } = runtime()
+    const created = await bots.createBot({ name: '校对阿宁', persona: '你是校对阿宁。' })
+    const section = '## 你记得的事\n\n长期事实：\n- 用户叫 Nothing'
+    await bots.rewritePresetPersona(created.id, `${created.persona}\n\n${section}`)
+    await bots.rewritePresetPersona(created.id, `${created.persona}\n\n${section}\n- 术语保留英文`)
+    const registry = JSON.parse(readFileSync(join(home, 'dsh-bot', 'bots.json'), 'utf8')) as {
+      bots: Array<{ id: string; persona?: string }>
+    }
+    expect(registry.bots.find(row => row.id === created.id)?.persona).toBe('你是校对阿宁。')
+    expect((await bots.getBot(created.id)).persona).toBe('你是校对阿宁。')
+    const composition = readFileSync(
+      join(home, '.agent-presets', created.presetId, 'agent.cordis.yml'),
+      'utf8',
+    )
+    expect(composition).toContain('你记得的事')
+    expect(composition).toContain('术语保留英文')
+  })
+
+  it('rolls back a broken rewrite', async () => {
+    const { home } = runtime()
+    const created = await createBotsRuntime({
+      gate: fsGate(home),
+      home: () => home,
+    }).createBot({ name: '校对阿宁', persona: '旧人设' })
+    const broken = createBotsRuntime({
+      gate: fsGate(home, new Set([created.presetId])),
+      home: () => home,
+    })
+    await expect(broken.rewritePresetPersona(created.id, '新人设加记忆')).rejects.toMatchObject({
+      code: 'preset-broken',
+    })
+    const composition = readFileSync(
+      join(home, '.agent-presets', created.presetId, 'agent.cordis.yml'),
+      'utf8',
+    )
+    expect(readPersonaText(composition)).toBe('旧人设')
+  })
+})
