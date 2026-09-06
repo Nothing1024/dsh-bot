@@ -22,7 +22,13 @@ export function isSilentReply(text: string | undefined): boolean {
 
 export function isRoutineInjection(text: string): boolean {
   const t = text.trim()
-  return t.startsWith('[routine]') || t.startsWith(ROUTINE_SYSTEM_PREFIX)
+  // Hide wake cues only. [routine-system] is a visible thread notice (UF-901).
+  return t.startsWith('[routine]') && !t.startsWith(ROUTINE_SYSTEM_PREFIX)
+}
+
+/** session-tool `until:'idle'` settles as `completed` on a finished turn. */
+export function wakeWaitFailed(status: string): boolean {
+  return status === 'timeout' || status === 'failed' || status === 'aborted'
 }
 
 export interface WakeIO {

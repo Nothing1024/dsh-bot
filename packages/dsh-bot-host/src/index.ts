@@ -49,7 +49,7 @@ import { createRoutineStore, parseSchedule } from './routines.ts'
 import type { RoutineRow, RoutineStore } from './routines.ts'
 import { createScheduler } from './routine-scheduler.ts'
 import type { RoutineScheduler } from './routine-scheduler.ts'
-import { wakeRoutine } from './routine-wake.ts'
+import { wakeRoutine, wakeWaitFailed } from './routine-wake.ts'
 import { renderBehaviorSection } from './routine-behavior.ts'
 import { extractAssistantAnswer } from './ask.ts'
 import { SessionId } from '@deepseek-ai/dsh-session'
@@ -434,7 +434,7 @@ class DshBotService extends Service {
       const rows = await this.routineStore.list(input.id)
       for (const row of rows) {
         this.scheduler.disarm(row.id)
-        await this.routineStore.remove(row.id)
+        await this.routineStore.update({ id: row.id, enabled: false })
       }
       this.unread.delete(input.id)
       return result
@@ -656,7 +656,7 @@ class DshBotService extends Service {
               until: 'idle',
               timeoutMs: this.source().askTimeoutMs,
             })
-            if (waited.status !== 'idle') throw new Error(`routine wait ${waited.status}`)
+            if (wakeWaitFailed(waited.status)) throw new Error(`routine wait ${waited.status}`)
             const read = await this.ctx.sessionTool.read({ kind: 'cli' }, SessionId(sessionId), { maxBlocks: 500 })
             return extractAssistantAnswer(read.messages)
           })

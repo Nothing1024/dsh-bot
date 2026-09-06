@@ -4,6 +4,7 @@ import {
   isRoutineInjection,
   isSilentReply,
   wakeRoutine,
+  wakeWaitFailed,
 } from '../src/routine-wake.ts'
 import type { RoutineRow } from '../src/routines.ts'
 
@@ -81,6 +82,16 @@ describe('wakeRoutine', () => {
     expect((await wakeRoutine(ctx, routine)).outcome).toBe('error')
     expect(systems).toHaveLength(1)
     expect(systems[0]).toMatch(/^\[routine-system\]/)
-    expect(isRoutineInjection(systems[0]!)).toBe(true)
+    expect(isRoutineInjection(systems[0]!)).toBe(false)
+  })
+})
+
+describe('wakeWaitFailed', () => {
+  it('treats completed like askBot: settled, not failed', () => {
+    expect(wakeWaitFailed('idle')).toBe(false)
+    expect(wakeWaitFailed('completed')).toBe(false)
+    expect(wakeWaitFailed('timeout')).toBe(true)
+    expect(wakeWaitFailed('failed')).toBe(true)
+    expect(wakeWaitFailed('aborted')).toBe(true)
   })
 })

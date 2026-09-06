@@ -538,6 +538,7 @@ describe('routine history projection', () => {
   it('drops [routine] user wakes and projects propose cards', async () => {
     const { projectWorkbenchHistory, isPlatformInjection } = await import('../src/workbench-sessions.ts')
     expect(isPlatformInjection('[routine] 报时\n没有人在等你')).toBe(true)
+    expect(isPlatformInjection('[routine-system] 例程连续失败，请检查')).toBe(false)
     const items = projectWorkbenchHistory([
       {
         seq: 1,
