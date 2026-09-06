@@ -1,0 +1,16 @@
+序号,Phase,名称,详情锚点,前置任务,验证命令,状态,备注
+1,P0:校准,校准 ASM-031~034,spec.md#task-1,无,ls evidence/phase-0/calibration.md → 存在,待开始,豁免回归:单任务校准 Phase
+2,P1:数据与RPC,bots/groups 布局字段与旧文件默认,spec.md#task-2,1,./node_modules/.bin/vitest run packages/dsh-bot-host/tests/bots.spec.ts packages/dsh-bot-host/tests/groups.spec.ts → 通过,待开始,
+3,P1:数据与RPC,updateBotLayout RPC,spec.md#task-3,2,./node_modules/.bin/vitest run packages/dsh-bot-host/tests/workbench-routes.spec.ts → 通过,待开始,
+4,P1:数据与RPC,执行 Phase 1 回归验证,spec.md#task-4,3,pnpm run typecheck && ./node_modules/.bin/vitest run packages/dsh-bot-host/tests → 全过,待开始,
+5,P2:名册UI,分组可折叠与默认可改名三组,spec.md#task-5,3,./node_modules/.bin/vitest run packages/workbench-ui/tests/roster.spec.tsx → 通过,待开始,
+6,P2:名册UI,HTML5 拖拽换组与排序,spec.md#task-6,5,./node_modules/.bin/vitest run packages/workbench-ui/tests/roster.spec.tsx → 通过,待开始,
+7,P2:名册UI,右键菜单与已隐藏底栏,spec.md#task-7,5,./node_modules/.bin/vitest run packages/workbench-ui/tests/roster.spec.tsx → 通过,待开始,
+8,P2:名册UI,悬停 500ms 预览卡,spec.md#task-8,5,./node_modules/.bin/vitest run packages/workbench-ui/tests/roster.spec.tsx → 通过,待开始,
+9,P2:名册UI,执行 Phase 2 回归验证,spec.md#task-9,6;7;8,pnpm run typecheck && ./node_modules/.bin/vitest run packages/workbench-ui/tests/roster.spec.tsx → 通过,待开始,
+10,P3:通知与快捷键,静音跳过 Notification,spec.md#task-10,3,./node_modules/.bin/vitest run packages/workbench-ui/tests/notify.spec.ts packages/workbench-ui/tests/app.spec.tsx → 通过,待开始,
+11,P3:通知与快捷键,⌘1-9 ⌥↑↓ ⌘B,spec.md#task-11,5,./node_modules/.bin/vitest run packages/workbench-ui/tests/keyboard.spec.tsx → 通过,待开始,
+12,P3:通知与快捷键,执行 Phase 3 回归验证,spec.md#task-12,10;11,pnpm run typecheck && ./node_modules/.bin/vitest run packages/workbench-ui/tests/keyboard.spec.tsx packages/workbench-ui/tests/notify.spec.ts → 通过,待开始,
+13,P4:收尾,同步 README 名册说明,spec.md#task-13,12,rg -n "已隐藏" README.md → ≥1,待开始,
+14,P4:收尾,执行 spec 5.2 真实场景全套测试,spec.md#task-14,12,按 5.2 执行矩阵逐行回放 → 全部通过,待开始,
+15,P4:收尾,执行 Phase 4 回归验证,spec.md#task-15,13;14,pnpm run typecheck && pnpm run build && pnpm test && pnpm run standard:check → 全绿,待开始,

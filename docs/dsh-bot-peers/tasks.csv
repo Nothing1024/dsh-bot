@@ -1,0 +1,16 @@
+序号,Phase,名称,详情锚点,前置任务,验证命令,状态,备注
+1,P0:校准,校准 ASM-021~024,spec.md#task-1,无,ls evidence/phase-0/calibration.md → 存在,待开始,豁免回归:单任务校准 Phase
+2,P1:投递内核,peers.jsonl 与每分钟限额,spec.md#task-2,1,./node_modules/.bin/vitest run packages/dsh-bot-host/tests/peers.spec.ts → 通过,待开始,
+3,P1:投递内核,同事会话与 writeWaitRead 投递,spec.md#task-3,2,./node_modules/.bin/vitest run packages/dsh-bot-host/tests/peers.spec.ts packages/dsh-bot-host/tests/workbench-sessions.spec.ts → 通过,待开始,
+4,P1:投递内核,执行 Phase 1 回归验证,spec.md#task-4,3,pnpm run typecheck && ./node_modules/.bin/vitest run packages/dsh-bot-host/tests → 全过,待开始,
+5,P2:工具礼仪RPC,注册 dsh_bot_send,spec.md#task-5,3,rg -n "name: 'dsh_bot_send'" packages/tool-dsh-bot/src/index.ts → 1,待开始,
+6,P2:工具礼仪RPC,behavior 追加同事礼仪,spec.md#task-6,1,./node_modules/.bin/vitest run packages/dsh-bot-host/tests/memory.spec.ts → 通过,待开始,
+7,P2:工具礼仪RPC,peerLog RPC,spec.md#task-7,2,./node_modules/.bin/vitest run packages/dsh-bot-host/tests/workbench-routes.spec.ts → 通过,待开始,
+8,P2:工具礼仪RPC,执行 Phase 2 回归验证,spec.md#task-8,5;6;7,pnpm run typecheck && ./node_modules/.bin/vitest run packages/dsh-bot-host/tests → 全过,待开始,
+9,P3:工作台,详情同事页签,spec.md#task-9,7,./node_modules/.bin/vitest run packages/workbench-ui/tests/conversation.spec.tsx → 通过,待开始,
+10,P3:工作台,关系图模态,spec.md#task-10,9,./node_modules/.bin/vitest run packages/workbench-ui/tests/roster.spec.tsx → 通过,待开始,
+11,P3:工作台,Transcript 来自标签,spec.md#task-11,9,./node_modules/.bin/vitest run packages/workbench-ui/tests/transcript.spec.tsx → 通过,待开始,
+12,P3:工作台,执行 Phase 3 回归验证,spec.md#task-12,10;11,pnpm run typecheck && ./node_modules/.bin/vitest run packages/workbench-ui/tests → 通过,待开始,
+13,P4:收尾,同步 README 同事说明,spec.md#task-13,12,rg -n "dsh_bot_send" README.md → ≥1,待开始,
+14,P4:收尾,执行 spec 5.2 真实场景全套测试,spec.md#task-14,12,按 5.2 执行矩阵逐行回放 → 全部通过,待开始,
+15,P4:收尾,执行 Phase 4 回归验证,spec.md#task-15,13;14,pnpm run typecheck && pnpm run build && pnpm test && pnpm run standard:check → 全绿,待开始,
