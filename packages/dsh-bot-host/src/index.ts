@@ -388,7 +388,7 @@ class DshBotService extends Service {
    * Marked bot sessions intersected with live session-tool metadata.
    */
   listSessions(request: ListBotSessionsRequest = {}): Promise<readonly DshBotSessionRow[]> {
-    return listMarkedBotSessions(this.ctx.sessionTool, request)
+    return listMarkedBotSessions(this.ctx.sessionTool, request, this.platform)
   }
 
   /**
@@ -584,6 +584,7 @@ class DshBotService extends Service {
   memoryForget(input: { botId: string; id: string }) {
     return this.botsRuntime.getBot(input.botId).then(async () => {
       await this.memoryStore.tombstone(input.botId, input.id)
+      await this.injectMemory(input.botId)
       return { ok: true as const }
     })
   }
@@ -591,6 +592,7 @@ class DshBotService extends Service {
   memoryClear(input: { botId: string }) {
     return this.botsRuntime.getBot(input.botId).then(async () => {
       await this.memoryStore.clear(input.botId)
+      await this.injectMemory(input.botId)
       return { ok: true as const }
     })
   }

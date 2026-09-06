@@ -1,0 +1,14 @@
+{
+  "ok": true,
+  "value": {
+    "id": "r-1788695719272-uy475a3q",
+    "botId": "yunwei-yeban",
+    "name": "巡检静默",
+    "schedule": "@every 60m",
+    "instruction": "如果没有异常就别说话",
+    "enabled": true,
+    "notify": false,
+    "createdAt": 1788695719272,
+    "runs": []
+  }
+}

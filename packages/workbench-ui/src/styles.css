@@ -1422,11 +1422,27 @@ body,
 
 .memorySwitch {
   position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
 }
 
-.memoryPill,
+.memoryPill {
+  appearance: none;
+  border: 1px solid var(--wb-border);
+  background: var(--wb-bg);
+  color: var(--wb-text);
+  border-radius: 999px;
+  font: inherit;
+  font-size: 12px;
+  line-height: 26px;
+  padding: 0 10px;
+  cursor: pointer;
+}
 
-.memoryPill:hover,
+.memoryPill:hover {
+  background: var(--wb-hover);
+}
 
 .memoryPanel {
   position: absolute;

@@ -1,0 +1,32 @@
+{
+  "ran": {
+    "ok": true,
+    "value": {
+      "outcome": "spoke",
+      "ms": 160248,
+      "sessionId": "session-eca5bd18-14e1-4b9c-93c2-af0a088b45ba"
+    }
+  },
+  "trail": [
+    {
+      "i": 0,
+      "unread": 1,
+      "notices": 0
+    },
+    {
+      "i": 1,
+      "unread": 1,
+      "notices": 1
+    }
+  ],
+  "notices": [
+    {
+      "title": "运维夜班",
+      "body": "有 1 条未读例程消息",
+      "at": 1788703000201
+    }
+  ],
+  "badge": "1",
+  "hidden": true,
+  "perm": "granted"
+}

@@ -1,0 +1,20 @@
+{
+  "at": "2026-09-06T14:00:05.194Z",
+  "matrix": [
+    {
+      "id": "UF-903 点回清零",
+      "result": "PASS",
+      "notes": "outcome=spoke; unreadNodes=0"
+    },
+    {
+      "id": "UF-804 📌",
+      "result": "PASS",
+      "notes": "explicit=true; seq=58; session=session-baccbd2d-ae78-446c-ad29-abac2b4c36b1"
+    },
+    {
+      "id": "UF-905 提议卡接受",
+      "result": "PASS",
+      "notes": "cards=1; createdRoutine=true; names=校今天的稿"
+    }
+  ]
+}

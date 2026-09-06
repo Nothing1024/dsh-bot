@@ -27,4 +27,22 @@ Gateway: 127.0.0.1:3084 this-repo env/. Model: grok-4.6 → 503 model_not_found 
 1. grok-4.6 503 / no channel — blocks verbal UF-801/802/803/804/805 extract paths.
 2. listBotSessions → workspace/follow HTTP 401 — roster session counts / switcher error visible in screenshots; memory RPCs and 🧠 still work.
 3. Pre-existing managed bots had no bots.json.persona; inject used file persona (already included memory). Fixed by stripMemorySection in toView + injectMemory.
-4. pnpm test / tsc frozen lockfile + SessionId brand clash — use ./node_modules/.bin/vitest only.
+4. pnpm test / tsc frozen lockfile + SessionId brand clash — later four-command chain green (296 tests).
+
+## Later live (same :3084, after model recovery)
+
+Gateway not recycled for these rows. Scripts: `live-remaining.mjs`, `remaining-pass.mjs`, `mop-ui3.mjs`.
+
+| Row | Result | Evidence | Note |
+|---|---|---|---|
+| UF-801 auto-extract | PASS | live-remaining-matrix.md | source:auto + profile facts |
+| UF-801 抽取 timeout | BLOCKED | — | askTimeoutMs=1000 never applied |
+| UF-802 新会话答名 | PASS | UF-802/new-session-answer.png | `Nothing。你自己定的称呼。` |
+| UF-802 旧会话 | PASS | UF-802/old-session.png | `不知道。这轮对话里你没报过名字。` |
+| UF-803 忘记后新会话 | PASS | UF-803/new-session-unknown.png | `不知道。这段记忆里没有你的名字。` |
+| UF-804 📌 | PASS | UF-804/after-pin.png, after-pin-panel.png, memory-list.json | mop-ui3 `source:explicit` seq=58 |
+| UF-804 房间选成员 | PASS | UF-804/room-pick.png | remaining-pass2 |
+| UF-805 寒暄 / 问号 | PASS | UF-805/before-after-wc.txt | 2→2 |
+
+listBotSessions workbench fallback is in (`9cf26fa`). Raw v1 `listSessions` still 401.
+

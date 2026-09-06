@@ -1,0 +1,26 @@
+{
+  "sessionId": "session-f0c774fe-e101-4b2d-abb5-f601883b13fd",
+  "items": [
+    {
+      "id": "message-8-1",
+      "kind": "message",
+      "seq": 8,
+      "role": "user",
+      "text": "我叫什么？"
+    },
+    {
+      "id": "thinking-45-1",
+      "kind": "thinking",
+      "seq": 45,
+      "text": "The user is asking \"我叫什么？\" which means \"What's my name?\" \n\n\n"
+    },
+    {
+      "id": "message-45-1",
+      "kind": "message",
+      "seq": 45,
+      "role": "assistant",
+      "text": "Nothing。你自己定的称呼。"
+    }
+  ],
+  "working": false
+}

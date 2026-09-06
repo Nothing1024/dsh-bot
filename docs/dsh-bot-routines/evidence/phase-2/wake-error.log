@@ -1,26 +1,73 @@
 {
-  "run1": {
+  "created": {
     "ok": true,
     "value": {
-      "outcome": "error",
-      "ms": 16604,
-      "sessionId": "session-44502c29-7576-43bf-9239-df8800e682d0"
+      "id": "r-1788703752076-eg8ltu97",
+      "botId": "yunwei-yeban",
+      "name": "超时探针对",
+      "schedule": "@every 60m",
+      "instruction": "报告当前时间，用一句话。",
+      "enabled": true,
+      "notify": false,
+      "createdAt": 1788703752076,
+      "runs": []
     }
   },
-  "run2": {
-    "ok": true,
-    "value": {
-      "outcome": "error",
-      "ms": 5667,
-      "sessionId": "session-44502c29-7576-43bf-9239-df8800e682d0"
+  "runs": [
+    {
+      "ok": true,
+      "value": {
+        "outcome": "error",
+        "ms": 1233,
+        "sessionId": "session-3a91d0f7-859b-4137-aaaa-20cdc830767d"
+      }
+    },
+    {
+      "ok": true,
+      "value": {
+        "outcome": "error",
+        "ms": 1099,
+        "sessionId": "session-3a91d0f7-859b-4137-aaaa-20cdc830767d"
+      }
+    },
+    {
+      "ok": true,
+      "value": {
+        "outcome": "error",
+        "ms": 1102,
+        "sessionId": "session-3a91d0f7-859b-4137-aaaa-20cdc830767d"
+      }
     }
+  ],
+  "routine": {
+    "id": "r-1788703752076-eg8ltu97",
+    "botId": "yunwei-yeban",
+    "name": "超时探针对",
+    "schedule": "@every 60m",
+    "instruction": "报告当前时间，用一句话。",
+    "enabled": true,
+    "notify": false,
+    "createdAt": 1788703752076,
+    "runs": [
+      {
+        "ts": 1788703752080,
+        "outcome": "error",
+        "ms": 1233
+      },
+      {
+        "ts": 1788703753718,
+        "outcome": "error",
+        "ms": 1099
+      },
+      {
+        "ts": 1788703755224,
+        "outcome": "error",
+        "ms": 1102
+      }
+    ],
+    "sessionId": "session-3a91d0f7-859b-4137-aaaa-20cdc830767d",
+    "lastRunAt": 1788703755224,
+    "lastOutcome": "error"
   },
-  "run3": {
-    "ok": true,
-    "value": {
-      "outcome": "error",
-      "ms": 5000,
-      "sessionId": "session-44502c29-7576-43bf-9239-df8800e682d0"
-    }
-  }
+  "systemHit": false
 }

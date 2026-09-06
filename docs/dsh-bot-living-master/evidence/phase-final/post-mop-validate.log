@@ -1,0 +1,19 @@
+== validate after mop-ui3 / status refresh (2026-09-06) ==
+
+docs/dsh-bot-memory: 0 FAIL / 1 WARN / 21 PASS
+  WARN: Phase 回归验证已显式豁免: P0:校准, P2:抽取
+  真实场景任务尚未标记完成, 证据审计跳过
+
+docs/dsh-bot-routines: 0 FAIL / 1 WARN / 21 PASS
+  WARN: Phase 回归验证已显式豁免: P0:校准
+  真实场景任务尚未标记完成, 证据审计跳过
+
+docs/dsh-bot-living-master: 0 FAIL / 1 WARN / 16 PASS
+  WARN: 证据目录有文件但与 5.2 矩阵路径不一致:
+    evidence/UF-101/wake-with-name.png
+    evidence/UF-102/pinned.png
+    evidence/UF-103/group-round.png
+    evidence/UF-103/v2-isolation.png
+
+command:
+  python3 ~/.claude/skills/prd-workflow/scripts/validate_package.py docs/dsh-bot-{memory,routines,living-master} --repo .

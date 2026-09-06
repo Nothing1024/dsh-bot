@@ -1,2 +1,1 @@
-shouldExtract("为什么？")=true (unit: memory.spec.ts)
-live extract not observed: grok-4.6 503, no assistant row, maybeExtract returns early.
+shouldExtract(为什么？)=true by unit; log 2→2

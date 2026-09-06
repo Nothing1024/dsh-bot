@@ -1,0 +1,96 @@
+{
+  "ok": true,
+  "value": {
+    "sessionId": "session-b35b3197-1ec9-4b2a-81f8-699d63824355",
+    "items": [
+      {
+        "id": "thinking-51-1",
+        "kind": "thinking",
+        "seq": 51,
+        "text": "The user is sending a routine check-in message. The instruction is:\nAll systems nominal. No anomalies detected.\n\n"
+      },
+      {
+        "id": "tool-51-1",
+        "kind": "tool",
+        "seq": 51,
+        "name": "bash",
+        "summary": "bash"
+      },
+      {
+        "id": "message-51-1",
+        "kind": "message",
+        "seq": 51,
+        "role": "assistant",
+        "text": "先扫一眼环境，没异常就闭嘴。"
+      },
+      {
+        "id": "tool-53-1",
+        "kind": "tool",
+        "seq": 53,
+        "name": "tool",
+        "summary": "工具完成"
+      },
+      {
+        "id": "thinking-103-1",
+        "kind": "thinking",
+        "seq": 103,
+        "text": "This is a routine silent inspection. The user said if there's no anomaly, don't speak - just output (silent). Let me check for actual anomalies related to living-master-replay deployment.\n\n\n"
+      },
+      {
+        "id": "tool-103-1",
+        "kind": "tool",
+        "seq": 103,
+        "name": "bash",
+        "summary": "bash"
+      },
+      {
+        "id": "tool-105-1",
+        "kind": "tool",
+        "seq": 105,
+        "name": "tool",
+        "summary": "工具完成"
+      },
+      {
+        "id": "thinking-180-1",
+        "kind": "thinking",
+        "seq": 180,
+        "text": "The routine is a silent inspection. Load is high (17.34) which might be worth mentioning, but the instruction is: if nothing abnormal, stay silent. Load of 17 with 22 users after 3 days uptime might b...\n\n"
+      },
+      {
+        "id": "tool-180-1",
+        "kind": "tool",
+        "seq": 180,
+        "name": "bash",
+        "summary": "bash"
+      },
+      {
+        "id": "message-180-1",
+        "kind": "message",
+        "seq": 180,
+        "role": "assistant",
+        "text": "负载偏高，再看一眼进程和近期日志。"
+      },
+      {
+        "id": "tool-182-1",
+        "kind": "tool",
+        "seq": 182,
+        "name": "tool",
+        "summary": "工具完成"
+      },
+      {
+        "id": "thinking-246-1",
+        "kind": "thinking",
+        "seq": 246,
+        "text": "The ps command was denied by sandbox. Load is 17 which is high but this is a routine silent check - user said if no anomalies don't speak. GUI is 200, disk is fine. Load 17 on a 22-user machine that's...\n\n"
+      },
+      {
+        "id": "message-246-1",
+        "kind": "message",
+        "seq": 246,
+        "role": "assistant",
+        "text": "(silent)"
+      }
+    ],
+    "working": false
+  }
+}

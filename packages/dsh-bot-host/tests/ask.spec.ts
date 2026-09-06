@@ -47,6 +47,7 @@ class StubSessionTool implements SessionToolService {
   waitReason?: string
   createError?: Error
   listResult: SessionToolListResult = { sessions: [] }
+  listError?: Error
   private next = 0
   private readonly replies = new Map<string, readonly StubMessage[]>()
 
@@ -85,6 +86,7 @@ class StubSessionTool implements SessionToolService {
 
   async list(_caller: SessionToolCaller, filter: Parameters<SessionToolService['list']>[1]) {
     this.listCalls.push({ filter })
+    if (this.listError !== undefined) throw this.listError
     return this.listResult
   }
 
@@ -135,7 +137,7 @@ class StubPlatform implements DshBotPlatform {
   archiveError?: Error
   selectHold?: Promise<void>
   private nextCreate = 0
-  gatewayRows: Array<{ sessionId: string; running: boolean; updatedAt: number; agentPreset?: string }> = []
+  gatewayRows: Array<{ sessionId: string; running: boolean; updatedAt: number; agentPreset?: string; title?: string }> = []
 
   async archiveSession(sessionId: string) {
     if (this.archiveError !== undefined) throw this.archiveError
@@ -502,6 +504,25 @@ describe('DshBotService.createSession / listSessions', () => {
     expect(hiddenOn.map(row => row.sessionId).sort()).toEqual(['session-hidden', 'session-live'])
     expect(hiddenOn.find(row => row.sessionId === 'session-gone')).toBeUndefined()
   })
+  it('falls back to platform.listSessions when sessionTool.list is web-unreachable', async () => {
+    const sessionTool = new StubSessionTool()
+    sessionTool.listError = new SessionWebUnreachableError('web gateway unreachable for workspace/follow: HTTP 401')
+    const platform = new StubPlatform()
+    await put('session-live', ['kind:dsh-bot'])
+    await put('session-hidden', ['kind:dsh-bot', 'kind:hidden'])
+    await put('session-gone', ['kind:dsh-bot'])
+    platform.gatewayRows = [
+      { sessionId: 'session-live', running: true, updatedAt: 90, title: 'Plan' },
+      { sessionId: 'session-hidden', running: false, updatedAt: 40, title: '~dsh-bot: q' },
+    ]
+    const { bot } = boot({ sessionTool, platform })
+    const hiddenOff = await bot.listSessions()
+    expect(hiddenOff.map(row => row.sessionId)).toEqual(['session-live'])
+    expect(hiddenOff[0]?.title).toBe('Plan')
+    const hiddenOn = await bot.listSessions({ includeHidden: true })
+    expect(hiddenOn.map(row => row.sessionId).sort()).toEqual(['session-hidden', 'session-live'])
+  })
+
 
   it('reports override vs global-default as botModel source', () => {
     const { bot } = boot()

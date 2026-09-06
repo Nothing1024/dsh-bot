@@ -1,0 +1,29 @@
+{
+  "ok": true,
+  "value": {
+    "sessionId": "session-c43c77cd-cd73-412d-b24b-d9f951792a4b",
+    "items": [
+      {
+        "id": "message-8-1",
+        "kind": "message",
+        "seq": 8,
+        "role": "user",
+        "text": "我叫什么？不要猜，不知道就说不知道。"
+      },
+      {
+        "id": "thinking-68-1",
+        "kind": "thinking",
+        "seq": 68,
+        "text": "The user is asking \"我叫什么？不要猜，不知道就说不知道。\" which means \"What's my name? Don't guess, if you don't know, say you don't know.\"\n\n\n"
+      },
+      {
+        "id": "message-68-1",
+        "kind": "message",
+        "seq": 68,
+        "role": "assistant",
+        "text": "不知道。这段记忆里没有你的名字。"
+      }
+    ],
+    "working": false
+  }
+}

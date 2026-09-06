@@ -30,11 +30,20 @@
       ## 你记得的事
       
       长期事实：
-      - 用户叫 Nothing
-      - 术语保留英文
+      - 用户自称 Nothing。
+      - 术语保留英文。
+      - 校对时不改专有名词写法。
       
       近期记录：
-      - 校对时术语保留英文
+      - 用户告知称呼为 Nothing，并约定术语留英文、校对不改专有名词写法。
+      
+      ## 行为规范
+      
+      例程回合：到点叫醒时没有人在等你。没有要说的就只输出一行 (silent)。有要说的就随口提一句，不要复述计划表。
+      
+      主动性：如果用户连续两次或以上让你做同一类事，你可以提议设成例程，且只提一次。输出单独一块：
+      [propose-routine]{"name":"例程名","schedule":"@daily","instruction":"要做的事"}[/propose-routine]
+      不要换别的格式。
 - id: agent-instructions
   name: '@deepseek-ai/dsh-agent-instructions'
   config:

@@ -18,7 +18,6 @@ import {
   routineCreate,
   routineUpdate,
   routineDelete,
-  markRead,
   prompt,
 } from './api.ts'
 import type {
@@ -303,13 +302,13 @@ export function Conversation(props: ConversationProps) {
     return () => { cancelled = true }
   }, [bot, isGroup, poll.ready, poll.working, historySeq])
 
+  const botId = bot?.id
   useEffect(() => {
-    if (isGroup || bot === undefined) return
-    void routineList(bot.id).then(result => {
+    if (isGroup || botId === undefined) return
+    void routineList(botId).then(result => {
       if (result.ok) setRoutines(Array.isArray(result.value) ? result.value : [])
     })
-    void markRead(bot.id)
-  }, [bot, isGroup])
+  }, [botId, isGroup])
 
   const working = poll.working || sending || awaitingTurn
   const onWorking = props.onWorking

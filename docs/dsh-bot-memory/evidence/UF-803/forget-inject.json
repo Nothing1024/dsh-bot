@@ -1,0 +1,17 @@
+{
+  "token": "zebra-forget-904-unique",
+  "remembered": {
+    "ok": true,
+    "value": {
+      "id": "1788703830266-kbpd0e"
+    }
+  },
+  "forget": {
+    "ok": true,
+    "value": {
+      "ok": true
+    }
+  },
+  "tokenInPersonaAfterForget": true,
+  "tokenInPersonaAfterCreate": false
+}

@@ -1,0 +1,34 @@
+{
+  "before": {
+    "id": "r-1788703764909-hba0u1c9",
+    "botId": "yunwei-yeban",
+    "name": "重启续跑",
+    "schedule": "@every 1m",
+    "instruction": "报告当前时间，一句话，称呼我 Nothing。",
+    "enabled": true,
+    "notify": false,
+    "createdAt": 1788703764909,
+    "runs": []
+  },
+  "after": {
+    "id": "r-1788703764909-hba0u1c9",
+    "botId": "yunwei-yeban",
+    "name": "重启续跑",
+    "schedule": "@every 1m",
+    "instruction": "报告当前时间，一句话，称呼我 Nothing。",
+    "enabled": true,
+    "notify": false,
+    "createdAt": 1788703764909,
+    "runs": [
+      {
+        "ts": 1788703865605,
+        "outcome": "spoke",
+        "ms": 14519
+      }
+    ],
+    "sessionId": "session-84ca2e4b-f363-4f29-9623-3a61a66543c5",
+    "lastRunAt": 1788703865605,
+    "lastOutcome": "spoke"
+  },
+  "elapsed": 64065
+}

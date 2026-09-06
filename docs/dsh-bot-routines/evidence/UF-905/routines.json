@@ -1,0 +1,16 @@
+{
+  "ok": true,
+  "value": [
+    {
+      "id": "r-1788703203920-3yq4yg5j",
+      "botId": "xiaodui-aning",
+      "name": "校今天的稿",
+      "schedule": "@daily",
+      "instruction": "校对当天的稿：先点含糊处，再给一版更干净的句子。术语保留英文，不改专有名词。用户未贴正文、未指明篇目时，只说明缺什么，不要顺口揽活。",
+      "enabled": true,
+      "notify": true,
+      "createdAt": 1788703203920,
+      "runs": []
+    }
+  ]
+}

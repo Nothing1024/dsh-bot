@@ -1,0 +1,163 @@
+{
+  "at": "2026-09-06T12:12:04.065Z",
+  "matrix": [
+    {
+      "id": "v1 listSessions RPC",
+      "result": "BLOCKED",
+      "notes": "still failing: web gateway unreachable for workspace/follow: HTTP 401",
+      "evidence": [
+        "UF-103/v1-listSessions-probe.json"
+      ]
+    },
+    {
+      "id": "UF-901 主路径 spoke",
+      "result": "PASS",
+      "notes": "outcome=spoke; last=spoke; text=Nothing，现在是 2026-09-06 19:55 CST。<|eos|>",
+      "evidence": [
+        "UF-901/thread-wake.png",
+        "UF-901/routines.json"
+      ]
+    },
+    {
+      "id": "UF-902 silent",
+      "result": "PASS",
+      "notes": "outcome=silent; last=(silent)",
+      "evidence": [
+        "UF-902/silent-row.png",
+        "UF-902/routines.json"
+      ]
+    },
+    {
+      "id": "UF-902 lock",
+      "result": "PASS",
+      "notes": "userOk=true; wake=spoke; userIdx=87; wakeIdx=-1; ms=12203",
+      "evidence": [
+        "UF-902/lock-order.png",
+        "UF-902/lock-history.json"
+      ]
+    },
+    {
+      "id": "UF-903 主路径 notify",
+      "result": "FAIL",
+      "notes": "outcome=spoke; notices=0; unread=; body=[]",
+      "evidence": [
+        "UF-903/badge.png",
+        "UF-903/notification-call.json"
+      ]
+    },
+    {
+      "id": "UF-903 点回清零",
+      "result": "PASS",
+      "notes": "unreadNodes=0",
+      "evidence": [
+        "UF-903/cleared.png"
+      ]
+    },
+    {
+      "id": "UF-903 窗口聚焦",
+      "result": "PASS",
+      "notes": "notices=0; unread=; outcome=spoke",
+      "evidence": [
+        "UF-903/focused-no-notify.json"
+      ]
+    },
+    {
+      "id": "UF-903 5s 节流",
+      "result": "FAIL",
+      "notes": "unread=; notices=0; outcomes=spoke,spoke",
+      "evidence": [
+        "UF-903/throttle.json"
+      ]
+    },
+    {
+      "id": "UF-801 主路径 auto-extract",
+      "result": "PASS",
+      "notes": "count=4; autoish=4; last=记下了，Nothing。\n\n术语留英文，专有名词不改写法。\n\n有稿就丢过来。",
+      "evidence": [
+        "UF-801/panel.png",
+        "UF-801/profile.md"
+      ]
+    },
+    {
+      "id": "UF-802 主路径",
+      "result": "PASS",
+      "notes": "new=\"Nothing。你自己定的称呼。\"",
+      "evidence": [
+        "UF-802/new-session-answer.png",
+        "UF-802/cordis-after-inject.yml"
+      ]
+    },
+    {
+      "id": "UF-802 旧会话",
+      "result": "PASS",
+      "notes": "old=\"不知道。这轮对话里你没报过名字。\"",
+      "evidence": [
+        "UF-802/old-session.png"
+      ]
+    },
+    {
+      "id": "UF-803 忘记后新会话",
+      "result": "FAIL",
+      "notes": "text=\"Nothing。\"",
+      "evidence": [
+        "UF-803/after-forget.png",
+        "UF-803/new-session-unknown.png"
+      ]
+    },
+    {
+      "id": "UF-804 📌",
+      "result": "PARTIAL",
+      "notes": "explicit=false",
+      "evidence": [
+        "UF-804/after-pin.png"
+      ]
+    },
+    {
+      "id": "UF-805 寒暄",
+      "result": "PASS",
+      "notes": "log.jsonl 2→2",
+      "evidence": [
+        "UF-805/before-after-wc.txt"
+      ]
+    },
+    {
+      "id": "UF-805 短句问号",
+      "result": "PASS",
+      "notes": "extract path taken or empty; log 2→2",
+      "evidence": [
+        "UF-805/question-mark.txt"
+      ]
+    },
+    {
+      "id": "UF-804 房间选成员",
+      "result": "BLOCKED",
+      "notes": "no 编辑室 row",
+      "evidence": []
+    },
+    {
+      "id": "UF-905 提议卡",
+      "result": "PARTIAL",
+      "notes": "cards=1; declined=[]",
+      "evidence": [
+        "UF-905/history.json"
+      ]
+    },
+    {
+      "id": "phaseEmptyMemory",
+      "result": "FAIL",
+      "notes": "ReferenceError: __omp_shell is not defined\n    at phaseEmptyMemory (file:///Users/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin/docs/dsh-bot-living-master/evidence/phase-final/live-remaining.mjs:700:18)\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at async main (file:///Users/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin/docs/dsh-bot-living-master/evidence/phase-final/live-remaining.mjs:722:7)\n    at async file:///Users/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin/docs/dsh-bot-living-master/evidence/phase-final/live-remaining.mjs:752:1",
+      "evidence": []
+    },
+    {
+      "id": "UF-904 开关",
+      "result": "PARTIAL",
+      "notes": "off 20→20; on grew=false; last=spoke",
+      "evidence": [
+        "UF-904/runs-off-on-restart.md"
+      ]
+    }
+  ],
+  "pass": 10,
+  "fail": 4,
+  "blocked": 5
+}

@@ -1,0 +1,130 @@
+{
+  "ok": true,
+  "value": {
+    "sessionId": "session-3a91d0f7-859b-4137-aaaa-20cdc830767d",
+    "items": [
+      {
+        "id": "thinking-52-1",
+        "kind": "thinking",
+        "seq": 52,
+        "text": "The user is triggering a routine: \"超时探针对\" (timeout probe pair). The instruction is:\n\n\n"
+      },
+      {
+        "id": "tool-52-1",
+        "kind": "tool",
+        "seq": 52,
+        "name": "bash",
+        "summary": "bash"
+      },
+      {
+        "id": "message-52-1",
+        "kind": "message",
+        "seq": 52,
+        "role": "assistant",
+        "text": "先报时间。"
+      },
+      {
+        "id": "tool-54-1",
+        "kind": "tool",
+        "seq": 54,
+        "name": "tool",
+        "summary": "工具完成"
+      },
+      {
+        "id": "thinking-135-1",
+        "kind": "thinking",
+        "seq": 135,
+        "text": "The user wants me to report the current time in one sentence as a routine wake-up. The instruction says: 没有人在等你；没有要说的就只输出 (silent)；有要说的就像随口提一句，不要复述计划表.\n\n\n"
+      },
+      {
+        "id": "message-135-1",
+        "kind": "message",
+        "seq": 135,
+        "role": "assistant",
+        "text": "现在是 2026-09-06 22:09 CST。"
+      },
+      {
+        "id": "thinking-202-1",
+        "kind": "thinking",
+        "seq": 202,
+        "text": "The user is triggering a routine again - \"超时探针对\" (timeout probe pair). The instruction is: report current time in one sentence. If nobody is waiting and there's nothing to say, just output (silent). I...\n\n"
+      },
+      {
+        "id": "tool-202-1",
+        "kind": "tool",
+        "seq": 202,
+        "name": "bash",
+        "summary": "bash"
+      },
+      {
+        "id": "message-202-1",
+        "kind": "message",
+        "seq": 202,
+        "role": "assistant",
+        "text": "报一下时间。"
+      },
+      {
+        "id": "tool-204-1",
+        "kind": "tool",
+        "seq": 204,
+        "name": "tool",
+        "summary": "工具完成"
+      },
+      {
+        "id": "message-226-1",
+        "kind": "message",
+        "seq": 226,
+        "role": "assistant",
+        "text": "现在是 2026-09-06 22:09 CST。"
+      },
+      {
+        "id": "thinking-268-1",
+        "kind": "thinking",
+        "seq": 268,
+        "text": "The user wants a routine timeout probe - report current time in one sentence. Keep it short. Let me get the current time.\n\n"
+      },
+      {
+        "id": "tool-268-1",
+        "kind": "tool",
+        "seq": 268,
+        "name": "bash",
+        "summary": "bash"
+      },
+      {
+        "id": "tool-270-1",
+        "kind": "tool",
+        "seq": 270,
+        "name": "tool",
+        "summary": "工具完成"
+      },
+      {
+        "id": "message-292-1",
+        "kind": "message",
+        "seq": 292,
+        "role": "assistant",
+        "text": "现在是 2026-09-06 22:09 CST。"
+      },
+      {
+        "id": "message-298-1",
+        "kind": "message",
+        "seq": 298,
+        "role": "user",
+        "text": "[routine-system] 例程「超时探针对」连续失败 3 次，先不自动开口。"
+      },
+      {
+        "id": "thinking-340-1",
+        "kind": "thinking",
+        "seq": 340,
+        "text": "The user message is a system message about a routine that has failed 3 times consecutively, and I should not automatically speak. Combined with the routine instructions:\n\n\n"
+      },
+      {
+        "id": "message-340-1",
+        "kind": "message",
+        "seq": 340,
+        "role": "assistant",
+        "text": "(silent)"
+      }
+    ],
+    "working": false
+  }
+}

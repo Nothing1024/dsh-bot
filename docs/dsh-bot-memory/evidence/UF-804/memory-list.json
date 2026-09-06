@@ -1,0 +1,85 @@
+{
+  "ok": true,
+  "value": {
+    "profile": [
+      {
+        "id": "1788695943706-t6kyid",
+        "text": "术语保留英文。",
+        "ts": 1788695943706
+      },
+      {
+        "id": "1788695943706-wr7cov",
+        "text": "校对时不改专有名词写法。",
+        "ts": 1788695943706
+      },
+      {
+        "id": "1788696102560-jye835",
+        "text": "道谢后不要顺口揽活。",
+        "ts": 1788696102560
+      },
+      {
+        "id": "1788701208652-qnwd4j",
+        "text": "专挑措辞：先点含糊处，再给一版更干净的句子。",
+        "ts": 1788701208652
+      }
+    ],
+    "log": [
+      {
+        "id": "1788696102560-ov35a3",
+        "kind": "log",
+        "text": "用户质疑道谢后多加的揽活句。",
+        "ts": 1788696102560,
+        "source": "auto",
+        "sessionId": "session-4ca6eab9-20af-4094-b0ff-0acbd0a1cfe2"
+      },
+      {
+        "id": "1788696469622-rtrl3f",
+        "kind": "log",
+        "text": "用户再次要求校对「今天的稿」，未贴正文也未指明篇目。",
+        "ts": 1788696469622,
+        "source": "auto",
+        "sessionId": "session-715e3311-6582-49d8-abc5-df8338e5fde2"
+      },
+      {
+        "id": "1788701208653-8pro5c",
+        "kind": "log",
+        "text": "用户要求用一句话说明职责。",
+        "ts": 1788701208653,
+        "source": "auto",
+        "sessionId": "session-d05a118c-421d-4cb1-a24e-0bd6c03588da"
+      },
+      {
+        "id": "1788701236281-1nbale",
+        "kind": "log",
+        "text": "用户让校今天的稿，未贴正文也未点明篇目。",
+        "ts": 1788701236281,
+        "source": "auto",
+        "sessionId": "session-eb719fc2-1ff9-4801-bb01-feccb9f660b0"
+      },
+      {
+        "id": "1788701757950-l0iukj",
+        "kind": "log",
+        "text": "用户请校今天的稿，但未给出具体篇目或正文。",
+        "ts": 1788701757950,
+        "source": "auto",
+        "sessionId": "session-41781cd6-ddb0-4052-af9e-9740fac9d3a1"
+      },
+      {
+        "id": "1788701816492-4776yz",
+        "kind": "log",
+        "text": "用户请校今天的稿，未给篇目或正文。",
+        "ts": 1788701816492,
+        "source": "auto",
+        "sessionId": "session-536a3f21-3884-4d5e-851e-0713c5f14102"
+      },
+      {
+        "id": "1788703196652-by6w92",
+        "kind": "log",
+        "text": "专挑措辞：先点含糊处，再给一版更干净的句子。",
+        "ts": 1788703196652,
+        "source": "explicit",
+        "sessionId": "session-baccbd2d-ae78-446c-ad29-abac2b4c36b1"
+      }
+    ]
+  }
+}

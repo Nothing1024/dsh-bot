@@ -1,0 +1,379 @@
+{
+  "ok": true,
+  "value": {
+    "sessionId": "session-1ef55abe-7aea-4409-a041-9c3d19e363fb",
+    "items": [
+      {
+        "id": "thinking-62-1",
+        "kind": "thinking",
+        "seq": 62,
+        "text": "The user is triggering a routine: \"空记忆报时\" (empty memory time report). The instruction is:\n\n\n"
+      },
+      {
+        "id": "tool-62-1",
+        "kind": "tool",
+        "seq": 62,
+        "name": "bash",
+        "summary": "bash"
+      },
+      {
+        "id": "message-62-1",
+        "kind": "message",
+        "seq": 62,
+        "role": "assistant",
+        "text": "先看时间，名字这块空记忆里没有，得现查。"
+      },
+      {
+        "id": "tool-64-1",
+        "kind": "tool",
+        "seq": 64,
+        "name": "tool",
+        "summary": "工具完成"
+      },
+      {
+        "id": "thinking-151-1",
+        "kind": "thinking",
+        "seq": 151,
+        "text": "The user asked me to report the time and address them by name. This is a routine \"空记忆报时\" - empty memory time report. I need to find the user's name. Let me look around for memory/user identity informa...\n\n"
+      },
+      {
+        "id": "tool-151-1",
+        "kind": "tool",
+        "seq": 151,
+        "name": "bash",
+        "summary": "bash"
+      },
+      {
+        "id": "tool-151-2",
+        "kind": "tool",
+        "seq": 151,
+        "name": "glob",
+        "summary": "glob"
+      },
+      {
+        "id": "tool-151-3",
+        "kind": "tool",
+        "seq": 151,
+        "name": "glob",
+        "summary": "glob"
+      },
+      {
+        "id": "message-151-1",
+        "kind": "message",
+        "seq": 151,
+        "role": "assistant",
+        "text": "名字还没找到，翻一下本机/工作区里有没有称呼。"
+      },
+      {
+        "id": "tool-153-1",
+        "kind": "tool",
+        "seq": 153,
+        "name": "tool",
+        "summary": "工具完成"
+      },
+      {
+        "id": "tool-155-1",
+        "kind": "tool",
+        "seq": 155,
+        "name": "tool",
+        "summary": "工具完成"
+      },
+      {
+        "id": "tool-157-1",
+        "kind": "tool",
+        "seq": 157,
+        "name": "tool",
+        "summary": "工具完成"
+      },
+      {
+        "id": "thinking-245-1",
+        "kind": "thinking",
+        "seq": 245,
+        "text": "The user asked me to report the time and address them by name. This is a routine wake-up with empty memory. I need to find the user's name from somewhere - maybe DSH bot memory, git config, session fi...\n\n"
+      },
+      {
+        "id": "tool-245-1",
+        "kind": "tool",
+        "seq": 245,
+        "name": "bash",
+        "summary": "bash"
+      },
+      {
+        "id": "tool-245-2",
+        "kind": "tool",
+        "seq": 245,
+        "name": "grep",
+        "summary": "grep"
+      },
+      {
+        "id": "tool-245-3",
+        "kind": "tool",
+        "seq": 245,
+        "name": "glob",
+        "summary": "glob"
+      },
+      {
+        "id": "tool-245-4",
+        "kind": "tool",
+        "seq": 245,
+        "name": "glob",
+        "summary": "glob"
+      },
+      {
+        "id": "message-245-1",
+        "kind": "message",
+        "seq": 245,
+        "role": "assistant",
+        "text": "空记忆里没名字，接着翻 bot 记忆和本机身份。"
+      },
+      {
+        "id": "tool-247-1",
+        "kind": "tool",
+        "seq": 247,
+        "name": "tool",
+        "summary": "工具完成"
+      },
+      {
+        "id": "tool-249-1",
+        "kind": "tool",
+        "seq": 249,
+        "name": "tool",
+        "summary": "工具完成"
+      },
+      {
+        "id": "tool-251-1",
+        "kind": "tool",
+        "seq": 251,
+        "name": "tool",
+        "summary": "工具完成"
+      },
+      {
+        "id": "tool-253-1",
+        "kind": "tool",
+        "seq": 253,
+        "name": "tool",
+        "summary": "工具完成"
+      },
+      {
+        "id": "thinking-339-1",
+        "kind": "thinking",
+        "seq": 339,
+        "text": "The routine is \"空记忆报时\" - empty memory time report. The instruction is to report the time and address the user by name. The routine reminder says:\nThe current time is 10:47 AM. Good morning, Alex.\n\n"
+      },
+      {
+        "id": "tool-339-1",
+        "kind": "tool",
+        "seq": 339,
+        "name": "bash",
+        "summary": "bash"
+      },
+      {
+        "id": "tool-339-2",
+        "kind": "tool",
+        "seq": 339,
+        "name": "grep",
+        "summary": "grep"
+      },
+      {
+        "id": "tool-339-3",
+        "kind": "tool",
+        "seq": 339,
+        "name": "glob",
+        "summary": "glob"
+      },
+      {
+        "id": "tool-339-4",
+        "kind": "tool",
+        "seq": 339,
+        "name": "glob",
+        "summary": "glob"
+      },
+      {
+        "id": "message-339-1",
+        "kind": "message",
+        "seq": 339,
+        "role": "assistant",
+        "text": "空记忆这轮要报时、称呼。先核对 bot 记忆和 preset 里到底有没有名字。"
+      },
+      {
+        "id": "tool-341-1",
+        "kind": "tool",
+        "seq": 341,
+        "name": "tool",
+        "summary": "工具完成"
+      },
+      {
+        "id": "tool-343-1",
+        "kind": "tool",
+        "seq": 343,
+        "name": "tool",
+        "summary": "工具完成"
+      },
+      {
+        "id": "tool-345-1",
+        "kind": "tool",
+        "seq": 345,
+        "name": "tool",
+        "summary": "工具完成"
+      },
+      {
+        "id": "tool-347-1",
+        "kind": "tool",
+        "seq": 347,
+        "name": "tool",
+        "summary": "工具完成"
+      },
+      {
+        "id": "thinking-427-1",
+        "kind": "thinking",
+        "seq": 427,
+        "text": "This is a routine wake for \"空记忆报时\" - empty memory time report. The instruction is: report time and address the user by name.\n\n\n"
+      },
+      {
+        "id": "tool-427-1",
+        "kind": "tool",
+        "seq": 427,
+        "name": "read",
+        "summary": "read"
+      },
+      {
+        "id": "tool-427-2",
+        "kind": "tool",
+        "seq": 427,
+        "name": "read",
+        "summary": "read"
+      },
+      {
+        "id": "tool-427-3",
+        "kind": "tool",
+        "seq": 427,
+        "name": "read",
+        "summary": "read"
+      },
+      {
+        "id": "tool-427-4",
+        "kind": "tool",
+        "seq": 427,
+        "name": "read",
+        "summary": "read"
+      },
+      {
+        "id": "message-427-1",
+        "kind": "message",
+        "seq": 427,
+        "role": "assistant",
+        "text": "这轮标题是空记忆报时，先核对夜班记忆文件和 preset 到底空不空。"
+      },
+      {
+        "id": "tool-432-1",
+        "kind": "tool",
+        "seq": 432,
+        "name": "tool",
+        "summary": "工具完成"
+      },
+      {
+        "id": "tool-433-1",
+        "kind": "tool",
+        "seq": 433,
+        "name": "tool",
+        "summary": "工具完成"
+      },
+      {
+        "id": "tool-434-1",
+        "kind": "tool",
+        "seq": 434,
+        "name": "tool",
+        "summary": "工具完成"
+      },
+      {
+        "id": "tool-435-1",
+        "kind": "tool",
+        "seq": 435,
+        "name": "tool",
+        "summary": "工具完成"
+      },
+      {
+        "id": "thinking-505-1",
+        "kind": "thinking",
+        "seq": 505,
+        "text": "The user triggered a routine called \"空记忆报时\" (empty memory time report). The instruction is: report the time and address me by name.\nIt's 2026-09-06 20:07:26 CST. I don't know your name.\n\n"
+      },
+      {
+        "id": "tool-505-1",
+        "kind": "tool",
+        "seq": 505,
+        "name": "grep",
+        "summary": "grep"
+      },
+      {
+        "id": "tool-505-2",
+        "kind": "tool",
+        "seq": 505,
+        "name": "read",
+        "summary": "read"
+      },
+      {
+        "id": "message-505-1",
+        "kind": "message",
+        "seq": 505,
+        "role": "assistant",
+        "text": "空记忆确认了。再对一下这条例程在 spec 里期望怎么说。"
+      },
+      {
+        "id": "tool-507-1",
+        "kind": "tool",
+        "seq": 507,
+        "name": "tool",
+        "summary": "工具完成"
+      },
+      {
+        "id": "tool-509-1",
+        "kind": "tool",
+        "seq": 509,
+        "name": "tool",
+        "summary": "工具完成"
+      },
+      {
+        "id": "thinking-581-1",
+        "kind": "thinking",
+        "seq": 581,
+        "text": "The user is running a routine called \"空记忆报时\" (empty memory time report). The instruction is: \"报告时间并用名字称呼我\" (report the time and address me by name).\nThe current time is 2026-09-06 20:07 CST.\n\n"
+      },
+      {
+        "id": "tool-581-1",
+        "kind": "tool",
+        "seq": 581,
+        "name": "bash",
+        "summary": "bash"
+      },
+      {
+        "id": "message-581-1",
+        "kind": "message",
+        "seq": 581,
+        "role": "assistant",
+        "text": "记忆空的，名字不瞎叫。再对一下现在几点。"
+      },
+      {
+        "id": "tool-583-1",
+        "kind": "tool",
+        "seq": 583,
+        "name": "tool",
+        "summary": "工具完成"
+      },
+      {
+        "id": "thinking-645-1",
+        "kind": "thinking",
+        "seq": 645,
+        "text": "The user is running a routine called \"空记忆报时\" with instruction \"报告时间并用名字称呼我\". The spec failure branch says:\n\n\n"
+      },
+      {
+        "id": "message-645-1",
+        "kind": "message",
+        "seq": 645,
+        "role": "assistant",
+        "text": "现在是 2026-09-06 20:08 CST。名字这边空的，没记住。"
+      }
+    ],
+    "working": false
+  }
+}

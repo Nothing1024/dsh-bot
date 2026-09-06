@@ -1,0 +1,76 @@
+{
+  "ok": true,
+  "value": {
+    "sessions": [
+      {
+        "sessionId": "session-44502c29-7576-43bf-9239-df8800e682d0",
+        "title": "例程 · 报时",
+        "tags": [
+          "bot:yunwei-yeban",
+          "kind:dsh-bot",
+          "routine:r-1788692459058-bldp78m8"
+        ],
+        "status": "idle",
+        "createdAt": 1788695589446,
+        "updatedAt": 1788695589446,
+        "hidden": false,
+        "working": false,
+        "routine": "r-1788692459058-bldp78m8"
+      },
+      {
+        "sessionId": "session-ee9e1643-6976-42a4-87d7-a7b08ef87be2",
+        "title": "例程 · 巡检静默",
+        "tags": [
+          "bot:yunwei-yeban",
+          "kind:dsh-bot",
+          "routine:r-1788695550050-tg6dwryz"
+        ],
+        "status": "idle",
+        "createdAt": 1788695551044,
+        "updatedAt": 1788695551044,
+        "hidden": false,
+        "working": false,
+        "routine": "r-1788695550050-tg6dwryz"
+      },
+      {
+        "sessionId": "session-bbeb73e6-3cd0-47c3-8c3a-43bafbc6cde1",
+        "title": "uf103-auto-extract",
+        "tags": [
+          "bot:yunwei-yeban",
+          "kind:dsh-bot"
+        ],
+        "status": "idle",
+        "createdAt": 1788693717129,
+        "updatedAt": 1788693717129,
+        "hidden": false,
+        "working": false
+      },
+      {
+        "sessionId": "session-c59ff5be-0e39-4780-a61b-d3fcb94663c9",
+        "title": "运维夜班",
+        "tags": [
+          "bot:yunwei-yeban",
+          "kind:dsh-bot"
+        ],
+        "status": "idle",
+        "createdAt": 1788692889789,
+        "updatedAt": 1788692889789,
+        "hidden": false,
+        "working": false
+      },
+      {
+        "sessionId": "session-5b8a3b81-6050-453c-815d-e8bb0824a3eb",
+        "title": "运维夜班",
+        "tags": [
+          "bot:yunwei-yeban",
+          "kind:dsh-bot"
+        ],
+        "status": "idle",
+        "createdAt": 1788692450840,
+        "updatedAt": 1788692450840,
+        "hidden": false,
+        "working": false
+      }
+    ]
+  }
+}

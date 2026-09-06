@@ -12,6 +12,7 @@ import {
   deleteGroup,
   groupDraftStorageKey,
   listBots,
+  markRead,
   listBotSessions,
   listGroups,
   listGroupSessions,
@@ -582,6 +583,13 @@ export function App() {
     setRefreshEpoch(n => n + 1)
   }, [groups])
 
+  const clearUnread = useCallback((botId: string): void => {
+    setBots(current => current.map(bot => bot.id === botId && (bot.unread ?? 0) !== 0
+      ? { ...bot, unread: 0 }
+      : bot))
+    void markRead(botId)
+  }, [])
+
   const selectCommand = useCallback((id: string): void => {
     setPaletteOpen(false)
     if (id === NEW_BOT_COMMAND) {
@@ -611,7 +619,8 @@ export function App() {
     setForm(null)
     setEffectHint(null)
     setActionError(null)
-  }, [openOwnedSession])
+    if (identity.kind !== 'group') clearUnread(identity.id)
+  }, [clearUnread, openOwnedSession])
 
   return (
     <div
@@ -667,6 +676,7 @@ export function App() {
               setForm(null)
               setEffectHint(null)
               setActionError(null)
+              if (!groups.some(row => row.id === id)) clearUnread(id)
             }}
             onSelectSession={(ownerId, sessionId) => {
               setSelectedId(ownerId)
@@ -674,6 +684,7 @@ export function App() {
               setForm(null)
               setEffectHint(null)
               setActionError(null)
+              if (!groups.some(row => row.id === ownerId)) clearUnread(ownerId)
             }}
             onNewSession={id => { void openOwnedSession(id) }}
             onCreate={() => {

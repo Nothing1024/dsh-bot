@@ -1,0 +1,28 @@
+{
+  "mid": {
+    "id": "r-1788701252129-5cy27f71",
+    "botId": "yunwei-yeban",
+    "name": "开关核验",
+    "schedule": "@every 1m",
+    "instruction": "只报一句当前时间。",
+    "enabled": false,
+    "notify": false,
+    "createdAt": 1788701252129,
+    "runs": []
+  },
+  "midRuns": 0,
+  "on": {
+    "ok": true,
+    "value": {
+      "id": "r-1788701252129-5cy27f71",
+      "botId": "yunwei-yeban",
+      "name": "开关核验",
+      "schedule": "@every 1m",
+      "instruction": "只报一句当前时间。",
+      "enabled": true,
+      "notify": false,
+      "createdAt": 1788701252129,
+      "runs": []
+    }
+  }
+}

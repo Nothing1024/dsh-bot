@@ -1,0 +1,20 @@
+{
+  "id": "r-1788696437398-ycrqhegs",
+  "botId": "yunwei-yeban",
+  "name": "空记忆报时",
+  "schedule": "@every 60m",
+  "instruction": "报告时间并用名字称呼我",
+  "enabled": true,
+  "notify": false,
+  "createdAt": 1788696437398,
+  "runs": [
+    {
+      "ts": 1788696437404,
+      "outcome": "spoke",
+      "ms": 84983
+    }
+  ],
+  "sessionId": "session-1ef55abe-7aea-4409-a041-9c3d19e363fb",
+  "lastRunAt": 1788696437404,
+  "lastOutcome": "spoke"
+}

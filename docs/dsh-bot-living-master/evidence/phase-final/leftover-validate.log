@@ -1,0 +1,5 @@
+child memory: 0 FAIL / 1 WARN / 21 PASS (5.2 evidence 16/16)
+child routines: 0 FAIL / 1 WARN / 21 PASS (5.2 evidence 19/19)
+mother: 0 FAIL / 0 WARN / 17 PASS (5.2 evidence 11/11)
+refreshed after named shots + v2-isolation restitch
+full log: validate-three.log (supervised process validate-three exit 0)

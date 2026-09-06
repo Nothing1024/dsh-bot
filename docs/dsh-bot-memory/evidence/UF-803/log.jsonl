@@ -1,2 +1,6 @@
-{"id":"1788691339618-bc3bzz","ts":1788691339618,"kind":"log","text":"校对时术语保留英文","source":"explicit"}
-{"id":"p-uf801-name","ts":1788691371155,"kind":"note","text":"用户叫 Nothing","source":"auto","tombstone":true}
+{"id":"1788695943707-heg1rk","ts":1788695943707,"kind":"log","text":"用户告知称呼为 Nothing，并约定术语留英文、校对不改专有名词写法。","source":"auto","sessionId":"session-b76cdbf6-69b8-4aeb-aff8-0976a613f50c","tombstone":true}
+{"id":"1788695943705-7k48iz","ts":1788695998094,"kind":"note","text":"用户自称 Nothing。","source":"auto","tombstone":true}
+{"id":"1788696102560-ov35a3","ts":1788696102560,"kind":"log","text":"用户质疑道谢后多加的揽活句。","source":"auto","sessionId":"session-4ca6eab9-20af-4094-b0ff-0acbd0a1cfe2"}
+{"id":"1788696469622-rtrl3f","ts":1788696469622,"kind":"log","text":"用户再次要求校对「今天的稿」，未贴正文也未指明篇目。","source":"auto","sessionId":"session-715e3311-6582-49d8-abc5-df8338e5fde2"}
+{"id":"1788696785023-68xqoa","ts":1788696785023,"kind":"log","text":"Nothing。你自己定的称呼。","source":"explicit","tombstone":true}
+{"id":"1788701129132-w8t4jf","ts":1788701129132,"kind":"log","text":"用户叫 Nothing。","source":"explicit","tombstone":true}

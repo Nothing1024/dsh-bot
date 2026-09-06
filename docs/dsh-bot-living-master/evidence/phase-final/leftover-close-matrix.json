@@ -1,0 +1,71 @@
+[
+  {
+    "id": "v1 listSessions RPC",
+    "result": "PASS",
+    "notes": "sessions=162",
+    "evidence": [
+      "UF-103/v1-listSessions-live.json"
+    ]
+  },
+  {
+    "id": "UF-801 抽取 timeout",
+    "result": "PASS",
+    "notes": "unchanged=true; leaked=false; 运维夜班 0→0; host warn retry once",
+    "evidence": [
+      "phase-2/extract-timeout.log"
+    ]
+  },
+  {
+    "id": "UF-901 error×3",
+    "result": "PASS",
+    "notes": "three outcome:error + [routine-system] 连续失败 3 次 + error-x3.png",
+    "evidence": [
+      "UF-901/error-x3.png",
+      "UF-901/error-x3-history.json",
+      "phase-2/wake-error.log"
+    ]
+  },
+  {
+    "id": "UF-904 重启 rearm",
+    "result": "PASS",
+    "notes": "0→1 spoke in 64s after recycle",
+    "evidence": [
+      "UF-904/rearm-after-wait.json"
+    ]
+  },
+  {
+    "id": "UF-904 损坏",
+    "result": "PASS",
+    "notes": "bak + empty list + corrupt-bak.png",
+    "evidence": [
+      "UF-904/corrupt-bak.png"
+    ]
+  },
+  {
+    "id": "UF-905 declined.png",
+    "result": "PASS",
+    "notes": "declined.png cards=1",
+    "evidence": [
+      "UF-905/declined.png"
+    ]
+  },
+  {
+    "id": "mother 5.2 named shots",
+    "result": "PASS",
+    "notes": "wake-with-name / pinned / v2-isolation / group-round captured from live sessions",
+    "evidence": [
+      "UF-101/wake-with-name.png",
+      "UF-102/pinned.png",
+      "UF-103/v2-isolation.png",
+      "UF-103/group-round.png"
+    ]
+  },
+  {
+    "id": "INV-103",
+    "result": "BLOCKED",
+    "notes": "neighbor session-tool/vibee porcelain pre-existing",
+    "evidence": [
+      "phase-final/inv-103-porcelain.md"
+    ]
+  }
+]

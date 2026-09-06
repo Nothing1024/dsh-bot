@@ -31,3 +31,24 @@ Gateway: :3084 `DSH_HOME=.../dsh-grok-bot/plugin/env` pid after rebuild. Playwri
 ## API-907
 
 list/create/update/delete/run-now/mark-read 均为 HTTP 200 `{ok:true}`。
+
+## Later live (same :3084, after model recovery)
+
+Gateway not recycled for restart-rearm. Scripts: `remaining-pass.mjs`, `mop-live.mjs`, `mop-ui3.mjs`.
+
+| UF | Result | Notes | Evidence |
+|---|---|---|---|
+| UF-901 spoke | PASS | `Nothing，现在是 … CST` | UF-901/thread-wake.png, run-now-spoke.json |
+| UF-902 silent | PASS | outcome=silent | UF-902/silent-row.png |
+| UF-902 lock | PASS | user turn first | UF-902/lock-order.png |
+| UF-903 notify | PASS | notices=1; unread=1; badge=1 | UF-903/notification-call.json, badge.png |
+| UF-903 点回清零 | PASS | unreadNodes=0 after clearUnread | UF-903/cleared.png |
+| UF-903 聚焦 | PASS | notices=0 | UF-903/focused-no-notify.json |
+| UF-903 5s 节流 | PASS | unread=2; notices=1 | UF-903/throttle.json |
+| UF-904 关/开 | PASS | off 0→0; on grew=true | UF-904/runs-off-on-restart.md |
+| UF-904 重启 rearm | BLOCKED | constructor rearmAll; process not recycled | same |
+| UF-905 接受 | PASS | created `校今天的稿` | UF-905/card.png, routine-created.png, routines.json |
+| UF-905 拒绝后再提 | PASS | followCards=0 | UF-905/declined-follow.json |
+
+Unread product fix: mount `markRead` removed; `App.clearUnread` optimistic; leftover headless `/dsh-bot/ui` blanked before mop-live.
+

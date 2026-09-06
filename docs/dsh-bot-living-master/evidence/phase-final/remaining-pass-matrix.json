@@ -1,0 +1,85 @@
+{
+  "at": "2026-09-06T14:00:05.194Z",
+  "supersedes": [
+    "remaining-pass first run",
+    "live-remaining-matrix.md",
+    "mop-live-matrix.json"
+  ],
+  "drivers": [
+    "mop-live.mjs",
+    "mop-ui3.mjs",
+    "remaining-pass.mjs"
+  ],
+  "matrix": [
+    {
+      "id": "UF-903 主路径 notify",
+      "result": "PASS",
+      "notes": "notices=1; unread=1; badge=1"
+    },
+    {
+      "id": "UF-903 点回清零",
+      "result": "PASS",
+      "notes": "unreadNodes=0"
+    },
+    {
+      "id": "UF-903 窗口聚焦",
+      "result": "PASS",
+      "notes": "notices=0; outcome=spoke"
+    },
+    {
+      "id": "UF-903 5s 节流",
+      "result": "PASS",
+      "notes": "unread=2; notices=1"
+    },
+    {
+      "id": "UF-804 pin",
+      "result": "PASS",
+      "notes": "explicit=true; seq=58"
+    },
+    {
+      "id": "UF-804 房间选成员",
+      "result": "PASS",
+      "notes": "pin pick visible"
+    },
+    {
+      "id": "UF-905 提议卡接受",
+      "result": "PASS",
+      "notes": "createdRoutine=true"
+    },
+    {
+      "id": "UF-905 拒绝后再提",
+      "result": "PASS",
+      "notes": "followCards=0"
+    },
+    {
+      "id": "UF-803 忘记后新会话",
+      "result": "PASS",
+      "notes": "unknown name"
+    },
+    {
+      "id": "UF-904 关/开",
+      "result": "PASS",
+      "notes": "off 0-0; on grew=true"
+    },
+    {
+      "id": "UF-904 重启 rearm",
+      "result": "BLOCKED",
+      "notes": "not recycled"
+    },
+    {
+      "id": "UF-801 抽取 timeout",
+      "result": "BLOCKED",
+      "notes": "no extract-timeout.log"
+    },
+    {
+      "id": "v1 listSessions RPC",
+      "result": "BLOCKED",
+      "notes": "workspace/follow HTTP 401"
+    },
+    {
+      "id": "INV-103 邻仓 porcelain",
+      "result": "BLOCKED",
+      "notes": "session-tool + vibee"
+    }
+  ]
+}

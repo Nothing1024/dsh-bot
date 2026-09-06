@@ -1,0 +1,43 @@
+{
+  "sessionId": "room-cff9969e-1c6a-4f9c-a7f0-7c49412fc9d7",
+  "items": [
+    {
+      "id": "m-1-b5b47305",
+      "kind": "message",
+      "seq": 1,
+      "role": "user",
+      "text": "你们是谁？各用一句话。"
+    },
+    {
+      "id": "m-2-8458913a",
+      "kind": "message",
+      "seq": 2,
+      "role": "assistant",
+      "text": "像灯芯把句子点亮——我是诗人小北。",
+      "author": {
+        "botId": "shiren-xiaobei",
+        "name": "诗人小北",
+        "avatar": {
+          "color": "#d4537e",
+          "emoji": "📜"
+        }
+      }
+    },
+    {
+      "id": "m-3-3b5e3c6d",
+      "kind": "message",
+      "seq": 3,
+      "role": "assistant",
+      "text": "我是校对阿宁：专挑含糊处，再给一版更干净的句子。",
+      "author": {
+        "botId": "xiaodui-aning",
+        "name": "校对阿宁",
+        "avatar": {
+          "color": "#5b8def",
+          "emoji": "✏️"
+        }
+      }
+    }
+  ],
+  "working": false
+}

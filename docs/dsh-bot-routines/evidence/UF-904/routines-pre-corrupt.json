@@ -1,0 +1,664 @@
+[
+  {
+    "id": "r-1788692459058-bldp78m8",
+    "botId": "yunwei-yeban",
+    "name": "报时",
+    "schedule": "@every 1m",
+    "instruction": "报告时间并用名字称呼我",
+    "enabled": false,
+    "notify": true,
+    "createdAt": 1788692459058,
+    "runs": [
+      {
+        "ts": 1788692730777,
+        "outcome": "error",
+        "ms": 10303
+      },
+      {
+        "ts": 1788692801128,
+        "outcome": "error",
+        "ms": 6370
+      },
+      {
+        "ts": 1788692867543,
+        "outcome": "error",
+        "ms": 6392
+      },
+      {
+        "ts": 1788692915725,
+        "outcome": "error",
+        "ms": 7078
+      },
+      {
+        "ts": 1788692982848,
+        "outcome": "error",
+        "ms": 6415
+      },
+      {
+        "ts": 1788693119548,
+        "outcome": "spoke",
+        "ms": 7569
+      },
+      {
+        "ts": 1788693142335,
+        "outcome": "spoke",
+        "ms": 7085
+      },
+      {
+        "ts": 1788693209424,
+        "outcome": "spoke",
+        "ms": 7141
+      },
+      {
+        "ts": 1788693276569,
+        "outcome": "spoke",
+        "ms": 8556
+      },
+      {
+        "ts": 1788695511325,
+        "outcome": "spoke",
+        "ms": 6864
+      },
+      {
+        "ts": 1788695586440,
+        "outcome": "spoke",
+        "ms": 9538
+      },
+      {
+        "ts": 1788695708266,
+        "outcome": "spoke",
+        "ms": 8142
+      },
+      {
+        "ts": 1788695769002,
+        "outcome": "spoke",
+        "ms": 9849
+      },
+      {
+        "ts": 1788695784477,
+        "outcome": "spoke",
+        "ms": 9740
+      },
+      {
+        "ts": 1788695832458,
+        "outcome": "spoke",
+        "ms": 8187
+      },
+      {
+        "ts": 1788695877959,
+        "outcome": "spoke",
+        "ms": 7435
+      },
+      {
+        "ts": 1788696703987,
+        "outcome": "spoke",
+        "ms": 7224
+      },
+      {
+        "ts": 1788696821909,
+        "outcome": "spoke",
+        "ms": 8463
+      },
+      {
+        "ts": 1788696857639,
+        "outcome": "spoke",
+        "ms": 11482
+      },
+      {
+        "ts": 1788697077923,
+        "outcome": "spoke",
+        "ms": 7030
+      }
+    ],
+    "sessionId": "session-44502c29-7576-43bf-9239-df8800e682d0",
+    "lastRunAt": 1788697077923,
+    "lastOutcome": "spoke"
+  },
+  {
+    "id": "r-1788694505445-desfnsm4",
+    "botId": "uf103-shanwo-2",
+    "name": "删我例程2",
+    "schedule": "@every 60m",
+    "instruction": "不要说话",
+    "enabled": false,
+    "notify": false,
+    "createdAt": 1788694505445,
+    "runs": []
+  },
+  {
+    "id": "r-1788695550050-tg6dwryz",
+    "botId": "yunwei-yeban",
+    "name": "巡检静默",
+    "schedule": "@every 60m",
+    "instruction": "如果没有异常就别说话",
+    "enabled": false,
+    "notify": false,
+    "createdAt": 1788695550050,
+    "runs": [
+      {
+        "ts": 1788695550061,
+        "outcome": "silent",
+        "ms": 34497
+      }
+    ],
+    "sessionId": "session-ee9e1643-6976-42a4-87d7-a7b08ef87be2",
+    "lastRunAt": 1788695550061,
+    "lastOutcome": "silent"
+  },
+  {
+    "id": "r-1788695719272-uy475a3q",
+    "botId": "yunwei-yeban",
+    "name": "巡检静默",
+    "schedule": "@every 60m",
+    "instruction": "如果没有异常就别说话",
+    "enabled": false,
+    "notify": false,
+    "createdAt": 1788695719272,
+    "runs": [
+      {
+        "ts": 1788695719284,
+        "outcome": "silent",
+        "ms": 47832
+      }
+    ],
+    "sessionId": "session-b35b3197-1ec9-4b2a-81f8-699d63824355",
+    "lastRunAt": 1788695719284,
+    "lastOutcome": "silent"
+  },
+  {
+    "id": "r-1788695780811-8dj9nlop",
+    "botId": "yunwei-yeban",
+    "name": "报时副线",
+    "schedule": "@every 60m",
+    "instruction": "报告时间并用名字称呼我",
+    "enabled": false,
+    "notify": true,
+    "createdAt": 1788695780811,
+    "runs": [
+      {
+        "ts": 1788695877959,
+        "outcome": "spoke",
+        "ms": 15919
+      }
+    ],
+    "sessionId": "session-12789bf1-e030-48c6-9292-6e9f1ad0d81d",
+    "lastRunAt": 1788695877959,
+    "lastOutcome": "spoke"
+  },
+  {
+    "id": "r-1788696437398-ycrqhegs",
+    "botId": "yunwei-yeban",
+    "name": "空记忆报时",
+    "schedule": "@every 60m",
+    "instruction": "报告时间并用名字称呼我",
+    "enabled": false,
+    "notify": false,
+    "createdAt": 1788696437398,
+    "runs": [
+      {
+        "ts": 1788696437404,
+        "outcome": "spoke",
+        "ms": 84983
+      }
+    ],
+    "sessionId": "session-1ef55abe-7aea-4409-a041-9c3d19e363fb",
+    "lastRunAt": 1788696437404,
+    "lastOutcome": "spoke"
+  },
+  {
+    "id": "r-1788700952757-3k5evbsc",
+    "botId": "yunwei-yeban",
+    "name": "通知核验",
+    "schedule": "@every 60m",
+    "instruction": "只说一句：现在值班。",
+    "enabled": false,
+    "notify": true,
+    "createdAt": 1788700952757,
+    "runs": [
+      {
+        "ts": 1788700956385,
+        "outcome": "spoke",
+        "ms": 7772
+      },
+      {
+        "ts": 1788701014842,
+        "outcome": "silent",
+        "ms": 15092
+      },
+      {
+        "ts": 1788701073492,
+        "outcome": "silent",
+        "ms": 9992
+      }
+    ],
+    "sessionId": "session-20ded3c9-dbbf-4878-8ab7-bafb05788c58",
+    "lastRunAt": 1788701073492,
+    "lastOutcome": "silent"
+  },
+  {
+    "id": "r-1788700952778-2f016llx",
+    "botId": "yunwei-yeban",
+    "name": "通知副线",
+    "schedule": "@every 60m",
+    "instruction": "只说一句：副线值班。",
+    "enabled": false,
+    "notify": true,
+    "createdAt": 1788700952778,
+    "runs": [
+      {
+        "ts": 1788701073493,
+        "outcome": "spoke",
+        "ms": 10225
+      }
+    ],
+    "sessionId": "session-1923ea30-5201-4897-96f4-959d784dcad6",
+    "lastRunAt": 1788701073493,
+    "lastOutcome": "spoke"
+  },
+  {
+    "id": "r-1788701252129-5cy27f71",
+    "botId": "yunwei-yeban",
+    "name": "开关核验",
+    "schedule": "@every 1m",
+    "instruction": "只报一句当前时间。",
+    "enabled": false,
+    "notify": false,
+    "createdAt": 1788701252129,
+    "runs": [
+      {
+        "ts": 1788701432149,
+        "outcome": "spoke",
+        "ms": 13258
+      }
+    ],
+    "sessionId": "session-50801077-e2e8-443a-9f70-384dea5e18cd",
+    "lastRunAt": 1788701432149,
+    "lastOutcome": "spoke"
+  },
+  {
+    "id": "r-1788701462028-51d2nl1k",
+    "botId": "yunwei-yeban",
+    "name": "通知核验",
+    "schedule": "@every 60m",
+    "instruction": "报告时间并用名字称呼我",
+    "enabled": false,
+    "notify": true,
+    "createdAt": 1788701462028,
+    "runs": [
+      {
+        "ts": 1788701462036,
+        "outcome": "spoke",
+        "ms": 14054
+      },
+      {
+        "ts": 1788701528009,
+        "outcome": "spoke",
+        "ms": 10099
+      },
+      {
+        "ts": 1788701581007,
+        "outcome": "spoke",
+        "ms": 8374
+      }
+    ],
+    "sessionId": "session-063f7b9b-3fe6-49c5-b9a6-5e8383664ecf",
+    "lastRunAt": 1788701581007,
+    "lastOutcome": "spoke"
+  },
+  {
+    "id": "r-1788701462032-5tld0a8i",
+    "botId": "yunwei-yeban",
+    "name": "通知副线",
+    "schedule": "@every 60m",
+    "instruction": "报告时间并用名字称呼我",
+    "enabled": false,
+    "notify": true,
+    "createdAt": 1788701462032,
+    "runs": [
+      {
+        "ts": 1788701581007,
+        "outcome": "spoke",
+        "ms": 20410
+      }
+    ],
+    "sessionId": "session-cf710ed0-3e2d-4500-89a7-e3aa8efcf6a8",
+    "lastRunAt": 1788701581007,
+    "lastOutcome": "spoke"
+  },
+  {
+    "id": "r-1788701907233-sxyjpseu",
+    "botId": "yunwei-yeban",
+    "name": "通知终核",
+    "schedule": "@every 60m",
+    "instruction": "报告时间并用名字称呼我",
+    "enabled": false,
+    "notify": true,
+    "createdAt": 1788701907233,
+    "runs": [
+      {
+        "ts": 1788701910803,
+        "outcome": "spoke",
+        "ms": 15097
+      },
+      {
+        "ts": 1788701970462,
+        "outcome": "spoke",
+        "ms": 10568
+      },
+      {
+        "ts": 1788701989036,
+        "outcome": "spoke",
+        "ms": 9129
+      }
+    ],
+    "sessionId": "session-799bf688-883d-42f9-a7a5-c2cedf991ef5",
+    "lastRunAt": 1788701989036,
+    "lastOutcome": "spoke"
+  },
+  {
+    "id": "r-1788701907238-obuhfwj2",
+    "botId": "yunwei-yeban",
+    "name": "通知终核副线",
+    "schedule": "@every 60m",
+    "instruction": "报告时间并用名字称呼我",
+    "enabled": false,
+    "notify": true,
+    "createdAt": 1788701907238,
+    "runs": [
+      {
+        "ts": 1788701989036,
+        "outcome": "spoke",
+        "ms": 54130
+      }
+    ],
+    "sessionId": "session-ad3ac681-0d89-4d44-8755-d0d28784315b",
+    "lastRunAt": 1788701989036,
+    "lastOutcome": "spoke"
+  },
+  {
+    "id": "r-1788702076344-l0ribt45",
+    "botId": "yunwei-yeban",
+    "name": "通知终核",
+    "schedule": "@every 60m",
+    "instruction": "报告时间并用名字称呼我",
+    "enabled": false,
+    "notify": true,
+    "createdAt": 1788702076344,
+    "runs": [
+      {
+        "ts": 1788702079928,
+        "outcome": "spoke",
+        "ms": 98982
+      },
+      {
+        "ts": 1788702222875,
+        "outcome": "spoke",
+        "ms": 24297
+      },
+      {
+        "ts": 1788702255174,
+        "outcome": "spoke",
+        "ms": 12430
+      }
+    ],
+    "sessionId": "session-bc0065e0-ba15-4cd1-abe3-189b2dca36c6",
+    "lastRunAt": 1788702255174,
+    "lastOutcome": "spoke"
+  },
+  {
+    "id": "r-1788702076348-klyl9rdf",
+    "botId": "yunwei-yeban",
+    "name": "通知终核副线",
+    "schedule": "@every 60m",
+    "instruction": "报告时间并用名字称呼我",
+    "enabled": false,
+    "notify": true,
+    "createdAt": 1788702076348,
+    "runs": [
+      {
+        "ts": 1788702255174,
+        "outcome": "spoke",
+        "ms": 93543
+      }
+    ],
+    "sessionId": "session-54aea26e-5cf1-48f4-b798-b4a6e413cc06",
+    "lastRunAt": 1788702255174,
+    "lastOutcome": "spoke"
+  },
+  {
+    "id": "r-1788702232868-zr4k1ryx",
+    "botId": "yunwei-yeban",
+    "name": "未读探针",
+    "schedule": "@every 60m",
+    "instruction": "报告时间并用名字称呼我",
+    "enabled": false,
+    "notify": true,
+    "createdAt": 1788702232868,
+    "runs": [
+      {
+        "ts": 1788702232892,
+        "outcome": "spoke",
+        "ms": 32734
+      },
+      {
+        "ts": 1788702267270,
+        "outcome": "spoke",
+        "ms": 14740
+      }
+    ],
+    "sessionId": "session-7d5e5c50-7010-4a33-9f57-d831a546c6df",
+    "lastRunAt": 1788702267270,
+    "lastOutcome": "spoke"
+  },
+  {
+    "id": "r-1788702353375-2a5gwlfp",
+    "botId": "yunwei-yeban",
+    "name": "未读探针2",
+    "schedule": "@every 60m",
+    "instruction": "报告时间并用名字称呼我",
+    "enabled": false,
+    "notify": true,
+    "createdAt": 1788702353375,
+    "runs": [
+      {
+        "ts": 1788702353389,
+        "outcome": "spoke",
+        "ms": 93035
+      }
+    ],
+    "sessionId": "session-170f0a8b-e6ea-4b28-84c8-98a14602e73b",
+    "lastRunAt": 1788702353389,
+    "lastOutcome": "spoke"
+  },
+  {
+    "id": "r-1788702633764-wj7j0gl8",
+    "botId": "yunwei-yeban",
+    "name": "未读探针3",
+    "schedule": "@every 60m",
+    "instruction": "报告时间并用名字称呼我",
+    "enabled": false,
+    "notify": true,
+    "createdAt": 1788702633764,
+    "runs": [
+      {
+        "ts": 1788702633787,
+        "outcome": "spoke",
+        "ms": 97367
+      }
+    ],
+    "sessionId": "session-cf032389-63d9-4efe-b11a-fa694dcffc1a",
+    "lastRunAt": 1788702633787,
+    "lastOutcome": "spoke"
+  },
+  {
+    "id": "r-1788702728644-9hr9p5zv",
+    "botId": "yunwei-yeban",
+    "name": "未读探针3",
+    "schedule": "@every 60m",
+    "instruction": "报告时间并用名字称呼我",
+    "enabled": false,
+    "notify": true,
+    "createdAt": 1788702728644,
+    "runs": [
+      {
+        "ts": 1788702728648,
+        "outcome": "spoke",
+        "ms": 33460
+      }
+    ],
+    "sessionId": "session-eb111e01-5eb7-41e5-9ba3-21e8fcc294a2",
+    "lastRunAt": 1788702728648,
+    "lastOutcome": "spoke"
+  },
+  {
+    "id": "r-1788702801003-pk1x0f69",
+    "botId": "yunwei-yeban",
+    "name": "未读探针4",
+    "schedule": "@every 60m",
+    "instruction": "报告时间并用名字称呼我",
+    "enabled": false,
+    "notify": true,
+    "createdAt": 1788702801003,
+    "runs": [
+      {
+        "ts": 1788702801004,
+        "outcome": "spoke",
+        "ms": 24466
+      }
+    ],
+    "sessionId": "session-453d1451-ab70-42c8-890b-204d19da634d",
+    "lastRunAt": 1788702801004,
+    "lastOutcome": "spoke"
+  },
+  {
+    "id": "r-1788702835969-ij1b52g8",
+    "botId": "yunwei-yeban",
+    "name": "通知终核2",
+    "schedule": "@every 60m",
+    "instruction": "报告时间并用名字称呼我",
+    "enabled": false,
+    "notify": true,
+    "createdAt": 1788702835969,
+    "runs": [
+      {
+        "ts": 1788702838951,
+        "outcome": "spoke",
+        "ms": 160248
+      },
+      {
+        "ts": 1788703004127,
+        "outcome": "spoke",
+        "ms": 18225
+      },
+      {
+        "ts": 1788703029834,
+        "outcome": "spoke",
+        "ms": 15396
+      }
+    ],
+    "sessionId": "session-eca5bd18-14e1-4b9c-93c2-af0a088b45ba",
+    "lastRunAt": 1788703029834,
+    "lastOutcome": "spoke"
+  },
+  {
+    "id": "r-1788702835972-ok1fb8jf",
+    "botId": "yunwei-yeban",
+    "name": "通知终核2副线",
+    "schedule": "@every 60m",
+    "instruction": "报告时间并用名字称呼我",
+    "enabled": false,
+    "notify": true,
+    "createdAt": 1788702835972,
+    "runs": [
+      {
+        "ts": 1788703045232,
+        "outcome": "spoke",
+        "ms": 18037
+      }
+    ],
+    "sessionId": "session-59a0e101-f833-4cbe-80ae-6793db90f562",
+    "lastRunAt": 1788703045232,
+    "lastOutcome": "spoke"
+  },
+  {
+    "id": "r-1788703121197-frdmvg41",
+    "botId": "yunwei-yeban",
+    "name": "点回清零",
+    "schedule": "@every 60m",
+    "instruction": "报告时间并用名字称呼我",
+    "enabled": false,
+    "notify": true,
+    "createdAt": 1788703121197,
+    "runs": [
+      {
+        "ts": 1788703121201,
+        "outcome": "spoke",
+        "ms": 66369
+      }
+    ],
+    "sessionId": "session-b835ece4-a99f-4862-b2ae-56ba4ef3c63b",
+    "lastRunAt": 1788703121201,
+    "lastOutcome": "spoke"
+  },
+  {
+    "id": "r-1788703203920-3yq4yg5j",
+    "botId": "xiaodui-aning",
+    "name": "校今天的稿",
+    "schedule": "@daily",
+    "instruction": "校对当天的稿：先点含糊处，再给一版更干净的句子。术语保留英文，不改专有名词。用户未贴正文、未指明篇目时，只说明缺什么，不要顺口揽活。",
+    "enabled": false,
+    "notify": true,
+    "createdAt": 1788703203920,
+    "runs": []
+  },
+  {
+    "id": "r-1788703752076-eg8ltu97",
+    "botId": "yunwei-yeban",
+    "name": "超时探针对",
+    "schedule": "@every 60m",
+    "instruction": "报告当前时间，用一句话。",
+    "enabled": false,
+    "notify": false,
+    "createdAt": 1788703752076,
+    "runs": [
+      {
+        "ts": 1788703752080,
+        "outcome": "error",
+        "ms": 1233
+      },
+      {
+        "ts": 1788703753718,
+        "outcome": "error",
+        "ms": 1099
+      },
+      {
+        "ts": 1788703755224,
+        "outcome": "error",
+        "ms": 1102
+      }
+    ],
+    "sessionId": "session-3a91d0f7-859b-4137-aaaa-20cdc830767d",
+    "lastRunAt": 1788703755224,
+    "lastOutcome": "error"
+  },
+  {
+    "id": "r-1788703764909-hba0u1c9",
+    "botId": "yunwei-yeban",
+    "name": "重启续跑",
+    "schedule": "@every 1m",
+    "instruction": "报告当前时间，一句话，称呼我 Nothing。",
+    "enabled": false,
+    "notify": false,
+    "createdAt": 1788703764909,
+    "runs": [
+      {
+        "ts": 1788703865605,
+        "outcome": "spoke",
+        "ms": 14519
+      }
+    ],
+    "lastRunAt": 1788703865605,
+    "lastOutcome": "spoke",
+    "sessionId": "session-84ca2e4b-f363-4f29-9623-3a61a66543c5"
+  }
+]

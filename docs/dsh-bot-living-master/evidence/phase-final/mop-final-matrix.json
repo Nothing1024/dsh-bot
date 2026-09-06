@@ -1,0 +1,25 @@
+{
+  "at": "2026-09-06T13:45:49.423Z",
+  "matrix": [
+    {
+      "id": "UF-903 主路径 notify",
+      "result": "FAIL",
+      "notes": "outcome=spoke; notices=0; trail=[{\"i\":0,\"unread\":0,\"notices\":0},{\"i\":1,\"unread\":0,\"notices\":0},{\"i\":2,\"unread\":0,\"notices\":0},{\"i\":3,\"unread\":0,\"notices\":0},{\"i\":4,\"unread\":0,\"notices\":0},{\"i\":5,\"unread\":0,\"notices\":0},{\"i\":6,\"unread\":0,\"notices\":0},{\"i\":7,\"unread\":0,\"notices\":0},{\"i\":8,\"unread\":0,\"notices\":0},{\"i\":9,\"unread\":0,\"notices\":0},{\"i\":10,\"unread\":0,\"notices\":0},{\"i\":11,\"unread\":0,\"notices\":0},{\"i\":12,\"unread\":0,\"notices\":0},{\"i\":13,\"unread\":0,\"notices\":0},{\"i\":14,\"unread\":0,\"notices\":0},{\"i\":15,\"unread\":0,\"notices\":0},{\"i\":16,\"unread\":0,\"notices\":0},{\"i\":17,\"unread\":0,\"notices\":0},{\"i\":18,\"unread\":0,\"notices\":0},{\"i\":19,\"unread\":0,\"notices\":0}] badge="
+    },
+    {
+      "id": "UF-903 点回清零",
+      "result": "PASS",
+      "notes": "unreadNodes=0"
+    },
+    {
+      "id": "UF-903 窗口聚焦",
+      "result": "PASS",
+      "notes": "notices=0; outcome=spoke"
+    },
+    {
+      "id": "UF-903 5s 节流",
+      "result": "PARTIAL",
+      "notes": "unread=1; notices=1; outcomes=spoke,spoke"
+    }
+  ]
+}

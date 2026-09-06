@@ -332,9 +332,42 @@ export async function createBotSession(
  * metadata. Marks whose session is gone are dropped. Hidden rows are
  * omitted unless `includeHidden`.
  */
+function isWebUnreachable(error: unknown): boolean {
+  return error instanceof SessionWebUnreachableError
+    || (error instanceof SessionToolError && error.code === 'web-unreachable')
+}
+
+async function listViaPlatform(
+  platform: DshBotPlatform,
+  marked: readonly { readonly id: string; readonly tags: readonly string[] }[],
+): Promise<{ sessions: Array<{
+  readonly sessionId: SessionId
+  readonly title?: string
+  readonly tags: readonly string[]
+  readonly status: 'live' | 'idle'
+  readonly createdAt: number
+}> }> {
+  const gateway = await platform.listSessions()
+  const byId = new Map(gateway.map(row => [row.sessionId, row]))
+  const sessions = []
+  for (const mark of marked) {
+    const gate = byId.get(mark.id)
+    if (gate === undefined) continue
+    sessions.push({
+      sessionId: SessionId(mark.id),
+      ...gate.title === undefined || gate.title === '' ? {} : { title: gate.title },
+      tags: [...mark.tags],
+      status: gate.running ? 'live' as const : 'idle' as const,
+      createdAt: gate.updatedAt > 0 ? gate.updatedAt : 0,
+    })
+  }
+  return { sessions }
+}
+
 export async function listBotSessions(
   sessionTool: SessionToolService,
   request: ListBotSessionsRequest = {},
+  platform?: DshBotPlatform,
 ): Promise<readonly DshBotSessionRow[]> {
   const includeHidden = request.includeHidden === true
   const caller = request.caller ?? CLI_CALLER
@@ -346,7 +379,8 @@ export async function listBotSessions(
       includeHidden: true,
     })
   } catch (error) {
-    rethrow(error)
+    if (!isWebUnreachable(error) || platform === undefined) rethrow(error)
+    listed = await listViaPlatform(platform, marked)
   }
   const byId = new Map(listed.sessions.map(row => [String(row.sessionId), row]))
   const rows: DshBotSessionRow[] = []

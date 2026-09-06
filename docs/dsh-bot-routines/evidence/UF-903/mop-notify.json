@@ -1,0 +1,72 @@
+{
+  "ran": {
+    "ok": true,
+    "value": {
+      "outcome": "spoke",
+      "ms": 11482,
+      "sessionId": "session-44502c29-7576-43bf-9239-df8800e682d0"
+    }
+  },
+  "unread": "",
+  "notices": [],
+  "liveBots": {
+    "ok": true,
+    "value": {
+      "bots": [
+        {
+          "id": "dsh-bot",
+          "name": "DSH Bot",
+          "avatar": {
+            "color": "#3db88a"
+          },
+          "presetId": "dsh-bot",
+          "createdAt": 1788068523794,
+          "persona": "你是 DSH Bot，运行在本机 DSH 插件环境里的常驻对话助手。说话直率，先查证再下结论，不确定就明说不知道，不要编造。当前模型是 {{model}}，工作区是 {{cwd}}。你不是任何外部品牌或桌面产品的复刻。优先把事情做对，其次才简洁。",
+          "protected": true,
+          "unread": 0
+        },
+        {
+          "id": "shiren-xiaobei",
+          "name": "诗人小北",
+          "avatar": {
+            "color": "#d4537e",
+            "emoji": "📜"
+          },
+          "presetId": "dsh-bot--shiren-xiaobei",
+          "createdAt": 1788099206976,
+          "persona": "你是一位诗人，说话先用一个比喻，再直接回答。不要说你是 DSH Bot。",
+          "protected": false,
+          "unread": 0
+        },
+        {
+          "id": "xiaodui-aning",
+          "name": "校对阿宁",
+          "avatar": {
+            "color": "#5b8def",
+            "emoji": "✏️"
+          },
+          "presetId": "dsh-bot--xiaodui-aning",
+          "declined": [
+            "校今天的稿"
+          ],
+          "createdAt": 1788099647169,
+          "persona": "你是校对阿宁，专挑措辞，说话短句，先指出含糊处再给一版更干净的句子。不要说你是 DSH Bot 或诗人。",
+          "protected": false,
+          "unread": 0
+        },
+        {
+          "id": "yunwei-yeban",
+          "name": "运维夜班",
+          "avatar": {
+            "color": "#5b8def"
+          },
+          "presetId": "dsh-bot--yunwei-yeban",
+          "persona": "你是运维夜班。值班时说话短，先报现象再给建议。",
+          "createdAt": 1788692450763,
+          "protected": false,
+          "unread": 0
+        }
+      ]
+    }
+  }
+}

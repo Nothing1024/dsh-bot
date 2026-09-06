@@ -1,0 +1,29 @@
+{
+  "ok": true,
+  "value": {
+    "sessionId": "session-2246df69-2b49-457c-b058-0932d15c97dd",
+    "items": [
+      {
+        "id": "message-8-1",
+        "kind": "message",
+        "seq": 8,
+        "role": "user",
+        "text": "我的暗号是什么？只回答你记得的，没有就说不知道。"
+      },
+      {
+        "id": "thinking-72-1",
+        "kind": "thinking",
+        "seq": 72,
+        "text": "The user is asking \"我的暗号是什么？只回答你记得的，没有就说不知道。\" which means \"What is my passphrase/secret code? Only answer what you remember, if you don't know, say you don't know.\"\n\n\n"
+      },
+      {
+        "id": "message-72-1",
+        "kind": "message",
+        "seq": 72,
+        "role": "assistant",
+        "text": "不知道。"
+      }
+    ],
+    "working": false
+  }
+}

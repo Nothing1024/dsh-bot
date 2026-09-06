@@ -1,0 +1,20 @@
+{
+  "id": "r-1788695719272-uy475a3q",
+  "botId": "yunwei-yeban",
+  "name": "巡检静默",
+  "schedule": "@every 60m",
+  "instruction": "如果没有异常就别说话",
+  "enabled": true,
+  "notify": false,
+  "createdAt": 1788695719272,
+  "runs": [
+    {
+      "ts": 1788695719284,
+      "outcome": "silent",
+      "ms": 47832
+    }
+  ],
+  "sessionId": "session-b35b3197-1ec9-4b2a-81f8-699d63824355",
+  "lastRunAt": 1788695719284,
+  "lastOutcome": "silent"
+}

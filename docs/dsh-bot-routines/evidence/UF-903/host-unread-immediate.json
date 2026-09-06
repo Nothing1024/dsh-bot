@@ -1,0 +1,16 @@
+{
+  "hidden": true,
+  "perm": "granted",
+  "ran": {
+    "ok": true,
+    "value": {
+      "outcome": "spoke",
+      "ms": 7030,
+      "sessionId": "session-44502c29-7576-43bf-9239-df8800e682d0"
+    }
+  },
+  "unreadNow": 1,
+  "beforeUnread": 0,
+  "unreadBadge": "",
+  "notices": []
+}

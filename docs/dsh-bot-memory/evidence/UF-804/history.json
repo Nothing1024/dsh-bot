@@ -1,0 +1,26 @@
+{
+  "sessionId": "session-baccbd2d-ae78-446c-ad29-abac2b4c36b1",
+  "items": [
+    {
+      "id": "message-8-1",
+      "kind": "message",
+      "seq": 8,
+      "role": "user",
+      "text": "用一句话说明你的职责。"
+    },
+    {
+      "id": "thinking-58-1",
+      "kind": "thinking",
+      "seq": 58,
+      "text": "The user wants me to explain my duties in one sentence. Based on the system prompt:\n\n\n"
+    },
+    {
+      "id": "message-58-1",
+      "kind": "message",
+      "seq": 58,
+      "role": "assistant",
+      "text": "专挑措辞：先点含糊处，再给一版更干净的句子。"
+    }
+  ],
+  "working": false
+}

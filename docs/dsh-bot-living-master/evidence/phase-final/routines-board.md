@@ -1,7 +1,4 @@
 # Routines board snapshot
 
-Commit target: routines-only (no session-nav / group leftovers).
-
-- Tasks 1-3,5-6,8-10,12: 已完成
-- Tasks 4,7,11,13,14: 已阻塞 (tsc/pnpm/model 503/5.2 spoke)
-- Validate expected: 0 FAIL after CSV write
+- Tasks 1–13: 已完成（含重启 rearm 0→1 spoke 64s；error-x3 / corrupt-bak / declined 截图）
+- Task 14: 已阻塞: INV-103 邻仓 porcelain（四命令已绿；validate 0 FAIL）

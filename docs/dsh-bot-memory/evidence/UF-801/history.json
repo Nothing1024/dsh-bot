@@ -1,0 +1,26 @@
+{
+  "sessionId": "session-b76cdbf6-69b8-4aeb-aff8-0976a613f50c",
+  "items": [
+    {
+      "id": "message-8-1",
+      "kind": "message",
+      "seq": 8,
+      "role": "user",
+      "text": "我叫 Nothing，术语保留英文，校对时不要改专有名词写法。"
+    },
+    {
+      "id": "thinking-76-1",
+      "kind": "thinking",
+      "seq": 76,
+      "text": "The user is introducing themselves as Nothing, and giving me instructions about terminology - keep English terms as-is, don't change proper noun spellings during proofreading.\n\n\n"
+    },
+    {
+      "id": "message-76-1",
+      "kind": "message",
+      "seq": 76,
+      "role": "assistant",
+      "text": "记下了，Nothing。\n\n术语留英文，专有名词不改写法。\n\n有稿就丢过来。"
+    }
+  ],
+  "working": false
+}

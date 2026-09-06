@@ -1,0 +1,30 @@
+{
+  "created": {
+    "ok": true,
+    "value": {
+      "id": "r-1788701462028-51d2nl1k",
+      "botId": "yunwei-yeban",
+      "name": "通知核验",
+      "schedule": "@every 60m",
+      "instruction": "报告时间并用名字称呼我",
+      "enabled": true,
+      "notify": true,
+      "createdAt": 1788701462028,
+      "runs": []
+    }
+  },
+  "extra": {
+    "ok": true,
+    "value": {
+      "id": "r-1788701462032-5tld0a8i",
+      "botId": "yunwei-yeban",
+      "name": "通知副线",
+      "schedule": "@every 60m",
+      "instruction": "报告时间并用名字称呼我",
+      "enabled": true,
+      "notify": true,
+      "createdAt": 1788701462032,
+      "runs": []
+    }
+  }
+}

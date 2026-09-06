@@ -1,0 +1,14 @@
+{
+  "ok": true,
+  "value": {
+    "id": "r-1788703764909-hba0u1c9",
+    "botId": "yunwei-yeban",
+    "name": "重启续跑",
+    "schedule": "@every 1m",
+    "instruction": "报告当前时间，一句话，称呼我 Nothing。",
+    "enabled": true,
+    "notify": false,
+    "createdAt": 1788703764909,
+    "runs": []
+  }
+}

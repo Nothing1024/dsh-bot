@@ -1,0 +1,20 @@
+{
+  "id": "r-1788701252129-5cy27f71",
+  "botId": "yunwei-yeban",
+  "name": "开关核验",
+  "schedule": "@every 1m",
+  "instruction": "只报一句当前时间。",
+  "enabled": true,
+  "notify": false,
+  "createdAt": 1788701252129,
+  "runs": [
+    {
+      "ts": 1788701432149,
+      "outcome": "spoke",
+      "ms": 13258
+    }
+  ],
+  "sessionId": "session-50801077-e2e8-443a-9f70-384dea5e18cd",
+  "lastRunAt": 1788701432149,
+  "lastOutcome": "spoke"
+}

@@ -1,0 +1,52 @@
+[
+  {
+    "name": "wake",
+    "dest": "/Users/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin/docs/dsh-bot-living-master/evidence/UF-101/wake-with-name.png",
+    "exists": true,
+    "opened": true,
+    "openReason": "switched",
+    "selected": "session-84ca2e4b-f363-4f29-9623-3a61a66543c5",
+    "textOk": true,
+    "snippet": "运运维夜班🧠 0⏰ 24对话例程 · 重启续跑⋯新开对话先看一眼现在几点。⋯Nothing，现在是 2026-09-06 22:11 CST。⋯😊发送 "
+  },
+  {
+    "name": "pin",
+    "dest": "/Users/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin/docs/dsh-bot-living-master/evidence/UF-102/pinned.png",
+    "exists": true,
+    "opened": true,
+    "openReason": "switched",
+    "selected": "session-baccbd2d-ae78-446c-ad29-abac2b4c36b1",
+    "textOk": true,
+    "snippet": "✏️校对阿宁🧠 12⏰ 1记忆 · 校对阿宁关闭关于用户术语保留英文。自动2026/9/6 19:59:03忘记校对时不改专有名词写法。自动2026/9/6 19:59:03忘记道谢后不要顺口揽活。自动2026/9/6 20:01:42忘记专挑措辞：先点含糊处，再给一版更干净的句子。自动2026/9/6 21:26:48忘记工位在南楼 12 层靠窗。自动2026/9/6 22:14:18忘记日志用户质疑道谢后多加的揽活句。自动2026"
+  },
+  {
+    "name": "v2aning",
+    "dest": "/Users/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin/docs/dsh-bot-living-master/evidence/UF-103/v2-aning.png",
+    "exists": true,
+    "opened": true,
+    "openReason": "switched",
+    "selected": "session-baccbd2d-ae78-446c-ad29-abac2b4c36b1",
+    "textOk": true,
+    "snippet": "✏️校对阿宁🧠 12⏰ 1记忆 · 校对阿宁关闭关于用户术语保留英文。自动2026/9/6 19:59:03忘记校对时不改专有名词写法。自动2026/9/6 19:59:03忘记道谢后不要顺口揽活。自动2026/9/6 20:01:42忘记专挑措辞：先点含糊处，再给一版更干净的句子。自动2026/9/6 21:26:48忘记工位在南楼 12 层靠窗。自动2026/9/6 22:14:18忘记日志用户质疑道谢后多加的揽活句。自动2026"
+  },
+  {
+    "name": "v2xiaobei",
+    "dest": "/Users/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin/docs/dsh-bot-living-master/evidence/UF-103/v2-xiaobei.png",
+    "exists": true,
+    "opened": true,
+    "openReason": "switched",
+    "selected": "session-ba6f2de1-2d1c-4e42-a8da-a7ed35f7b1f4",
+    "textOk": true,
+    "snippet": "📜诗人小北🧠 1⏰ 0对话新对话⋯新开对话用一个比喻说你是谁，不要提别人的名字。⋯我是井边那面不肯结霜的铜镜——你俯身一问，水纹里便有人答。我是陪你说话的诗人：先给你一个比喻，再把事情说清楚。⋯😊发送 "
+  },
+  {
+    "name": "group",
+    "dest": "/Users/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin/docs/dsh-bot-living-master/evidence/UF-103/group-round.png",
+    "exists": true,
+    "opened": true,
+    "openReason": "switched",
+    "selected": "room-cf7bc2d4-568a-41ea-88be-25bf03c20b7f",
+    "textOk": true,
+    "snippet": "编辑室对话房间 room-cf7新开对话📜诗人小北✏️校对阿宁你们是谁？⋯📜诗人小北像窗边一盏不肯熄的灯，我是诗人小北。⋯✏️校对阿宁「不肯熄的灯」是比喻，不是身份。我是校对阿宁，专挑措辞。⋯😊发送 "
+  }
+]

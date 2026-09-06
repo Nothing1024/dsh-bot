@@ -1,0 +1,7 @@
+{
+  "ok": false,
+  "error": {
+    "code": "web-unreachable",
+    "message": "web gateway unreachable for workspace/follow: HTTP 401"
+  }
+}

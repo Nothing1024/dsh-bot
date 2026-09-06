@@ -1,0 +1,35 @@
+{
+  "at": "2026-09-06T13:57:58.348Z",
+  "matrix": [
+    {
+      "id": "UF-903 主路径 notify",
+      "result": "PASS",
+      "notes": "outcome=spoke; notices=1; unread=1; badge=1"
+    },
+    {
+      "id": "UF-903 点回清零",
+      "result": "FAIL",
+      "notes": "unreadNodes=1"
+    },
+    {
+      "id": "UF-903 窗口聚焦",
+      "result": "PASS",
+      "notes": "notices=0; outcome=spoke"
+    },
+    {
+      "id": "UF-903 5s 节流",
+      "result": "PASS",
+      "notes": "unread=2; notices=1; outcomes=spoke,spoke"
+    },
+    {
+      "id": "UF-804 📌",
+      "result": "FAIL",
+      "notes": "explicit=false; seq=58"
+    },
+    {
+      "id": "UF-905 提议卡接受",
+      "result": "PARTIAL",
+      "notes": "cards=1; clicked=false; createdRoutine=false"
+    }
+  ]
+}

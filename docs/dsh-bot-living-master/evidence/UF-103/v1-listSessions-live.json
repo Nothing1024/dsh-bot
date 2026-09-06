@@ -1,0 +1,1790 @@
+{
+  "ok": true,
+  "value": {
+    "sessions": [
+      {
+        "sessionId": "session-c3f06b07-fd28-4ec5-9e6f-1bc52cffa8f9",
+        "title": "Phase3 tab",
+        "tags": [
+          "bot:dsh-bot",
+          "kind:dsh-bot"
+        ],
+        "status": "idle",
+        "createdAt": 1788012016591,
+        "hidden": false
+      },
+      {
+        "sessionId": "session-dddc4011-1a20-4899-9b69-a173efce0ddf",
+        "title": "DSH Bot",
+        "tags": [
+          "bot:dsh-bot",
+          "kind:dsh-bot"
+        ],
+        "status": "idle",
+        "createdAt": 1788012647049,
+        "hidden": false
+      },
+      {
+        "sessionId": "session-cb74c0e8-651f-49d0-b1a8-32303d119088",
+        "title": "UF-003 jump",
+        "tags": [
+          "bot:dsh-bot",
+          "kind:dsh-bot"
+        ],
+        "status": "idle",
+        "createdAt": 1788014673580,
+        "hidden": false
+      },
+      {
+        "sessionId": "session-ec196f3b-0d96-4e05-afb7-1d6fed6de927",
+        "title": "DSH Bot",
+        "tags": [
+          "bot:dsh-bot",
+          "kind:dsh-bot"
+        ],
+        "status": "idle",
+        "createdAt": 1788014827562,
+        "hidden": false
+      },
+      {
+        "sessionId": "session-5a0ca88e-49dc-4397-afd6-3e56e81b9e7a",
+        "title": "dsh-bot-manual-20260829-231307-plugin",
+        "tags": [
+          "bot:dsh-bot",
+          "kind:dsh-bot"
+        ],
+        "status": "idle",
+        "createdAt": 1788161413719,
+        "hidden": false
+      },
+      {
+        "sessionId": "session-91293f51-624b-4826-9144-b82cd32c3f67",
+        "title": "dsh-bot-manual-20260829-231307-override-on",
+        "tags": [
+          "bot:dsh-bot",
+          "kind:dsh-bot"
+        ],
+        "status": "idle",
+        "createdAt": 1788093177529,
+        "hidden": false
+      },
+      {
+        "sessionId": "session-4cac60d2-bbc2-48f9-85fe-b0a8653c27c3",
+        "title": "dsh-bot-manual-20260829-231307-override-off",
+        "tags": [
+          "bot:dsh-bot",
+          "kind:dsh-bot"
+        ],
+        "status": "idle",
+        "createdAt": 1788093059122,
+        "hidden": false
+      },
+      {
+        "sessionId": "session-3547ba86-a71d-419e-bc2e-f9313f46670e",
+        "title": "UF-003 jump t19",
+        "tags": [
+          "bot:dsh-bot",
+          "kind:dsh-bot"
+        ],
+        "status": "idle",
+        "createdAt": 1788091891448,
+        "hidden": false
+      },
+      {
+        "sessionId": "session-69d25432-cab5-42b6-bd0f-0a6f6b210aa1",
+        "title": "UF-006 override-on t19",
+        "tags": [
+          "bot:dsh-bot",
+          "kind:dsh-bot"
+        ],
+        "status": "idle",
+        "createdAt": 1788017246456,
+        "hidden": false
+      },
+      {
+        "sessionId": "session-1ff44ae2-3d81-442d-8e17-b4548b62533f",
+        "title": "UF-006 override-off t19",
+        "tags": [
+          "bot:dsh-bot",
+          "kind:dsh-bot"
+        ],
+        "status": "idle",
+        "createdAt": 1788017249322,
+        "hidden": false
+      },
+      {
+        "sessionId": "session-a7a05c6f-f13b-42b4-9cdb-80412f1b1f98",
+        "title": "UF-006 invalid t19",
+        "tags": [
+          "bot:dsh-bot",
+          "kind:dsh-bot"
+        ],
+        "status": "idle",
+        "createdAt": 1788017748097,
+        "hidden": false
+      },
+      {
+        "sessionId": "session-98739248-3724-45dd-a8b2-d8dc46ddf917",
+        "title": "DSH Bot",
+        "tags": [
+          "bot:dsh-bot",
+          "kind:dsh-bot"
+        ],
+        "status": "idle",
+        "createdAt": 1788091111107,
+        "hidden": false
+      },
+      {
+        "sessionId": "session-b90b1404-3f83-4dcb-8af8-512825887bbd",
+        "title": "DSH Bot",
+        "tags": [
+          "bot:dsh-bot",
+          "kind:dsh-bot"
+        ],
+        "status": "idle",
+        "createdAt": 1788020629920,
+        "hidden": false
+      },
+      {
+        "sessionId": "session-9284699c-6297-444e-8454-38b9a1b27bc9",
+        "title": "workbench-task8",
+        "tags": [
+          "bot:dsh-bot",
+          "kind:dsh-bot"
+        ],
+        "status": "idle",
+        "createdAt": 1788079699079,
+        "hidden": false
+      },
+      {
+        "sessionId": "session-2a0d4835-b676-43a5-bf94-86f058f33f1f",
+        "title": "诗人小北",
+        "tags": [
+          "bot:shiren-xiaobei",
+          "kind:dsh-bot"
+        ],
+        "status": "idle",
+        "createdAt": 1788083051831,
+        "hidden": false
+      },
+      {
+        "sessionId": "session-4eb8a30c-24ac-47d2-a1d9-fdb76bd6c651",
+        "title": "询问你是谁并介绍自己",
+        "tags": [
+          "bot:dsh-bot",
+          "kind:dsh-bot"
+        ],
+        "status": "idle",
+        "createdAt": 1788020701870,
+        "hidden": false
+      },
+      {
+        "sessionId": "session-aae82a55-e593-42dd-9e33-88d96d76fe8a",
+        "title": "UF005 PIN Query",
+        "tags": [
+          "bot:dsh-bot",
+          "kind:dsh-bot"
+        ],
+        "status": "idle",
+        "createdAt": 1788017898477,
+        "hidden": false
+      },
+      {
+        "sessionId": "session-4e542079-254d-4c66-a6d6-0f7df382464a",
+        "title": "uf005-def-pin switch check",
+        "tags": [
+          "bot:dsh-bot",
+          "kind:dsh-bot"
+        ],
+        "status": "idle",
+        "createdAt": 1788017871156,
+        "hidden": false
+      },
+      {
+        "sessionId": "session-933effaf-abfa-426d-a42a-9bc79706144d",
+        "title": "uf005 default switch rerun check",
+        "tags": [
+          "bot:dsh-bot",
+          "kind:dsh-bot"
+        ],
+        "status": "idle",
+        "createdAt": 1788017489200,
+        "hidden": false
+      },
+      {
+        "sessionId": "session-e53c5413-29ed-4ce3-a4b2-9d77cbc9385f",
+        "title": "Call dsh_bot_ask exactly once with",
+        "tags": [
+          "bot:dsh-bot",
+          "kind:dsh-bot"
+        ],
+        "status": "idle",
+        "createdAt": 1788017260771,
+        "hidden": false
+      },
+      {
+        "sessionId": "session-898fcbaa-964f-4620-9666-aa012cb46301",
+        "title": "Reply with exactly: uf005 missing",
+        "tags": [
+          "bot:dsh-bot",
+          "kind:dsh-bot"
+        ],
+        "status": "idle",
+        "createdAt": 1788017260533,
+        "hidden": false
+      },
+      {
+        "sessionId": "session-d0556073-e165-4c01-9c4e-75f536c6e121",
+        "title": "Reply with exactly: should fail",
+        "tags": [
+          "bot:dsh-bot",
+          "kind:dsh-bot"
+        ],
+        "status": "idle",
+        "createdAt": 1788017255145,
+        "hidden": false
+      },
+      {
+        "sessionId": "session-fc686803-b7b3-4809-bc20-4d62a0f1518d",
+        "title": "Reply with exactly: should fail",
+        "tags": [
+          "bot:dsh-bot",
+          "kind:dsh-bot"
+        ],
+        "status": "idle",
+        "createdAt": 1788017254999,
+        "hidden": false
+      },
+      {
+        "sessionId": "session-b1ee3d6d-60f4-40f4-9b1c-85831f0bd399",
+        "tags": [
+          "bot:dsh-bot",
+          "kind:dsh-bot"
+        ],
+        "status": "idle",
+        "createdAt": 1788017248984,
+        "hidden": false
+      },
+      {
+        "sessionId": "session-2aa78f06-f2ed-48b8-ab3a-2db3b33e4dee",
+        "title": "Call dsh_bot_ask with default switch ok",
+        "tags": [
+          "bot:dsh-bot",
+          "kind:dsh-bot"
+        ],
+        "status": "idle",
+        "createdAt": 1788017246091,
+        "hidden": false
+      },
+      {
+        "sessionId": "session-58e3ccb3-d287-4e7d-aa61-3e8750a21c9d",
+        "title": "Exact phrase reply request",
+        "tags": [
+          "bot:dsh-bot",
+          "kind:dsh-bot"
+        ],
+        "status": "idle",
+        "createdAt": 1788017245858,
+        "hidden": false
+      },
+      {
+        "sessionId": "session-6caa66fc-26f8-4eb7-baab-db47516c50b5",
+        "title": "Call dsh_bot_ask concurrent B",
+        "tags": [
+          "bot:dsh-bot",
+          "kind:dsh-bot"
+        ],
+        "status": "idle",
+        "createdAt": 1788017235135,
+        "hidden": false
+      },
+      {
+        "sessionId": "session-6edbb151-4695-4be6-a4a7-cadecc8f1156",
+        "title": "Call dsh_bot_ask concurrent A",
+        "tags": [
+          "bot:dsh-bot",
+          "kind:dsh-bot"
+        ],
+        "status": "idle",
+        "createdAt": 1788017235120,
+        "hidden": false
+      },
+      {
+        "sessionId": "session-aaaf4884-4f05-40df-9ba7-6e6cc25ee6d3",
+        "title": "Call dsh_bot_ask pong prompt",
+        "tags": [
+          "bot:dsh-bot",
+          "kind:dsh-bot"
+        ],
+        "status": "idle",
+        "createdAt": 1788017234800,
+        "hidden": false
+      },
+      {
+        "sessionId": "session-e0d98567-34de-46bc-903f-8f331852245e",
+        "title": "询问AI助手身份",
+        "tags": [
+          "bot:dsh-bot",
+          "kind:dsh-bot"
+        ],
+        "status": "idle",
+        "createdAt": 1788017227156,
+        "hidden": false
+      },
+      {
+        "sessionId": "session-70f607dc-53fc-42a5-a14c-911c71b05a43",
+        "tags": [
+          "bot:dsh-bot",
+          "kind:dsh-bot"
+        ],
+        "status": "idle",
+        "createdAt": 1788016390611,
+        "hidden": false
+      },
+      {
+        "sessionId": "session-8aee925d-cf47-429e-aeb7-1f9a9c60df02",
+        "tags": [
+          "bot:dsh-bot",
+          "kind:dsh-bot"
+        ],
+        "status": "idle",
+        "createdAt": 1788016388617,
+        "hidden": false
+      },
+      {
+        "sessionId": "session-757c7963-761d-45fc-9ee8-9b3d44e07a8d",
+        "title": "Call dsh_bot_ask phase3 pong",
+        "tags": [
+          "bot:dsh-bot",
+          "kind:dsh-bot"
+        ],
+        "status": "idle",
+        "createdAt": 1788014882894,
+        "hidden": false
+      },
+      {
+        "sessionId": "session-38f8223e-49d8-4370-882b-f7e137cb7719",
+        "title": "Request exact three-word reply",
+        "tags": [
+          "bot:dsh-bot",
+          "kind:dsh-bot"
+        ],
+        "status": "idle",
+        "createdAt": 1788014876737,
+        "hidden": false
+      },
+      {
+        "sessionId": "session-88d174f6-111b-48a8-85ac-9e0d3a8c3898",
+        "title": "Call dsh_bot_ask for phase3 pong",
+        "tags": [
+          "bot:dsh-bot",
+          "kind:dsh-bot"
+        ],
+        "status": "idle",
+        "createdAt": 1788013190135,
+        "hidden": false
+      },
+      {
+        "sessionId": "session-50c7d0c5-c536-4c5a-a676-de68b9ea8ef7",
+        "title": "Request exact three-word reply",
+        "tags": [
+          "bot:dsh-bot",
+          "kind:dsh-bot"
+        ],
+        "status": "idle",
+        "createdAt": 1788013170074,
+        "hidden": false
+      },
+      {
+        "sessionId": "session-05363849-2c31-47ff-a6dc-5efeb5dce722",
+        "title": "Call dsh_bot_ask ping missing-key",
+        "tags": [
+          "bot:dsh-bot",
+          "kind:dsh-bot"
+        ],
+        "status": "idle",
+        "createdAt": 1788010001792,
+        "hidden": false
+      },
+      {
+        "sessionId": "session-27c4c050-c102-4940-b61e-8e942d892832",
+        "title": "Call dsh_bot_ask phase2 pong",
+        "tags": [
+          "bot:dsh-bot",
+          "kind:dsh-bot"
+        ],
+        "status": "idle",
+        "createdAt": 1788008772513,
+        "hidden": false
+      },
+      {
+        "sessionId": "session-673bfc8b-9cff-4b9c-9820-054923bd3203",
+        "title": "询问助手身份",
+        "tags": [
+          "bot:dsh-bot",
+          "kind:dsh-bot"
+        ],
+        "status": "idle",
+        "createdAt": 1788008764330,
+        "hidden": false
+      },
+      {
+        "sessionId": "session-c90530be-cc5d-4f18-8a51-682e54bbe4fc",
+        "title": "Call dsh_bot_ask with ping",
+        "tags": [
+          "bot:dsh-bot",
+          "kind:dsh-bot"
+        ],
+        "status": "idle",
+        "createdAt": 1788008639049,
+        "hidden": false
+      },
+      {
+        "sessionId": "session-fa07d396-5d9e-4ee9-bdec-f979403ac002",
+        "title": "Call dsh_bot_ask with ping",
+        "tags": [
+          "bot:dsh-bot",
+          "kind:dsh-bot"
+        ],
+        "status": "idle",
+        "createdAt": 1788008578345,
+        "hidden": false
+      },
+      {
+        "sessionId": "session-38fa804e-83b3-485f-ad41-5d25dad9adc9",
+        "title": "Call dsh_bot_ask concurrent B",
+        "tags": [
+          "bot:dsh-bot",
+          "kind:dsh-bot"
+        ],
+        "status": "idle",
+        "createdAt": 1788008549256,
+        "hidden": false
+      },
+      {
+        "sessionId": "session-31895962-2802-46d7-b56f-0a18ea770a4d",
+        "title": "Call dsh_bot_ask concurrent A",
+        "tags": [
+          "bot:dsh-bot",
+          "kind:dsh-bot"
+        ],
+        "status": "idle",
+        "createdAt": 1788008549254,
+        "hidden": false
+      },
+      {
+        "sessionId": "session-d7c15291-a7ab-4b0a-9710-72fa16a15800",
+        "title": "Call dsh_bot_ask with timeout",
+        "tags": [
+          "bot:dsh-bot",
+          "kind:dsh-bot"
+        ],
+        "status": "idle",
+        "createdAt": 1788008473486,
+        "hidden": false
+      },
+      {
+        "sessionId": "session-c8cf1b3a-d154-4d34-bed9-f8f03135100c",
+        "title": "Call dsh_bot_ask tool once",
+        "tags": [
+          "bot:dsh-bot",
+          "kind:dsh-bot"
+        ],
+        "status": "idle",
+        "createdAt": 1788008270760,
+        "hidden": false
+      },
+      {
+        "sessionId": "session-7fea7b21-7b39-4284-a8ce-ade847679a82",
+        "tags": [
+          "bot:dsh-bot",
+          "kind:dsh-bot"
+        ],
+        "status": "idle",
+        "createdAt": 1788005914718,
+        "hidden": false
+      },
+      {
+        "sessionId": "session-974d85e9-fb4b-4eed-9eaa-7eb5e9915806",
+        "title": "询问AI身份",
+        "tags": [
+          "bot:dsh-bot",
+          "kind:dsh-bot"
+        ],
+        "status": "idle",
+        "createdAt": 1788004800746,
+        "hidden": false
+      },
+      {
+        "sessionId": "session-05601033-098e-41f5-8510-58c89514db09",
+        "tags": [
+          "bot:dsh-bot",
+          "kind:dsh-bot"
+        ],
+        "status": "idle",
+        "createdAt": 1788004637350,
+        "hidden": false
+      },
+      {
+        "sessionId": "session-9dde0639-7b3e-405c-9687-9a7633bd8a26",
+        "tags": [
+          "bot:dsh-bot",
+          "kind:dsh-bot"
+        ],
+        "status": "idle",
+        "createdAt": 1788004380428,
+        "hidden": false
+      },
+      {
+        "sessionId": "session-acf3c86d-943b-4c10-8a7f-2f5025c9ae0d",
+        "title": "询问人工智能身份",
+        "tags": [
+          "bot:dsh-bot",
+          "kind:dsh-bot"
+        ],
+        "status": "idle",
+        "createdAt": 1788004348927,
+        "hidden": false
+      },
+      {
+        "sessionId": "session-f626f8c1-a5fe-4df7-891d-f7f68cad1019",
+        "title": "GUI直建补标",
+        "tags": [
+          "bot:dsh-bot",
+          "kind:dsh-bot"
+        ],
+        "status": "idle",
+        "createdAt": 1788082809819,
+        "hidden": false
+      },
+      {
+        "sessionId": "session-470456ed-49f6-46b5-bc23-75d970536a1f",
+        "title": "v1 leftover",
+        "tags": [
+          "bot:dsh-bot",
+          "kind:dsh-bot"
+        ],
+        "status": "idle",
+        "createdAt": 1788090924549,
+        "hidden": false
+      },
+      {
+        "sessionId": "session-cdcea0e1-cb4a-4940-b5d3-14423391280c",
+        "title": "DSH Bot",
+        "tags": [
+          "bot:dsh-bot",
+          "kind:dsh-bot"
+        ],
+        "status": "idle",
+        "createdAt": 1788083047158,
+        "hidden": false
+      },
+      {
+        "sessionId": "session-57549b6e-5e78-4035-9b4b-067bd0fd639a",
+        "title": "诗人小北",
+        "tags": [
+          "bot:shiren-xiaobei",
+          "kind:dsh-bot"
+        ],
+        "status": "idle",
+        "createdAt": 1788083055067,
+        "hidden": false
+      },
+      {
+        "sessionId": "session-69786851-2a00-4f6c-8df6-2e57e9cfd0c2",
+        "title": "入口直开",
+        "tags": [
+          "bot:rukou-zhikai",
+          "kind:dsh-bot"
+        ],
+        "status": "idle",
+        "createdAt": 1788083065415,
+        "hidden": false
+      },
+      {
+        "sessionId": "session-c095a1c2-c06d-4470-91e6-7a160bfa9294",
+        "title": "入口页签",
+        "tags": [
+          "bot:rukou-yeqian",
+          "kind:dsh-bot"
+        ],
+        "status": "idle",
+        "createdAt": 1788083289457,
+        "hidden": false
+      },
+      {
+        "sessionId": "session-bb1c3789-f5f3-4360-9a59-6d0034a5d694",
+        "title": "页签复核",
+        "tags": [
+          "bot:yeqian-fuhe",
+          "kind:dsh-bot"
+        ],
+        "status": "idle",
+        "createdAt": 1788084459562,
+        "hidden": false
+      },
+      {
+        "sessionId": "session-f2faaf97-74d3-409a-9827-cfb550f794a1",
+        "title": "dsh-bot-manual-20260830-183331-plugin",
+        "tags": [
+          "bot:dsh-bot",
+          "kind:dsh-bot"
+        ],
+        "status": "idle",
+        "createdAt": 1788090828599,
+        "hidden": false
+      },
+      {
+        "sessionId": "session-d1e9b14c-fdc8-447a-b5f2-0413e7f9e30c",
+        "title": "dsh-bot-manual-20260830-183331-override-on",
+        "tags": [
+          "bot:dsh-bot",
+          "kind:dsh-bot"
+        ],
+        "status": "idle",
+        "createdAt": 1788090719094,
+        "hidden": false
+      },
+      {
+        "sessionId": "session-cfc5bfa5-39bb-4a99-83c3-de94deec2af1",
+        "title": "dsh-bot-manual-20260830-183331-override-off",
+        "tags": [
+          "bot:dsh-bot",
+          "kind:dsh-bot"
+        ],
+        "status": "idle",
+        "createdAt": 1788090464830,
+        "hidden": false
+      },
+      {
+        "sessionId": "session-b2cf89a0-67e6-4829-a8b4-81e65d28f486",
+        "title": "dsh-bot-manual-20260830-183331-wb",
+        "tags": [
+          "bot:wb-mtx-20260830-183331",
+          "kind:dsh-bot"
+        ],
+        "status": "idle",
+        "createdAt": 1788086014811,
+        "hidden": false
+      },
+      {
+        "sessionId": "session-2aa3001b-cf21-42a3-abaf-792a7ac69e6a",
+        "tags": [
+          "bot:dsh-bot",
+          "kind:dsh-bot"
+        ],
+        "status": "idle",
+        "createdAt": 1788086013324,
+        "hidden": false
+      },
+      {
+        "sessionId": "session-777d4b50-b42c-4449-8720-6f187af60744",
+        "tags": [
+          "bot:dsh-bot",
+          "kind:dsh-bot"
+        ],
+        "status": "idle",
+        "createdAt": 1788086011756,
+        "hidden": false
+      },
+      {
+        "sessionId": "session-fa5a87e9-abc2-4606-bfe7-8a46927db813",
+        "title": "页签复核",
+        "tags": [
+          "bot:yeqian-fuhe",
+          "kind:dsh-bot"
+        ],
+        "status": "idle",
+        "createdAt": 1788087737060,
+        "hidden": false
+      },
+      {
+        "sessionId": "session-0dbea7f3-3664-405b-b992-0eaa6e300045",
+        "title": "诗人小北",
+        "tags": [
+          "bot:shiren-xiaobei",
+          "kind:dsh-bot"
+        ],
+        "status": "idle",
+        "createdAt": 1788088302861,
+        "hidden": false
+      },
+      {
+        "sessionId": "session-831f95af-4893-452f-8c73-2475ce234c68",
+        "title": "DSH Bot",
+        "tags": [
+          "bot:dsh-bot",
+          "kind:dsh-bot"
+        ],
+        "status": "idle",
+        "createdAt": 1788088306200,
+        "hidden": false
+      },
+      {
+        "sessionId": "session-c09c250e-ad3e-4b95-9371-05f7378a743b",
+        "title": "诗人小北",
+        "tags": [
+          "bot:shiren-xiaobei",
+          "kind:dsh-bot"
+        ],
+        "status": "idle",
+        "createdAt": 1788088307124,
+        "hidden": false
+      },
+      {
+        "sessionId": "session-61a3ec52-3b34-4d0e-abde-43e22e901959",
+        "title": "说书人小北",
+        "tags": [
+          "bot:shiren-xiaobei",
+          "kind:dsh-bot"
+        ],
+        "status": "idle",
+        "createdAt": 1788088320124,
+        "hidden": false
+      },
+      {
+        "sessionId": "session-7cbdd12a-c4bd-429c-af9d-e4f11a7bdc17",
+        "title": "GUI直建补标 ping。Reply with exactl",
+        "tags": [
+          "bot:dsh-bot",
+          "kind:dsh-bot"
+        ],
+        "status": "idle",
+        "createdAt": 1788088329228,
+        "hidden": false
+      },
+      {
+        "sessionId": "session-39c84391-3556-41bb-a947-276e7425175c",
+        "title": "v1 leftover t18",
+        "tags": [
+          "bot:dsh-bot",
+          "kind:dsh-bot"
+        ],
+        "status": "idle",
+        "createdAt": 1788090104703,
+        "hidden": false
+      },
+      {
+        "sessionId": "session-e6c7059d-c8b8-4d45-8e8d-d032f0e65a65",
+        "tags": [
+          "bot:dsh-bot",
+          "kind:dsh-bot"
+        ],
+        "status": "idle",
+        "createdAt": 1788088334485,
+        "hidden": false
+      },
+      {
+        "sessionId": "session-42b88f14-2eae-4287-8932-4f7ff9e8bf3d",
+        "tags": [
+          "bot:dsh-bot",
+          "kind:dsh-bot"
+        ],
+        "status": "idle",
+        "createdAt": 1788088335835,
+        "hidden": false
+      },
+      {
+        "sessionId": "session-41f479ce-3e16-48be-aa8b-b9f899f9a18d",
+        "title": "Call dsh_bot_ask t18-ask once",
+        "tags": [
+          "bot:dsh-bot",
+          "kind:dsh-bot"
+        ],
+        "status": "idle",
+        "createdAt": 1788088456701,
+        "hidden": false
+      },
+      {
+        "sessionId": "session-59892c0b-5e24-4716-9666-2fbbb18f6b4a",
+        "title": "询问身份并自称DSH Bot",
+        "tags": [
+          "bot:dsh-bot",
+          "kind:dsh-bot"
+        ],
+        "status": "idle",
+        "createdAt": 1788088454160,
+        "hidden": false
+      },
+      {
+        "sessionId": "session-bc67440a-6b18-4ec4-b7a8-d0d077e1a088",
+        "title": "DSH Bot",
+        "tags": [
+          "bot:dsh-bot",
+          "kind:dsh-bot"
+        ],
+        "status": "idle",
+        "createdAt": 1788090480712,
+        "hidden": false
+      },
+      {
+        "sessionId": "session-b26bd0f6-2c2c-4dd4-84cb-d22443c61bd3",
+        "title": "诗人小北",
+        "tags": [
+          "bot:shiren-xiaobei",
+          "kind:dsh-bot"
+        ],
+        "status": "idle",
+        "createdAt": 1788090482657,
+        "hidden": false
+      },
+      {
+        "sessionId": "session-1654764e-c477-4bca-ba1d-da68c95200d6",
+        "title": "DSH Bot",
+        "tags": [
+          "bot:dsh-bot",
+          "kind:dsh-bot"
+        ],
+        "status": "idle",
+        "createdAt": 1788091016054,
+        "hidden": false
+      },
+      {
+        "sessionId": "session-4e935608-8bb3-4481-9e8e-62bfcf144c4c",
+        "title": "诗人小北",
+        "tags": [
+          "bot:shiren-xiaobei",
+          "kind:dsh-bot"
+        ],
+        "status": "idle",
+        "createdAt": 1788091017984,
+        "hidden": false
+      },
+      {
+        "sessionId": "session-3fc105de-4d2e-4ec3-be6d-0f348ac26c89",
+        "title": "DSH Bot",
+        "tags": [
+          "bot:dsh-bot",
+          "kind:dsh-bot"
+        ],
+        "status": "idle",
+        "createdAt": 1788091255903,
+        "hidden": false
+      },
+      {
+        "sessionId": "session-e563e8bd-25d8-4e1d-9a9f-c3fdb06c0c76",
+        "title": "诗人小北",
+        "tags": [
+          "bot:shiren-xiaobei",
+          "kind:dsh-bot"
+        ],
+        "status": "idle",
+        "createdAt": 1788091261495,
+        "hidden": false
+      },
+      {
+        "sessionId": "session-44576a1a-771f-4216-b5cf-56e246b29e06",
+        "title": "t18fix-poet-hist",
+        "tags": [
+          "bot:shiren-xiaobei",
+          "kind:dsh-bot"
+        ],
+        "status": "idle",
+        "createdAt": 1788091424703,
+        "hidden": false
+      },
+      {
+        "sessionId": "session-d16abe04-d0f6-4268-9e80-dbad6dcc3011",
+        "title": "询问你是谁",
+        "tags": [
+          "bot:dsh-bot",
+          "kind:dsh-bot"
+        ],
+        "status": "idle",
+        "createdAt": 1788004577113,
+        "hidden": false
+      },
+      {
+        "sessionId": "session-dd659ba6-a8c6-43ee-bcdc-bd3460500d7f",
+        "tags": [
+          "bot:dsh-bot",
+          "kind:dsh-bot"
+        ],
+        "status": "idle",
+        "createdAt": 1788091825721,
+        "hidden": false
+      },
+      {
+        "sessionId": "session-69a43a6f-73e1-4ac6-9712-9a4984afa163",
+        "tags": [
+          "bot:dsh-bot",
+          "kind:dsh-bot"
+        ],
+        "status": "idle",
+        "createdAt": 1788092025001,
+        "hidden": false
+      },
+      {
+        "sessionId": "session-212c25a1-5a3b-4ec8-913c-997a9687690a",
+        "tags": [
+          "bot:dsh-bot",
+          "kind:dsh-bot"
+        ],
+        "status": "idle",
+        "createdAt": 1788093850683,
+        "hidden": false
+      },
+      {
+        "sessionId": "session-803d8cfb-aeee-4505-870c-a30e8d860c4b",
+        "tags": [
+          "bot:dsh-bot",
+          "kind:dsh-bot"
+        ],
+        "status": "idle",
+        "createdAt": 1788093268537,
+        "hidden": false
+      },
+      {
+        "sessionId": "session-1b699b4c-8bc0-4645-a87e-13ef389aab5a",
+        "title": "Call dsh_bot_ask exactly once",
+        "tags": [
+          "bot:dsh-bot",
+          "kind:dsh-bot"
+        ],
+        "status": "idle",
+        "createdAt": 1788100350857,
+        "hidden": false
+      },
+      {
+        "sessionId": "session-90b5e899-e6c0-4016-a472-c556183e7d43",
+        "title": "dsh-bot-manual-20260830-223715-plugin",
+        "tags": [
+          "bot:dsh-bot",
+          "kind:dsh-bot"
+        ],
+        "status": "idle",
+        "createdAt": 1788100636759,
+        "hidden": false
+      },
+      {
+        "sessionId": "session-2af1c306-9712-4c9c-862a-4339a14fa198",
+        "title": "dsh-bot-manual-20260830-223715-override-on",
+        "tags": [
+          "bot:dsh-bot",
+          "kind:dsh-bot"
+        ],
+        "status": "idle",
+        "createdAt": 1788100637956,
+        "hidden": false
+      },
+      {
+        "sessionId": "session-1d15541b-cfae-48c6-a64e-b98c4bcc52e8",
+        "title": "dsh-bot-manual-20260830-223715-override-off",
+        "tags": [
+          "bot:dsh-bot",
+          "kind:dsh-bot"
+        ],
+        "status": "idle",
+        "createdAt": 1788100639390,
+        "hidden": false
+      },
+      {
+        "sessionId": "session-f7bbddae-237a-4e0a-a10b-67b92d3e4c27",
+        "title": "dsh-bot-manual-20260830-223715-wb",
+        "tags": [
+          "bot:wb-mtx-20260830-223715",
+          "kind:dsh-bot"
+        ],
+        "status": "idle",
+        "createdAt": 1788100640398,
+        "hidden": false
+      },
+      {
+        "sessionId": "session-0e106e06-3223-4991-a7f6-f2aee7274fad",
+        "tags": [
+          "bot:dsh-bot",
+          "kind:dsh-bot"
+        ],
+        "status": "idle",
+        "createdAt": 1788100638362,
+        "hidden": false
+      },
+      {
+        "sessionId": "session-596a36c2-1f8b-4e95-8d8b-a3350d8271bd",
+        "tags": [
+          "bot:dsh-bot",
+          "kind:dsh-bot"
+        ],
+        "status": "idle",
+        "createdAt": 1788100636062,
+        "hidden": false
+      },
+      {
+        "sessionId": "session-17bec9cb-14db-469e-9517-8a03ae4ac1d5",
+        "title": "calib-nav-visible",
+        "tags": [
+          "bot:dsh-bot",
+          "kind:dsh-bot"
+        ],
+        "status": "idle",
+        "createdAt": 1788219895463,
+        "hidden": false
+      },
+      {
+        "sessionId": "session-f3d91875-899a-4411-835c-4356c952d32c",
+        "title": "calib-nav-archived",
+        "tags": [
+          "bot:dsh-bot",
+          "kind:dsh-bot"
+        ],
+        "status": "idle",
+        "createdAt": 1788219895575,
+        "hidden": false
+      },
+      {
+        "sessionId": "session-a9d4ea94-3b17-45ae-88f3-0dbfe2372c56",
+        "title": "calib-nav-pinned-403",
+        "tags": [
+          "bot:dsh-bot",
+          "kind:dsh-bot"
+        ],
+        "status": "idle",
+        "createdAt": 1788220021690,
+        "hidden": false
+      },
+      {
+        "sessionId": "session-cbc3190c-c88b-4960-a2b7-e23da8b20d79",
+        "title": "nav-p1-visible",
+        "tags": [
+          "bot:dsh-bot",
+          "kind:dsh-bot"
+        ],
+        "status": "idle",
+        "createdAt": 1788223158922,
+        "hidden": false
+      },
+      {
+        "sessionId": "session-9ca2d2a2-4956-4b31-a701-12260046ec20",
+        "tags": [
+          "bot:shiren-xiaobei",
+          "kind:dsh-bot"
+        ],
+        "status": "idle",
+        "createdAt": 1788372963415,
+        "hidden": false
+      },
+      {
+        "sessionId": "session-462a49d6-6085-46c9-8b21-1390be56fe44",
+        "tags": [
+          "bot:shiren-xiaobei",
+          "kind:dsh-bot"
+        ],
+        "status": "idle",
+        "createdAt": 1788373026119,
+        "hidden": false
+      },
+      {
+        "sessionId": "session-0781d10d-69a9-4930-83ad-4810d8ecaf3d",
+        "tags": [
+          "bot:shiren-xiaobei",
+          "kind:dsh-bot"
+        ],
+        "status": "idle",
+        "createdAt": 1788373080179,
+        "hidden": false
+      },
+      {
+        "sessionId": "session-16600aee-6400-4cbe-b0b6-5eccf48a36e9",
+        "title": "UF-002 发送探针",
+        "tags": [
+          "bot:shiren-xiaobei",
+          "kind:dsh-bot"
+        ],
+        "status": "idle",
+        "createdAt": 1788373215319,
+        "hidden": false
+      },
+      {
+        "sessionId": "session-d2f471b6-cfee-4f4a-9fa1-6e5b519db0a7",
+        "title": "Do two things only: 1)",
+        "tags": [
+          "bot:dsh-bot",
+          "kind:dsh-bot"
+        ],
+        "status": "idle",
+        "createdAt": 1788630651562,
+        "hidden": false
+      },
+      {
+        "sessionId": "session-fb8573f8-ac96-4d11-89b0-a9137fcc4f35",
+        "title": "我叫什么",
+        "tags": [
+          "bot:xiaodui-aning",
+          "kind:dsh-bot"
+        ],
+        "status": "idle",
+        "createdAt": 1788690860401,
+        "hidden": false
+      },
+      {
+        "sessionId": "session-810c23bb-8802-4d87-a1f1-ce1cbbb11e99",
+        "title": "请只输出 JSON：{\"profile\":[\"用户",
+        "tags": [
+          "bot:xiaodui-aning",
+          "kind:dsh-bot"
+        ],
+        "status": "idle",
+        "createdAt": 1788690950992,
+        "hidden": false
+      },
+      {
+        "sessionId": "session-029bf2c8-b213-462f-9ca6-62d2702f774f",
+        "title": "只回一个字：好",
+        "tags": [
+          "bot:xiaodui-aning",
+          "kind:dsh-bot"
+        ],
+        "status": "idle",
+        "createdAt": 1788690969034,
+        "hidden": false
+      },
+      {
+        "sessionId": "session-910d15b6-315a-45ff-a406-d17f90aeab26",
+        "tags": [
+          "bot:xiaodui-aning",
+          "kind:dsh-bot"
+        ],
+        "status": "idle",
+        "createdAt": 1788691043498,
+        "hidden": false
+      },
+      {
+        "sessionId": "session-8da5f4b8-11fa-489e-9a7b-64dfee347b80",
+        "tags": [
+          "bot:xiaodui-aning",
+          "kind:dsh-bot"
+        ],
+        "status": "idle",
+        "createdAt": 1788691123343,
+        "hidden": false
+      },
+      {
+        "sessionId": "session-0f601a6c-1b96-47af-b407-9b267b0a0c6b",
+        "tags": [
+          "bot:xiaodui-aning",
+          "kind:dsh-bot"
+        ],
+        "status": "idle",
+        "createdAt": 1788691131200,
+        "hidden": false
+      },
+      {
+        "sessionId": "session-4713378d-bf3f-4b45-aa78-e6fcfaa33dcf",
+        "tags": [
+          "bot:xiaodui-aning",
+          "kind:dsh-bot"
+        ],
+        "status": "idle",
+        "createdAt": 1788691138132,
+        "hidden": false
+      },
+      {
+        "sessionId": "session-cd4bd930-75da-415c-97a8-e14c1b6875a6",
+        "tags": [
+          "bot:xiaodui-aning",
+          "kind:dsh-bot"
+        ],
+        "status": "idle",
+        "createdAt": 1788691238382,
+        "hidden": false
+      },
+      {
+        "sessionId": "session-d716b563-fa8e-4c26-b8b6-07f2f68b3cc6",
+        "title": "谢谢",
+        "tags": [
+          "bot:xiaodui-aning",
+          "kind:dsh-bot"
+        ],
+        "status": "idle",
+        "createdAt": 1788691397626,
+        "hidden": false
+      },
+      {
+        "sessionId": "session-5b8a3b81-6050-453c-815d-e8bb0824a3eb",
+        "title": "运维夜班",
+        "tags": [
+          "bot:yunwei-yeban",
+          "kind:dsh-bot"
+        ],
+        "status": "idle",
+        "createdAt": 1788692450840,
+        "hidden": false
+      },
+      {
+        "sessionId": "session-44502c29-7576-43bf-9239-df8800e682d0",
+        "title": "例程 · 报时",
+        "tags": [
+          "bot:yunwei-yeban",
+          "kind:dsh-bot",
+          "routine:r-1788692459058-bldp78m8"
+        ],
+        "status": "idle",
+        "createdAt": 1788697077996,
+        "hidden": false
+      },
+      {
+        "sessionId": "session-6581ee52-ac48-42ed-861d-4346b860c749",
+        "title": "dsh-bot-manual-20260906-190135-plugin",
+        "tags": [
+          "bot:dsh-bot",
+          "kind:dsh-bot"
+        ],
+        "status": "idle",
+        "createdAt": 1788692496187,
+        "hidden": false
+      },
+      {
+        "sessionId": "session-90b9250a-8bda-4faf-a2ca-9a2125039bc6",
+        "title": "dsh-bot-manual-20260906-190135-override-on",
+        "tags": [
+          "bot:dsh-bot",
+          "kind:dsh-bot"
+        ],
+        "status": "idle",
+        "createdAt": 1788692496897,
+        "hidden": false
+      },
+      {
+        "sessionId": "session-42157980-fffc-453a-a885-22570c9c52d2",
+        "title": "dsh-bot-manual-20260906-190135-override-off",
+        "tags": [
+          "bot:dsh-bot",
+          "kind:dsh-bot"
+        ],
+        "status": "idle",
+        "createdAt": 1788692497825,
+        "hidden": false
+      },
+      {
+        "sessionId": "session-4892d1a3-e014-4fed-ae9c-17a08a14de37",
+        "title": "dsh-bot-manual-20260906-190135-wb",
+        "tags": [
+          "bot:wb-mtx-20260906-190135",
+          "kind:dsh-bot"
+        ],
+        "status": "idle",
+        "createdAt": 1788692498628,
+        "hidden": false
+      },
+      {
+        "sessionId": "session-bc2cc925-4cae-414b-9d6e-22477e96431b",
+        "tags": [
+          "bot:dsh-bot",
+          "kind:dsh-bot"
+        ],
+        "status": "idle",
+        "createdAt": 1788692497235,
+        "hidden": false
+      },
+      {
+        "sessionId": "session-135e0ad2-909b-414e-8f18-df94b9c63e09",
+        "tags": [
+          "bot:dsh-bot",
+          "kind:dsh-bot"
+        ],
+        "status": "idle",
+        "createdAt": 1788692495689,
+        "hidden": false
+      },
+      {
+        "sessionId": "session-c59ff5be-0e39-4780-a61b-d3fcb94663c9",
+        "title": "运维夜班",
+        "tags": [
+          "bot:yunwei-yeban",
+          "kind:dsh-bot"
+        ],
+        "status": "idle",
+        "createdAt": 1788692889789,
+        "hidden": false
+      },
+      {
+        "sessionId": "session-ba6f2de1-2d1c-4e42-a8da-a7ed35f7b1f4",
+        "title": "诗人小北",
+        "tags": [
+          "bot:shiren-xiaobei",
+          "kind:dsh-bot"
+        ],
+        "status": "idle",
+        "createdAt": 1788693349490,
+        "hidden": false
+      },
+      {
+        "sessionId": "session-f7550de9-aaff-427c-b88c-73dfebd1d478",
+        "title": "校对阿宁",
+        "tags": [
+          "bot:xiaodui-aning",
+          "kind:dsh-bot"
+        ],
+        "status": "idle",
+        "createdAt": 1788693349593,
+        "hidden": false
+      },
+      {
+        "sessionId": "session-bbeb73e6-3cd0-47c3-8c3a-43bafbc6cde1",
+        "title": "uf103-auto-extract",
+        "tags": [
+          "bot:yunwei-yeban",
+          "kind:dsh-bot"
+        ],
+        "status": "idle",
+        "createdAt": 1788693717129,
+        "hidden": false
+      },
+      {
+        "sessionId": "session-db24dfe7-b207-413a-bb73-56979d9f2b62",
+        "title": "Dsh bot ask tool request",
+        "tags": [
+          "bot:dsh-bot",
+          "kind:dsh-bot"
+        ],
+        "status": "idle",
+        "createdAt": 1788693717068,
+        "hidden": false
+      },
+      {
+        "sessionId": "session-ee9e1643-6976-42a4-87d7-a7b08ef87be2",
+        "title": "例程 · 巡检静默",
+        "tags": [
+          "bot:yunwei-yeban",
+          "kind:dsh-bot",
+          "routine:r-1788695550050-tg6dwryz"
+        ],
+        "status": "idle",
+        "createdAt": 1788695551044,
+        "hidden": false
+      },
+      {
+        "sessionId": "session-b35b3197-1ec9-4b2a-81f8-699d63824355",
+        "title": "例程 · 巡检静默",
+        "tags": [
+          "bot:yunwei-yeban",
+          "kind:dsh-bot",
+          "routine:r-1788695719272-uy475a3q"
+        ],
+        "status": "idle",
+        "createdAt": 1788695719788,
+        "hidden": false
+      },
+      {
+        "sessionId": "session-12789bf1-e030-48c6-9292-6e9f1ad0d81d",
+        "title": "例程 · 报时副线",
+        "tags": [
+          "bot:yunwei-yeban",
+          "kind:dsh-bot",
+          "routine:r-1788695780811-8dj9nlop"
+        ],
+        "status": "idle",
+        "createdAt": 1788695878156,
+        "hidden": false
+      },
+      {
+        "sessionId": "session-549288a5-92b8-43e1-8b86-a5c0bee993d2",
+        "title": "uf802-old",
+        "tags": [
+          "bot:xiaodui-aning",
+          "kind:dsh-bot"
+        ],
+        "status": "idle",
+        "createdAt": 1788695987394,
+        "hidden": false
+      },
+      {
+        "sessionId": "session-b76cdbf6-69b8-4aeb-aff8-0976a613f50c",
+        "title": "uf801-auto",
+        "tags": [
+          "bot:xiaodui-aning",
+          "kind:dsh-bot"
+        ],
+        "status": "idle",
+        "createdAt": 1788695928366,
+        "hidden": false
+      },
+      {
+        "sessionId": "session-f0c774fe-e101-4b2d-abb5-f601883b13fd",
+        "title": "uf802-new",
+        "tags": [
+          "bot:xiaodui-aning",
+          "kind:dsh-bot"
+        ],
+        "status": "idle",
+        "createdAt": 1788695976451,
+        "hidden": false
+      },
+      {
+        "sessionId": "session-10bba42e-fd80-46b9-8262-77854ef83d6b",
+        "title": "uf803-unknown",
+        "tags": [
+          "bot:xiaodui-aning",
+          "kind:dsh-bot"
+        ],
+        "status": "idle",
+        "createdAt": 1788696029970,
+        "hidden": false
+      },
+      {
+        "sessionId": "session-4ca6eab9-20af-4094-b0ff-0acbd0a1cfe2",
+        "title": "uf805-hi",
+        "tags": [
+          "bot:xiaodui-aning",
+          "kind:dsh-bot"
+        ],
+        "status": "idle",
+        "createdAt": 1788696057390,
+        "hidden": false
+      },
+      {
+        "sessionId": "session-715e3311-6582-49d8-abc5-df8338e5fde2",
+        "title": "uf905-propose",
+        "tags": [
+          "bot:xiaodui-aning",
+          "kind:dsh-bot"
+        ],
+        "status": "idle",
+        "createdAt": 1788696412348,
+        "hidden": false
+      },
+      {
+        "sessionId": "session-1ef55abe-7aea-4409-a041-9c3d19e363fb",
+        "title": "例程 · 空记忆报时",
+        "tags": [
+          "bot:yunwei-yeban",
+          "kind:dsh-bot",
+          "routine:r-1788696437398-ycrqhegs"
+        ],
+        "status": "idle",
+        "createdAt": 1788696438067,
+        "hidden": false
+      },
+      {
+        "sessionId": "session-7c6deaaa-4220-45b4-8518-1b5a06fd7bec",
+        "title": "uf803-retry",
+        "tags": [
+          "bot:xiaodui-aning",
+          "kind:dsh-bot"
+        ],
+        "status": "idle",
+        "createdAt": 1788696776186,
+        "hidden": false
+      },
+      {
+        "sessionId": "session-20ded3c9-dbbf-4878-8ab7-bafb05788c58",
+        "title": "例程 · 通知核验",
+        "tags": [
+          "bot:yunwei-yeban",
+          "kind:dsh-bot",
+          "routine:r-1788700952757-3k5evbsc"
+        ],
+        "status": "idle",
+        "createdAt": 1788701074631,
+        "hidden": false
+      },
+      {
+        "sessionId": "session-1923ea30-5201-4897-96f4-959d784dcad6",
+        "title": "例程 · 通知副线",
+        "tags": [
+          "bot:yunwei-yeban",
+          "kind:dsh-bot",
+          "routine:r-1788700952778-2f016llx"
+        ],
+        "status": "idle",
+        "createdAt": 1788701074788,
+        "hidden": false
+      },
+      {
+        "sessionId": "session-10253e9b-019e-4b30-9ff4-419daca4cd7b",
+        "title": "uf803-known",
+        "tags": [
+          "bot:xiaodui-aning",
+          "kind:dsh-bot"
+        ],
+        "status": "idle",
+        "createdAt": 1788701130541,
+        "hidden": false
+      },
+      {
+        "sessionId": "session-c43c77cd-cd73-412d-b24b-d9f951792a4b",
+        "title": "uf803-unknown",
+        "tags": [
+          "bot:xiaodui-aning",
+          "kind:dsh-bot"
+        ],
+        "status": "idle",
+        "createdAt": 1788701153186,
+        "hidden": false
+      },
+      {
+        "sessionId": "session-d05a118c-421d-4cb1-a24e-0bd6c03588da",
+        "title": "uf804-pin",
+        "tags": [
+          "bot:xiaodui-aning",
+          "kind:dsh-bot"
+        ],
+        "status": "idle",
+        "createdAt": 1788701168184,
+        "hidden": false
+      },
+      {
+        "sessionId": "session-eb719fc2-1ff9-4801-bb01-feccb9f660b0",
+        "title": "uf905-card",
+        "tags": [
+          "bot:xiaodui-aning",
+          "kind:dsh-bot"
+        ],
+        "status": "idle",
+        "createdAt": 1788701221679,
+        "hidden": false
+      },
+      {
+        "sessionId": "session-50801077-e2e8-443a-9f70-384dea5e18cd",
+        "title": "例程 · 开关核验",
+        "tags": [
+          "bot:yunwei-yeban",
+          "kind:dsh-bot",
+          "routine:r-1788701252129-5cy27f71"
+        ],
+        "status": "idle",
+        "createdAt": 1788701432285,
+        "hidden": false
+      },
+      {
+        "sessionId": "session-063f7b9b-3fe6-49c5-b9a6-5e8383664ecf",
+        "title": "例程 · 通知核验",
+        "tags": [
+          "bot:yunwei-yeban",
+          "kind:dsh-bot",
+          "routine:r-1788701462028-51d2nl1k"
+        ],
+        "status": "idle",
+        "createdAt": 1788701581812,
+        "hidden": false
+      },
+      {
+        "sessionId": "session-cf710ed0-3e2d-4500-89a7-e3aa8efcf6a8",
+        "title": "例程 · 通知副线",
+        "tags": [
+          "bot:yunwei-yeban",
+          "kind:dsh-bot",
+          "routine:r-1788701462032-5tld0a8i"
+        ],
+        "status": "idle",
+        "createdAt": 1788701582056,
+        "hidden": false
+      },
+      {
+        "sessionId": "session-c83f8b97-549e-4c78-b6ed-31968cf463e7",
+        "title": "uf804-pin",
+        "tags": [
+          "bot:xiaodui-aning",
+          "kind:dsh-bot"
+        ],
+        "status": "idle",
+        "createdAt": 1788701647388,
+        "hidden": false
+      },
+      {
+        "sessionId": "session-41781cd6-ddb0-4052-af9e-9740fac9d3a1",
+        "title": "uf905-card",
+        "tags": [
+          "bot:xiaodui-aning",
+          "kind:dsh-bot"
+        ],
+        "status": "idle",
+        "createdAt": 1788701732661,
+        "hidden": false
+      },
+      {
+        "sessionId": "session-536a3f21-3884-4d5e-851e-0713c5f14102",
+        "title": "uf905-declined-follow",
+        "tags": [
+          "bot:xiaodui-aning",
+          "kind:dsh-bot"
+        ],
+        "status": "idle",
+        "createdAt": 1788701794496,
+        "hidden": false
+      },
+      {
+        "sessionId": "session-799bf688-883d-42f9-a7a5-c2cedf991ef5",
+        "title": "例程 · 通知终核",
+        "tags": [
+          "bot:yunwei-yeban",
+          "kind:dsh-bot",
+          "routine:r-1788701907233-sxyjpseu"
+        ],
+        "status": "idle",
+        "createdAt": 1788701989714,
+        "hidden": false
+      },
+      {
+        "sessionId": "session-ad3ac681-0d89-4d44-8755-d0d28784315b",
+        "title": "例程 · 通知终核副线",
+        "tags": [
+          "bot:yunwei-yeban",
+          "kind:dsh-bot",
+          "routine:r-1788701907238-obuhfwj2"
+        ],
+        "status": "idle",
+        "createdAt": 1788701989788,
+        "hidden": false
+      },
+      {
+        "sessionId": "session-98473a40-4484-44bf-8e3c-c8aa11fd1b06",
+        "title": "uf804-pin2",
+        "tags": [
+          "bot:xiaodui-aning",
+          "kind:dsh-bot"
+        ],
+        "status": "idle",
+        "createdAt": 1788702044061,
+        "hidden": false
+      },
+      {
+        "sessionId": "session-bc0065e0-ba15-4cd1-abe3-189b2dca36c6",
+        "title": "例程 · 通知终核",
+        "tags": [
+          "bot:yunwei-yeban",
+          "kind:dsh-bot",
+          "routine:r-1788702076344-l0ribt45"
+        ],
+        "status": "idle",
+        "createdAt": 1788702255952,
+        "hidden": false
+      },
+      {
+        "sessionId": "session-7d5e5c50-7010-4a33-9f57-d831a546c6df",
+        "title": "例程 · 未读探针",
+        "tags": [
+          "bot:yunwei-yeban",
+          "kind:dsh-bot",
+          "routine:r-1788702232868-zr4k1ryx"
+        ],
+        "status": "idle",
+        "createdAt": 1788702267977,
+        "hidden": false
+      },
+      {
+        "sessionId": "session-54aea26e-5cf1-48f4-b798-b4a6e413cc06",
+        "title": "例程 · 通知终核副线",
+        "tags": [
+          "bot:yunwei-yeban",
+          "kind:dsh-bot",
+          "routine:r-1788702076348-klyl9rdf"
+        ],
+        "status": "idle",
+        "createdAt": 1788702256098,
+        "hidden": false
+      },
+      {
+        "sessionId": "session-170f0a8b-e6ea-4b28-84c8-98a14602e73b",
+        "title": "例程 · 未读探针2",
+        "tags": [
+          "bot:yunwei-yeban",
+          "kind:dsh-bot",
+          "routine:r-1788702353375-2a5gwlfp"
+        ],
+        "status": "idle",
+        "createdAt": 1788702354077,
+        "hidden": false
+      },
+      {
+        "sessionId": "session-cf032389-63d9-4efe-b11a-fa694dcffc1a",
+        "title": "例程 · 未读探针3",
+        "tags": [
+          "bot:yunwei-yeban",
+          "kind:dsh-bot",
+          "routine:r-1788702633764-wj7j0gl8"
+        ],
+        "status": "idle",
+        "createdAt": 1788702633953,
+        "hidden": false
+      },
+      {
+        "sessionId": "session-eb111e01-5eb7-41e5-9ba3-21e8fcc294a2",
+        "title": "例程 · 未读探针3",
+        "tags": [
+          "bot:yunwei-yeban",
+          "kind:dsh-bot",
+          "routine:r-1788702728644-9hr9p5zv"
+        ],
+        "status": "idle",
+        "createdAt": 1788702729045,
+        "hidden": false
+      },
+      {
+        "sessionId": "session-453d1451-ab70-42c8-890b-204d19da634d",
+        "title": "例程 · 未读探针4",
+        "tags": [
+          "bot:yunwei-yeban",
+          "kind:dsh-bot",
+          "routine:r-1788702801003-pk1x0f69"
+        ],
+        "status": "idle",
+        "createdAt": 1788702801151,
+        "hidden": false
+      },
+      {
+        "sessionId": "session-eca5bd18-14e1-4b9c-93c2-af0a088b45ba",
+        "title": "例程 · 通知终核2",
+        "tags": [
+          "bot:yunwei-yeban",
+          "kind:dsh-bot",
+          "routine:r-1788702835969-ij1b52g8"
+        ],
+        "status": "idle",
+        "createdAt": 1788703029896,
+        "hidden": false
+      },
+      {
+        "sessionId": "session-59a0e101-f833-4cbe-80ae-6793db90f562",
+        "title": "例程 · 通知终核2副线",
+        "tags": [
+          "bot:yunwei-yeban",
+          "kind:dsh-bot",
+          "routine:r-1788702835972-ok1fb8jf"
+        ],
+        "status": "idle",
+        "createdAt": 1788703045367,
+        "hidden": false
+      },
+      {
+        "sessionId": "session-63a75dec-29aa-40ab-b497-35aaff2340a2",
+        "title": "uf804-pin3",
+        "tags": [
+          "bot:xiaodui-aning",
+          "kind:dsh-bot"
+        ],
+        "status": "idle",
+        "createdAt": 1788703063846,
+        "hidden": false
+      },
+      {
+        "sessionId": "session-b835ece4-a99f-4862-b2ae-56ba4ef3c63b",
+        "title": "例程 · 点回清零",
+        "tags": [
+          "bot:yunwei-yeban",
+          "kind:dsh-bot",
+          "routine:r-1788703121197-frdmvg41"
+        ],
+        "status": "idle",
+        "createdAt": 1788703121330,
+        "hidden": false
+      },
+      {
+        "sessionId": "session-baccbd2d-ae78-446c-ad29-abac2b4c36b1",
+        "title": "uf804-pin3",
+        "tags": [
+          "bot:xiaodui-aning",
+          "kind:dsh-bot"
+        ],
+        "status": "idle",
+        "createdAt": 1788703189010,
+        "hidden": false
+      }
+    ],
+    "botModel": {
+      "provider": "anthropic",
+      "model": "grok-4.6",
+      "source": "global-default"
+    }
+  }
+}

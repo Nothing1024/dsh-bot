@@ -1,0 +1,28 @@
+{
+  "sessionId": "session-41aa0673-a062-4f70-8156-94caa3512080",
+  "prompted": {
+    "ok": true,
+    "value": {
+      "sessionId": "session-41aa0673-a062-4f70-8156-94caa3512080"
+    }
+  },
+  "askTimeoutMs": 1000,
+  "idleWaitMs": 20743,
+  "listWorkingBeforeHistory": false,
+  "working1": false,
+  "working2": false,
+  "before": {
+    "profile": 0,
+    "log": 0,
+    "texts": []
+  },
+  "after": {
+    "profile": 0,
+    "log": 0,
+    "texts": []
+  },
+  "leaked": false,
+  "unchanged": true,
+  "lastAssistant": "记下了",
+  "hostWarn": "[dsh-bot-memory] extract returned empty; will retry once"
+}
