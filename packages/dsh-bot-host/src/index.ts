@@ -45,7 +45,15 @@ import { composePersona, createMemoryStore, renderMemorySection, shouldExtract, 
 import type { MemoryStore } from './memory.ts'
 import { createExtractAsk, extractMemory } from './memory-extract.ts'
 import type { ExtractAsk } from './memory-extract.ts'
-import { botMark, mergeBotMarks, parseBotMark, routineMark } from './marks.ts'
+import { botMark, mergeBotMarks, parseBotMark, peerMark, routineMark } from './marks.ts'
+import {
+  acceptPeerSend,
+  appendPeerLog,
+  createPeerRateLimiter,
+  finishPeerSend,
+  readPeerLog,
+  type PeerSendIO,
+} from './peers.ts'
 import { createRoutineStore, parseSchedule } from './routines.ts'
 import type { RoutineRow, RoutineStore } from './routines.ts'
 import { createScheduler } from './routine-scheduler.ts'
@@ -128,7 +136,18 @@ export {
   parseBotMark,
   parseGroupMark,
   parseGroupRoomMark,
+  parsePeerMark,
+  peerMark,
 } from './marks.ts'
+export {
+  acceptPeerSend,
+  appendPeerLog,
+  buildPeerWake,
+  createPeerRateLimiter,
+  finishPeerSend,
+  parseAgentLine,
+  readPeerLog,
+} from './peers.ts'
 export type { DshBotModelRef, DshBotPlatform } from './platform.ts'
 export { attachDshBotHttp, handleDshBotHttp } from './routes.ts'
 export type { DshBotHttpFace, DshBotModelInfo, ListSessionsRpcValue } from './routes.ts'
@@ -287,6 +306,7 @@ class DshBotService extends Service {
   private readonly routineStore: RoutineStore
   private readonly scheduler: RoutineScheduler
   private readonly unread = new Map<string, number>()
+  private readonly peerLimiter = createPeerRateLimiter()
   private readonly sessionWorking = new Map<string, string>()
   private botIds: string[] = []
   private readonly routineErrors = new Map<string, number>()
@@ -825,6 +845,110 @@ class DshBotService extends Service {
 
   subscribeHost(signal: AbortSignal) {
     return this.platform.subscribeHost?.(signal)
+  }
+
+  private home(): string {
+    const home = process.env.DSH_HOME?.trim()
+    if (home === undefined || home === '') throw new Error('DSH_HOME is not set')
+    return home
+  }
+
+  private peerIO(): PeerSendIO {
+    return {
+      limiter: this.peerLimiter,
+      now: () => Date.now(),
+      getBot: id => this.botsRuntime.getBot(id),
+      findPeerSession: async (toBot, fromBot) => {
+        const listed = await listOwnedSessions(this.ctx.sessionTool, this.platform, this.botsRuntime, { botId: toBot })
+        const mark = peerMark(fromBot)
+        const hit = listed.sessions.find(row => row.hidden !== true && row.tags.includes(mark))
+        return hit?.sessionId
+      },
+      createPeerSession: async (toBot, fromBot, title) => {
+        await this.injectMemory(toBot)
+        const created = await createOwnedSession(
+          this.ctx.sessionTool,
+          this.platform,
+          this.botsRuntime,
+          this.source(),
+          { botId: toBot, title },
+        )
+        await mergeBotMarks(created.sessionId, [botMark(toBot), peerMark(fromBot)])
+        return created.sessionId
+      },
+      write: async (sessionId, text) => {
+        await withPromptLock(sessionId, async () => {
+          await this.ctx.sessionTool.write({ kind: 'cli' }, SessionId(sessionId), text)
+        })
+      },
+      waitRead: async sessionId => {
+        return await withPromptLock(sessionId, async () => {
+          const waited = await this.ctx.sessionTool.wait({ kind: 'cli' }, SessionId(sessionId), {
+            until: 'idle',
+            timeoutMs: this.source().askTimeoutMs,
+          })
+          if (wakeWaitFailed(waited.status)) return undefined
+          const read = await this.ctx.sessionTool.read({ kind: 'cli' }, SessionId(sessionId), { maxBlocks: 500 })
+          return extractAssistantAnswer(read.messages)
+        })
+      },
+      resolveFromSession: async (fromBot, hint) => {
+        const listed = await listOwnedSessions(this.ctx.sessionTool, this.platform, this.botsRuntime, { botId: fromBot })
+        if (hint !== undefined && hint !== '') {
+          const exact = listed.sessions.find(row => row.sessionId === hint && row.hidden !== true)
+          if (exact !== undefined) return exact.sessionId
+        }
+        const newest = listed.sessions.find(row => row.hidden !== true)
+        if (newest !== undefined) return newest.sessionId
+        await this.injectMemory(fromBot)
+        const created = await createOwnedSession(
+          this.ctx.sessionTool,
+          this.platform,
+          this.botsRuntime,
+          this.source(),
+          { botId: fromBot },
+        )
+        return created.sessionId
+      },
+      incrementUnread: botId => {
+        this.unread.set(botId, (this.unread.get(botId) ?? 0) + 1)
+      },
+      appendLog: row => appendPeerLog(this.home(), row),
+    }
+  }
+
+  async sendToPeer(input: { toBot: string; text: string; fromSessionId?: string; fromBot?: string }) {
+    let fromBot = input.fromBot?.trim() ?? ''
+    if (fromBot === '' && input.fromSessionId !== undefined && input.fromSessionId !== '') {
+      const tags = await get(input.fromSessionId)
+      fromBot = parseBotMark(tags ?? []) ?? ''
+    }
+    if (fromBot === '') return { ok: false as const, error: 'invalid-input' }
+    const payload = {
+      fromBot,
+      toBot: input.toBot,
+      text: input.text,
+      ...input.fromSessionId === undefined || input.fromSessionId === '' ? {} : { fromSessionId: input.fromSessionId },
+    }
+    const io = this.peerIO()
+    try {
+      const accepted = await acceptPeerSend(io, payload)
+      if (accepted.ok) {
+        void finishPeerSend(io, payload, accepted.sessionId).catch(error => {
+          console.warn('[dsh-bot-peers] echo failed', error)
+        })
+      }
+      return accepted
+    } catch (error) {
+      if (error instanceof DshBotError && error.code === 'bot-not-found') {
+        return { ok: false as const, error: 'bot-not-found' }
+      }
+      throw error
+    }
+  }
+
+  peerLog(input: { botId?: string } = {}) {
+    return readPeerLog(this.home(), input.botId)
   }
 
   async noteSessionRunning(sessionId: string, running: boolean) {

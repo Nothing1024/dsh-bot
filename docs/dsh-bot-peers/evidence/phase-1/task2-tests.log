@@ -1,0 +1,9 @@
+
+ RUN  v4.1.11 /Users/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin
+
+
+ Test Files  2 passed (2)
+      Tests  29 passed (29)
+   Start at  00:16:37
+   Duration  385ms (transform 136ms, setup 0ms, import 217ms, tests 143ms, environment 0ms)
+

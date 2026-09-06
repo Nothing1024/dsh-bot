@@ -32,9 +32,28 @@ export function botMark(botId: string): string {
 }
 
 const BOT_MARK_PREFIX = 'bot:'
+const PEER_MARK_PREFIX = 'peer:'
 const ROUTINE_MARK_PREFIX = 'routine:'
 const GROUP_MARK_PREFIX = 'group:'
 const GROUP_ROOM_MARK_PREFIX = 'group-room:'
+
+/** Example: `peer:<fromBotId>` on the recipient colleague session (BR-022). */
+export function peerMark(fromBot: string): string {
+  const id = fromBot.trim()
+  if (id === '') {
+    throw new Error('peer:<id> mark requires a non-empty bot id')
+  }
+  return `${PEER_MARK_PREFIX}${id}`
+}
+
+export function parsePeerMark(tags: readonly string[]): string | undefined {
+  for (const tag of tags) {
+    if (!tag.startsWith(PEER_MARK_PREFIX)) continue
+    const id = tag.slice(PEER_MARK_PREFIX.length).trim()
+    if (id !== '') return id
+  }
+  return undefined
+}
 
 /** Example: `routine:<routineId>` on the visible routine thread (INV-902). */
 export function routineMark(routineId: string): string {
