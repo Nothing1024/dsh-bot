@@ -46,8 +46,8 @@ function io(overrides: Partial<PeerSendIO> & { writes?: string[]; waits?: string
     async resolveFromSession(_from, hint) {
       return hint ?? 'from-s'
     },
-    incrementUnread() {
-      writes.push('unread++')
+    incrementUnread(botId) {
+      writes.push(`unread++:${botId}`)
     },
     async appendLog() {},
   }
@@ -143,7 +143,8 @@ describe('accept + finish', () => {
       fromSessionId: 'from-s',
     }, accepted.sessionId)
     expect(stub.writes.some(row => row.startsWith('from-s:'))).toBe(false)
-    expect(stub.writes).not.toContain('unread++')
+    expect(stub.writes).toContain('unread++:shiren-xiaobei')
+    expect(stub.writes).not.toContain('unread++:xiaodui-aning')
   })
 
   it('echoes a non-silent reply to the from session', async () => {
@@ -162,7 +163,8 @@ describe('accept + finish', () => {
       fromSessionId: 'from-s',
     }, accepted.sessionId)
     expect(stub.writes).toContain('from-s:[agent] 来自 诗人小北：深蓝很好')
-    expect(stub.writes).toContain('unread++')
+    expect(stub.writes).toContain('unread++:shiren-xiaobei')
+    expect(stub.writes).toContain('unread++:xiaodui-aning')
   })
 })
 

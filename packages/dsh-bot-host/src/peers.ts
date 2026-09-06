@@ -124,6 +124,7 @@ export async function acceptPeerSend(io: PeerSendIO, input: PeerSendInput): Prom
     sessionId = await io.createPeerSession(toBot, fromBot, `来自 ${from.name}`)
   }
   await io.write(sessionId, buildPeerWake(from.name, text))
+  io.incrementUnread(toBot)
   await io.appendLog({ from: fromBot, to: toBot, ts: io.now(), sessionId })
   return { ok: true, accepted: true, sessionId }
 }
