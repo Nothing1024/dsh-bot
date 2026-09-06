@@ -1,0 +1,103 @@
+=== live-transcript ===
+
+== validate_package: /Users/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin/docs/dsh-bot-live-transcript ==
+[WARN] 以下 Phase 的回归验证已显式豁免（备注留痕）: ['P0:校准']
+[PASS] spec.md 存在（716 行）
+[PASS] tasks.csv 表头正确（8 列）
+[PASS] tasks.csv 序号 1..16 连续, 共 16 条任务
+[PASS] 所有详情锚点在 spec.md 中有对应 Task 标题
+[PASS] 前置依赖引用有效、无循环、方向与 Phase 顺序一致
+[PASS] tasks.csv 状态列取值全部合法
+[PASS] 真实场景任务位于最后 Phase 且在回归收尾之前
+[PASS] 无 handoff.md（按需生成, 允许缺省）
+[PASS] §0 人话摘要在位（6 行正文）
+[PASS] BR/UF/INV/EVD 引用闭环（定义 24 个）
+[PASS] §3.3 定位清单 待勘察/ASM 占比 0%（0/26）
+[PASS] 任务验证命令 待勘察/ASM 占比 0%（0/32）
+[PASS] 全部 5 个 UF 均有步骤级流程脚本
+[PASS] 全部 5 个流程脚本均含入口接线清单
+[PASS] 存在真实场景测试章节, 且有任务覆盖执行
+[PASS] 5.2 环境准备完整（启动命令 + 访问入口）
+[PASS] 5.2 执行矩阵引用了 13 条具体 evidence 路径
+[PASS] 真实场景任务尚未标记完成, 证据审计跳过（执行完成后请重跑本脚本）
+[PASS] 无残留模板占位符
+[PASS] --repo 核验: §3.3 全部 26 条 rg anchor 命中
+[PASS] evidence/ 目录存在
+
+结果: 0 FAIL / 1 WARN / 21 PASS
+=== peers ===
+
+== validate_package: /Users/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin/docs/dsh-bot-peers ==
+[WARN] 以下 Phase 的回归验证已显式豁免（备注留痕）: ['P0:校准']
+[PASS] spec.md 存在（636 行）
+[PASS] tasks.csv 表头正确（8 列）
+[PASS] tasks.csv 序号 1..15 连续, 共 15 条任务
+[PASS] 所有详情锚点在 spec.md 中有对应 Task 标题
+[PASS] 前置依赖引用有效、无循环、方向与 Phase 顺序一致
+[PASS] tasks.csv 状态列取值全部合法
+[PASS] 真实场景任务位于最后 Phase 且在回归收尾之前
+[PASS] 无 handoff.md（按需生成, 允许缺省）
+[PASS] §0 人话摘要在位（6 行正文）
+[PASS] BR/UF/INV/EVD 引用闭环（定义 26 个）
+[PASS] §3.3 定位清单 待勘察/ASM 占比 0%（0/19）
+[PASS] 任务验证命令 待勘察/ASM 占比 0%（0/30）
+[PASS] 全部 5 个 UF 均有步骤级流程脚本
+[PASS] 全部 5 个流程脚本均含入口接线清单
+[PASS] 存在真实场景测试章节, 且有任务覆盖执行
+[PASS] 5.2 环境准备完整（启动命令 + 访问入口）
+[PASS] 5.2 执行矩阵引用了 16 条具体 evidence 路径
+[PASS] 真实场景任务尚未标记完成, 证据审计跳过（执行完成后请重跑本脚本）
+[PASS] 无残留模板占位符
+[PASS] --repo 核验: §3.3 全部 19 条 rg anchor 命中
+[PASS] evidence/ 目录存在
+
+结果: 0 FAIL / 1 WARN / 21 PASS
+=== roster ===
+
+== validate_package: /Users/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin/docs/dsh-bot-roster ==
+[WARN] 以下 Phase 的回归验证已显式豁免（备注留痕）: ['P0:校准']
+[PASS] spec.md 存在（624 行）
+[PASS] tasks.csv 表头正确（8 列）
+[PASS] tasks.csv 序号 1..15 连续, 共 15 条任务
+[PASS] 所有详情锚点在 spec.md 中有对应 Task 标题
+[PASS] 前置依赖引用有效、无循环、方向与 Phase 顺序一致
+[PASS] tasks.csv 状态列取值全部合法
+[PASS] 真实场景任务位于最后 Phase 且在回归收尾之前
+[PASS] 无 handoff.md（按需生成, 允许缺省）
+[PASS] §0 人话摘要在位（6 行正文）
+[PASS] BR/UF/INV/EVD 引用闭环（定义 25 个）
+[PASS] §3.3 定位清单 待勘察/ASM 占比 0%（0/16）
+[PASS] 任务验证命令 待勘察/ASM 占比 0%（0/30）
+[PASS] 全部 5 个 UF 均有步骤级流程脚本
+[PASS] 全部 5 个流程脚本均含入口接线清单
+[PASS] 存在真实场景测试章节, 且有任务覆盖执行
+[PASS] 5.2 环境准备完整（启动命令 + 访问入口）
+[PASS] 5.2 执行矩阵引用了 13 条具体 evidence 路径
+[PASS] 真实场景任务尚未标记完成, 证据审计跳过（执行完成后请重跑本脚本）
+[PASS] 无残留模板占位符
+[PASS] --repo 核验: §3.3 全部 16 条 rg anchor 命中
+[PASS] evidence/ 目录存在
+
+结果: 0 FAIL / 1 WARN / 21 PASS
+=== alive-master ===
+
+== validate_package: /Users/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin/docs/dsh-bot-alive-master ==
+[PASS] spec.md 存在（422 行）
+[PASS] 无 tasks.csv, 检测到 spec 第 4 章内嵌状态表（小需求模式）
+[PASS] 内嵌状态表 状态列取值全部合法
+[PASS] handoff.md 引用路径全部存在且均为相对路径
+[PASS] §0 人话摘要在位（6 行正文）
+[PASS] BR/UF/INV/EVD 引用闭环（定义 14 个）
+[PASS] §3.3 定位清单 待勘察/ASM 占比 0%（0/19）
+[PASS] 任务验证命令 待勘察/ASM 占比 0%（0/12）
+[PASS] 全部 3 个 UF 均有步骤级流程脚本
+[PASS] 全部 3 个流程脚本均含入口接线清单
+[PASS] 存在真实场景测试章节, 且有任务覆盖执行
+[PASS] 5.2 环境准备完整（启动命令 + 访问入口）
+[PASS] 5.2 执行矩阵引用了 11 条具体 evidence 路径
+[PASS] 真实场景任务尚未标记完成, 证据审计跳过（执行完成后请重跑本脚本）
+[PASS] 无残留模板占位符
+[PASS] --repo 核验: §3.3 全部 19 条 rg anchor 命中
+[PASS] evidence/ 目录存在
+
+结果: 0 FAIL / 0 WARN / 17 PASS

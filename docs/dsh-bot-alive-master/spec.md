@@ -249,7 +249,7 @@ After:
 | `packages/dsh-bot-host/src/workbench-sessions.ts` | `kind: 'thinking'` | `rg "kind: 'thinking'" packages/dsh-bot-host/src/workbench-sessions.ts` | — | 实时卡片数据已在 |
 | `packages/workbench-ui/src/Transcript.tsx` | `showAuthor` | `rg "showAuthor" packages/workbench-ui/src/Transcript.tsx` | — | 共享面 ① |
 | `packages/workbench-ui/src/Roster.tsx` | `export function Roster` | `rg "export function Roster" packages/workbench-ui/src/Roster.tsx` | — | 共享面 ② |
-| `packages/workbench-ui/src/Conversation.tsx` | `composerLocked` | `rg "composerLocked" packages/workbench-ui/src/Conversation.tsx` | — | 实时包解锁 |
+| `packages/workbench-ui/src/Conversation.tsx` | `composerWorking` | `rg "composerWorking" packages/workbench-ui/src/Conversation.tsx` | — | 实时包解锁 |
 | `packages/workbench-ui/src/useSessionPoll.ts` | `export function useSessionPoll` | `rg "export function useSessionPoll" packages/workbench-ui/src/useSessionPoll.ts` | — | SSE 停轮询 |
 | `packages/workbench-ui/src/useGlobalKeyboard.ts` | `export function useGlobalKeyboard` | `rg "export function useGlobalKeyboard" packages/workbench-ui/src/useGlobalKeyboard.ts` | — | 名册快捷键加法 |
 

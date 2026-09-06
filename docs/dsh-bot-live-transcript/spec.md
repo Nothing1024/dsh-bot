@@ -80,7 +80,10 @@
 
 | 日期 | 变更条目 ID | 原因 | 影响任务与处置 |
 |---|---|---|---|
-| — | — | 首次生成 | — |
+| 2026-09-06 | ASM-011 | 真机 `session.history` 阿宁会话 718 条 `assistant/chunk` | BR-015 锁定增量刷末泡；Task 12 走 text-delta |
+| 2026-09-06 | ASM-012 | 官方 `session.prompt`/`cancel` 已通；mux 为 in-process 流 | 缺 duck 则 SSE 503、投递 write 回退 |
+| 2026-09-06 | ASM-013 | bot 会话 queue/steer/cancel 均 `accepted:true`，无 agent-busy | Task 5 首选 sessions.prompt |
+| 2026-09-06 | ASM-014 | 改代码前 GET `/dsh-bot/events` = 405 | Task 2 开豁口 |
 
 ---
 
@@ -344,7 +347,7 @@ Transcript: thinking/tool 折叠卡；approval/question 可操作卡 → respond
 | `packages/workbench-ui/src/useSessionPoll.ts` | `export function useSessionPoll` | `rg "export function useSessionPoll" packages/workbench-ui/src/useSessionPoll.ts` | L52 | 停轮询 |
 | `packages/workbench-ui/src/useSessionPoll.ts` | `const IDLE_MS = 2000` | `rg "const IDLE_MS = 2000" packages/workbench-ui/src/useSessionPoll.ts` | L7 | — |
 | `packages/workbench-ui/src/App.tsx` | `listBotSessions` | `rg "listBotSessions" packages/workbench-ui/src/App.tsx` | L208 | 扇出 |
-| `packages/workbench-ui/src/Conversation.tsx` | `composerLocked` | `rg "composerLocked" packages/workbench-ui/src/Conversation.tsx` | L441 | 解锁 |
+| `packages/workbench-ui/src/Conversation.tsx` | `composerWorking` | `rg "composerWorking" packages/workbench-ui/src/Conversation.tsx` | L463 | 工作中切停止，不锁框 |
 | `packages/workbench-ui/src/Transcript.tsx` | `item.kind === 'thinking'` | `rg "item.kind === 'thinking'" packages/workbench-ui/src/Transcript.tsx` | L260 | 现 return null |
 | `packages/workbench-ui/src/api.ts` | `export function prompt` | `rg "export function prompt" packages/workbench-ui/src/api.ts` | L203 | 旁加 |
 | `packages/ui-dsh-bot/src/client/rpc.ts` | `export function createRpcDshBot` | `rg "export function createRpcDshBot" packages/ui-dsh-bot/src/client/rpc.ts` | L129 | 页签 |
@@ -486,7 +489,7 @@ P0 校准(1) → P1 SSE(2,3,4) → P2 投递与 Composer(5,6,7) → P3 卡片(8,
 
 **涉及文件与定位**：
 
-- `packages/workbench-ui/src/Conversation.tsx`：`composerLocked`，L441
+- `packages/workbench-ui/src/Conversation.tsx`：`composerWorking`，L463
 - `packages/workbench-ui/src/Composer.tsx`：现 `disabled={locked}`
 
 **具体操作**：
