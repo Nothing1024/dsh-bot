@@ -1,47 +1,66 @@
-# dsh-bot-living-master Handoff
+# dsh-bot-living-master Handoff（INV-103 收口交接）
 
-本文件是可直接交给 Codex / Claude / omp / Generic Coding Agent 的交付 Prompt。你的目标不是"按文件改代码"，而是按顺序执行两个子包、守住共享面规约、通过跨包联合验收，把 DSH Bot 从"被问才存在"变成"有记忆、会主动来消息"。
+本文件是可直接交给 Codex / Claude / omp / Generic Coding Agent 的交付 Prompt。你的目标不是"按文件改代码"，也不是重做记忆包 / 例程包 / 联合回放，而是接住已经诚实止损的母包，只处理 INV-103 闸门。
 
 > 使用方式：把本文件完整粘贴给执行 Agent，或让 Agent 开工前先读本文件。
 > 本文件只做入口导航，不复制 spec 内容；所有规则、任务、验收细节以 `spec.md` 与两个子包 spec 为准。
-> 路径纪律：本文件内所有引用一律相对于本包目录 `docs/dsh-bot-living-master/`。
+> 路径纪律：本文件内所有引用一律相对于本包目录 `docs/dsh-bot-living-master/`。工作目录取仓根时先 `cd ../..`。
 
 ## 1. 目标
 
-一口气执行 `../dsh-bot-memory/`（每 bot 跨会话记忆）→ `../dsh-bot-routines/`（cron 例程唤醒 / 未读通知 / 主动提议），再做三条只有两包叠加才会出现的联合场景验收；任何止损点如实写进报告，禁止"全部完成"式概括。
+产品路径已合入。下一棒只做一件事：按 INV-103 刷新邻仓 porcelain 证据；邻仓仍脏则保持 `已阻塞` 并停；邻仓变干净才允许把母包 Task 5 与两子包收尾任务改成 `已完成`。禁止把本包写成"全部完成"。
 
 ## 1.1 执行环境假设（--executor generic，最保守）
 
 | 项 | 假设 |
 |---|---|
 | 执行环境 | generic（omp / Claude / Codex 均适用） |
-| 浏览器工具 | 优先用 Playwright（`../../../../dsh-genoffice/engine/node_modules/playwright`，`chromium.launch({channel:'chrome'})`，仓内已多次实证）；若不可用，5.2 前端行按「逐步手动脚本 + 用户回填」执行并在 evidence 里注明 |
-| 长命令策略 | `sh env/boot.sh` 首次可能超 2 分钟，放后台并轮询 `lsof -nP -iTCP:3084 -sTCP:LISTEN` |
-| 验证命令输出 | 每条验证命令保存完整输出到对应 `evidence/` 路径 |
-| 网关身份 | 任何 RPC 前先 `~/.agents/skills/dsh-plugin-debug/scripts/dsh-rpc-who.sh 3084`，`DSH_HOME` 必须是本仓 `env/`——插错口 = 对别人的网关做事 |
+| 浏览器工具 | 本棒默认不用浏览器。UF-101~103 与子包 leftover 已过，不要新开联合回放 |
+| 长命令策略 | 不要重跑四命令，除非本棒改了产品代码或 lockfile（默认不改） |
+| 验证命令输出 | porcelain / 红线 / `env/dsh-bot` 检查的完整输出写入 `evidence/phase-final/inv-103-porcelain.md` |
+| 网关身份 | 本棒不碰 :3084。若误开 RPC，先跑 dsh-plugin-debug 的 who 脚本核 3084，DSH_HOME 必须是本仓 env |
+| 邻仓 | 零改。禁止 checkout / commit / restore / stash 邻仓 |
 
 ## 2. 资料清单
 
 | 资料 | 路径 | 状态 | 用途 |
 |---|---|---|---|
-| 母包 Spec（本包唯一事实源） | `spec.md` | found | 顺序 / 共享面规约 / 联合验收 |
-| 母包状态板 | `spec.md` §4 内嵌状态表（5 条，不生成 CSV） | found | 母包进度 |
-| 记忆包 Spec | `../dsh-bot-memory/spec.md` | found | 子包 1 全部规则与任务 |
-| 记忆包状态板 | `../dsh-bot-memory/tasks.csv` | found | 13 条任务 |
-| 例程包 Spec | `../dsh-bot-routines/spec.md` | found | 子包 2 全部规则与任务 |
-| 例程包状态板 | `../dsh-bot-routines/tasks.csv` | found | 14 条任务 |
-| 体验原型（设计意图） | `../prototypes/dsh-bot-grok-parity.html` | found | 记忆面板 / 例程页签 / 主动消息 / 提议卡长什么样 |
-| 真实 DSH 壳调研 | `../prototypes/real-dsh-ui-survey.md` | found | 不要再推想官方界面 |
+| 母包 Spec（本包唯一事实源） | `spec.md` | found | 顺序 / 共享面 / 联合验收 / 内嵌 5 行状态表 |
+| 母包状态板 | `spec.md` §4 内嵌状态表（不生成 CSV） | found | Task 1–4 已完成；Task 5 已阻塞 |
+| 记忆包 Spec | `../dsh-bot-memory/spec.md` | found | 子包合同 |
+| 记忆包状态板 | `../dsh-bot-memory/tasks.csv` | found | 1–12 已完成；13 已阻塞:INV-103 |
+| 例程包 Spec | `../dsh-bot-routines/spec.md` | found | 子包合同 |
+| 例程包状态板 | `../dsh-bot-routines/tasks.csv` | found | 1–13 已完成；14 已阻塞:INV-103 |
+| 记忆 / 例程交接稿 | 无（子包同会话已执行，未另写 handoff） | missing | 以子包 spec + CSV 为准；本文件覆盖收口 |
+| 总报告 | `evidence/phase-final/report.md` | found | 诚实未全绿；止损点必须与 CSV 一致 |
+| leftover 矩阵 | `evidence/phase-final/leftover-close-matrix.md` | found | 子包 leftover 与母包 named shot 已 PASS |
+| INV-103 快照 | `evidence/phase-final/inv-103-porcelain.md` | found | 下一次只覆盖刷新，不改结论口径 |
 | Evidence 目录 | `evidence/` | found | 母包证据；子包证据在各自 `evidence/` |
-| 已搁置包（勿执行） | `../dsh-bot-native-surface/spec.md` | Deferred | 仅供了解为何不走"导航面"路线 |
+| 已搁置包（勿执行） | `../dsh-bot-native-surface/spec.md` | Deferred | 不在范围 |
+| 无关脏树（勿混提交） | `../dsh-bot-session-nav/`、`../dsh-bot-group-chat/`、`../../packages/workbench-ui/src/BotForm.tsx`、`../../packages/workbench-ui/src/GroupForm.tsx`、`../../packages/dsh-bot-host/src/group-engine.ts` | found 且脏 | 四期 / 三期 leftover，不是本母包未完成项 |
 
 缺失资料与假设：
 
-- ASM-110：两子包 Task 1 校准的 preset 代际规则互不冲突；记忆包 Task 1 结束后读其 evidence/phase-0/calibration.md（记忆包校准结论），被证伪则暂停并回母包 §1.5 记变更。
+- 子包未另写交接稿：不是缺口，本母包交接稿覆盖收口。
+- ASM-110 已在记忆包 `../dsh-bot-memory/evidence/phase-0/calibration.md` 落地；本棒不重校准。
 
 ## 3. 开工上下文
 
-### 架构 Before / After
+### 当前盘面（交接时）
+
+```text
+母包 board 4/5：T1–T4 已完成；T5 已阻塞:INV-103
+记忆 12/13：T13 已阻塞:INV-103
+例程 13/14：T14 已阻塞:INV-103
+无可开工任务。剩余三条全部被同一闸门卡住。
+
+本仓产品收口 commit：f797408
+  docs(dsh-bot-living-master): honest leftover close, INV-103 still blocked
+四命令已绿（296 tests）。红线空。env/dsh-bot 不入 git。
+邻仓未改，也清不了。
+```
+
+### 架构 Before / After（已落地，勿重写）
 
 ```text
 Before: bot = preset 文本；换会话即失忆；无用户输入时不存在
@@ -53,85 +72,118 @@ After:  bots.json.persona(真源) ──单一组合函数──> preset persona
 ### Phase 地图
 
 ```text
-母包 P0 前置检查(T1) → P1 记忆包全量(T2) → P2 例程包全量(T3) → P3 联合回放(T4) → 收尾(T5)
-记忆包内部：校准 → 存储与注入 → 抽取 → RPC 与面板 → 收尾（13 任务）
-例程包内部：校准 → 存储与调度 → 唤醒投递 → RPC 与工作台 → 收尾（14 任务）
+母包 P0 前置(T1) 已完成
+  → P1 记忆包全量(T2) 已完成（子包诚实阻塞见其 CSV）
+  → P2 例程包全量(T3) 已完成（子包诚实阻塞见其 CSV）
+  → P3 联合回放(T4) 已完成
+  → 收尾(T5) 已阻塞:INV-103   ← 本棒唯一入口
 ```
 
 ### 最关键规则（Top 8，全量见 spec.md 第 2 章与子包第 2 章）
 
-- BR-101：先记忆包后例程包；两包 Task 1 真机校准不得跳过；记忆包组合函数阻塞时例程包降级为「基础 + 规范段」并备注。
-- BR-102：persona 只有**一个**组合函数，顺序固定「基础 + 记忆段 + 规范段」；`isPlatformInjection` 只做加法；会话头 🧠 在 ⏰ 左且不新增定时器；routes case 各自成段；不混包 commit。
-- BR-103：例程唤醒**不**触发记忆抽取（唤醒直接 `sessionTool.write`，不经 `promptOwnedSession`）；📌 仍可记；唤醒会话建会话时照常注入记忆。
-- BR-104：完成 = 两子包 validate 0 FAIL 且各自 5.2 全过 + 本包 5.2 全过 + 四命令全绿；止损点必须写明。
-- 记忆包核心（`../dsh-bot-memory/spec.md` §2.1）：`bots.json.persona` 是真源、preset 文件是派生物；寒暄（<40 字且无问号）不抽取；explicit 行永不被自动 remove。
-- 例程包核心（`../dsh-bot-routines/spec.md` §2.1）：bot 只输出 `(silent)` 则不落消息不亮未读；系统通知仅 `document.hidden` 且 5s 节流；提议被拒后 `declined` 不再提。
+- BR-101：先记忆后例程；本棒不再开工子包实现。
+- BR-102：persona 只有一个组合函数，顺序固定「基础 + 记忆段 + 规范段」。
+- BR-103：例程唤醒不触发记忆抽取（`sessionTool.write`，不经 `promptOwnedSession`）。
+- BR-104：有闸门仍红时，报告禁止写成"全部完成"。
+- BR-105 / INV-103：一口一仓 :3084；邻仓 porcelain 干净（vibee 只豁免既有 `?? .vibee/`）；红线空；`env/dsh-bot/{memory,routines.json}` 不入 git。
 - INV-102：任何注入 / 规范段追加后 `bots.json.persona` 不变。
-- INV-103：一口一仓 :3084；邻仓零改；`env/dsh-bot/{memory,routines.json}` 不入 git；`rg -i 'anysphere|sand://' packages/` 为空；唤醒词 / 抽取提示词 / 规范段文案自写。
+- UF-101~103：联合回放已过；evidence 在 `evidence/UF-101/` ~ `evidence/UF-103/`。不要重跑。
+- 子包核心：寒暄不抽、explicit 永不被自动 remove；`(silent)` 不亮未读；系统通知仅 `document.hidden` 且 5s 节流。
 
 ### 禁止事项
 
-- 不得先做例程包或并行改同一共享文件。
-- 不得为让抽取"更完整"把钩子挂到唤醒链路上。
-- 不得各写一份 persona 重写逻辑；例程包只在记忆包的组合函数上追加。
-- 不得从 `../../../../reference` 参考树拷提示词、cue 前缀、文案（红线）。
-- 不得只跑单测就宣称完成——每个子包与母包都要过各自 5.2 真实场景。
-- 不得只实现组件而不接线（面板按钮、📌、提议卡、徽标都要从真实入口可达）。
-- 不得吞错：抽取失败 / 唤醒 error 要落日志与状态，不弹 toast 也不阻塞对话。
-- 不得改官方 npm 包与三邻仓；不得开新端口。
+- 不得重做 Phase 2–4，不得新开 UF 回放，不得重写组合函数 / 唤醒 / 抽取。
+- 不得把 Task 5 / 记忆 T13 / 例程 T14 改成 `已完成`，除非三邻仓 porcelain 已按 INV-103 干净。
+- 不得改邻仓 `../../../../session-tool/plugin` 或 `../../../../vibee/plugin`（checkout / commit / restore 都不行）。
+- 不得把 session-nav / group-chat leftover、`../../packages/workbench-ui/src/BotForm.tsx`、`../../packages/workbench-ui/src/GroupForm.tsx`、`../../packages/dsh-bot-host/src/group-engine.ts`、以及 grok / vscode / env 运行数据塞进本母包提交。
+- 不得为了"收口好看"把阻塞改成完成。
+- 不得只跑单测就宣称完成——本棒完成标准仍是 INV-103 命令干净 + 三包 validate 0 FAIL。
+- 不得开新端口、不得改官方 npm 包。
 
 ## 4. 开工前初始化
 
-1. 通读 `spec.md` §0–§2；通读两子包 `spec.md` §0、§2、§4。
-2. 预读三份 spec 的 §5.2——先知道完成标准。
-3. `git status` 确认工作区；记录 `git log --oneline -1` 到本包 evidence/phase-final/baseline.md。
-4. 基线命令：`python3 ~/.claude/skills/prd-workflow/scripts/validate_package.py ../dsh-bot-memory --repo ../..` 与 `... ../dsh-bot-routines --repo ../..` → 均 0 FAIL（母包 T1）。
-5. `sh env/boot.sh`（在仓根执行）并核 :3084 身份。
+1. 工作目录取仓根：`cd ../..`。
+2. 读本包 `spec.md` §2.4 INV-103、§4 Task 5、`evidence/phase-final/report.md`、`evidence/phase-final/leftover-close-matrix.md`。
+3. 跑板面，确认没有可开工实现任务：
+
+```sh
+python3 ~/.claude/skills/prd-workflow/scripts/board.py docs/dsh-bot-living-master
+python3 ~/.claude/skills/prd-workflow/scripts/board.py docs/dsh-bot-memory
+python3 ~/.claude/skills/prd-workflow/scripts/board.py docs/dsh-bot-routines
+```
+
+期望：三条都只剩 INV-103 阻塞，"无可开工任务"。
+
+4. 只读核邻仓（不要改）：
+
+```sh
+git status --porcelain
+git -C ../../session-tool/plugin status --porcelain
+git -C ../../vibee/plugin status --porcelain
+rg -i 'anysphere|sand://' packages/ env/ scripts/
+git status --porcelain | rg "env/dsh-bot" || true
+```
 
 ## 5. 核心执行循环
 
 ```text
-FOR 子包 IN [dsh-bot-memory, dsh-bot-routines]:
-    WHILE 子包 tasks.csv 存在待开始/进行中:
-        1. 取下一条前置满足的任务；读该子包 spec §4 对应 Task
-        2. 回答：关联 BR/UF/INV 是什么？共享面（BR-102）会不会被碰？
-        3. 状态板 → 进行中
-        4. 三段式定位校验（symbol + rg anchor，行号只是 hint）
-        5. 实现 + 接线 + 交互反馈
-        6. 验证命令 + evidence 落盘到该任务写明的路径
-        7. 通过 → 已完成；失败 → 排障最多 3 次；仍失败 → 已阻塞:原因，继续不依赖它的任务
-        8. Phase 回归通过 → 按该子包纪律 commit（message 点名 Task/BR ID，不混包）
-    子包收尾：其 5.2 全过 → 重跑其 validate（证据审计）→ 板面快照到本包 evidence/phase-final/
-    母包状态表对应行 → 已完成 / 已阻塞:原因
-母包 T4：按 spec.md §5.2 联合回放；T5：终检 + report.md
+本棒不是实现循环。剩余任务全部被 INV-103 卡住。
+
+1. 刷新 evidence/phase-final/inv-103-porcelain.md
+   - 写入本仓 / session-tool / vibee 的 live porcelain
+   - 写明种类计数与 verdict
+   - vibee 豁免只认 ?? .vibee/ ；review / evidence / executor / 测试改动都不算豁免
+2. 若邻仓仍脏：
+   - 母包 T5、记忆 T13、例程 T14 保持 已阻塞:INV-103
+   - report.md 保持「Not all-done」
+   - 停。不要发明下一件产品活
+3. 若邻仓已干净（vibee 最多只剩 ?? .vibee/）：
+   - 三处状态改为 已完成，备注写清 porcelain 已干净
+   - 更新 report.md 与 inv-103-porcelain.md verdict
+   - 重跑三次 validate（见 §7），0 FAIL 才允许宣称母包收口
+   - 不要重跑四命令，除非本棒改了代码或 lockfile
+4. 本仓工作区里与 living-master 无关的脏文件保持不动
 ```
 
-不要中途问"是否继续"。除非所有剩余任务都被阻塞，否则继续推进。
+不要中途问"是否继续"。当前所有剩余任务都已阻塞：刷新证据后停。只有邻仓所有者自己把树清干净之后，才存在下一棒可执行的 Task 5。
 
 ## 6. 排障顺序
 
-1. 查当前任务 spec 的「注意事项」与关联 BR/UF/INV。
-2. 共享面冲突（persona 组合丢段、`isPlatformInjection` 判定变化、定时器叠加）优先查 `spec.md` BR-102 / BR-103。
-3. 平台层问题查两子包 §1.3 勘察事实（代际规则、`sessionTool` 链路、`turnIsOpen`）。
-4. 按错误类型：import → 类型 → RPC 契约 → 文件权限 → UI 状态 → 测试 fixture。
-5. 最多主动修复 3 次，仍失败则阻塞并继续其他任务。
+1. 先看 `spec.md` INV-103 / BR-105 / Task 5，再看 `evidence/phase-final/inv-103-porcelain.md`。
+2. 本仓还有 session-nav / group-chat 脏文件：那是别的包，不是 INV-103 的修复面。
+3. 邻仓 `M` / `D` / 非 `.vibee/` 的 `??`：停，等邻仓所有者。不要代清。
+4. 若误改了产品文件：立刻 `git checkout -- <file>`，不要继续补丁。
+5. Forget→inject 后 `preset.yml` 可能暂时残留旧记忆，要等新会话或 bot 更新才干净——这是已记录止损，不是 INV-103，不要当新 bug 修。
 
 ## 7. 完成标准与汇报
 
-1. 四命令：`pnpm run typecheck && pnpm run build && pnpm test && pnpm run standard:check` 全绿。
-2. 两子包各自 5.2 全过；本包 `spec.md` §5.2 三条联合场景全过，evidence 落盘。
-3. 重跑三次校验（证据审计）：`python3 ~/.claude/skills/prd-workflow/scripts/validate_package.py ../dsh-bot-memory --repo ../..`、`... ../dsh-bot-routines --repo ../..`、`... . --repo ../..` → 全部 0 FAIL。
-4. INV-103 终检：`rg -i 'anysphere|sand://' ../../packages/ ../../env/ ../../scripts/` 为空；`git status --porcelain | rg "env/dsh-bot"` 为空；三邻仓 `git status --porcelain` 干净（vibee 既有 `?? .vibee/` 除外）。
-5. 对照三份 spec §5.4 自检。
-6. 输出总报告到本包 evidence/phase-final/report.md 并在对话中给出：
+邻仓仍脏（默认）：
+
+1. `evidence/phase-final/inv-103-porcelain.md` 已用 live porcelain 覆盖刷新，verdict 仍是 `已阻塞`。
+2. 三处状态板仍是 `已阻塞:INV-103 …`。
+3. 三次 validate 保持 0 FAIL（不要为了"收口"改合同）。
+4. 对话里只汇报盘面，不宣称全部完成。
+
+邻仓已干净（唯一能翻绿的路径）：
+
+1. 终检：`rg -i 'anysphere|sand://' packages/ env/ scripts/` 为空；`git status --porcelain | rg "env/dsh-bot"` 为空；三邻仓 porcelain 干净（vibee 只豁免 `?? .vibee/`）。
+2. 重跑：
+
+```sh
+python3 ~/.claude/skills/prd-workflow/scripts/validate_package.py docs/dsh-bot-memory --repo .
+python3 ~/.claude/skills/prd-workflow/scripts/validate_package.py docs/dsh-bot-routines --repo .
+python3 ~/.claude/skills/prd-workflow/scripts/validate_package.py docs/dsh-bot-living-master --repo .
+```
+
+3. 对照 `spec.md` §5.4。不要重跑 §5.2。
+4. 输出：
 
 ```markdown
 ## 完成总结
-- 记忆包：N/13 已完成；阻塞：Task x（原因）…
-- 例程包：N/14 已完成；阻塞：…
-- 母包联合回放：UF-101 / 102 / 103 各 N/N 行通过
-- 修改文件：…
-- 未破坏的不变量：INV-101 / 102 / 103 …
-- Evidence：evidence/phase-final/…、../dsh-bot-memory/evidence/…、../dsh-bot-routines/evidence/…
-- 剩余风险 / 止损点：…
+- 完成范围：母包 T1–T4 已完成；T5 …；记忆 12/13 + T13 …；例程 13/14 + T14 …
+- 修改文件：只允许 living-master / 子包 docs 与 evidence（邻仓变干净时）
+- 通过的 BR/UF：UF-101~103 已在上一棒通过；本棒不重跑
+- 未破坏的不变量：INV-101 / INV-102 保持；INV-103 …
+- Evidence：evidence/phase-final/inv-103-porcelain.md、report.md
+- 剩余风险：Forget→inject 对已打开会话的 preset 可能滞后到下一次建会话
 ```
