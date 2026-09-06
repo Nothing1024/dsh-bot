@@ -1,0 +1,48 @@
+# UF-041 network
+
+- EventSource 构造：工作台 useBotEvents 唯一 `GET /dsh-bot/events`。本页请求 1 条 events。
+- 三轮询（history/listBotSessions）在 sseReady 后停。本段 POST history/listBotSessions 次数=101（含回放脚本自己打的 history RPC，不算页面定时器）。
+- 页面仍保留 listBots 2s（未读/通知，名册包明确留下）与 reconcile 30s；peers/roster 未新增 EventSource/setInterval。
+- 来自标签：true
+
+## page /dsh-bot requests (sample)
+- GET http://127.0.0.1:3084/dsh-bot/ui
+- GET http://127.0.0.1:3084/dsh-bot/ui/workbench.css
+- GET http://127.0.0.1:3084/dsh-bot/ui/workbench.js
+- POST http://127.0.0.1:3084/dsh-bot/listBots
+- POST http://127.0.0.1:3084/dsh-bot/listGroups
+- POST http://127.0.0.1:3084/dsh-bot/listSessions
+- POST http://127.0.0.1:3084/dsh-bot/routineList
+- POST http://127.0.0.1:3084/dsh-bot/listBots
+- GET http://127.0.0.1:3084/dsh-bot/events
+- POST http://127.0.0.1:3084/dsh-bot/listBotSessions
+- POST http://127.0.0.1:3084/dsh-bot/memoryList
+- POST http://127.0.0.1:3084/dsh-bot/routineList
+- POST http://127.0.0.1:3084/dsh-bot/peerLog
+- POST http://127.0.0.1:3084/dsh-bot/reconcile
+- POST http://127.0.0.1:3084/dsh-bot/listBotSessions
+- POST http://127.0.0.1:3084/dsh-bot/listBotSessions
+- POST http://127.0.0.1:3084/dsh-bot/listBotSessions
+- POST http://127.0.0.1:3084/dsh-bot/listBotSessions
+- POST http://127.0.0.1:3084/dsh-bot/listGroupSessions
+- POST http://127.0.0.1:3084/dsh-bot/listGroupSessions
+- POST http://127.0.0.1:3084/dsh-bot/markRead
+- POST http://127.0.0.1:3084/dsh-bot/listBotSessions
+- POST http://127.0.0.1:3084/dsh-bot/memoryList
+- POST http://127.0.0.1:3084/dsh-bot/routineList
+- POST http://127.0.0.1:3084/dsh-bot/peerLog
+- POST http://127.0.0.1:3084/dsh-bot/listBotSessions
+- POST http://127.0.0.1:3084/dsh-bot/listBotSessions
+- POST http://127.0.0.1:3084/dsh-bot/listBotSessions
+- POST http://127.0.0.1:3084/dsh-bot/listBotSessions
+- POST http://127.0.0.1:3084/dsh-bot/listGroupSessions
+- POST http://127.0.0.1:3084/dsh-bot/listGroupSessions
+- POST http://127.0.0.1:3084/dsh-bot/listBotSessions
+- POST http://127.0.0.1:3084/dsh-bot/peerLog
+- POST http://127.0.0.1:3084/dsh-bot/history
+- POST http://127.0.0.1:3084/dsh-bot/memoryList
+- POST http://127.0.0.1:3084/dsh-bot/listBots
+- POST http://127.0.0.1:3084/dsh-bot/listBotSessions
+- POST http://127.0.0.1:3084/dsh-bot/memoryList
+- POST http://127.0.0.1:3084/dsh-bot/listBotSessions
+- POST http://127.0.0.1:3084/dsh-bot/listBotSessions
