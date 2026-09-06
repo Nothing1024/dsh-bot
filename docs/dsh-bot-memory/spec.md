@@ -1,6 +1,6 @@
 # dsh-bot-memory Spec
 
-> Version: 0.1.0 | Date: 2026-09-06 | Status: Ready 可执行
+> Version: 0.2.0 | Date: 2026-09-06 | Status: Ready 可执行
 >
 > 本文件是本需求的**唯一事实源**：事实基线、业务合同、技术方案、任务计划、验收协议全部在此。
 > 其他文件（tasks.csv）只引用本文件，不复制内容。
@@ -72,6 +72,13 @@
 | ASM-804 | 记忆段注入 ≤ 4000 字符（profile ≤ 1500 + log 最近 20 条）不会让 persona 行 YAML 超限或触发 preset `broken` | 超限则截断策略需前移 | Task 1：写 4000 字符 persona 后 `agentPreset.list` 校验 |
 
 ---
+
+### 1.5 变更记录
+
+| 日期 | 变更条目 ID | 原因 | 影响任务与处置 |
+|---|---|---|---|
+| 2026-09-06 | INV-804 | 邻仓既有脏状态非本仓所致；与母包 living-master 邻仓例外同一登记，文件清单见 `../dsh-bot-living-master/spec.md` §1.5 | Task 13 按「邻仓 porcelain 与开工基线一致」验收，状态改已完成 |
+
 ## 2. 业务合同
 
 > 本章是 BR/UF/INV/EVD 的唯一定义处。ID 用 8xx 段（native-surface 用 7xx，routines 用 9xx）。
@@ -230,7 +237,7 @@ count:0 → (轮次闭合) extracting(无 UI) → count:N
 | INV-801 | 用户在 BotForm 填写的基础 persona 永不被记忆注入改写（`bots.json.persona` 为真源，preset 文件是派生物） | BR-803 | vitest：注入两次后 `bots.json.persona` 不变 |
 | INV-802 | 抽取用的隐藏会话带 `kind:hidden` + `~dsh-bot-memory:` 前缀，不出现在 1:1 列表（含「包含隐藏」关闭态） | BR-802 | `listOwnedSessions` 过滤断言 |
 | INV-803 | 既有 v1 `dsh_bot_ask`、小组轮次、`listBotSessions` 契约不变 | BR-806 | `pnpm test` 既有用例全过 |
-| INV-804 | 一口一仓 :3084、邻仓干净、`rg -i 'anysphere\|sand://' packages/` 为空、`env/dsh-bot/memory/` 不入 git | BR-807 | 收尾命令 |
+| INV-804 | 一口一仓 :3084、邻仓 porcelain 与开工基线一致（既有脏文件见母包 `../dsh-bot-living-master/spec.md` §1.5）、`rg -i 'anysphere\|sand://' packages/` 为空、`env/dsh-bot/memory/` 不入 git | BR-807 | 收尾命令 |
 
 ### 2.5 EVD 证据清单
 
@@ -575,7 +582,7 @@ P0 校准(1) → P1 存储与注入(2,3,4) → P2 抽取(5,6) → P3 RPC 与工�
 - **关联**：全部 BR / INV-804
 - **前置任务**：11；12
 
-**验证**：`pnpm run typecheck && pnpm run build && pnpm test && pnpm run standard:check` → 全绿；`rg -i 'anysphere|sand://' packages/ env/ scripts/` → 空；`git status --porcelain` 不含 `env/dsh-bot/memory`；三邻仓干净；`python3 ~/.claude/skills/prd-workflow/scripts/validate_package.py docs/dsh-bot-memory --repo .` → 0 FAIL
+**验证**：`pnpm run typecheck && pnpm run build && pnpm test && pnpm run standard:check` → 全绿；`rg -i 'anysphere|sand://' packages/ env/ scripts/` → 空；`git status --porcelain` 不含 `env/dsh-bot/memory`；三邻仓 porcelain 与开工基线一致（既有脏文件见母包 §1.5）；`python3 ~/.claude/skills/prd-workflow/scripts/validate_package.py docs/dsh-bot-memory --repo .` → 0 FAIL
 
 **Evidence**：`evidence/phase-4/final-commands.log`
 

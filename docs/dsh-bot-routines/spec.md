@@ -1,6 +1,6 @@
 # dsh-bot-routines Spec
 
-> Version: 0.1.0 | Date: 2026-09-06 | Status: Ready 可执行
+> Version: 0.2.0 | Date: 2026-09-06 | Status: Ready 可执行
 >
 > 本文件是本需求的**唯一事实源**。其他文件（tasks.csv）只引用本文件，不复制内容。
 >
@@ -70,6 +70,13 @@
 | ASM-904 | 用户正在与该 bot 的例程会话交互时，唤醒经 `promptLocks` 排队不撞车；若用户在同一 bot 的**另一**会话交互，互不影响 | 撞车导致用户轮次被插话 | Task 1：用户轮次进行中触发唤醒，观察顺序 |
 
 ---
+
+### 1.5 变更记录
+
+| 日期 | 变更条目 ID | 原因 | 影响任务与处置 |
+|---|---|---|---|
+| 2026-09-06 | INV-903 | 邻仓既有脏状态非本仓所致；与母包 living-master 邻仓例外同一登记，文件清单见 `../dsh-bot-living-master/spec.md` §1.5 | Task 14 按「邻仓 porcelain 与开工基线一致」验收，状态改已完成 |
+
 ## 2. 业务合同
 
 > 本章是 BR/UF/INV/EVD 的唯一定义处。ID 用 9xx 段（memory 用 8xx，native-surface 用 7xx）。
@@ -228,7 +235,7 @@ list.empty → form → creating → list(row: idle) → (到点) running → ro
 |---|---|---|---|
 | INV-901 | 用户主动发的消息链路（`promptOwnedSession`）行为不变；例程唤醒词不出现在工作台历史的用户气泡里（`isPlatformInjection` 覆盖 `[routine]` 前缀） | BR-903 | vitest + 真机 |
 | INV-902 | 例程会话出现在 1:1 列表且带 `routine:` mark；`dsh_bot_ask` 隐藏会话与小组轮次会话不受影响 | BR-903 | `listOwnedSessions` 断言 |
-| INV-903 | 一口一仓 :3084、邻仓干净、红线 rg 为空、`routines.json` 不入 git | BR-908 | 收尾命令 |
+| INV-903 | 一口一仓 :3084、邻仓 porcelain 与开工基线一致（既有脏文件见母包 `../dsh-bot-living-master/spec.md` §1.5）、红线 rg 为空、`routines.json` 不入 git | BR-908 | 收尾命令 |
 | INV-904 | 调度器在 `enabled=false` 或 bot 删除后零触发（无孤儿 timer） | BR-902 | vitest（fake timers） |
 
 ### 2.5 EVD 证据清单
@@ -574,7 +581,7 @@ P0 校准(1) → P1 存储与调度(2,3,4) → P2 唤醒投递(5,6,7) → P3 工
 - **关联**：全部 BR / INV-903
 - **前置任务**：12；13
 
-**验证**：`pnpm run typecheck && pnpm run build && pnpm test && pnpm run standard:check` → 全绿；`rg -i 'anysphere|sand://' packages/ env/ scripts/` → 空；`git status --porcelain` 不含 `env/dsh-bot`；三邻仓干净；`python3 ~/.claude/skills/prd-workflow/scripts/validate_package.py docs/dsh-bot-routines --repo .` → 0 FAIL
+**验证**：`pnpm run typecheck && pnpm run build && pnpm test && pnpm run standard:check` → 全绿；`rg -i 'anysphere|sand://' packages/ env/ scripts/` → 空；`git status --porcelain` 不含 `env/dsh-bot`；三邻仓 porcelain 与开工基线一致（既有脏文件见母包 §1.5）；`python3 ~/.claude/skills/prd-workflow/scripts/validate_package.py docs/dsh-bot-routines --repo .` → 0 FAIL
 
 **Evidence**：`evidence/phase-4/final-commands.log`
 

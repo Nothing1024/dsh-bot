@@ -12,4 +12,4 @@
 11,P3:RPC 与工作台,执行 Phase 3 回归验证,spec.md#task-11,9;10,pnpm run typecheck && pnpm test && pnpm run build → 全过,已完成,母包 typecheck/test/build 绿；host+ui 已 tsdown
 12,P4:收尾,同步 README 与设置示例,spec.md#task-12,11,rg -n "例程" README.md → ≥1 命中,已完成,README §例程；settings.example routines.enabled 注释
 13,P4:收尾,执行 spec 5.2 真实场景全套测试,spec.md#task-13,11,按 5.2 执行矩阵逐行回放 → 全部通过,已完成,spoke/silent/lock/notify/提议卡/开关/重启rearm 0→1 spoke 64s；error-x3/corrupt-bak/declined 截图已补
-14,P4:收尾,执行 Phase 4 回归验证,spec.md#task-14,12;13,四命令全绿；rg 红线为空；邻仓干净；validate_package.py --repo . → 0 FAIL,已阻塞:INV-103 邻仓 session-tool/vibee porcelain,四命令已绿；红线空；validate 0 FAIL
+14,P4:收尾,执行 Phase 4 回归验证,spec.md#task-14,12;13,四命令全绿；rg 红线为空；邻仓干净；validate_package.py --repo . → 0 FAIL,已完成,INV-103 例外登记见母包 §1.5

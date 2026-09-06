@@ -1,22 +1,66 @@
-# Living-master Task 5 command log
-date: 2026-09-06T19:41:58
+# Living-master Task 5 final-commands.log
+date: 2026-09-06T23:09:49+0800
 cwd: /Users/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin
-command: pnpm run typecheck && pnpm run build && pnpm test && pnpm run standard:check
-exit: 0
 
-## stdout+stderr (tail)
-config.ts 
+========================================
+## 1. typecheck && build && vitest run && standard:check
+command: pnpm run typecheck && pnpm run build && ./node_modules/.bin/vitest run && pnpm run standard:check
+========================================
+Scope: all 8 workspace projects
+✓ Lockfile passes supply-chain policies (verified 3h ago)
+Lockfile is up to date, resolution step is skipped
+Already up to date
+
+Done in 423ms using pnpm v11.7.0
+$ tsc -p tsconfig.json
+$ pnpm -r --filter './packages/*' run build
+Scope: 4 of 8 workspace projects
+packages/workbench-ui build$ tsdown && cp index.html lib/index.html && cp src/styles.css lib/workbench.css
+packages/ui-dsh-bot build$ tsc -p tsconfig.build.json && tsdown
+packages/workbench-ui build: ℹ tsdown v0.22.14 powered by rolldown v1.2.6
+packages/ui-dsh-bot build: ℹ tsdown v0.22.14 powered by rolldown v1.2.6
+packages/workbench-ui build: ℹ config file: /Users/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin/packages/workbench-ui/tsdown.config.ts 
+packages/workbench-ui build: ℹ entry: src/main.tsx
+packages/workbench-ui build: ℹ target: es2022
+packages/workbench-ui build: ℹ tsconfig: tsconfig.json
+packages/workbench-ui build: ℹ Build start
+packages/workbench-ui build: ℹ Cleaning 4 files
+packages/ui-dsh-bot build: ℹ config file: /Users/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin/packages/ui-dsh-bot/tsdown.config.ts 
+packages/ui-dsh-bot build: ℹ [ui-dsh-bot] entry: src/index.ts
+packages/ui-dsh-bot build: ℹ [ui-dsh-bot] target: es2024
+packages/ui-dsh-bot build: ℹ [ui-dsh-bot] tsconfig: tsconfig.json
+packages/ui-dsh-bot build: ℹ [ui-dsh-bot/client] entry: src/client/index.ts
+packages/ui-dsh-bot build: ℹ [ui-dsh-bot/client] tsconfig: tsconfig.json
+packages/ui-dsh-bot build:  WARN  `external` is deprecated. Use `deps.neverBundle` instead.
+packages/ui-dsh-bot build:  WARN  `noExternal` is deprecated. Use `deps.alwaysBundle` instead.
+packages/ui-dsh-bot build: ℹ Build start
+packages/ui-dsh-bot build: ℹ [ui-dsh-bot] [ESM] lib/index.js  0.30 kB │ gzip: 0.24 kB
+packages/ui-dsh-bot build: ℹ [ui-dsh-bot] [ESM] 1 files, total: 0.30 kB
+packages/ui-dsh-bot build: ✔ [ui-dsh-bot] Build complete in 28ms
+packages/ui-dsh-bot build: ℹ [ui-dsh-bot/client] [CJS] lib/client.js      20.46 kB │ gzip:  6.47 kB
+packages/ui-dsh-bot build: ℹ [ui-dsh-bot/client] [CJS] lib/client.js.map  33.30 kB │ gzip: 10.15 kB
+packages/ui-dsh-bot build: ℹ [ui-dsh-bot/client] [CJS] 2 files, total: 53.77 kB
+packages/ui-dsh-bot build: ✔ [ui-dsh-bot/client] Build complete in 31ms
+packages/ui-dsh-bot build: Done
+packages/workbench-ui build: ℹ lib/workbench.js      369.12 kB │ gzip:  88.77 kB
+packages/workbench-ui build: ℹ lib/workbench.js.map  632.77 kB │ gzip: 145.02 kB
+packages/workbench-ui build: ℹ 2 files, total: 1.00 MB
+packages/workbench-ui build: ✔ Build complete in 84ms
+packages/workbench-ui build: Done
+packages/dsh-bot-host build$ tsdown
+packages/dsh-bot-host build: ℹ tsdown v0.22.14 powered by rolldown v1.2.6
+packages/dsh-bot-host build: ℹ config file: /Users/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin/packages/dsh-bot-host/tsdown.config.ts 
 packages/dsh-bot-host build: ℹ entry: src/index.ts
 packages/dsh-bot-host build: ℹ target: es2024
 packages/dsh-bot-host build: ℹ tsconfig: tsconfig.json
 packages/dsh-bot-host build:  WARN  `external` is deprecated. Use `deps.neverBundle` instead.
 packages/dsh-bot-host build: ℹ Build start
-packages/dsh-bot-host build: ℹ lib/index.js        149.07 kB │ gzip: 38.19 kB
-packages/dsh-bot-host build: ℹ lib/index.js.map    317.42 kB │ gzip: 72.97 kB
-packages/dsh-bot-host build: ℹ lib/index.d.ts.map    7.51 kB │ gzip:  2.21 kB
-packages/dsh-bot-host build: ℹ lib/index.d.ts       39.63 kB │ gzip:  9.82 kB
-packages/dsh-bot-host build: ℹ 4 files, total: 513.63 kB
-packages/dsh-bot-host build: ✔ Build complete in 936ms
+packages/dsh-bot-host build: ℹ lib/index.js        150.03 kB │ gzip: 38.36 kB
+packages/dsh-bot-host build: ℹ lib/index.js.map    319.55 kB │ gzip: 73.35 kB
+packages/dsh-bot-host build: ℹ lib/index.d.ts.map    7.51 kB │ gzip:  2.22 kB
+packages/dsh-bot-host build: ℹ lib/index.d.ts       39.47 kB │ gzip:  9.76 kB
+packages/dsh-bot-host build: ℹ 4 files, total: 516.56 kB
+packages/dsh-bot-host build: ✔ Build complete in 716ms
 packages/dsh-bot-host build: Done
 packages/tool-dsh-bot build$ tsdown
 packages/tool-dsh-bot build: ℹ tsdown v0.22.14 powered by rolldown v1.2.6
@@ -31,57 +75,18 @@ packages/tool-dsh-bot build: ℹ lib/index.js.map    4.33 kB │ gzip: 1.75 kB
 packages/tool-dsh-bot build: ℹ lib/index.d.ts.map  0.12 kB │ gzip: 0.13 kB
 packages/tool-dsh-bot build: ℹ lib/index.d.ts      0.30 kB │ gzip: 0.23 kB
 packages/tool-dsh-bot build: ℹ 4 files, total: 7.09 kB
-packages/tool-dsh-bot build: ✔ Build complete in 541ms
+packages/tool-dsh-bot build: ✔ Build complete in 442ms
 packages/tool-dsh-bot build: Done
 
-[1m[30m[46m RUN [49m[39m[22m [36mv4.1.11 [39m[90m/Users/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin[39m
+ RUN  v4.1.11 /Users/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin
 
- [32m✓[39m packages/dsh-bot-host/tests/routines.spec.ts [2m([22m[2m9 tests[22m[2m)[22m[32m 121[2mms[22m[39m
- [32m✓[39m packages/ui-dsh-bot/tests/rpc.spec.ts [2m([22m[2m4 tests[22m[2m)[22m[32m 166[2mms[22m[39m
- [32m✓[39m packages/dsh-bot-host/tests/groups.spec.ts [2m([22m[2m10 tests[22m[2m)[22m[32m 105[2mms[22m[39m
- [32m✓[39m packages/dsh-bot-host/tests/bots.spec.ts [2m([22m[2m20 tests[22m[2m)[22m[33m 380[2mms[22m[39m
- [32m✓[39m packages/dsh-bot-host/tests/ask.spec.ts [2m([22m[2m20 tests[22m[2m)[22m[32m 171[2mms[22m[39m
- [32m✓[39m packages/dsh-bot-host/tests/group-engine.spec.ts [2m([22m[2m17 tests[22m[2m)[22m[33m 377[2mms[22m[39m
- [32m✓[39m packages/dsh-bot-host/tests/workbench-sessions.spec.ts [2m([22m[2m18 tests[22m[2m)[22m[33m 303[2mms[22m[39m
- [32m✓[39m packages/dsh-bot-host/tests/reconcile.spec.ts [2m([22m[2m7 tests[22m[2m)[22m[32m 137[2mms[22m[39m
- [32m✓[39m packages/dsh-bot-host/tests/routine-scheduler.spec.ts [2m([22m[2m4 tests[22m[2m)[22m[32m 48[2mms[22m[39m
- [32m✓[39m packages/dsh-bot-host/tests/memory.spec.ts [2m([22m[2m14 tests[22m[2m)[22m[32m 60[2mms[22m[39m
- [32m✓[39m packages/workbench-ui/tests/memory-panel.spec.tsx [2m([22m[2m4 tests[22m[2m)[22m[32m 91[2mms[22m[39m
- [32m✓[39m packages/dsh-bot-host/tests/routes.spec.ts [2m([22m[2m15 tests[22m[2m)[22m[33m 813[2mms[22m[39m
- [32m✓[39m packages/dsh-bot-host/tests/memory-extract.spec.ts [2m([22m[2m6 tests[22m[2m)[22m[32m 61[2mms[22m[39m
- [32m✓[39m packages/workbench-ui/tests/session-list.spec.tsx [2m([22m[2m4 tests[22m[2m)[22m[32m 109[2mms[22m[39m
- [32m✓[39m packages/ui-dsh-bot/tests/tab.spec.tsx [2m([22m[2m6 tests[22m[2m)[22m[32m 166[2mms[22m[39m
- [32m✓[39m packages/workbench-ui/tests/roster.spec.tsx [2m([22m[2m6 tests[22m[2m)[22m[32m 106[2mms[22m[39m
- [32m✓[39m packages/workbench-ui/tests/composer.spec.tsx [2m([22m[2m9 tests[22m[2m)[22m[32m 136[2mms[22m[39m
- [32m✓[39m packages/dsh-bot-host/tests/workbench-routes.spec.ts [2m([22m[2m7 tests[22m[2m)[22m[32m 28[2mms[22m[39m
- [32m✓[39m packages/ui-dsh-bot/tests/jump-bridge.spec.ts [2m([22m[2m13 tests[22m[2m)[22m[32m 11[2mms[22m[39m
- [32m✓[39m packages/workbench-ui/tests/group-form.spec.tsx [2m([22m[2m2 tests[22m[2m)[22m[32m 85[2mms[22m[39m
- [32m✓[39m packages/workbench-ui/tests/bot-form.spec.tsx [2m([22m[2m4 tests[22m[2m)[22m[32m 158[2mms[22m[39m
- [32m✓[39m packages/tool-dsh-bot/tests/tools.spec.ts [2m([22m[2m5 tests[22m[2m)[22m[32m 17[2mms[22m[39m
- [32m✓[39m packages/workbench-ui/tests/conversation.spec.tsx [2m([22m[2m14 tests[22m[2m)[22m[33m 471[2mms[22m[39m
- [32m✓[39m packages/workbench-ui/tests/app.spec.tsx [2m([22m[2m11 tests[22m[2m)[22m[33m 438[2mms[22m[39m
- [32m✓[39m packages/dsh-bot-host/tests/routine-wake.spec.ts [2m([22m[2m5 tests[22m[2m)[22m[32m 5[2mms[22m[39m
- [32m✓[39m packages/workbench-ui/tests/api.spec.ts [2m([22m[2m5 tests[22m[2m)[22m[32m 8[2mms[22m[39m
- [32m✓[39m packages/workbench-ui/tests/avatar.spec.ts [2m([22m[2m4 tests[22m[2m)[22m[32m 6[2mms[22m[39m
- [32m✓[39m packages/workbench-ui/tests/transcript.spec.tsx [2m([22m[2m10 tests[22m[2m)[22m[32m 93[2mms[22m[39m
- [32m✓[39m packages/workbench-ui/tests/emoji.spec.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 4[2mms[22m[39m
- [32m✓[39m packages/ui-dsh-bot/tests/apply-sidebar.spec.ts [2m([22m[2m2 tests[22m[2m)[22m[32m 4[2mms[22m[39m
- [32m✓[39m packages/workbench-ui/tests/mentions.spec.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 4[2mms[22m[39m
- [32m✓[39m packages/workbench-ui/tests/command-palette.spec.tsx [2m([22m[2m5 tests[22m[2m)[22m[32m 58[2mms[22m[39m
- [32m✓[39m packages/workbench-ui/tests/routines-panel.spec.tsx [2m([22m[2m2 tests[22m[2m)[22m[32m 51[2mms[22m[39m
- [32m✓[39m packages/workbench-ui/tests/session-poll.spec.tsx [2m([22m[2m3 tests[22m[2m)[22m[32m 50[2mms[22m[39m
- [32m✓[39m packages/workbench-ui/tests/jump.spec.ts [2m([22m[2m7 tests[22m[2m)[22m[32m 10[2mms[22m[39m
- [32m✓[39m packages/workbench-ui/tests/markdown.spec.tsx [2m([22m[2m2 tests[22m[2m)[22m[32m 44[2mms[22m[39m
- [32m✓[39m packages/workbench-ui/tests/persona.spec.tsx [2m([22m[2m7 tests[22m[2m)[22m[32m 54[2mms[22m[39m
- [32m✓[39m packages/workbench-ui/tests/session-binding.spec.ts [2m([22m[2m5 tests[22m[2m)[22m[32m 6[2mms[22m[39m
- [32m✓[39m packages/workbench-ui/tests/keyboard.spec.tsx [2m([22m[2m2 tests[22m[2m)[22m[32m 31[2mms[22m[39m
- [32m✓[39m packages/workbench-ui/tests/notify.spec.ts [2m([22m[2m2 tests[22m[2m)[22m[32m 3[2mms[22m[39m
 
-[2m Test Files [22m [1m[32m40 passed[39m[22m[90m (40)[39m
-[2m      Tests [22m [1m[32m296 passed[39m[22m[90m (296)[39m
-[2m   Start at [22m 19:41:55
-[2m   Duration [22m 2.54s[2m (transform 3.08s, setup 0ms, import 8.71s, tests 4.99s, environment 13.05s)[22m
+ Test Files  40 passed (40)
+      Tests  297 passed (297)
+   Start at  23:09:56
+   Duration  1.86s (transform 2.72s, setup 0ms, import 6.83s, tests 4.15s, environment 8.52s)
 
+$ node standards/validate.mjs
 
 == manifest 校验（packages/*/dsh-plugin.json） ==
 ✓ tool-dsh-bot (io.github.nothing1024.tool-dsh-bot)
@@ -110,8 +115,226 @@ packages/tool-dsh-bot build: Done
 ✓ 无未评审的新增上游触点
 
 结论：全部通过
-$ tsc -p tsconfig.json
-$ pnpm -r --filter './packages/*' run build
-$ vitest run
-$ node standards/validate.mjs
 
+exit: 0
+
+========================================
+## 1b. pnpm test (note frozen-lockfile if it fails)
+command: pnpm test
+========================================
+$ vitest run
+
+ RUN  v4.1.11 /Users/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin
+
+
+ Test Files  40 passed (40)
+      Tests  297 passed (297)
+   Start at  23:09:59
+   Duration  1.70s (transform 2.24s, setup 0ms, import 5.90s, tests 4.02s, environment 7.72s)
+
+
+exit: 0
+
+========================================
+## 2. red-line rg
+command: rg -i 'anysphere|sand://' packages/ env/ scripts/
+========================================
+rg_exit: 1  (1 means no match / empty — expected)
+
+========================================
+## 3. env/dsh-bot porcelain
+command: git status --porcelain | rg 'env/dsh-bot'
+========================================
+rg_exit: 1  (1 means empty — expected)
+
+========================================
+## 4. validate docs/dsh-bot-memory --repo .
+========================================
+
+== validate_package: /Users/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin/docs/dsh-bot-memory ==
+[FAIL] 以下 ID 被引用但未在 spec 表格中定义: ['INV-103']
+[WARN] 以下 Phase 的回归验证已显式豁免（备注留痕）: ['P0:校准', 'P2:抽取']
+[PASS] spec.md 存在（655 行）
+[PASS] tasks.csv 表头正确（8 列）
+[PASS] tasks.csv 序号 1..13 连续, 共 13 条任务
+[PASS] 所有详情锚点在 spec.md 中有对应 Task 标题
+[PASS] 前置依赖引用有效、无循环、方向与 Phase 顺序一致
+[PASS] tasks.csv 状态列取值全部合法
+[PASS] 真实场景任务位于最后 Phase 且在回归收尾之前
+[PASS] 无 handoff.md（按需生成, 允许缺省）
+[PASS] §0 人话摘要在位（6 行正文）
+[PASS] §3.3 定位清单 待勘察/ASM 占比 0%（0/18）
+[PASS] 任务验证命令 待勘察/ASM 占比 0%（0/26）
+[PASS] 全部 5 个 UF 均有步骤级流程脚本
+[PASS] 全部 5 个流程脚本均含入口接线清单
+[PASS] 存在真实场景测试章节, 且有任务覆盖执行
+[PASS] 5.2 环境准备完整（启动命令 + 访问入口）
+[PASS] 5.2 执行矩阵引用了 16 条具体 evidence 路径
+[PASS] 真实场景任务已完成, 5.2 引用证据齐全（16 条路径）
+[PASS] 无残留模板占位符
+[PASS] --repo 核验: §3.3 全部 18 条 rg anchor 命中
+[PASS] evidence/ 目录存在
+
+结果: 1 FAIL / 1 WARN / 20 PASS
+exit: 1
+
+========================================
+## 5. validate docs/dsh-bot-routines --repo .
+========================================
+
+== validate_package: /Users/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin/docs/dsh-bot-routines ==
+[FAIL] 以下 ID 被引用但未在 spec 表格中定义: ['INV-103']
+[WARN] 以下 Phase 的回归验证已显式豁免（备注留痕）: ['P0:校准']
+[PASS] spec.md 存在（655 行）
+[PASS] tasks.csv 表头正确（8 列）
+[PASS] tasks.csv 序号 1..14 连续, 共 14 条任务
+[PASS] 所有详情锚点在 spec.md 中有对应 Task 标题
+[PASS] 前置依赖引用有效、无循环、方向与 Phase 顺序一致
+[PASS] tasks.csv 状态列取值全部合法
+[PASS] 真实场景任务位于最后 Phase 且在回归收尾之前
+[PASS] 无 handoff.md（按需生成, 允许缺省）
+[PASS] §0 人话摘要在位（6 行正文）
+[PASS] §3.3 定位清单 待勘察/ASM 占比 0%（0/21）
+[PASS] 任务验证命令 待勘察/ASM 占比 0%（0/28）
+[PASS] 全部 5 个 UF 均有步骤级流程脚本
+[PASS] 全部 5 个流程脚本均含入口接线清单
+[PASS] 存在真实场景测试章节, 且有任务覆盖执行
+[PASS] 5.2 环境准备完整（启动命令 + 访问入口）
+[PASS] 5.2 执行矩阵引用了 19 条具体 evidence 路径
+[PASS] 真实场景任务已完成, 5.2 引用证据齐全（19 条路径）
+[PASS] 无残留模板占位符
+[PASS] --repo 核验: §3.3 全部 21 条 rg anchor 命中
+[PASS] evidence/ 目录存在
+
+结果: 1 FAIL / 1 WARN / 20 PASS
+exit: 1
+
+========================================
+## 6. validate docs/dsh-bot-living-master --repo .
+========================================
+
+== validate_package: /Users/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin/docs/dsh-bot-living-master ==
+[PASS] spec.md 存在（392 行）
+[PASS] 无 tasks.csv, 检测到 spec 第 4 章内嵌状态表（小需求模式）
+[PASS] 内嵌状态表 状态列取值全部合法
+[PASS] handoff.md 引用路径全部存在且均为相对路径
+[PASS] §0 人话摘要在位（6 行正文）
+[PASS] BR/UF/INV/EVD 引用闭环（定义 15 个）
+[PASS] §3.3 定位清单 待勘察/ASM 占比 0%（0/10）
+[PASS] 任务验证命令 待勘察/ASM 占比 0%（0/10）
+[PASS] 全部 3 个 UF 均有步骤级流程脚本
+[PASS] 全部 3 个流程脚本均含入口接线清单
+[PASS] 存在真实场景测试章节, 且有任务覆盖执行
+[PASS] 5.2 环境准备完整（启动命令 + 访问入口）
+[PASS] 5.2 执行矩阵引用了 11 条具体 evidence 路径
+[PASS] 真实场景任务已完成, 5.2 引用证据齐全（11 条路径）
+[PASS] 无残留模板占位符
+[PASS] --repo 核验: §3.3 全部 10 条 rg anchor 命中
+[PASS] evidence/ 目录存在
+
+结果: 0 FAIL / 0 WARN / 17 PASS
+exit: 0
+
+========================================
+## SUMMARY
+typecheck+build+vitest+standard: 0
+pnpm test: 0
+redline rg (expect 1): 1
+env/dsh-bot porcelain rg (expect 1): 1
+validate memory: 1
+validate routines: 1
+validate living-master: 0
+
+========================================
+## 4-6 rerun after removing INV-103 token from child spec §1.5 (validator ID closure)
+date: 2026-09-06T23:10:59+0800
+========================================
+
+== validate docs/dsh-bot-memory --repo . ==
+
+== validate_package: /Users/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin/docs/dsh-bot-memory ==
+[WARN] 以下 Phase 的回归验证已显式豁免（备注留痕）: ['P0:校准', 'P2:抽取']
+[PASS] spec.md 存在（655 行）
+[PASS] tasks.csv 表头正确（8 列）
+[PASS] tasks.csv 序号 1..13 连续, 共 13 条任务
+[PASS] 所有详情锚点在 spec.md 中有对应 Task 标题
+[PASS] 前置依赖引用有效、无循环、方向与 Phase 顺序一致
+[PASS] tasks.csv 状态列取值全部合法
+[PASS] 真实场景任务位于最后 Phase 且在回归收尾之前
+[PASS] 无 handoff.md（按需生成, 允许缺省）
+[PASS] §0 人话摘要在位（6 行正文）
+[PASS] BR/UF/INV/EVD 引用闭环（定义 24 个）
+[PASS] §3.3 定位清单 待勘察/ASM 占比 0%（0/18）
+[PASS] 任务验证命令 待勘察/ASM 占比 0%（0/26）
+[PASS] 全部 5 个 UF 均有步骤级流程脚本
+[PASS] 全部 5 个流程脚本均含入口接线清单
+[PASS] 存在真实场景测试章节, 且有任务覆盖执行
+[PASS] 5.2 环境准备完整（启动命令 + 访问入口）
+[PASS] 5.2 执行矩阵引用了 16 条具体 evidence 路径
+[PASS] 真实场景任务已完成, 5.2 引用证据齐全（16 条路径）
+[PASS] 无残留模板占位符
+[PASS] --repo 核验: §3.3 全部 18 条 rg anchor 命中
+[PASS] evidence/ 目录存在
+
+结果: 0 FAIL / 1 WARN / 21 PASS
+
+== validate docs/dsh-bot-routines --repo . ==
+
+== validate_package: /Users/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin/docs/dsh-bot-routines ==
+[WARN] 以下 Phase 的回归验证已显式豁免（备注留痕）: ['P0:校准']
+[PASS] spec.md 存在（655 行）
+[PASS] tasks.csv 表头正确（8 列）
+[PASS] tasks.csv 序号 1..14 连续, 共 14 条任务
+[PASS] 所有详情锚点在 spec.md 中有对应 Task 标题
+[PASS] 前置依赖引用有效、无循环、方向与 Phase 顺序一致
+[PASS] tasks.csv 状态列取值全部合法
+[PASS] 真实场景任务位于最后 Phase 且在回归收尾之前
+[PASS] 无 handoff.md（按需生成, 允许缺省）
+[PASS] §0 人话摘要在位（6 行正文）
+[PASS] BR/UF/INV/EVD 引用闭环（定义 25 个）
+[PASS] §3.3 定位清单 待勘察/ASM 占比 0%（0/21）
+[PASS] 任务验证命令 待勘察/ASM 占比 0%（0/28）
+[PASS] 全部 5 个 UF 均有步骤级流程脚本
+[PASS] 全部 5 个流程脚本均含入口接线清单
+[PASS] 存在真实场景测试章节, 且有任务覆盖执行
+[PASS] 5.2 环境准备完整（启动命令 + 访问入口）
+[PASS] 5.2 执行矩阵引用了 19 条具体 evidence 路径
+[PASS] 真实场景任务已完成, 5.2 引用证据齐全（19 条路径）
+[PASS] 无残留模板占位符
+[PASS] --repo 核验: §3.3 全部 21 条 rg anchor 命中
+[PASS] evidence/ 目录存在
+
+结果: 0 FAIL / 1 WARN / 21 PASS
+
+== validate docs/dsh-bot-living-master --repo . ==
+
+== validate_package: /Users/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin/docs/dsh-bot-living-master ==
+[PASS] spec.md 存在（392 行）
+[PASS] 无 tasks.csv, 检测到 spec 第 4 章内嵌状态表（小需求模式）
+[PASS] 内嵌状态表 状态列取值全部合法
+[PASS] handoff.md 引用路径全部存在且均为相对路径
+[PASS] §0 人话摘要在位（6 行正文）
+[PASS] BR/UF/INV/EVD 引用闭环（定义 15 个）
+[PASS] §3.3 定位清单 待勘察/ASM 占比 0%（0/10）
+[PASS] 任务验证命令 待勘察/ASM 占比 0%（0/10）
+[PASS] 全部 3 个 UF 均有步骤级流程脚本
+[PASS] 全部 3 个流程脚本均含入口接线清单
+[PASS] 存在真实场景测试章节, 且有任务覆盖执行
+[PASS] 5.2 环境准备完整（启动命令 + 访问入口）
+[PASS] 5.2 执行矩阵引用了 11 条具体 evidence 路径
+[PASS] 真实场景任务已完成, 5.2 引用证据齐全（11 条路径）
+[PASS] 无残留模板占位符
+[PASS] --repo 核验: §3.3 全部 10 条 rg anchor 命中
+[PASS] evidence/ 目录存在
+
+结果: 0 FAIL / 0 WARN / 17 PASS
+
+========================================
+## FINAL SUMMARY
+typecheck+build+vitest+standard: 0
+pnpm test: 0 (297 tests; frozen lockfile 本棒未复现)
+redline rg: empty
+env/dsh-bot porcelain: empty
+validate memory: 0 FAIL / 1 WARN / 21 PASS
+validate routines: 0 FAIL / 1 WARN / 21 PASS
+validate living-master: 0 FAIL / 0 WARN / 17 PASS

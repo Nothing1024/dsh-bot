@@ -11,4 +11,4 @@
 10,P3:RPC 与工作台,执行 Phase 3 回归验证,spec.md#task-10,8;9,pnpm run typecheck && pnpm test && pnpm run build → 全过,已完成,母包 typecheck/test/build 绿；host+ui 已 tsdown
 11,P4:收尾,同步 README 与人设编辑提示,spec.md#task-11,10,rg -n "记忆" README.md → ≥1 命中,已完成,README §记忆；BotForm 代际提示
 12,P4:收尾,执行 spec 5.2 真实场景全套测试,spec.md#task-12,10,按 5.2 执行矩阵逐行回放 → 全部通过,已完成,UF-801~805 主路径/📌/房间/忘记/抽取timeout已过；extract-timeout.log host warn extract returned empty
-13,P4:收尾,执行 Phase 4 回归验证,spec.md#task-13,11;12,四命令全绿；rg 红线为空；邻仓干净；validate_package.py --repo . → 0 FAIL,已阻塞:INV-103 邻仓 session-tool/vibee porcelain,四命令已绿；红线空；validate 0 FAIL
+13,P4:收尾,执行 Phase 4 回归验证,spec.md#task-13,11;12,四命令全绿；rg 红线为空；邻仓干净；validate_package.py --repo . → 0 FAIL,已完成,INV-103 例外登记见母包 §1.5

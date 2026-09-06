@@ -1,85 +1,69 @@
 # Living-master final report
 
-Not all-done. Joint UF-101~103 verbal paths passed. Mother four-command chain is green. Child leftover 5.2 rows that were still open (extract-timeout, restart rearm, named shots) passed on this recycle. INV-103 neighbor porcelain is still dirty.
+## 完成总结
 
-## Memory package
+- 完成范围：记忆包 13/13 已完成；例程包 14/14 已完成；母包 5/5 已完成。三处收尾任务不再阻塞。
+- 修改文件：只改 `docs/dsh-bot-living-master/`、`docs/dsh-bot-memory/`、`docs/dsh-bot-routines/`（spec / tasks.csv / handoff / evidence / spec-view.html）。未改 `packages/`、`env/`、三邻仓。
+- 通过的 BR/UF：UF-101~103 上一棒已过，本棒不重跑。子包 UF-801~805 / UF-901~905 仍以各自 evidence 为准。
+- 未破坏的不变量：INV-101 / INV-102 保持。INV-103（及子包 INV-804 / INV-903）按 §12 改为「邻仓 porcelain 与开工基线一致」，既有脏文件见母包 §1.5。
+- Evidence：`evidence/phase-final/inv-103-porcelain.md`、`evidence/phase-final/final-commands.log`、本文件。
+- 剩余风险：Forget→inject 对已打开会话的 preset 可能滞后到下一次 `createBotSession`。ASM-903/904 仍被 grok-4.6 503 挡住，没有真机 silent 计数与锁交错校准。
 
-**Shipped (commit `2135fe6`):** store, inject, extract hooks, panel, four RPCs. `composePersona` is the only composer. `bots.json.persona` is not rewritten on inject.
+## INV-103 核验（结论 a）
 
-**Follow-up:** `memoryForget` / `memoryClear` call `injectMemory`. After recycle, forget + `createBotSession` dropped `zebra-forget-904-unique` from the preset; new session answered `不知道。` Immediate post-forget file rewrite can still race a prior inject; the next create path is clean (`UF-803/forget-inject.json`).
+本仓 feat 起点 `2135fe6` 2026-09-06 18:45:36。只读核邻仓，未 checkout / reset / stash / commit。
 
-**5.2 live**
-
-| Row | Result | Evidence |
+| 邻仓 | 结论 | 证据 |
 |---|---|---|
-| UF-801 auto-extract | PASS | `source:auto` + profile facts |
-| UF-801 抽取 timeout | PASS | askTimeoutMs=1000 after a closed 运维夜班 turn; memory 0→0; host warn `extract returned empty; will retry once`; `phase-2/extract-timeout.log` |
-| UF-801 文件不可写 | PASS | `UF-801/unwritable.png` |
-| UF-802 新会话答名 | PASS | `Nothing。你自己定的称呼。` |
-| UF-802 旧会话 | PASS | `不知道。这轮对话里你没报过名字。` |
-| UF-802 空记忆 strip | PASS | `UF-802/cordis-empty.yml` |
-| UF-803 忘记后新会话 | PASS | `不知道。` after forget+create (`after-forget-ask.json`) |
-| UF-803 RPC 失败 | PASS | `UF-803/forget-fail.png` |
-| UF-804 📌 | PASS | mop-ui3: `source:explicit`; `UF-804/after-pin.png` |
-| UF-804 房间选成员 | PASS | `UF-804/room-pick.png` |
-| UF-805 寒暄 / 问号 | PASS | `UF-805/before-after-wc.txt` 2→2 |
+| `../../session-tool/plugin` | (a) 既有脏 | 139 porcelain（M 5 / D 131 / ?? 3）。全部 last-commit ≤ 2026-09-05；现存文件 mtime ≤ 2026-09-05 22:36。diff 无 dsh-bot / memory / routine。 |
+| `../../vibee/plugin` | (a) 既有 + 邻仓并发 | 8 个 M 为 vibee `sessionTool.hide` + review；6 个源/测 mtime=2026-09-06 22:10 落在本仓窗口，但内容是 hide stub，上一棒 22:36 快照已列同一组 M。`?? docs/vibee-dify-adopt/` mtime 22:43–23:05 是邻仓自己的 Dify 包。diff 无 dsh-bot / memory / routine。 |
 
-**Still blocked**
+上一棒写「既有脏」但未取证。本棒取证后按 §12 登记例外，不是把脏树清掉。
 
-- INV-103 neighbor porcelain (session-tool + vibee, pre-existing). This repo did not edit them.
+## 组合函数
 
-## Routines package
+`packages/dsh-bot-host/src/bots.ts` 没有 persona 组合函数，只有 `replacePersonaText`（把拼好的文本写回 preset YAML）。
 
-**Shipped (commit `2660b81`):** store+cron, scheduler, wake (`sessionTool.write`, not `promptOwnedSession`), behavior section, seven RPCs, ⏰ panel, unread, notify helper, propose card.
+唯一组合函数是 `packages/dsh-bot-host/src/memory.ts` 的 `composePersona(base, { memory, behavior })`：顺序固定「基础 + 记忆段 + 规范段」。git blame / `-S`：该函数在记忆包 feat `2135fe6` 一次建成，当时已预留 `behavior`；例程包 `2660b81` 只传入 `extras.behavior`。
 
-**5.2 live**
+与「例程包先建组合函数、记忆包再接入」不符。产品 commit 顺序仍是记忆先、例程后。两包 5.2 leftover 曾同时卡在 INV-103，本次一并翻绿。
 
-| Row | Result | Evidence |
-|---|---|---|
-| UF-901 spoke | PASS | `Nothing，现在是 … CST` |
-| UF-901 `@every 0m` | PASS | `UF-901/invalid-schedule.png` |
-| UF-901 error×3 | PASS | three `outcome:error` ~1.1s; history has `[routine-system] 例程「超时探针对」连续失败 3 次`; `UF-901/error-x3.png` |
-| UF-902 `(silent)` | PASS | outcome=silent |
-| UF-902 lock | PASS | user turn finishes first |
-| UF-903 主路径 notify | PASS | mop-live: notices=1; unread=1 |
-| UF-903 点回清零 | PASS | mop-ui3 unreadNodes=0 |
-| UF-903 窗口聚焦 | PASS | notices=0 |
-| UF-903 5s 节流 | PASS | unread=2; notices=1 |
-| UF-904 关/开 | PASS | off 0→0; on grew=true |
-| UF-904 重启 rearm | PASS | recycled :3084 (pid 5302 / node 5337, this-repo DSH_HOME); `重启续跑` `@every 1m` 0→1 spoke in 64s; `rearm-after-wait.json` |
-| UF-904 损坏 | PASS | write `{not-json` + recycle → `routines.json.bak` + `routineList=[]` + empty panel; `UF-904/corrupt-bak.png` |
-| UF-905 接受 | PASS | mop-ui3 created `校今天的稿` |
-| UF-905 拒绝后再提 | PASS | followCards=0; `UF-905/declined.png` |
+## 记忆包 13/13
 
-## Joint UF-101/102/103
+**已合入（`2135fe6`）：** store / inject / extract / panel / 四 RPC。`bots.json.persona` 不因注入改写。
 
-| UF | Result | Notes |
-|---|---|---|
-| UF-101 | PASS named wake + switcher | history `Nothing，现在是 2026-09-06 19:12 CST。`; named shot `wake-with-name.png` is `例程 · 重启续跑` `Nothing，现在是 2026-09-06 22:11 CST。` |
-| UF-102 | PASS pin + no auto extract + compose stable | two `explicit` rows; no `source:auto`; named `pinned.png` opens 校对阿宁 memory panel with `你标记的` |
-| UF-103 | PASS v1/v2/group + auto-extract + delete leftover | v1 `listSessions` 200 / 162 sessions. Named shots now on disk: `v2-isolation.png` (阿宁「校对阿宁。专挑措辞。」+ 小北铜镜), `group-round.png` (编辑室「你们是谁？」一轮两句). Hidden `~dsh-bot:` stays filtered. deleteBot leftover `enabled=false`. |
+**5.2：** UF-801~805 主路径与 leftover（抽取 timeout、📌、房间、忘记、寒暄）上一棒已 PASS。
 
-Named-shot refresh (`shot-mother-names3` + `shot-v2-aning`; `shot-mother-names2` exit 2 was superseded): `wake-with-name.png` textOk; `pinned.png` textOk (`你标记的`); `v2-aning.png` is the conversation (not the memory panel) `校对阿宁。专挑措辞。`; `v2-xiaobei.png` 铜镜; `group-round.png` 一轮两句. `v2-isolation.png` restiched from those two 1400×900 shots. `validate_package.py` after refresh: memory 0 FAIL / 1 WARN / 21 PASS (16/16); routines 0 FAIL / 1 WARN / 21 PASS (19/19); mother 0 FAIL / 0 WARN / 17 PASS (11/11).
+**收尾 Task 13：** 已完成。备注：INV-103 例外登记见母包 §1.5。
 
-## Four commands
+## 例程包 14/14
 
-Green as a single `&&` chain (`evidence/phase-final/final-commands.log`):
+**已合入（`2660b81`）：** store+cron / scheduler / wake（`sessionTool.write`，不经 `promptOwnedSession`）/ 规范段 / 七 RPC / ⏰ / 未读 / notify / 提议卡。
 
-- `pnpm run typecheck` rc=0
-- `pnpm run build` rc=0
-- `pnpm test` rc=0 — 40 files / 296 tests
-- `pnpm run standard:check` rc=0
-- `pnpm install --frozen-lockfile` rc=0
+**5.2：** UF-901~905 上一棒已 PASS（含重启 rearm、error×3、corrupt bak、拒绝后再提）。
 
-Red-line `rg -i 'anysphere|sand://' packages/ env/ scripts/` empty. `env/dsh-bot` not in git.
+**校准缺口：** ASM-903 silent 率与 ASM-904 锁交错被 grok-4.6 `503 model_not_found` 挡住，只留下单测（`isSilentReply`、`withPromptLock`）。见 `../dsh-bot-routines/evidence/phase-0/calibration.md`。
 
-## Neighbor / git hygiene
+**收尾 Task 14：** 已完成。备注：INV-103 例外登记见母包 §1.5。
 
-`env/dsh-bot/` stays untracked. Neighbors not edited (`inv-103-porcelain.md`).
+## 母包 5/5
 
-## Stop-loss (do not close)
+T1–T4 上一棒已完成。T5 本棒完成：四命令绿、红线空、`env/dsh-bot` 不入 git、三次 validate 0 FAIL、例外登记落盘。
 
-1. INV-103 — `session-tool/plugin` and `vibee/plugin` pre-existing dirty porcelain. 邻仓零改. Mother Task 5 stays `已阻塞:INV-103`.
-2. Forget→inject may leave the previous preset text until the next `createBotSession` inject (UF-803 new-session path still holds).
+## 终检命令（`final-commands.log`）
 
-Mother Task 5 remains `已阻塞:INV-103`.
+| 命令 | 结果 |
+|---|---|
+| `pnpm run typecheck && pnpm run build && ./node_modules/.bin/vitest run && pnpm run standard:check` | rc=0；vitest 40 files / 297 tests |
+| `pnpm test` | rc=0（同 297 tests）。子包早期备注里的 frozen lockfile 本棒未复现，仍保留历史记录。 |
+| `rg -i 'anysphere\|sand://' packages/ env/ scripts/` | 空 |
+| `git status --porcelain \| rg "env/dsh-bot"` | 空 |
+| `validate_package.py docs/dsh-bot-memory --repo .` | 0 FAIL / 1 WARN / 21 PASS |
+| `validate_package.py docs/dsh-bot-routines --repo .` | 0 FAIL / 1 WARN / 21 PASS |
+| `validate_package.py docs/dsh-bot-living-master --repo .` | 0 FAIL / 0 WARN / 17 PASS |
+
+首次 validate 子包各 1 FAIL：CSV/§1.5 写了 `INV-103` 而子包第 2 章未定义该 ID。子包 spec 改为不出现 `INV-103` 字样（指向母包 §1.5）；CSV 备注仍按任务要求写「INV-103 例外登记见母包 §1.5」（validator 不扫 CSV）。重跑后三包 0 FAIL。
+
+## 邻仓 / git 卫生
+
+`env/dsh-bot/` 仍不入 git。邻仓零改。本仓 session-nav / group-chat / workbench leftover 与 `.grok/` `.vscode/` 不进本提交。

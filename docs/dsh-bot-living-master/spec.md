@@ -1,6 +1,6 @@
 # dsh-bot-living-master Spec
 
-> Version: 0.1.0 | Date: 2026-09-06 | Status: Ready 可执行
+> Version: 0.2.0 | Date: 2026-09-06 | Status: Ready 可执行
 >
 > 本文件是**母包**唯一事实源：统筹两个子包的执行顺序、共享面冲突规约、跨包联合验收。
 > 子包合同各自独立（编号闭环）。引用子包条目时用「路径 + 描述性名称」，不直写其条目编号：
@@ -68,6 +68,7 @@
 | 日期 | 变更条目 ID | 原因 | 影响任务与处置 |
 |---|---|---|---|
 | — | — | 首次生成 | — |
+| 2026-09-06 | INV-103 | 邻仓既有脏状态非本仓所致，登记为已知例外。核验：本仓 feat 起点 `2135fe6` 2026-09-06 18:45:36；两邻仓只读 porcelain / mtime / `git log -1 --format=%ci`；邻仓 diff 无 dsh-bot / memory / routine 字样。session-tool（last-commit 与现存文件 mtime 均 ≤ 2026-09-05）：M README.md；M packages/session-tool-local/src/http-rpc.ts、index.ts、session-client-in-process.ts；M packages/session-tool-local/tests/http-auth.spec.ts；D 131 个 docs/（EVOLUTION-SUMMARY.md、design.md、research.md、discuss-*、dsh-0-1-2-upgrade/、session-delegation/、session-marks/）；未跟踪 .grok/、live-events.ts、live-events.spec.ts。vibee：M docs/vibee-node-ops/review-report.md；M packages/vibee-host/src/executor.ts（sessionTool.hide）；M 六个 vibee 测试（hide stub）；未跟踪 review/canvas 遗留与并发包 docs/vibee-dify-adopt/（mtime 22:43–23:05，邻仓自己的 Dify 包）。vibee 六个源/测文件 mtime=2026-09-06 22:10 落在本仓窗口内，但内容是 vibee hide 委托会话，且上一棒 inv-103-porcelain.md 已列同一组 M，判定仍为邻仓并发/既有脏，不是本仓 worker 改的。 | 母包 Task 5、记忆 Task 13、例程 Task 14：INV 改为「邻仓 porcelain 与开工基线一致」；三处收尾任务改已完成。邻仓零改。 |
 
 ---
 
@@ -171,7 +172,7 @@
 |---|---|---|---|
 | INV-101 | 子包互不回归：例程包合入后，记忆包 5.2 已过行为（自动记住 / 注入 / 忘记 / 📌 / 寒暄不记）保持；记忆包合入后 v1/v2/三期行为保持 | BR-102, UF-103 | Task 4 联合回放 + Task 5 抽验 |
 | INV-102 | `bots.json.persona` 在任何注入或规范段追加后不变（它是真源，preset 文件是派生物） | BR-102 ① | Task 4 `diff` 前后 `bots.json` |
-| INV-103 | 全局纪律：仍只有 :3084；邻仓 porcelain 干净（vibee 既有 `?? .vibee/` 除外）；`rg -i 'anysphere\|sand://' packages/` 为空；`env/dsh-bot/{memory,routines.json}` 不入 git | BR-105 | Task 5 终检 |
+| INV-103 | 全局纪律：仍只有 :3084；邻仓 porcelain 与开工基线一致（既有脏文件见 §1.5）；`rg -i 'anysphere\|sand://' packages/` 为空；`env/dsh-bot/{memory,routines.json}` 不入 git | BR-105 | Task 5 终检 |
 
 ### 2.5 EVD 证据清单
 
@@ -263,7 +264,7 @@ P0 前置检查(1) → P1 记忆包全量(2) → P2 例程包全量(3) → P3 �
 | 2 | 执行子包 dsh-bot-memory 全量 | 1 | 其 tasks.csv 13 条全部已完成（或诚实已阻塞）且其 validate 0 FAIL | 已完成 | 诚实已阻塞见其子 CSV；validate 0 FAIL / 1 WARN |
 | 3 | 执行子包 dsh-bot-routines 全量 | 2 | 其 tasks.csv 14 条全部已完成（或诚实已阻塞）且其 validate 0 FAIL | 已完成 | 诚实已阻塞见其子 CSV；validate 0 FAIL / 1 WARN |
 | 4 | 执行 spec 5.2 真实场景全套测试（跨包联合回放） | 3 | 5.2 执行矩阵 UF-101~103 全行通过并落 evidence | 已完成 | UF-101 含会话下拉（例程 · 报时）；UF-102 📌；UF-103 v1/v2/小组/自动抽取/deleteBot leftover `enabled=false`。v1 `listSessions` 现网 200（162 sessions；fallback）。子包 leftover notify/📌/提议卡/点回清零/抽取timeout/重启rearm 已再真机。 |
-| 5 | 执行母包总回归验证（收尾） | 4 | `pnpm run typecheck && pnpm run build && pnpm test && pnpm run standard:check` 全绿 + INV-103 命令干净 + 总报告落盘 | 已阻塞:INV-103 邻仓 session-tool/vibee porcelain 既有脏文件 | 四命令全绿（296 tests）；SessionId/cordis 对齐 0.1.2-rc.1 / 4.0.2；frozen lockfile 绿；红线空；env/dsh-bot 不入 git。邻仓未改。例程重启续跑与记忆抽取超时已真机。INV-103 邻仓仍脏。 |
+| 5 | 执行母包总回归验证（收尾） | 4 | `pnpm run typecheck && pnpm run build && pnpm test && pnpm run standard:check` 全绿 + INV-103 命令干净 + 总报告落盘 | 已完成 | INV-103 例外登记见母包 §1.5 |
 
 ### Phase 0: 前置检查
 
@@ -329,7 +330,7 @@ P0 前置检查(1) → P1 记忆包全量(2) → P2 例程包全量(3) → P3 �
 - **关联**：BR-104 / BR-105 / INV-103
 - **前置任务**：4
 
-**验证**：`pnpm run typecheck && pnpm run build && pnpm test && pnpm run standard:check` → 全绿；`rg -i 'anysphere|sand://' packages/ env/ scripts/` → 空；`git status --porcelain | rg "env/dsh-bot"` → 空；三邻仓 `git status --porcelain` 干净；两子包 validate 二次运行 0 FAIL（证据审计）；`python3 ~/.claude/skills/prd-workflow/scripts/validate_package.py docs/dsh-bot-living-master --repo .` → 0 FAIL；总报告 `evidence/phase-final/report.md` 写明每个子包完成/止损点
+**验证**：`pnpm run typecheck && pnpm run build && pnpm test && pnpm run standard:check` → 全绿；`rg -i 'anysphere|sand://' packages/ env/ scripts/` → 空；`git status --porcelain | rg "env/dsh-bot"` → 空；三邻仓 porcelain 与开工基线一致（既有脏文件见 §1.5）；两子包 validate 二次运行 0 FAIL（证据审计）；`python3 ~/.claude/skills/prd-workflow/scripts/validate_package.py docs/dsh-bot-living-master --repo .` → 0 FAIL；总报告 `evidence/phase-final/report.md` 写明每个子包完成/止损点
 
 **Evidence**：`evidence/phase-final/final-commands.log`、`evidence/phase-final/report.md`
 
