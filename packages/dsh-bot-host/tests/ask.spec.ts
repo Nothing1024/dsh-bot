@@ -111,6 +111,17 @@ class StubSessionTool implements SessionToolService {
   async workspaceDelete() {
     return { workspaceId: 'ws', deleted: true }
   }
+
+  async cancel() {}
+  async getVisibility() {
+    return { hasHiddenMark: false, archived: false, isHidden: false }
+  }
+  async hide() {
+    return { hasHiddenMark: true, archived: false, isHidden: true }
+  }
+  async unhide() {
+    return { hasHiddenMark: false, archived: false, isHidden: false }
+  }
 }
 
 class StubPlatform implements DshBotPlatform {

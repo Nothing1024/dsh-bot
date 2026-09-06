@@ -6,7 +6,7 @@ import {
   wakeRoutine,
   wakeWaitFailed,
 } from '../src/routine-wake.ts'
-import type { RoutineRow } from '../src/routines.ts'
+import type { RoutineRow, UpdateRoutineInput } from '../src/routines.ts'
 
 const routine: RoutineRow = {
   id: 'r1',
@@ -38,7 +38,15 @@ describe('wakeRoutine', () => {
         ensureSession: async () => 'sess-1',
         writeWaitRead: async () => '(silent)',
       },
-      store: { update: async row => ({ ...routine, ...row, runs: [] }) },
+      store: { update: async (input: UpdateRoutineInput) => ({
+        ...routine,
+        name: input.name ?? routine.name,
+        schedule: input.schedule ?? routine.schedule,
+        instruction: input.instruction ?? routine.instruction,
+        enabled: input.enabled ?? routine.enabled,
+        notify: input.notify ?? routine.notify,
+        runs: [],
+      }) },
       unread,
       errors: new Map(),
     }, routine)
@@ -54,7 +62,15 @@ describe('wakeRoutine', () => {
         ensureSession: async () => 'sess-1',
         writeWaitRead: async () => '现在是凌晨三点。',
       },
-      store: { update: async row => ({ ...routine, ...row, runs: [] }) },
+      store: { update: async (input: UpdateRoutineInput) => ({
+        ...routine,
+        name: input.name ?? routine.name,
+        schedule: input.schedule ?? routine.schedule,
+        instruction: input.instruction ?? routine.instruction,
+        enabled: input.enabled ?? routine.enabled,
+        notify: input.notify ?? routine.notify,
+        runs: [],
+      }) },
       unread,
       errors: new Map(),
     }, routine)
@@ -73,7 +89,15 @@ describe('wakeRoutine', () => {
         },
         writeSystem: async (_id: string, text: string) => { systems.push(text) },
       },
-      store: { update: async row => ({ ...routine, ...row, runs: [] }) },
+      store: { update: async (input: UpdateRoutineInput) => ({
+        ...routine,
+        name: input.name ?? routine.name,
+        schedule: input.schedule ?? routine.schedule,
+        instruction: input.instruction ?? routine.instruction,
+        enabled: input.enabled ?? routine.enabled,
+        notify: input.notify ?? routine.notify,
+        runs: [],
+      }) },
       unread: new Map<string, number>(),
       errors,
     }

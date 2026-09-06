@@ -111,6 +111,17 @@ class StubSessionTool implements SessionToolService {
   async workspaceDelete() {
     return { workspaceId: 'ws', deleted: true }
   }
+
+  async cancel() {}
+  async getVisibility() {
+    return { hasHiddenMark: false, archived: false, isHidden: false }
+  }
+  async hide() {
+    return { hasHiddenMark: true, archived: false, isHidden: true }
+  }
+  async unhide() {
+    return { hasHiddenMark: false, archived: false, isHidden: false }
+  }
 }
 
 class StubPlatform implements DshBotPlatform {
@@ -200,7 +211,7 @@ async function setupRoom() {
   return { groups, group, room }
 }
 
-function assistantText(sessionId: string, text: string): SessionToolMessageRow[] {
+function assistantText(_sessionId: string, text: string): SessionToolMessageRow[] {
   return [
     { seq: 1, role: 'user', blocks: [{ type: 'text', text: 'prompt' }] },
     { seq: 2, role: 'assistant', blocks: [{ type: 'text', text }] },
@@ -406,7 +417,7 @@ describe('runGroupRound', () => {
         role: 'assistant',
         blocks: [{ type: 'tool-call', id: 'c1', name: 'bash', arguments: '{"cmd":"secret"}' }],
       },
-    ] as SessionToolMessageRow[])
+    ] as unknown as SessionToolMessageRow[])
     sessionTool.setReply('session-owned-2', assistantText('session-owned-2', '我是 DSH Bot。'))
     await runGroupRound({
       sessionTool,

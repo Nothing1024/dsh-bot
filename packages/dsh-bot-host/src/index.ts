@@ -343,7 +343,9 @@ class DshBotService extends Service {
       wake: routine => this.performWake(routine),
     })
     if (this.source().routinesEnabled !== false) void this.scheduler.rearmAll()
-    ctx.on('dispose', () => this.scheduler.disarmAll())
+    ctx.effect(() => () => {
+      this.scheduler.disarmAll()
+    })
     this.groupsRuntime = groupsRuntime ?? createGroupsRuntime({
       listBotIds: async () => {
         const listed = await this.botsRuntime.listBots()
@@ -628,7 +630,7 @@ class DshBotService extends Service {
     return { ok: true as const, declined: view.declined ?? [] }
   }
 
-  markRead(input: { botId: string }) {
+  async markRead(input: { botId: string }) {
     this.unread.set(input.botId, 0)
     return { ok: true as const, unread: 0 }
   }

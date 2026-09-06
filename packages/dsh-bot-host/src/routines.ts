@@ -214,25 +214,31 @@ export function createRoutineStore(
         if (name === '') throw new DshBotError('invalid-input', 'name is required')
         const instruction = input.instruction === undefined ? current.instruction : input.instruction.trim()
         if (instruction === '') throw new DshBotError('invalid-input', 'instruction is required')
+        const cleared = input.sessionId === null
+          || (typeof input.sessionId === 'string' && input.sessionId.trim() === '')
+        const sessionId = input.sessionId === undefined
+          ? current.sessionId
+          : cleared
+            ? undefined
+            : input.sessionId.trim()
         const next: RoutineRow = {
-          ...current,
+          id: current.id,
+          botId: current.botId,
           name,
           schedule,
           instruction,
           enabled: input.enabled ?? current.enabled,
           notify: input.notify ?? current.notify,
-          ...input.sessionId === undefined
-            ? {}
-            : input.sessionId === null || input.sessionId.trim() === ''
-              ? { sessionId: undefined }
-              : { sessionId: input.sessionId.trim() },
+          createdAt: current.createdAt,
+          runs: current.runs,
+          ...current.lastRunAt === undefined ? {} : { lastRunAt: current.lastRunAt },
+          ...current.lastOutcome === undefined ? {} : { lastOutcome: current.lastOutcome },
+          ...sessionId === undefined ? {} : { sessionId },
         }
         const copy = [...rows]
-        copy[index] = next.sessionId === undefined
-          ? Object.fromEntries(Object.entries(next).filter(([key]) => key !== 'sessionId')) as RoutineRow
-          : next
+        copy[index] = next
         await save(copy)
-        return copy[index]!
+        return next
       })
     },
     async remove(id) {

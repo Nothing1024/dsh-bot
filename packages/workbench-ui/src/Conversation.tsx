@@ -689,7 +689,7 @@ export function Conversation(props: ConversationProps) {
         </div>
       ) : (
         <Transcript
-            botId={bot?.id}
+          {...bot?.id === undefined ? {} : { botId: bot.id }}
           items={poll.items}
           pending={pending}
           working={working}

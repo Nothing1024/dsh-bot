@@ -18,6 +18,7 @@ export type DshBotErrorCode =
   | 'archive-unavailable'
   | 'empty-prompt'
   | 'invalid-input'
+  | 'not-found'
   | 'bot-not-found'
   | 'bot-protected'
   | 'group-not-found'

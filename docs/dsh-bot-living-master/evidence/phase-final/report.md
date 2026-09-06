@@ -1,6 +1,6 @@
 # Living-master final report
 
-This is not an “all done” report. Two child packages shipped; joint verbal paths were re-run after grok-4.6 recovered. Four commands and the workbench session switcher are still blocked.
+This is not an “all done” report. Two child packages shipped; joint UF-101~103 verbal paths passed. Four commands are now green. INV-103 neighbor porcelain is still dirty (session-tool + vibee, pre-existing; this repo did not edit them).
 
 ## Memory package
 
@@ -15,8 +15,7 @@ This is not an “all done” report. Two child packages shipped; joint verbal p
 **Still blocked**
 
 - v1 `listSessions` still `workspace/follow` HTTP 401. Workbench `listBotSessions` now falls back to official `session.list`.
-- `pnpm run typecheck` — SessionId brand clash.
-- `pnpm test` — frozen lockfile vs neighbor session-tool; used `./node_modules/.bin/vitest` + `tsdown`.
+- INV-103: neighbor `session-tool/plugin` and `vibee/plugin` porcelain still dirty (pre-existing). Not cleaned.
 
 ## Routines package
 
@@ -42,7 +41,15 @@ This is not an “all done” report. Two child packages shipped; joint verbal p
 
 ## Four commands
 
-Not green. typecheck: SessionId brand. `pnpm test`/`pnpm install`: frozen lockfile. `standard:check` not used as a gate. host `tsdown` succeeded after the wait fix. Red-line and validate remain 0 FAIL from the earlier T5 log.
+Green as a single `&&` chain (`evidence/phase-final/final-commands.log`):
+
+- `pnpm run typecheck` rc=0 after aligning host/tool/ui to `@deepseek-ai/dsh-session` 0.1.2-rc.1 and `@deepseek-ai/cordis` 4.0.2 (same brand as workspace session-tool).
+- `pnpm run build` rc=0
+- `pnpm test` rc=0 — 40 files / 296 tests
+- `pnpm run standard:check` rc=0
+- `pnpm install --frozen-lockfile` rc=0 after the lockfile update that matches neighbor session-tool 0.1.2-rc.1
+
+Red-line `rg -i 'anysphere|sand://' packages/ env/ scripts/` empty. `env/dsh-bot` not in git. Child + mother validate 0 FAIL / 1 WARN (matrix filename aliases).
 
 ## Neighbor / git hygiene
 
@@ -55,4 +62,4 @@ Workbench `listBotSessions` no longer dies on `workspace/follow` 401: it interse
 
 `deleteBot` on the new process keeps the routine row at `enabled=false` (`UF-103/delete-bot-after-restart.md`).
 
-Still not all-green: `pnpm run typecheck` SessionId brand (host 0.1.1-rc.2 vs workspace session-tool 0.1.2-rc.1); `pnpm test` frozen lockfile vs neighbor session-tool; v1 `listSessions` RPC still 401; `(silent)` / notification / live propose card not re-driven.
+Still not a clean close: INV-103 neighbor porcelain (session-tool/vibee, pre-existing); v1 `listSessions` RPC still 401; `(silent)` / notification / live propose card not re-driven.

@@ -156,6 +156,9 @@ describe('Roster', () => {
         items={[item({ id: 'ops', name: '运维夜班', unread: 2, selected: true, protected: false })]}
         onSelect={() => undefined}
         onCreate={() => undefined}
+        onEdit={() => undefined}
+        onDelete={() => undefined}
+        onRename={() => undefined}
       />,
     )
     expect(screen.getByTestId('roster-unread-ops').textContent).toBe('2')

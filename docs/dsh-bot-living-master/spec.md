@@ -263,7 +263,7 @@ P0 前置检查(1) → P1 记忆包全量(2) → P2 例程包全量(3) → P3 �
 | 2 | 执行子包 dsh-bot-memory 全量 | 1 | 其 tasks.csv 13 条全部已完成（或诚实已阻塞）且其 validate 0 FAIL | 已完成 | 诚实已阻塞见其子 CSV；validate 0 FAIL / 1 WARN |
 | 3 | 执行子包 dsh-bot-routines 全量 | 2 | 其 tasks.csv 14 条全部已完成（或诚实已阻塞）且其 validate 0 FAIL | 已完成 | 诚实已阻塞见其子 CSV；validate 0 FAIL / 1 WARN |
 | 4 | 执行 spec 5.2 真实场景全套测试（跨包联合回放） | 3 | 5.2 执行矩阵 UF-101~103 全行通过并落 evidence | 已完成 | UF-101 含会话下拉（例程 · 报时）；UF-102 📌；UF-103 v1/v2/小组/自动抽取/deleteBot leftover `enabled=false`。v1 `listSessions` RPC 仍 401；`(silent)`/通知/提议卡未再真机。 |
-| 5 | 执行母包总回归验证（收尾） | 4 | `pnpm run typecheck && pnpm run build && pnpm test && pnpm run standard:check` 全绿 + INV-103 命令干净 + 总报告落盘 | 已阻塞:tsc SessionId brand + pnpm frozen lockfile | host `tsdown` + workbench-sessions vitest 18/18；tsc 仍是 0.1.1-rc.2 vs session-tool 0.1.2-rc.1；lockfile 与邻仓 session-tool 声明不一致。 |
+| 5 | 执行母包总回归验证（收尾） | 4 | `pnpm run typecheck && pnpm run build && pnpm test && pnpm run standard:check` 全绿 + INV-103 命令干净 + 总报告落盘 | 已阻塞:INV-103 邻仓 session-tool/vibee porcelain 既有脏文件 | 四命令全绿（296 tests）；SessionId/cordis 对齐 0.1.2-rc.1 / 4.0.2；frozen lockfile 绿；红线空；env/dsh-bot 不入 git。邻仓未改。 |
 
 ### Phase 0: 前置检查
 
