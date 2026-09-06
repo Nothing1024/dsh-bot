@@ -99,7 +99,14 @@ export interface WorkbenchBotsFace {
   }): Promise<unknown>
   questionRespond?(input: { rpcId: string; sessionId: string; answer: unknown }): Promise<unknown>
   peerLog?(input?: { botId?: string }): Promise<unknown>
+  sendToPeer?(input: { toBot: string; text: string; fromBot?: string; fromSessionId?: string }): Promise<unknown>
+  updateBotLayout?(input: {
+    bots?: readonly { id: string; pinned?: boolean; section?: string; hidden?: boolean; order?: number; muted?: boolean }[]
+    groups?: readonly { id: string; section?: string; order?: number }[]
+    sections?: readonly { id: string; name: string; order: number }[]
+  }): Promise<unknown>
 }
+
 
 function send(res: ServerResponse, status: number, body: string | Buffer, contentType: string): void {
   res.statusCode = status
@@ -373,6 +380,31 @@ export async function dispatchWorkbenchApi(
       if (bot.peerLog === undefined) throw new DshBotError('internal', 'peerLog is unavailable')
       const botId = asString(args.botId).trim()
       return await bot.peerLog(botId === '' ? {} : { botId })
+    }
+    case 'sendToPeer': {
+      if (bot.sendToPeer === undefined) throw new DshBotError('internal', 'sendToPeer is unavailable')
+      const toBot = asString(args.toBot).trim()
+      const text = asString(args.text)
+      const fromBot = asString(args.fromBot).trim()
+      const fromSessionId = asString(args.fromSessionId).trim()
+      if (toBot === '' || text.trim() === '') throw new DshBotError('invalid-input', 'toBot and text are required')
+      return await bot.sendToPeer({
+        toBot,
+        text,
+        ...fromBot === '' ? {} : { fromBot },
+        ...fromSessionId === '' ? {} : { fromSessionId },
+      })
+    }
+    case 'updateBotLayout': {
+      if (bot.updateBotLayout === undefined) throw new DshBotError('internal', 'updateBotLayout is unavailable')
+      const bots = Array.isArray(args.bots) ? args.bots : []
+      const groups = Array.isArray(args.groups) ? args.groups : []
+      const sections = Array.isArray(args.sections) ? args.sections : undefined
+      return await bot.updateBotLayout({
+        ...bots.length === 0 ? {} : { bots: bots as never },
+        ...groups.length === 0 ? {} : { groups: groups as never },
+        ...sections === undefined ? {} : { sections: sections as never },
+      })
     }
     default:
       return undefined

@@ -28,6 +28,7 @@ import type {
   ListBotSessionsRequest,
 } from './ask.ts'
 import { DshBotError } from './errors.ts'
+import { readRosterSections, writeRosterSections, type RosterSection } from './roster-layout.ts'
 import { createPlatform } from './platform.ts'
 import type { DshBotModelRef, DshBotPlatform } from './platform.ts'
 import {
@@ -148,6 +149,7 @@ export {
   parseAgentLine,
   readPeerLog,
 } from './peers.ts'
+export { readRosterSections, writeRosterSections } from './roster-layout.ts'
 export type { DshBotModelRef, DshBotPlatform } from './platform.ts'
 export { attachDshBotHttp, handleDshBotHttp } from './routes.ts'
 export type { DshBotHttpFace, DshBotModelInfo, ListSessionsRpcValue } from './routes.ts'
@@ -882,12 +884,12 @@ class DshBotService extends Service {
         })
       },
       waitRead: async sessionId => {
+        const waited = await this.ctx.sessionTool.wait({ kind: 'cli' }, SessionId(sessionId), {
+          until: 'idle',
+          timeoutMs: this.source().askTimeoutMs,
+        })
+        if (wakeWaitFailed(waited.status)) return undefined
         return await withPromptLock(sessionId, async () => {
-          const waited = await this.ctx.sessionTool.wait({ kind: 'cli' }, SessionId(sessionId), {
-            until: 'idle',
-            timeoutMs: this.source().askTimeoutMs,
-          })
-          if (wakeWaitFailed(waited.status)) return undefined
           const read = await this.ctx.sessionTool.read({ kind: 'cli' }, SessionId(sessionId), { maxBlocks: 500 })
           return extractAssistantAnswer(read.messages)
         })
@@ -949,6 +951,27 @@ class DshBotService extends Service {
 
   peerLog(input: { botId?: string } = {}) {
     return readPeerLog(this.home(), input.botId)
+  }
+
+  async updateBotLayout(input: {
+    bots?: readonly { id: string; pinned?: boolean; section?: string; hidden?: boolean; order?: number; muted?: boolean }[]
+    groups?: readonly { id: string; section?: string; order?: number }[]
+    sections?: readonly RosterSection[]
+  } = {}) {
+    const skipped: string[] = []
+    if (input.bots !== undefined && input.bots.length > 0) {
+      const result = await this.botsRuntime.updateLayout(input.bots)
+      skipped.push(...result.skipped)
+    }
+    if (input.groups !== undefined && input.groups.length > 0) {
+      const result = await this.groupsRuntime.updateLayout(input.groups)
+      skipped.push(...result.skipped)
+    }
+    if (input.sections !== undefined) {
+      await writeRosterSections(this.home(), input.sections)
+    }
+    const sections = await readRosterSections(this.home())
+    return { ok: true as const, skipped, sections }
   }
 
   async noteSessionRunning(sessionId: string, running: boolean) {

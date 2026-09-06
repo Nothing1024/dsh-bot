@@ -1,0 +1,10 @@
+$ vitest run
+
+ RUN  v4.1.11 /Users/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin
+
+
+ Test Files  45 passed (45)
+      Tests  339 passed (339)
+   Start at  00:24:11
+   Duration  2.32s (transform 3.09s, setup 0ms, import 8.66s, tests 4.67s, environment 11.09s)
+

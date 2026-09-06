@@ -248,5 +248,25 @@ describe('peers RPC dispatch', () => {
     ])
     expect(peerLog).toHaveBeenCalledWith({ botId: 'a' })
   })
+
+  it('routes sendToPeer', async () => {
+    const sendToPeer = vi.fn(async () => ({ ok: true, accepted: true, sessionId: 'p1' }))
+    const bot = { sendToPeer } as unknown as Parameters<typeof dispatchWorkbenchApi>[0]
+    await expect(dispatchWorkbenchApi(bot, 'sendToPeer', {
+      toBot: 'shiren-xiaobei',
+      text: '封面用深蓝',
+      fromBot: 'xiaodui-aning',
+    })).resolves.toEqual({ ok: true, accepted: true, sessionId: 'p1' })
+  })
+})
+
+describe('roster layout RPC', () => {
+  it('routes updateBotLayout', async () => {
+    const updateBotLayout = vi.fn(async () => ({ ok: true, skipped: ['x'], sections: [] }))
+    const bot = { updateBotLayout } as unknown as Parameters<typeof dispatchWorkbenchApi>[0]
+    await expect(dispatchWorkbenchApi(bot, 'updateBotLayout', {
+      bots: [{ id: 'a', hidden: true }],
+    })).resolves.toEqual({ ok: true, skipped: ['x'], sections: [] })
+  })
 })
 

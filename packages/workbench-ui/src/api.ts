@@ -72,6 +72,11 @@ export interface WorkbenchBot {
   readonly createdAt: number
   readonly persona: string
   readonly protected: boolean
+  readonly pinned?: boolean
+  readonly section?: string
+  readonly hidden?: boolean
+  readonly order?: number
+  readonly muted?: boolean
 }
 
 export interface ListBotsValue {
@@ -456,5 +461,32 @@ export interface PeerLogRow {
 
 export function peerLog(botId?: string): Promise<RpcResult<readonly PeerLogRow[]>> {
   return workbenchCall('peerLog', botId === undefined || botId === '' ? {} : { botId })
+}
+
+export function sendToPeer(input: {
+  toBot: string
+  text: string
+  fromBot?: string
+  fromSessionId?: string
+}): Promise<RpcResult<{ accepted: true; sessionId: string }>> {
+  return workbenchCall('sendToPeer', { ...input })
+}
+
+export interface RosterSection {
+  readonly id: string
+  readonly name: string
+  readonly order: number
+}
+
+export function updateBotLayout(input: {
+  bots?: readonly Partial<Pick<WorkbenchBot, 'id' | 'pinned' | 'section' | 'hidden' | 'order' | 'muted'>>[]
+  groups?: readonly { id: string; section?: string; order?: number }[]
+  sections?: readonly RosterSection[]
+}): Promise<RpcResult<{ ok: true; skipped: readonly string[]; sections: readonly RosterSection[] }>> {
+  return workbenchCall('updateBotLayout', { ...input })
+}
+
+export function rosterSections(): Promise<RpcResult<{ sections: readonly RosterSection[] }>> {
+  return workbenchCall('updateBotLayout', {})
 }
 

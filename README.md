@@ -92,6 +92,16 @@ bash scripts/manual-test.sh --no-write      # 只建会话 / 设 override / 查 
 
 每个 bot 可建定时例程（`$DSH_HOME/dsh-bot/routines.json`）。会话头「⏰」打开列表；到点 host 在「例程 · 名称」线程里叫醒它，没事只回 `(silent)`，有事才落消息并计未读。窗口失焦时弹系统通知。
 
+### 同事（`dsh_bot_send`）
+
+任意 bot 可通过工具 `dsh_bot_send({toBot, text})` 给名册里**另一个** bot 捎一句。工具立刻 `{accepted:true}`，不在调用里等对方说完。
+
+- 每 bot 每分钟最多 3 条成功投递；第 4 条失败，不是 accepted。
+- 成功投递追加 `$DSH_HOME/dsh-bot/peers.jsonl`（`{from,to,ts,sessionId}`），该文件不入 git。
+- 一次一个收件人，不广播、不接外部、不跨用户。
+- 收件人同事会话标题「来自 <发件人名>」；非静默回复才写回发件人当前会话。
+- 工作台详情「同事」页与 roster「关系图」只在打开时拉 `peerLog`，不新开定时器。
+
 ### 记忆
 
 每个 bot 有一份跨会话记忆，存在 `$DSH_HOME/dsh-bot/memory/<botId>/`（`profile.md` 长期事实 + `log.jsonl` 日志/备注）。工作台会话头「🧠 N」打开面板，可忘记单条或清空。助理消息菜单有「📌 记住这条」。轮次闭合后自动抽取；寒暄不记。记忆只注入**之后新建**的会话，不改 `bots.json` 里填写的基础人设。关闭抽取：settings `dsh-bot.memory.enabled: false`。

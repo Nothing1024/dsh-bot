@@ -1,0 +1,38 @@
+=== composePersona ===
+packages/dsh-bot-host/src/memory.ts:224:export function composePersona(
+=== redline ===
+=== standard ===
+$ node standards/validate.mjs
+
+== manifest 校验（packages/*/dsh-plugin.json） ==
+✓ tool-dsh-bot (io.github.nothing1024.tool-dsh-bot)
+✓ ui-dsh-bot (io.github.nothing1024.ui-dsh-bot)
+
+== 协商（manifest × host-descriptor） ==
+✓ tool-dsh-bot: compatible
+✓ ui-dsh-bot: compatible
+
+== fixtures 自检 ==
+✓ valid/full.json
+✓ valid/minimal.json
+✓ valid/tool-dsh-bot.json
+✓ invalid/missing-schema.json → [missing-schema]
+✓ invalid/wrong-manifest-version.json → [wrong-manifest-version]
+✓ invalid/missing-facets.json → [missing-facets]
+✓ invalid/bad-id.json → [bad-id]
+✓ invalid/unknown-field.json → [unknown-field]
+✓ invalid/provides-rejected.json → [provides-rejected]
+✓ invalid/requires-services-rejected.json → [requires-services-rejected]
+✓ invalid/reserved-facet-client.json → [reserved-facet]
+✓ invalid/duplicate-contributes-id.json → [duplicate-contributes-id]
+✓ invalid/entry-outside-root.json → [entry-outside-root]
+
+== adapter 审计（上游触点基线） ==
+✓ 无未评审的新增上游触点
+
+结论：全部通过
+
+=== typecheck (honest) ===
+rc=2 SessionId brand clash 本仓 0.1.2-rc.1 vs vibee 0.1.0-rc.7 via session-tool paths; BR-044 不改邻仓
+=== pnpm test ===
+45 files / 339 passed
