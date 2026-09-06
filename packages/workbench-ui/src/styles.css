@@ -111,6 +111,62 @@ body,
   background: #243044;
 }
 
+.rosterRow.isMuted {
+  opacity: 0.72;
+}
+
+.roster.isCollapsed {
+  width: 0;
+  min-width: 0;
+  overflow: hidden;
+  border-right: 0;
+}
+
+.rosterSection {
+  margin-bottom: 10px;
+}
+
+.rosterSectionHead {
+  display: block;
+  width: 100%;
+  text-align: left;
+  background: transparent;
+  border: 0;
+  color: var(--wb-muted);
+  padding: 4px 6px;
+  cursor: pointer;
+  font: inherit;
+}
+
+.rosterPreviewCard {
+  position: absolute;
+  left: calc(100% + 8px);
+  top: 0;
+  z-index: 8;
+  width: 220px;
+  padding: 8px 10px;
+  background: #1d232c;
+  border: 1px solid var(--wb-border);
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgb(0 0 0 / 35%);
+  color: var(--wb-text);
+  pointer-events: none;
+}
+
+.rosterHidden {
+  margin-top: 12px;
+  border-top: 1px solid var(--wb-border);
+  padding-top: 8px;
+}
+
+.rosterHiddenHead {
+  background: transparent;
+  border: 0;
+  color: var(--wb-muted);
+  cursor: pointer;
+  font: inherit;
+}
+
 .avatarWrap {
   position: relative;
   width: 32px;

@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { notifyRoutineSpoke, resetNotifyThrottleForTests } from '../src/notify.ts'
+import { notifyRoutineSpoke, resetNotifyThrottleForTests, shouldNotifyRoutine } from '../src/notify.ts'
 
 const OriginalNotification = globalThis.Notification
 
@@ -40,5 +40,13 @@ describe('notifyRoutineSpoke', () => {
     expect(notifyRoutineSpoke('ops-throttle', '运维夜班', 'a', 1_000)).toBe(true)
     expect(notifyRoutineSpoke('ops-throttle', '运维夜班', 'b', 2_000)).toBe(false)
     expect(created).toEqual(['运维夜班'])
+  })
+})
+
+describe('shouldNotifyRoutine', () => {
+  it('skips muted bots even when unread grows', () => {
+    expect(shouldNotifyRoutine(true, 3, 1)).toBe(false)
+    expect(shouldNotifyRoutine(false, 3, 1)).toBe(true)
+    expect(shouldNotifyRoutine(undefined, 1, 1)).toBe(false)
   })
 })

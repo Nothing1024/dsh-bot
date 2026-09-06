@@ -275,6 +275,8 @@ export interface WorkbenchGroup {
   readonly name: string
   readonly memberIds: readonly string[]
   readonly createdAt: number
+  readonly section?: string
+  readonly order?: number
 }
 
 export interface ListGroupsValue {

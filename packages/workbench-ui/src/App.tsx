@@ -2,7 +2,7 @@
  * Workbench shell: 280px roster + conversation stage (reference-ui-notes §A).
  */
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { notifyRoutineSpoke } from './notify.ts'
+import { notifyRoutineSpoke, shouldNotifyRoutine } from './notify.ts'
 import {
   createBot,
   createBotSession,
@@ -19,7 +19,9 @@ import {
   listSessionsModel,
   readDraft,
   reconcile,
+  routineList,
   updateBot,
+  updateBotLayout,
   updateGroup,
 } from './api.ts'
 import type {
@@ -49,6 +51,7 @@ import { Roster } from './Roster.tsx'
 import type { RosterItem, RosterSession } from './Roster.tsx'
 import { useBotEvents } from './useBotEvents.ts'
 import { useGlobalKeyboard } from './useGlobalKeyboard.ts'
+import { groupRosterItems } from './roster-sections.ts'
 
 type ShellStatus = 'loading' | 'idle' | 'error'
 type FormMode =
@@ -93,6 +96,9 @@ export function App() {
   const [preferredSessionId, setPreferredSessionId] = useState<string | null>(null)
   const [activeSessionId, setActiveSessionId] = useState<string | null>(null)
   const [paletteOpen, setPaletteOpen] = useState(false)
+  const [rosterCollapsed, setRosterCollapsed] = useState(false)
+  const [foldedSections, setFoldedSections] = useState<ReadonlySet<string>>(() => new Set())
+  const [routineCountByBot, setRoutineCountByBot] = useState<Record<string, number>>({})
   const submitLock = useRef(false)
   const workingOverlay = useRef(new Map<string, boolean>())
   const selectedIdRef = useRef(selectedId)
@@ -102,10 +108,11 @@ export function App() {
   const load = useCallback(async (): Promise<void> => {
     setStatus('loading')
     setError(null)
-    const [botsOutcome, groupsOutcome, modelOutcome] = await Promise.all([
+    const [botsOutcome, groupsOutcome, modelOutcome, routinesOutcome] = await Promise.all([
       listBots(),
       listGroups(),
       listSessionsModel(),
+      routineList(),
     ])
     if (!botsOutcome.ok) {
       setStatus('error')
@@ -125,6 +132,13 @@ export function App() {
       return rows[0]?.id ?? groupRows[0]?.id ?? null
     })
     if (modelOutcome.ok) setBotModel(modelOutcome.value.botModel)
+    if (routinesOutcome.ok && Array.isArray(routinesOutcome.value)) {
+      const counts: Record<string, number> = {}
+      for (const row of routinesOutcome.value) {
+        counts[row.botId] = (counts[row.botId] ?? 0) + 1
+      }
+      setRoutineCountByBot(counts)
+    }
     setStatus('idle')
   }, [])
 
@@ -142,7 +156,9 @@ export function App() {
       for (const bot of rows) {
         const unread = bot.unread ?? 0
         const before = prev.get(bot.id) ?? 0
-        if (unread > before) notifyRoutineSpoke(bot.id, bot.name, `有 ${unread} 条未读例程消息`)
+        if (shouldNotifyRoutine(bot.muted, unread, before)) {
+          notifyRoutineSpoke(bot.id, bot.name, `有 ${unread} 条未读例程消息`)
+        }
         prev.set(bot.id, unread)
       }
       setBots(rows)
@@ -351,6 +367,13 @@ export function App() {
         protected: bot.protected,
         kind: 'bot',
         unread: bot.unread ?? 0,
+        pinned: bot.pinned === true,
+        section: bot.section,
+        hidden: bot.hidden === true,
+        order: bot.order,
+        muted: bot.muted === true,
+        modelLabel: bot.modelOverride?.model ?? botModel?.model ?? '默认模型',
+        routineCount: routineCountByBot[bot.id] ?? 0,
         ...boundSessions(bot.id, bot.name, selected),
       }
     })
@@ -366,6 +389,8 @@ export function App() {
         selected,
         protected: false,
         kind: 'group',
+        section: group.section,
+        order: group.order,
         members: group.memberIds.map(id => {
           const bot = bots.find(row => row.id === id)
           return {
@@ -379,7 +404,7 @@ export function App() {
       }
     })
     return [...botItems, ...groupItems].sort((a, b) => b.updatedAt - a.updatedAt)
-  }, [activeSessionId, bots, drafts, groups, lastMessages, selectedGroup, selectedId, sessionsByOwner, updatedAtById, workingIds])
+  }, [activeSessionId, botModel, bots, drafts, groups, lastMessages, routineCountByBot, selectedGroup, selectedId, sessionsByOwner, updatedAtById, workingIds])
 
   const submitForm = async (values: BotFormValues): Promise<void> => {
     if (submitLock.current || form === null) return
@@ -544,11 +569,36 @@ export function App() {
 
   const closePalette = useCallback(() => setPaletteOpen(false), [])
   const togglePalette = useCallback(() => setPaletteOpen(open => !open), [])
+  const visibleRosterIds = useMemo(() => {
+    const grouped = groupRosterItems(items)
+    return grouped.visible.flatMap(bucket => (
+      foldedSections.has(bucket.section.id) ? [] : bucket.items.map(row => row.id)
+    ))
+  }, [foldedSections, items])
+
   useGlobalKeyboard({
     enabled: status === 'idle',
     paletteOpen,
     onTogglePalette: togglePalette,
     onClosePalette: closePalette,
+    onToggleRoster: () => setRosterCollapsed(open => !open),
+    onRosterIndex: index => {
+      const id = visibleRosterIds[index]
+      if (id === undefined) return
+      setSelectedId(id)
+      setPreferredSessionId(null)
+      setForm(null)
+    },
+    onRosterMove: delta => {
+      if (visibleRosterIds.length === 0) return
+      const current = selectedId === null ? 0 : Math.max(0, visibleRosterIds.indexOf(selectedId))
+      const next = Math.min(visibleRosterIds.length - 1, Math.max(0, current + delta))
+      const id = visibleRosterIds[next]
+      if (id === undefined) return
+      setSelectedId(id)
+      setPreferredSessionId(null)
+      setForm(null)
+    },
   })
 
   const commandItems = useMemo(() => buildCommandItems(
@@ -696,6 +746,31 @@ export function App() {
             }}
             onNewSession={id => { void openOwnedSession(id) }}
             onOpenGraph={() => setGraphOpen(true)}
+            collapsed={rosterCollapsed}
+            folded={foldedSections}
+            onToggleSection={id => setFoldedSections(current => {
+              const next = new Set(current)
+              if (next.has(id)) next.delete(id)
+              else next.add(id)
+              return next
+            })}
+            onLayout={input => {
+              void (async () => {
+                const outcome = await updateBotLayout(input)
+                if (!outcome.ok) {
+                  setActionError('没保住')
+                  return
+                }
+                setActionError(null)
+                await load()
+              })()
+            }}
+            onMarkRead={id => {
+              void (async () => {
+                await markRead(id)
+                await load()
+              })()
+            }}
             onCreate={() => {
               setFormError(null)
               setActionError(null)

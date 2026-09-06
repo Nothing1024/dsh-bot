@@ -7,6 +7,10 @@ export function resetNotifyThrottleForTests(): void {
   lastAt.clear()
 }
 
+export function shouldNotifyRoutine(muted: boolean | undefined, unread: number, before: number): boolean {
+  return muted !== true && unread > before
+}
+
 export function notifyRoutineSpoke(botId: string, title: string, body: string, now = Date.now()): boolean {
   const doc = globalThis.document
   const Notice = (globalThis as unknown as { Notification?: typeof Notification }).Notification

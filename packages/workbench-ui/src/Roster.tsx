@@ -6,6 +6,8 @@ import { hashAvatarColor, nameInitial, relativeTime } from './avatar.ts'
 import { Persona } from './Persona.tsx'
 import { nestedSessionSlice } from './session-binding.ts'
 import { SessionJumpMenuItem } from './SessionList.tsx'
+import { DEFAULT_ROSTER_SECTIONS, groupRosterItems } from './roster-sections.ts'
+import type { RosterSection } from './roster-sections.ts'
 
 export interface RosterMemberAvatar {
   readonly id: string
@@ -37,6 +39,13 @@ export interface RosterItem {
   readonly sessionCount?: number
   readonly unread?: number
   readonly sessions?: readonly RosterSession[]
+  readonly pinned?: boolean
+  readonly section?: string
+  readonly hidden?: boolean
+  readonly order?: number
+  readonly muted?: boolean
+  readonly modelLabel?: string
+  readonly routineCount?: number
 }
 
 export interface RosterProps {
@@ -54,6 +63,16 @@ export interface RosterProps {
   readonly onDeleteGroup?: (id: string) => void
   readonly onRename: (id: string, name: string) => void
   readonly onOpenGraph?: () => void
+  readonly sections?: readonly RosterSection[]
+  readonly collapsed?: boolean
+  readonly onLayout?: (input: {
+    bots?: readonly { id: string; pinned?: boolean; section?: string; hidden?: boolean; order?: number; muted?: boolean }[]
+    groups?: readonly { id: string; section?: string; order?: number }[]
+  }) => void
+  readonly onMarkRead?: (id: string) => void
+  readonly onRenameSection?: (id: string, name: string) => void
+  readonly folded?: ReadonlySet<string>
+  readonly onToggleSection?: (id: string) => void
 }
 
 function AvatarGlyph(props: {
@@ -102,8 +121,39 @@ export function Roster(props: RosterProps) {
   const [renameId, setRenameId] = useState<string | null>(null)
   const [renameValue, setRenameValue] = useState('')
   const [jumpToast, setJumpToast] = useState<string | null>(null)
+  const [localFolded, setLocalFolded] = useState<ReadonlySet<string>>(() => new Set())
+  const folded = props.folded ?? localFolded
+  const toggleSection = (id: string): void => {
+    if (props.onToggleSection !== undefined) {
+      props.onToggleSection(id)
+      return
+    }
+    setLocalFolded(current => {
+      const next = new Set(current)
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
+      return next
+    })
+  }
+  const [hiddenOpen, setHiddenOpen] = useState(false)
+  const [previewId, setPreviewId] = useState<string | null>(null)
+  const hoverTimer = useRef<number | null>(null)
+  const leaveTimer = useRef<number | null>(null)
   const renameRef = useRef<HTMLInputElement>(null)
   const menuRef = useRef<HTMLDivElement>(null)
+  const sections = props.sections ?? DEFAULT_ROSTER_SECTIONS
+  const grouped = groupRosterItems(props.items, sections)
+
+  const applyLayout = (input: NonNullable<RosterProps['onLayout']> extends (i: infer I) => void ? I : never): void => {
+    props.onLayout?.(input)
+  }
+
+  const clearHover = (): void => {
+    if (hoverTimer.current !== null) window.clearTimeout(hoverTimer.current)
+    if (leaveTimer.current !== null) window.clearTimeout(leaveTimer.current)
+    hoverTimer.current = null
+    leaveTimer.current = null
+  }
 
   useEffect(() => {
     if (renameId !== null) renameRef.current?.focus()
@@ -142,7 +192,7 @@ export function Roster(props: RosterProps) {
   }
 
   return (
-    <aside className="roster" data-testid="workbench-roster">
+    <aside className={`roster${props.collapsed === true ? ' isCollapsed' : ''}`} data-testid="workbench-roster">
       <div className="rosterHead">
         <span>人设</span>
         <span className="rosterHeadActions">
@@ -171,14 +221,45 @@ export function Roster(props: RosterProps) {
         {props.items.length === 0 ? (
           <p className="hint" data-testid="workbench-empty">还没有人设</p>
         ) : (
+          grouped.visible.map(bucket => {
+            const collapsedSec = folded.has(bucket.section.id)
+            return (
+          <section
+            key={bucket.section.id}
+            className="rosterSection"
+            data-testid={`roster-section-${bucket.section.id}`}
+            onDragOver={event => event.preventDefault()}
+            onDrop={event => {
+              event.preventDefault()
+              const id = event.dataTransfer.getData('text/plain')
+              if (id === '') return
+              const item = props.items.find(row => row.id === id)
+              if (item === undefined) return
+              const pinned = bucket.section.id === 'pinned'
+              if (item.kind === 'group') {
+                applyLayout({ groups: [{ id, section: bucket.section.id, order: Date.now() }] })
+              } else {
+                applyLayout({ bots: [{ id, pinned, section: bucket.section.id, order: Date.now() }] })
+              }
+            }}
+          >
+            <button
+              type="button"
+              className="rosterSectionHead"
+              data-testid={`roster-section-toggle-${bucket.section.id}`}
+              onClick={() => toggleSection(bucket.section.id)}
+            >
+              {bucket.section.name}
+            </button>
+            {collapsedSec ? null : (
           <ul className="rosterList">
-            {props.items.map(item => {
+            {bucket.items.map(item => {
               const selected = item.selected
               const renaming = renameId === item.id
               return (
                 <li key={item.id}>
                   <div
-                    className={`rosterRow${selected ? ' isSelected' : ''}`}
+                    className={`rosterRow${selected ? ' isSelected' : ''}${item.muted === true ? ' isMuted' : ''}`}
                     data-testid={`roster-row-${item.id}`}
                     data-kind={item.kind === 'group' ? 'group' : 'bot'}
                     data-active={selected ? 'true' : 'false'}
@@ -188,7 +269,37 @@ export function Roster(props: RosterProps) {
                       event.preventDefault()
                       openRename(item)
                     }}
+                    draggable
+                    data-muted={item.muted === true ? 'true' : 'false'}
+                    onDragStart={event => {
+                      event.dataTransfer.setData('text/plain', item.id)
+                      clearHover()
+                      setPreviewId(null)
+                      setMenuId(null)
+                    }}
+                    onMouseEnter={() => {
+                      clearHover()
+                      hoverTimer.current = window.setTimeout(() => setPreviewId(item.id), 500)
+                    }}
+                    onMouseLeave={() => {
+                      clearHover()
+                      leaveTimer.current = window.setTimeout(() => {
+                        setPreviewId(current => current === item.id ? null : current)
+                      }, 150)
+                    }}
+                    onContextMenu={event => {
+                      event.preventDefault()
+                      setMenuId(item.id)
+                    }}
                   >
+                    {previewId === item.id ? (
+                      <div className="rosterPreviewCard" data-testid={`roster-hover-${item.id}`}>
+                        <div>{item.modelLabel ?? '默认模型'}</div>
+                        <div>例行 {item.routineCount ?? 0}</div>
+                        <div>会话 {item.sessionCount ?? 0}</div>
+                        <div>{item.preview}</div>
+                      </div>
+                    ) : null}
                     <span className={`avatarWrap${item.working ? ' isWorking' : ''}`}>
                       {item.kind === 'group' && item.members !== undefined && item.members.length >= 2 ? (
                         <MosaicAvatar id={item.id} members={item.members} />
@@ -262,6 +373,62 @@ export function Roster(props: RosterProps) {
                   </div>
                   {menuId === item.id ? (
                     <div ref={menuRef} className="rowMenu" data-testid={`roster-menu-panel-${item.id}`}>
+                      <button
+                        type="button"
+                        data-testid={`roster-pin-${item.id}`}
+                        onClick={() => {
+                          setMenuId(null)
+                          applyLayout({ bots: [{ id: item.id, pinned: item.pinned !== true, section: item.pinned === true ? 'work' : 'pinned' }] })
+                        }}
+                      >
+                        {item.pinned === true ? '取消置顶' : '置顶'}
+                      </button>
+                      <button
+                        type="button"
+                        data-testid={`roster-move-${item.id}`}
+                        onClick={() => {
+                          setMenuId(null)
+                          const next = item.section === 'life' ? 'work' : 'life'
+                          if (item.kind === 'group') applyLayout({ groups: [{ id: item.id, section: next }] })
+                          else applyLayout({ bots: [{ id: item.id, section: next, pinned: false }] })
+                        }}
+                      >
+                        移组
+                      </button>
+                      <button
+                        type="button"
+                        data-testid={`roster-read-${item.id}`}
+                        onClick={() => {
+                          setMenuId(null)
+                          props.onMarkRead?.(item.id)
+                        }}
+                      >
+                        标已读
+                      </button>
+                      {item.kind === 'group' ? null : (
+                        <>
+                          <button
+                            type="button"
+                            data-testid={`roster-hide-${item.id}`}
+                            onClick={() => {
+                              setMenuId(null)
+                              applyLayout({ bots: [{ id: item.id, hidden: true }] })
+                            }}
+                          >
+                            隐藏
+                          </button>
+                          <button
+                            type="button"
+                            data-testid={`roster-mute-${item.id}`}
+                            onClick={() => {
+                              setMenuId(null)
+                              applyLayout({ bots: [{ id: item.id, muted: item.muted !== true }] })
+                            }}
+                          >
+                            {item.muted === true ? '取消静音' : '静音'}
+                          </button>
+                        </>
+                      )}
                       {item.kind === 'group' ? (
                         <>
                           <button
@@ -329,7 +496,49 @@ export function Roster(props: RosterProps) {
               )
             })}
           </ul>
+            )}
+          </section>
+            )
+          })
         )}
+        {grouped.hidden.length > 0 ? (
+          <div className="rosterHidden" data-testid="roster-hidden">
+            <button
+              type="button"
+              className="rosterHiddenHead"
+              data-testid="roster-hidden-toggle"
+              onClick={() => setHiddenOpen(open => !open)}
+            >
+              已隐藏 {grouped.hidden.length} 个
+              {grouped.hidden.reduce((n, row) => n + (row.unread ?? 0), 0) > 0
+                ? ` · ${grouped.hidden.reduce((n, row) => n + (row.unread ?? 0), 0)}`
+                : ''}
+            </button>
+            {hiddenOpen ? (
+              <ul className="rosterList">
+                {grouped.hidden.map(item => (
+                  <li key={item.id}>
+                    <button
+                      type="button"
+                      className="rosterRow"
+                      data-testid={`roster-hidden-row-${item.id}`}
+                      onClick={() => props.onSelect(item.id)}
+                    >
+                      {item.name}
+                    </button>
+                    <button
+                      type="button"
+                      data-testid={`roster-unhide-${item.id}`}
+                      onClick={() => applyLayout({ bots: [{ id: item.id, hidden: false }] })}
+                    >
+                      取消隐藏
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            ) : null}
+          </div>
+        ) : null}
       </div>
       {confirmId !== null ? (
         <ConfirmDelete

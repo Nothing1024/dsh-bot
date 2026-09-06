@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { cleanup, fireEvent, render, screen } from '@testing-library/react'
+import { act, cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { Roster } from '../src/Roster.tsx'
 import type { RosterItem } from '../src/Roster.tsx'
@@ -163,9 +163,9 @@ describe('Roster', () => {
     )
     expect(screen.getByTestId('roster-unread-ops').textContent).toBe('2')
   })
-})
 
-  it('opens the relationship graph from the roster head', () => {
+
+  it('keeps the relationship graph control and shows default sections', () => {
     const onOpenGraph = vi.fn()
     render(
       <Roster
@@ -180,5 +180,67 @@ describe('Roster', () => {
     )
     fireEvent.click(screen.getByTestId('roster-graph'))
     expect(onOpenGraph).toHaveBeenCalledTimes(1)
+    expect(screen.getByTestId('roster-section-pinned')).toBeTruthy()
+    expect(screen.getByTestId('roster-section-work')).toBeTruthy()
+    expect(screen.getByTestId('roster-section-life')).toBeTruthy()
   })
 
+  it('hides a bot into the footer and unhides it', () => {
+    const onLayout = vi.fn()
+    const { rerender } = render(
+      <Roster
+        items={[item({ id: 'shiren-xiaobei', name: '诗人小北', protected: false, selected: false })]}
+        onSelect={vi.fn()}
+        onCreate={vi.fn()}
+        onEdit={vi.fn()}
+        onDelete={vi.fn()}
+        onRename={vi.fn()}
+        onLayout={onLayout}
+      />,
+    )
+    fireEvent.click(screen.getByTestId('roster-menu-shiren-xiaobei'))
+    fireEvent.click(screen.getByTestId('roster-hide-shiren-xiaobei'))
+    expect(onLayout).toHaveBeenCalledWith({ bots: [{ id: 'shiren-xiaobei', hidden: true }] })
+    rerender(
+      <Roster
+        items={[item({ id: 'shiren-xiaobei', name: '诗人小北', protected: false, selected: false, hidden: true, unread: 2 })]}
+        onSelect={vi.fn()}
+        onCreate={vi.fn()}
+        onEdit={vi.fn()}
+        onDelete={vi.fn()}
+        onRename={vi.fn()}
+        onLayout={onLayout}
+      />,
+    )
+    expect(screen.queryByTestId('roster-row-shiren-xiaobei')).toBeNull()
+    expect(screen.getByTestId('roster-hidden').textContent).toMatch(/已隐藏 1 个/)
+    fireEvent.click(screen.getByTestId('roster-hidden-toggle'))
+    fireEvent.click(screen.getByTestId('roster-unhide-shiren-xiaobei'))
+    expect(onLayout).toHaveBeenCalledWith({ bots: [{ id: 'shiren-xiaobei', hidden: false }] })
+  })
+
+  it('shows the hover preview after 500ms and closes it on dragstart', () => {
+    vi.useFakeTimers()
+    render(
+      <Roster
+        items={[item({ id: 'xiaodui-aning', name: '校对阿宁', selected: false, modelLabel: 'grok', routineCount: 1 })]}
+        onSelect={vi.fn()}
+        onCreate={vi.fn()}
+        onEdit={vi.fn()}
+        onDelete={vi.fn()}
+        onRename={vi.fn()}
+      />,
+    )
+    fireEvent.mouseEnter(screen.getByTestId('roster-row-xiaodui-aning'))
+    act(() => { vi.advanceTimersByTime(499) })
+    expect(screen.queryByTestId('roster-hover-xiaodui-aning')).toBeNull()
+    act(() => { vi.advanceTimersByTime(1) })
+    expect(screen.getByTestId('roster-hover-xiaodui-aning').textContent).toMatch(/grok/)
+    fireEvent.dragStart(screen.getByTestId('roster-row-xiaodui-aning'), {
+      dataTransfer: { setData: () => undefined, getData: () => 'xiaodui-aning' },
+    })
+    expect(screen.queryByTestId('roster-hover-xiaodui-aning')).toBeNull()
+    vi.useRealTimers()
+  })
+
+})

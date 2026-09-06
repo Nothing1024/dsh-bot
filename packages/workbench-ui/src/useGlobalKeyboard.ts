@@ -8,6 +8,9 @@ export interface GlobalKeyboardOptions {
   readonly paletteOpen: boolean
   readonly onTogglePalette: () => void
   readonly onClosePalette: () => void
+  readonly onRosterIndex?: (index: number) => void
+  readonly onRosterMove?: (delta: -1 | 1) => void
+  readonly onToggleRoster?: () => void
 }
 
 export function isPaletteToggle(event: KeyboardEvent): boolean {
@@ -22,7 +25,7 @@ export function isPaletteToggle(event: KeyboardEvent): boolean {
  */
 export function useGlobalKeyboard(options: GlobalKeyboardOptions): void {
   const enabled = options.enabled !== false
-  const { paletteOpen, onTogglePalette, onClosePalette } = options
+  const { paletteOpen, onTogglePalette, onClosePalette, onRosterIndex, onRosterMove, onToggleRoster } = options
 
   useEffect(() => {
     if (!enabled) return
@@ -36,9 +39,28 @@ export function useGlobalKeyboard(options: GlobalKeyboardOptions): void {
       if (event.key === 'Escape' && paletteOpen) {
         event.preventDefault()
         onClosePalette()
+        return
+      }
+      const meta = event.metaKey || event.ctrlKey
+      if (meta && !event.altKey && !event.shiftKey && (event.key === 'b' || event.key === 'B')) {
+        event.preventDefault()
+        event.stopPropagation()
+        onToggleRoster?.()
+        return
+      }
+      if (meta && !event.altKey && !event.shiftKey && event.key >= '1' && event.key <= '9') {
+        event.preventDefault()
+        event.stopPropagation()
+        onRosterIndex?.(Number(event.key) - 1)
+        return
+      }
+      if (event.altKey && !event.metaKey && !event.ctrlKey && (event.key === 'ArrowUp' || event.key === 'ArrowDown')) {
+        event.preventDefault()
+        event.stopPropagation()
+        onRosterMove?.(event.key === 'ArrowUp' ? -1 : 1)
       }
     }
     document.addEventListener('keydown', onKey, true)
     return () => document.removeEventListener('keydown', onKey, true)
-  }, [enabled, onClosePalette, onTogglePalette, paletteOpen])
+  }, [enabled, onClosePalette, onRosterIndex, onRosterMove, onTogglePalette, onToggleRoster, paletteOpen])
 }
