@@ -247,28 +247,32 @@ export function BotRoster(props: BotRosterProps): ReactElement {
             <span className={css.name}>{row.name}</span>
             <span className={css.preview}>{row.preview}</span>
           </span>
-          <span>
-            <Badge row={row} />
-            {row.kind === 'bot' && row.sessionCount > 0
-              ? <span className={css.count}>{row.sessionCount}</span>
-              : null}
-          </span>
-          <span
-            role="button"
-            tabIndex={0}
-            data-testid={`dsh-bot-menu-btn-${row.id}`}
-            onClick={event => {
-              event.stopPropagation()
-              openMenu(row.id)
-            }}
-            onKeyDown={event => {
-              if (event.key === 'Enter') {
+          <span className={css.rowMeta}>
+            <span className={css.metaNums}>
+              <Badge row={row} />
+              {row.kind === 'bot' && row.sessionCount > 0
+                ? <span className={css.count}>{row.sessionCount}</span>
+                : null}
+            </span>
+            <span
+              role="button"
+              tabIndex={0}
+              className={css.menuBtn}
+              aria-label={t('roster.menu')}
+              data-testid={`dsh-bot-menu-btn-${row.id}`}
+              onClick={event => {
                 event.stopPropagation()
                 openMenu(row.id)
-              }
-            }}
-          >
-            ⋯
+              }}
+              onKeyDown={event => {
+                if (event.key === 'Enter') {
+                  event.stopPropagation()
+                  openMenu(row.id)
+                }
+              }}
+            >
+              ⋯
+            </span>
           </span>
           {previewId === row.id
             ? (
