@@ -1,6 +1,6 @@
 # dsh-bot-left-tab Spec
 
-> Version: 0.3.0 | Date: 2026-09-08 | Status: Ready 可执行
+> Version: 0.3.1 | Date: 2026-09-08 | Status: Ready 可执行
 >
 > 本文件是本需求的**唯一事实源**：事实基线、业务合同、技术方案、任务计划、验收协议全部在此。
 > 其他文件（handoff.md、tasks.csv）只引用本文件，不复制内容。
@@ -98,6 +98,7 @@
 
 | 日期 | 变更条目 ID | 原因 | 影响任务与处置 |
 |---|---|---|---|
+| 2026-09-08 | BR-607 v0.3.1：preset 匹配从「仅 `dsh-bot--` 前缀」改为「`dsh-bot` 或 `dsh-bot--` 前缀」；Task 8/17 注意事项补 betterSidebar inject 墙 | Task 1 校准发现默认 DSH Bot 的 agentPreset 是 `dsh-bot`；Phase 1 真机踩到 slot 组件读未 inject 服务崩溃 | Task 17 实现按新文案；Task 8/11/12 的 activateTab 接线走 inject 回调 |
 | 2026-09-08 | ASM-601~605 消解（Task 1 校准）：priority -1 遮蔽、dispose 恢复、footer wide/rail、header kit 读 agentPreset 全部证实；默认 DSH Bot 的 preset 是 `dsh-bot` 不是 `dsh-bot--` | 真机 :3084 + `session.list` | 事实回写 §1.3，§1.4 删五行；BR-607 实现时同时匹配 `dsh-bot` 与 `dsh-bot--` 前缀 |
 | 2026-09-08 | BR-619~621、UF-611~612、EVD-612~613、ASM-608 新增；§2.8 撤回三条非目标（v0.3.0） | 用户质疑非目标；复核后「@」可用官方 `pendingInteraction`、例程标签可用 `turnTail` chain + history `origin`，⌘K 可用 `shell.overlay` + 焦点分工，均不改 host | 新增 Task 15（⌘K 面板）、Task 19（turnTail 标签）；原 15-21 顺延为 16-18 / 20-23；Task 4/7/8 扩展；5.2 +3 行 |
 | 2026-09-08 | BR-613~618、UF-608~610、EVD-609~611 新增；§2.8 增三条非目标（@ 提及 / ⌘K / 例程标签）（v0.2.0） | 用户要求补齐与原型的功能与界面对齐：名册头部三按钮、overlay 表单与删除确认、菜单编辑/删除、新开房间、悬停预览、人设浮层、视觉基准 | 新增 Task 12（overlay 表单）/ 13（关系图 + 新开房间）/ 14（悬停预览）；原 Task 12-18 顺延为 15-21；Task 7 补六个管理 RPC；Task 8/10/17 扩展；5.2 矩阵 +8 行 |
@@ -126,7 +127,7 @@
 | BR-604 | 名册行是身份不是会话：每行 = 头像 + 名字 + 最后一句预览 + 未读徽章 + 会话数；按置顶/工作/生活分组（沿用 `groupRosterItems`，隐藏项进底部「已隐藏 N 个」）；绑定会话只在**当前选中身份**下展开 | 选中审查官后其下挂 ≤8 段会话 | 每个 bot 都展开会话变成第二棵会话树 | `BotRoster.tsx` | 单测 + UF-603 |
 | BR-605 | 点人设 = 打开最近绑定会话：先读 `readLastSession(botId)` 命中且仍在列表 → `sessions.open`；否则取 `listBotSessions` 最新非隐藏行；都没有 → `createBotSession` 后 `open`。任何一步失败：行内红字错误 + 可重试，选中态不变 | 无会话的新人设点一下即建会话并打开 | 失败时静默或选中跳到别处 | `BotRoster.tsx` / `roster-rpc.ts` | 单测三分支 + UF-603 失败分支 |
 | BR-606 | 1:1 对话面全部交官方中栏：插件不在左栏区域、中栏、浮层里再画 Transcript / composer；中栏只新增 `conversation.session.header.actions` 一个条目 | 打开 bot 会话后中栏是官方对话/轨迹 + 官方 composer | 左栏或浮层里出现插件自己的消息流 | 全部客户端代码 | code review + UF-605 |
-| BR-607 | 身份条只对 bot 会话渲染：`agentPreset` 以 `dsh-bot--` 开头且能在 `listBots` 里按 `presetId` 找到 bot 才显示；否则返回 `null`，不留占位 | 普通「重构 api.ts」会话顶栏没有身份条 | 普通会话顶栏出现空 chip | `IdentityBar.tsx` | 单测 + UF-605 分支 |
+| BR-607 | 身份条只对 bot 会话渲染：`agentPreset` 等于 `dsh-bot`（默认 DSH Bot 的 seed preset）或以 `dsh-bot--` 开头，且能在 `listBots` 里按 `presetId` 找到 bot 才显示；否则返回 `null`，不留占位 | 普通「重构 api.ts」会话顶栏没有身份条 | 普通会话顶栏出现空 chip | `IdentityBar.tsx` | 单测 + UF-605 分支 |
 | BR-608 | 小组不是官方 session：Bot 模式点小组 → `betterSidebar.activateTab('dsh-bot:sessions')` 并 postMessage `{ type: 'dsh-bot:select-group', groupId }` 给 iframe；不在中栏画房间；better-sidebar 缺席时行内提示「需要右栏 DSH Bot 页签」 | 点「编辑室」右栏页签亮起并选中编辑室 | 中栏出现房间面 | `BotRoster.tsx` / `workbench-ui/src/App.tsx` | UF-606 |
 | BR-609 | 官方「+ 新会话」行为不变（平台无接口）；Bot 模式的「新开对话」入口在名册选中身份下方与身份条上，调 `createBotSession` 后 `open` | Bot 模式点官方「+」仍进官方 hero | 插件试图拦截或隐藏官方「+」 | 同上 | UF-603 步骤 6 |
 | BR-610 | rail 态（owner `wide === false`）名册退化为头像列：只画可见 bot 头像 + 未读点；点头像 → `expandSidebar()` 再执行 BR-605 | 收起侧栏后仍能一键回到审查官会话 | rail 态空白或溢出 | `BotRoster.tsx` | UF-604 |
@@ -931,7 +932,7 @@ P0 校准（Task 1）
 
 **Evidence**：`evidence/phase-2/commands.log`、`evidence/phase-2/roster.png`
 
-**注意事项**：280px 宽度下名字/预览要 ellipsis；不要给每个 bot 都展开会话（BR-604）；行/头像/徽章尺寸对照原型 `.rosterRow`（L61）`.face`（L88）`.unreadBadge`（L68）——BR-617；头部三个按钮（关系图 / 新建人设 / 新建小组）的接线在 Task 12 / 13，本任务先留位。
+**注意事项**：空态「在右栏 DSH Bot 页签新建」与小组跳转都要用到 `betterSidebar.activateTab`，该服务只能在 `ctx.inject(['betterSidebar'], …)` 回调内取到，再经 props/闭包传给 BotRegion——slot 组件渲染期直接读 `client.betterSidebar` 会抛 `cannot get property "betterSidebar" without inject`（Phase 1 真机已踩）；280px 宽度下名字/预览要 ellipsis；不要给每个 bot 都展开会话（BR-604）；行/头像/徽章尺寸对照原型 `.rosterRow`（L61）`.face`（L88）`.unreadBadge`（L68）——BR-617；头部三个按钮（关系图 / 新建人设 / 新建小组）的接线在 Task 12 / 13，本任务先留位。
 
 ### Task 9: 点人设打开绑定会话 / 下挂会话 / 新开对话 / 标已读
 
@@ -1168,7 +1169,7 @@ P0 校准（Task 1）
 
 **Evidence**：`evidence/phase-3/commands.log`
 
-**注意事项**：session 作用域条目会随会话切换重挂载，副作用要幂等；禁止在此渲染任何消息流（BR-606）。
+**注意事项**：session 作用域条目会随会话切换重挂载，副作用要幂等；禁止在此渲染任何消息流（BR-606）；preset 匹配同时认 `dsh-bot` 与 `dsh-bot--`（Task 1 校准结论）；slot 组件渲染期不得读 `ctx.betterSidebar` 等未 inject 的服务（会抛 `cannot get property … without inject`，Phase 1 已踩）——需要 better-sidebar 的动作一律在 `ctx.inject(['betterSidebar'], …)` 回调里拿到引用后经 props 传入。
 
 ### Task 18: 记忆 / 例程 / 同事 / 人设 pill 浮层 + 对话切换 + 新开对话
 
