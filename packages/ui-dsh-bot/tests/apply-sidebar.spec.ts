@@ -7,7 +7,7 @@ import { DSH_BOT_SESSIONS_TAB_ID } from '../src/client/tab-id.ts'
 
 describe('ui-dsh-bot inject contract', () => {
   it('does not hard-depend on betterSidebar', () => {
-    expect([...inject]).toEqual(['sessions', 'locale'])
+    expect([...inject]).toEqual(['sessions', 'locale', 'slots'])
     expect(inject).not.toContain('betterSidebar')
   })
 

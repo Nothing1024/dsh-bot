@@ -82,18 +82,15 @@
 | 本会话可用浏览器工具：cursor-ide-browser MCP（navigate/snapshot/click/screenshot）；邻仓有 Playwright | 本会话工具目录；`ls ../../dsh-genoffice/engine/node_modules/playwright/package.json`（见 `docs/archive/dsh-bot-roster/spec.md` §1.3） | 可做真机回放 |
 | session-nav Task 4 阻塞已于 2026-09-08 解除:根因是 `askBot` 把委托 `~dsh-bot:` 会话**归档**(非隐藏),rc.2 投影会清掉归档 current 且无 unarchive;页签桥现对归档目标回执 `archived`。实测 `~ calib-nav-hidden`(`kind:hidden`,未归档)`sessions.open` 落地 `current` → 本包 BR-605 依赖的「打开 `createBotSession` 建出的 1:1 会话」成立(这些会话不归档) | `python3 ~/.claude/skills/prd-workflow/scripts/board.py docs/dsh-bot-session-nav`;`Read docs/dsh-bot-session-nav/evidence/phase-1/live-jump-rerun.json` | Task 4 已完成;allPass:true |
 | session-nav 聚合与推送两条规则（其 spec §2.1「聚合 overview」「SSE 推送」）计划新增 `POST /dsh-bot/overview {}` 聚合接口（bot/group 会话摘要 + lastMessage + working）与 `GET /dsh-bot/events` SSE；对应 Task 9 / Task 10 均「待开始」 | `rg -n "聚合 overview|SSE 推送" docs/dsh-bot-session-nav/spec.md` | 本包 Task 7 数据层应复用而非另写 |
+| ASM-601~605 真机校准全部证实：`inject` 加 `slots` 后 fiber `active`、`ctx.slots.snapshot()` 可读；`priority: -1` 遮蔽 `sidebar.workspaces`；dispose 回 `'sessions'` 后官方树+搜索+打开恢复；`sidebar.footer.action` 在 wide/rail 都渲染且收到 `wide`；`header.actions` 能读 `sessionId` + `byId[id].agentPreset` | Task 1 真机 :3084；`docs/dsh-bot-left-tab/evidence/phase-0/calibration.md` | 见 EVD-601 |
+| `agentPreset` 取值：默认 DSH Bot 会话是 `dsh-bot`（无 `--slug`）；其他人设是 `dsh-bot--<slug>`；普通会话是 `standard` / `minimal`。BR-607 匹配须同时认 `dsh-bot` 与 `dsh-bot--` 前缀 | `dsh-rpc.sh 3084 session.list` + spike console | 身份条判定补充 |
 
 ### 1.4 假设清单
 
-> 假设被证实后：事实回写 1.3 节并从本表删除该行；被证伪后走变更协议。全部由 Task 1 校准。
+> 假设被证实后：事实回写 1.3 节并从本表删除该行；被证伪后走变更协议。ASM-601~605 已由 Task 1 消解。
 
 | 假设 ID | 内容 | 风险 | 确认方式 |
 |---|---|---|---|
-| ASM-601 | 第三方插件客户端 ctx 上可 inject `slots` 服务并调用 `ctx.slots.inject` / `ctx.slots.register`（与 ui-workspace 同一 API） | 若不可用则整个方案退回 footer.action + iframe | Task 1：在 `apply` 里加 `slots` inject，页面加载无 fiber PENDING，`ctx.slots.snapshot()` 可读 |
-| ASM-602 | rc.2 运行时对 `sidebar.workspaces` 传 `priority: -1` 注册后，左栏 `[data-slot="sidebar.workspaces"]` 内渲染的是插件组件，官方树不再出现 | 若运行时对动态插件另有 priority 规则，需改数值 | Task 1：真机 DOM 检查 + 截图 |
-| ASM-603 | dispose 遮蔽注册后官方 `WorkspaceBrowser` 立即恢复渲染且搜索/展开状态可用 | 若 store 实例被回收导致官方树空白，需改为保持注册 + CSS 隐藏 | Task 1：切回后截图 + 点开一个会话 |
-| ASM-604 | `sidebar.footer.action`（list）注册一条 `{ id: 'dsh-bot:mode' }` 后在设置行旁渲染，wide/rail 两态都收到 `wide` | 若 rail 态不渲染 footer.action，rail 入口改为 region 内头像列 | Task 1：wide/rail 各一张截图 |
-| ASM-605 | `conversation.session.header.actions` 条目通过标准 kit 拿到 `sessionId`，再用 `ctx.sessions.list.getSnapshot().byId[sessionId].agentPreset` 能读到 `dsh-bot--<slug>` | 若 agentPreset 为空，需改用 `POST /dsh-bot/listBotSessions` 反查 | Task 1：在 bot 会话与普通会话各打印一次 |
 | ASM-608 | `/dsh-bot/history` 条目的 `seq` 与官方 `TurnLocation.start/end` 事件的 `seq` 同源（都是 session 事件序号），可直接做区间匹配 | 不同源则 turnTail 的 `select` 改按 `createdAt` 时间窗匹配，精度下降 | Task 19 第一步：在一条例程会话上同时打印两边 seq，写入 `evidence/UF-612/seq-check.log` |
 | ASM-607 | 到本包 Task 7 开工时，session-nav Task 9/10（`POST /dsh-bot/overview` + `GET /dsh-bot/events` 脏通知）已落地；Task 7 直接消费 overview 而不是逐 bot `listBotSessions` | 未落地则 Task 7 先按 `listBots` + `listGroups` + 懒拉 `listBotSessions(选中 bot)` 实现，并在 §1.5 登记「待 overview 落地后切换」 | Task 7 开工前 `rg -n "case 'overview'" packages/dsh-bot-host/src/workbench-routes.ts` |
 
@@ -101,6 +98,7 @@
 
 | 日期 | 变更条目 ID | 原因 | 影响任务与处置 |
 |---|---|---|---|
+| 2026-09-08 | ASM-601~605 消解（Task 1 校准）：priority -1 遮蔽、dispose 恢复、footer wide/rail、header kit 读 agentPreset 全部证实；默认 DSH Bot 的 preset 是 `dsh-bot` 不是 `dsh-bot--` | 真机 :3084 + `session.list` | 事实回写 §1.3，§1.4 删五行；BR-607 实现时同时匹配 `dsh-bot` 与 `dsh-bot--` 前缀 |
 | 2026-09-08 | BR-619~621、UF-611~612、EVD-612~613、ASM-608 新增；§2.8 撤回三条非目标（v0.3.0） | 用户质疑非目标；复核后「@」可用官方 `pendingInteraction`、例程标签可用 `turnTail` chain + history `origin`，⌘K 可用 `shell.overlay` + 焦点分工，均不改 host | 新增 Task 15（⌘K 面板）、Task 19（turnTail 标签）；原 15-21 顺延为 16-18 / 20-23；Task 4/7/8 扩展；5.2 +3 行 |
 | 2026-09-08 | BR-613~618、UF-608~610、EVD-609~611 新增；§2.8 增三条非目标（@ 提及 / ⌘K / 例程标签）（v0.2.0） | 用户要求补齐与原型的功能与界面对齐：名册头部三按钮、overlay 表单与删除确认、菜单编辑/删除、新开房间、悬停预览、人设浮层、视觉基准 | 新增 Task 12（overlay 表单）/ 13（关系图 + 新开房间）/ 14（悬停预览）；原 Task 12-18 顺延为 15-21；Task 7 补六个管理 RPC；Task 8/10/17 扩展；5.2 矩阵 +8 行 |
 | 2026-09-08 | ASM-606 消解（v0.1.2）：session-nav 重跑证实隐藏未归档会话 open 落地，阻塞根因为归档；事实回写 §1.3，Task 1 去掉 5b，前置改为「已满足」 | 见 §1.3 2026-09-08 行 | Task 1 标题恢复 ASM-601~605；状态板备注同步 |

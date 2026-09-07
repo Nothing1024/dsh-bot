@@ -44,8 +44,8 @@ export { DSH_BOT_SESSIONS_TAB_ID } from './tab-id.ts'
 export { jumpToSession } from './session-jump.ts'
 
 /**
- * Required services: sessions and locale. betterSidebar is optional via
- * ctx.inject (BR-008) — never a hard inject entry.
+ * Required services: sessions, locale, and slots. betterSidebar is optional
+ * via ctx.inject (BR-008) — never a hard inject entry.
  */
 export const inject = [...requiredInject]
 

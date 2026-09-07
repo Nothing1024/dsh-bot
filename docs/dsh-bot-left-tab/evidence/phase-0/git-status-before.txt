@@ -1,0 +1,4 @@
+?? .grok/
+?? .vscode/
+?? docs/dsh-bot-left-tab/evidence/phase-0/
+?? env/attachments/

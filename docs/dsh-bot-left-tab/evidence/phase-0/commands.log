@@ -1,0 +1,44 @@
+=== typecheck ===
+Scope: all 8 workspace projects
+✓ Lockfile passes supply-chain policies (verified 1d ago)
+Lockfile is up to date, resolution step is skipped
+Already up to date
+
+Done in 401ms using pnpm v11.7.0
+$ tsc -p tsconfig.json
+EXIT:0
+=== ui-dsh-bot tests ===
+
+ RUN  v4.1.11 /Users/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin
+
+
+ Test Files  4 passed (4)
+      Tests  28 passed (28)
+   Start at  01:11:43
+   Duration  698ms (transform 129ms, setup 0ms, import 265ms, tests 276ms, environment 345ms)
+
+EXIT:0
+=== ui-dsh-bot build ===
+$ tsc -p tsconfig.build.json && tsdown
+ℹ tsdown v0.22.14 powered by rolldown v1.2.6
+ℹ config file: /Users/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin/packages/ui-dsh-bot/tsdown.config.ts 
+ℹ [ui-dsh-bot] entry: src/index.ts
+ℹ [ui-dsh-bot] target: es2024
+ℹ [ui-dsh-bot] tsconfig: tsconfig.json
+ℹ [ui-dsh-bot/client] entry: src/client/index.ts
+ℹ [ui-dsh-bot/client] tsconfig: tsconfig.json
+
+ WARN  `external` is deprecated. Use `deps.neverBundle` instead.
+
+
+ WARN  `noExternal` is deprecated. Use `deps.alwaysBundle` instead.
+
+ℹ Build start
+ℹ [ui-dsh-bot] [ESM] lib/index.js  0.30 kB │ gzip: 0.24 kB
+ℹ [ui-dsh-bot] [ESM] 1 files, total: 0.30 kB
+✔ [ui-dsh-bot] Build complete in 10ms
+ℹ [ui-dsh-bot/client] [CJS] lib/client.js      25.80 kB │ gzip:  7.88 kB
+ℹ [ui-dsh-bot/client] [CJS] lib/client.js.map  43.55 kB │ gzip: 12.92 kB
+ℹ [ui-dsh-bot/client] [CJS] 2 files, total: 69.35 kB
+✔ [ui-dsh-bot/client] Build complete in 24ms
+EXIT:0

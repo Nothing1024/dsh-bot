@@ -23,7 +23,7 @@ export interface SessionCwdFace extends SessionJumpFace {
   list?: {
     getSnapshot(): {
       current?: string
-      byId?: Record<string, { cwd?: string }>
+      byId?: Record<string, { cwd?: string; agentPreset?: string }>
     }
   }
 }
