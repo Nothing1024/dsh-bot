@@ -352,9 +352,11 @@ export function BotRoster(props: BotRosterProps): ReactElement {
     <div className={css.root} data-testid="dsh-bot-roster">
       <div className={css.head}>
         <span className={css.title}>{t('roster.title')}</span>
-        <button type="button" className={css.iconBtn} data-testid="dsh-bot-graph" onClick={() => { props.onOpenOverlay?.('graph') }}>{t('roster.graph')}</button>
-        <button type="button" className={css.iconBtn} data-testid="dsh-bot-new-bot" onClick={() => { props.onOpenOverlay?.('create-bot') }}>{t('roster.newBot')}</button>
-        <button type="button" className={css.iconBtn} data-testid="dsh-bot-new-group" onClick={() => { props.onOpenOverlay?.('create-group') }}>{t('roster.newGroup')}</button>
+        <span className={css.headActions}>
+          <button type="button" className={css.iconBtn} data-testid="dsh-bot-graph" onClick={() => { props.onOpenOverlay?.('graph') }}>{t('roster.graph')}</button>
+          <button type="button" className={css.iconBtn} data-testid="dsh-bot-new-bot" onClick={() => { props.onOpenOverlay?.('create-bot') }}>{t('roster.newBot')}</button>
+          <button type="button" className={css.iconBtn} data-testid="dsh-bot-new-group" onClick={() => { props.onOpenOverlay?.('create-group') }}>{t('roster.newGroup')}</button>
+        </span>
       </div>
       <input
         className={css.search}

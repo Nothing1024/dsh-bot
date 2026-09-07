@@ -7,28 +7,44 @@
   color-scheme: inherit;
 }
 
+/* Prototype `.rosterHead` / `.rosterHeadActions` / `.newBot` (BR-617): title never wraps,
+   the pill buttons wrap as whole units onto the next line instead of breaking mid-word. */
 .head {
   display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 0 10px 8px;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 4px 10px 8px;
 }
 
 .title {
   font-size: 13px;
   font-weight: 600;
-  margin-right: auto;
+  white-space: nowrap;
+}
+
+.headActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  justify-content: flex-end;
 }
 
 .iconBtn {
-  border: 0;
-  background: color-mix(in srgb, currentColor 6%, transparent);
+  border: 1px solid color-mix(in srgb, currentColor 16%, transparent);
+  background: transparent;
   color: inherit;
-  border-radius: 8px;
-  padding: 4px 8px;
+  border-radius: 999px;
+  padding: 0 10px;
+  white-space: nowrap;
   font: inherit;
   font-size: 12px;
+  line-height: 24px;
   cursor: pointer;
+}
+
+.iconBtn:hover {
+  background: color-mix(in srgb, currentColor 6%, transparent);
 }
 
 .search {
