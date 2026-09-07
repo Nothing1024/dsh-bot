@@ -14,6 +14,7 @@ export interface SlotsFace {
     id?: string
     order?: number
     inject?: () => Record<string, unknown>
+    select?: (owner: unknown) => unknown
   }, component: unknown): () => void
 }
 

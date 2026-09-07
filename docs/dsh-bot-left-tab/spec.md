@@ -83,21 +83,22 @@
 | session-nav Task 4 阻塞已于 2026-09-08 解除:根因是 `askBot` 把委托 `~dsh-bot:` 会话**归档**(非隐藏),rc.2 投影会清掉归档 current 且无 unarchive;页签桥现对归档目标回执 `archived`。实测 `~ calib-nav-hidden`(`kind:hidden`,未归档)`sessions.open` 落地 `current` → 本包 BR-605 依赖的「打开 `createBotSession` 建出的 1:1 会话」成立(这些会话不归档) | `python3 ~/.claude/skills/prd-workflow/scripts/board.py docs/dsh-bot-session-nav`;`Read docs/dsh-bot-session-nav/evidence/phase-1/live-jump-rerun.json` | Task 4 已完成;allPass:true |
 | session-nav 聚合与推送两条规则（其 spec §2.1「聚合 overview」「SSE 推送」）计划新增 `POST /dsh-bot/overview {}` 聚合接口（bot/group 会话摘要 + lastMessage + working）与 `GET /dsh-bot/events` SSE；对应 Task 9 / Task 10 均「待开始」 | `rg -n "聚合 overview|SSE 推送" docs/dsh-bot-session-nav/spec.md` | 本包 Task 7 数据层应复用而非另写 |
 | ASM-601~605 真机校准全部证实：`inject` 加 `slots` 后 fiber `active`、`ctx.slots.snapshot()` 可读；`priority: -1` 遮蔽 `sidebar.workspaces`；dispose 回 `'sessions'` 后官方树+搜索+打开恢复；`sidebar.footer.action` 在 wide/rail 都渲染且收到 `wide`；`header.actions` 能读 `sessionId` + `byId[id].agentPreset` | Task 1 真机 :3084；`docs/dsh-bot-left-tab/evidence/phase-0/calibration.md` | 见 EVD-601 |
+| ASM-608 真机证实：workbench `history` 条目 `seq` 与官方 `turn/start`/`turn/end`/`assistant/message` 同源，可区间匹配；host 不给例程 assistant 打 `origin`（user `[routine]` 被丢掉） | Task 19：`POST /dsh-bot/history` + `session.history` + jsonl；`docs/dsh-bot-left-tab/evidence/UF-612/seq-check.log` | session-1923ea30 history seq=36 ∈ turn `[5,38]`；wake user/message seq=8 |
 | `agentPreset` 取值：默认 DSH Bot 会话是 `dsh-bot`（无 `--slug`）；其他人设是 `dsh-bot--<slug>`；普通会话是 `standard` / `minimal`。BR-607 匹配须同时认 `dsh-bot` 与 `dsh-bot--` 前缀 | `dsh-rpc.sh 3084 session.list` + spike console | 身份条判定补充 |
 
 ### 1.4 假设清单
 
-> 假设被证实后：事实回写 1.3 节并从本表删除该行；被证伪后走变更协议。ASM-601~605 已由 Task 1 消解。
+> 假设被证实后：事实回写 1.3 节并从本表删除该行；被证伪后走变更协议。ASM-601~605 已由 Task 1 消解；ASM-608 已由 Task 19 消解。
 
 | 假设 ID | 内容 | 风险 | 确认方式 |
 |---|---|---|---|
-| ASM-608 | `/dsh-bot/history` 条目的 `seq` 与官方 `TurnLocation.start/end` 事件的 `seq` 同源（都是 session 事件序号），可直接做区间匹配 | 不同源则 turnTail 的 `select` 改按 `createdAt` 时间窗匹配，精度下降 | Task 19 第一步：在一条例程会话上同时打印两边 seq，写入 `evidence/UF-612/seq-check.log` |
 | ASM-607 | 到本包 Task 7 开工时，session-nav Task 9/10（`POST /dsh-bot/overview` + `GET /dsh-bot/events` 脏通知）已落地；Task 7 直接消费 overview 而不是逐 bot `listBotSessions` | 未落地则 Task 7 先按 `listBots` + `listGroups` + 懒拉 `listBotSessions(选中 bot)` 实现，并在 §1.5 登记「待 overview 落地后切换」 | Task 7 开工前 `rg -n "case 'overview'" packages/dsh-bot-host/src/workbench-routes.ts` |
 
 ### 1.5 变更记录
 
 | 日期 | 变更条目 ID | 原因 | 影响任务与处置 |
 |---|---|---|---|
+| 2026-09-08 | ASM-608 证实（Task 19）：`/dsh-bot/history` 条目 `seq` 与官方 `TurnLocation.start/end` / `assistant/message` 同源，可区间匹配。host 不给例程 assistant 打 `origin`（user `[routine]` 被 `isPlatformInjection` 丢掉）。客户端 `ensureWakes` 预取官方 `session.history` 的 `[routine]` user/message seq 写入 `routineBySeq` | 真机 session-1923ea30：history seq=36，turn `[5,38]`，wake user/message seq=8；origin 为空 | Task 19 select 仍同步 O(1) 查表；Evidence `evidence/UF-612/seq-check.log` |
 | 2026-09-08 | BR-604 补预览数据源（v0.3.2）：官方 `sessions.list` 按 preset 找最新会话 → `history` 最后一条 message → 80 字符，`sessionId+updatedAt` 缓存 | 第二批审查发现名册「最后一句」恒为空：`buildRosterRows` 支持 `lastMessages` 但 ui-dsh-bot 侧无调用方喂数据；根因是 spec 只写了要预览没写数据从哪来（iframe 的预览来自 Transcript 组件回调，左栏没有该组件） | Task 8 增步骤 6（`roster-rpc.ts` 加 `lastMessages` store + `ensurePreview`；`BoundRoster` 接线），状态板 Task 8 改回「进行中」，第三批开工先补；Task 7 store 形状扩展；UF-607 步骤 1「预览更新为最后一句」的核对点由此可达 |
 | 2026-09-08 | Task 7 走 B 路（`listBots` + `listGroups` + 选中 bot 懒拉 `listBotSessions`），overview 落地后切 A | ASM-607：`rg` `packages/dsh-bot-host/src/workbench-routes.ts` 无 `case 'overview'` | store 形状保持 A/B 兼容，上层不感知 |
 | 2026-09-08 | BR-607 v0.3.1：preset 匹配从「仅 `dsh-bot--` 前缀」改为「`dsh-bot` 或 `dsh-bot--` 前缀」；Task 8/17 注意事项补 betterSidebar inject 墙 | Task 1 校准发现默认 DSH Bot 的 agentPreset 是 `dsh-bot`；Phase 1 真机踩到 slot 组件读未 inject 服务崩溃 | Task 17 实现按新文案；Task 8/11/12 的 activateTab 接线走 inject 回调 |

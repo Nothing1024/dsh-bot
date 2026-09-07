@@ -6,6 +6,7 @@ import { createElement, useSyncExternalStore } from 'react'
 import type { Context } from '@deepseek-ai/cordis'
 import { BoundBotRegion, BoundModeFooter, BoundOverlay } from './BoundRoster.tsx'
 import { IdentityBar } from './IdentityBar.tsx'
+import { matchRoutineTurn, RoutineTurnTail } from './RoutineTurnTail.tsx'
 import type { SessionListFace } from './BoundRoster.tsx'
 import { DshBotIcon, DshBotTab } from './DshBotTab.tsx'
 import type { SessionCwdFace, WorkspaceCwdFace } from './DshBotTab.tsx'
@@ -141,6 +142,40 @@ export function apply(ctx: Context): void {
       }, IdentityBar)),
       'ui-dsh-bot: identity bar',
     )
+    client.effect(() => {
+      const sessions = client.sessions as unknown as SessionListFace
+      let live: (() => void) | undefined
+      const occupy = (): void => {
+        live?.()
+        live = slots.inject('conversation.chat.turnTail', () => slots.register({
+          name: 'conversation.chat.turnTail',
+          select: (owner) => matchRoutineTurn(owner, roster, sessions),
+          inject: () => ({ roster, sessions }),
+        }, RoutineTurnTail))
+      }
+      occupy()
+      const keyOf = (): string => {
+        const list = sessions.list?.getSnapshot()
+        const current = list?.current ?? ''
+        const slice = current === '' ? undefined : roster.historyBySession.getSnapshot()[current]
+        const routines = slice === undefined ? 0 : Object.keys(slice.routineBySeq).length
+        return `${current}:${slice?.status ?? ''}:${slice?.items.length ?? 0}:${routines}`
+      }
+      let last = keyOf()
+      const sync = (): void => {
+        const next = keyOf()
+        if (next === last) return
+        last = next
+        occupy()
+      }
+      const unsubHistory = roster.historyBySession.subscribe(sync)
+      const unsubSessions = sessions.list?.subscribe(sync)
+      return () => {
+        unsubHistory()
+        unsubSessions?.()
+        live?.()
+      }
+    }, 'ui-dsh-bot: turn tail')
     client.effect(
       () => slots.inject('shell.overlay', () => slots.register({
         name: 'shell.overlay',

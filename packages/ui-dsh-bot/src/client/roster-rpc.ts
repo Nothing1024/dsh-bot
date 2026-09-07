@@ -40,6 +40,7 @@ export interface HistorySlice {
   readonly error: WorkbenchWireError | null
   readonly items: readonly WorkbenchHistoryItem[]
   readonly bySeq: Readonly<Record<number, WorkbenchHistoryItem>>
+  readonly routineBySeq: Readonly<Record<number, WorkbenchHistoryItem>>
 }
 
 export interface RosterRpc {
@@ -64,6 +65,7 @@ export interface RosterRpc {
   routineList(botId?: string): Promise<RpcResult<readonly RoutineRow[]>>
   peerLog(botId?: string): Promise<RpcResult<readonly PeerLogRow[]>>
   historyOf(sessionId: string): Promise<HistorySlice>
+  ensureWakes?(sessionId: string): void
   ensurePreview(botId: string, sessionId: string, updatedAt: number): void
   setActive(active: boolean): void
   dispose(): void
@@ -117,10 +119,74 @@ export async function rosterCall<T>(
   return { ok: true, value: body.value as T }
 }
 
-function indexHistory(items: readonly WorkbenchHistoryItem[]): HistorySlice {
+function indexHistory(
+  items: readonly WorkbenchHistoryItem[],
+  wakes: readonly WorkbenchHistoryItem[] = [],
+): HistorySlice {
   const bySeq: Record<number, WorkbenchHistoryItem> = {}
-  for (const item of items) bySeq[item.seq] = item
-  return { status: 'idle', error: null, items, bySeq }
+  const routineBySeq: Record<number, WorkbenchHistoryItem> = {}
+  for (const item of items) {
+    bySeq[item.seq] = item
+    if (item.origin === 'routine') routineBySeq[item.seq] = item
+  }
+  for (const wake of wakes) routineBySeq[wake.seq] = wake
+  return { status: 'idle', error: null, items, bySeq, routineBySeq }
+}
+
+function wakesOf(slice: HistorySlice | undefined): WorkbenchHistoryItem[] {
+  if (slice === undefined) return []
+  return Object.values(slice.routineBySeq).filter(item => item.id.startsWith('wake-'))
+}
+
+function firstLine(text: string): string {
+  const line = text.split('\n', 1)[0] ?? ''
+  return line.trim()
+}
+
+export function routineNameFromWake(text: string): string | undefined {
+  const trimmed = text.trim()
+  if (!trimmed.startsWith('[routine]')) return undefined
+  const name = firstLine(trimmed).slice('[routine]'.length).trim()
+  return name === '' ? undefined : name
+}
+
+function textFromOfficialContent(content: unknown): string {
+  if (!Array.isArray(content)) return ''
+  const parts: string[] = []
+  for (const block of content) {
+    if (typeof block !== 'object' || block === null) continue
+    const text = (block as { text?: unknown }).text
+    if (typeof text === 'string' && text !== '') parts.push(text)
+  }
+  return parts.join('\n')
+}
+
+export function wakesFromOfficialEvents(events: readonly unknown[]): WorkbenchHistoryItem[] {
+  const wakes: WorkbenchHistoryItem[] = []
+  for (const row of events) {
+    if (typeof row !== 'object' || row === null) continue
+    const event = 'event' in row && typeof (row as { event?: unknown }).event === 'object'
+      ? (row as { event: Record<string, unknown> }).event
+      : row as Record<string, unknown>
+    if (event.type !== 'user/message') continue
+    const seq = event.seq
+    if (typeof seq !== 'number') continue
+    const data = event.data
+    const content = typeof data === 'object' && data !== null ? (data as { content?: unknown }).content : undefined
+    const text = textFromOfficialContent(content)
+    const name = routineNameFromWake(text)
+    if (name === undefined) continue
+    wakes.push({
+      id: `wake-${seq}`,
+      kind: 'message',
+      seq,
+      role: 'user',
+      origin: 'routine',
+      name,
+      text,
+    })
+  }
+  return wakes
 }
 
 function lastMessagePreview(items: readonly WorkbenchHistoryItem[]): string {
@@ -283,11 +349,12 @@ export function createRosterRpc(deps: RosterRpcDeps = {}): RosterRpc {
         error: outcome.error,
         items: historyBySession.getSnapshot()[sessionId]?.items ?? [],
         bySeq: historyBySession.getSnapshot()[sessionId]?.bySeq ?? {},
+        routineBySeq: historyBySession.getSnapshot()[sessionId]?.routineBySeq ?? {},
       }
       historyBySession.set({ ...historyBySession.getSnapshot(), [sessionId]: failed })
       return failed
     }
-    const slice = indexHistory(outcome.value.items ?? [])
+    const slice = indexHistory(outcome.value.items ?? [], wakesOf(historyBySession.getSnapshot()[sessionId]))
     historyBySession.set({ ...historyBySession.getSnapshot(), [sessionId]: slice })
     return slice
   }
@@ -339,6 +406,47 @@ export function createRosterRpc(deps: RosterRpcDeps = {}): RosterRpc {
     previewQueued.add(key)
     previewQueue.push({ botId, sessionId, key })
     pumpPreview()
+  }
+
+  const wakeInflight = new Set<string>()
+
+  const mergeWakes = (sessionId: string, wakes: readonly WorkbenchHistoryItem[]): void => {
+    if (wakes.length === 0) return
+    const current = historyBySession.getSnapshot()[sessionId]
+    const next = indexHistory(current?.items ?? [], wakes)
+    const prevKeys = Object.keys(current?.routineBySeq ?? {})
+    const nextKeys = Object.keys(next.routineBySeq)
+    if (current !== undefined && prevKeys.join() === nextKeys.join()) return
+    historyBySession.set({ ...historyBySession.getSnapshot(), [sessionId]: next })
+  }
+
+  const ensureWakes = (sessionId: string): void => {
+    if (sessionId === '' || disposed || wakeInflight.has(sessionId)) return
+    wakeInflight.add(sessionId)
+    void (async () => {
+      try {
+        const response = await fetchImpl('/api/session.history', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            type: 'client-request',
+            rpcId: 'dsh-bot-wake',
+            method: 'session.history',
+            payload: { sessionId, maxMessages: 80 },
+          }),
+        })
+        const json = await response.json() as {
+          result?: { value?: { events?: unknown[] } }
+          value?: { events?: unknown[] }
+        }
+        const events = json.result?.value?.events ?? json.value?.events ?? []
+        mergeWakes(sessionId, wakesFromOfficialEvents(events))
+      } catch {
+        // official history is a fallback when host omits origin; ignore transport misses
+      } finally {
+        wakeInflight.delete(sessionId)
+      }
+    })()
   }
 
   const afterMutate = async (): Promise<void> => {
@@ -433,6 +541,7 @@ export function createRosterRpc(deps: RosterRpcDeps = {}): RosterRpc {
       fetchImpl,
     ),
     historyOf,
+    ensureWakes,
     ensurePreview,
     setActive: (next) => {
       active = next

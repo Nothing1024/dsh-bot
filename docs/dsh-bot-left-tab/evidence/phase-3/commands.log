@@ -7,3 +7,8 @@
 
 ===== 2026-09-08T02:37:08Z Task 18 =====
 ./node_modules/.bin/vitest run packages/ui-dsh-bot/tests/identity-bar.spec.tsx packages/ui-dsh-bot/tests/identity-bar-popovers.spec.tsx → 2 files / 12 tests passed
+
+===== 2026-09-08T02:46:00Z Task 19 =====
+./node_modules/.bin/vitest run packages/ui-dsh-bot/tests/routine-turn-tail.spec.tsx → passed (with identity/roster-rpc/preview: 5 files / 28 tests)
+pnpm run typecheck → EXIT 0
+ASM-608: evidence/UF-612/seq-check.log CONFIRMED homologous seq; host origin empty; ensureWakes fallback

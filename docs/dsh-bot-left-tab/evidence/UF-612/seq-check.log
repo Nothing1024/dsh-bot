@@ -1,0 +1,30 @@
+# ASM-608 seq-check
+date: 2026-09-08
+gateway: 127.0.0.1:3084 pid 91916 DSH_HOME=.../dsh-grok-bot/plugin/env
+sessionId: session-1923ea30-5201-4897-96f4-959d784dcad6
+bot: 运维夜班 / dsh-bot--yunwei-yeban
+sources:
+  - POST /dsh-bot/history {sessionId}
+  - POST /api/session.history {sessionId}
+  - zstd -dc env/sessions/.../session-1923ea30-.../session.jsonl.zstd
+
+## workbench historyOf items
+seq=36 kind=thinking  text="The user is sending a routine notification. ..."
+seq=36 kind=message   role=assistant text="副线值班。" origin=<absent>
+
+## workbench origin === 'routine'
+(none)
+
+## official TurnLocation (turn 1)
+turn/start seq=5  time=1788701074581
+turn/end   seq=38 time=1788701081667
+
+## official messages in that turn
+user/message      seq=8  "[routine] 通知副线\n用户交代：只说一句：副线值班。..."
+assistant/message seq=36 (same seq as workbench history message)
+
+## conclusion
+ASM-608 CONFIRMED: /dsh-bot/history item.seq and official SessionEvent.seq are the same session sequence.
+Interval match holds: assistant/history seq 36 ∈ [turn.start 5, turn.end 38]; wake user/message seq 8 also ∈ that interval.
+Host gap: projectWorkbenchHistory only sets origin when assistant text starts with [routine], and strips the user wake via isPlatformInjection. Live origin is therefore empty.
+Client fallback (Task 19): IdentityBar ensureWakes() indexes official [routine] user/message seqs into history.routineBySeq so select stays sync O(1) interval lookup.

@@ -101,6 +101,12 @@ export function IdentityBar(props: IdentityBarProps): ReactElement | null {
   }, [bot, props.sessionId, props.roster])
 
   useEffect(() => {
+    if (bot === null || props.sessionId === undefined) return
+    void props.roster.historyOf(props.sessionId)
+    props.roster.ensureWakes?.(props.sessionId)
+  }, [bot, props.sessionId, props.roster])
+
+  useEffect(() => {
     if (panel === null) return
     const onKey = (event: KeyboardEvent): void => {
       if (event.key === 'Escape') setPanel(null)
