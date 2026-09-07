@@ -189,12 +189,22 @@ export function wakesFromOfficialEvents(events: readonly unknown[]): WorkbenchHi
   return wakes
 }
 
+function isJsonDumpText(text: string): boolean {
+  if (!(text.startsWith('{') || text.startsWith('['))) return false
+  try {
+    JSON.parse(text)
+    return true
+  } catch {
+    return false
+  }
+}
+
 function lastMessagePreview(items: readonly WorkbenchHistoryItem[]): string {
   for (let index = items.length - 1; index >= 0; index -= 1) {
     const item = items[index]
     if (item === undefined || item.kind !== 'message') continue
     const text = item.text?.trim() ?? ''
-    if (text === '') continue
+    if (text === '' || isJsonDumpText(text)) continue
     return text.slice(0, PREVIEW_CHARS)
   }
   return ''

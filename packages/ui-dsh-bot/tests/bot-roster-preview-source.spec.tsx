@@ -92,6 +92,37 @@ describe('ensurePreview', () => {
     rpc.dispose()
   })
 
+  it('skips a trailing JSON dump and uses the previous message text', async () => {
+    const calls: string[] = []
+    const fetchMock = historyFetch({
+      s1: [
+        message(1, 'remember this'),
+        message(2, '{"ok":true,"tool":"receipt"}'),
+      ],
+    }, calls)
+    const rpc = createRosterRpc({ fetch: fetchMock as unknown as typeof fetch })
+    rpc.setActive(true)
+    rpc.ensurePreview('reviewer', 's1', 10)
+    await waitFor(() => { expect(rpc.lastMessages.getSnapshot().reviewer).toBe('remember this') })
+    rpc.dispose()
+  })
+
+  it('leaves the preview empty when every message is a JSON dump', async () => {
+    const calls: string[] = []
+    const fetchMock = historyFetch({
+      s1: [
+        message(1, '[1,2,3]'),
+        message(2, '  {"status":"done"}  '),
+      ],
+    }, calls)
+    const rpc = createRosterRpc({ fetch: fetchMock as unknown as typeof fetch })
+    rpc.setActive(true)
+    rpc.ensurePreview('reviewer', 's1', 10)
+    await waitFor(() => { expect(Object.hasOwn(rpc.lastMessages.getSnapshot(), 'reviewer')).toBe(true) })
+    expect(rpc.lastMessages.getSnapshot().reviewer).toBe('')
+    rpc.dispose()
+  })
+
   it('does not send history after setActive(false)', async () => {
     const calls: string[] = []
     const fetchMock = historyFetch({ s1: [message(1, 'hi')] }, calls)
