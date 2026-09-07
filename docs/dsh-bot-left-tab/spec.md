@@ -1,6 +1,6 @@
 # dsh-bot-left-tab Spec
 
-> Version: 0.3.1 | Date: 2026-09-08 | Status: Ready 可执行
+> Version: 0.3.2 | Date: 2026-09-08 | Status: InProgress 执行中（Phase 0–2 已验收，Phase 3–4 在执行）
 >
 > 本文件是本需求的**唯一事实源**：事实基线、业务合同、技术方案、任务计划、验收协议全部在此。
 > 其他文件（handoff.md、tasks.csv）只引用本文件，不复制内容。
@@ -98,6 +98,7 @@
 
 | 日期 | 变更条目 ID | 原因 | 影响任务与处置 |
 |---|---|---|---|
+| 2026-09-08 | BR-604 补预览数据源（v0.3.2）：官方 `sessions.list` 按 preset 找最新会话 → `history` 最后一条 message → 80 字符，`sessionId+updatedAt` 缓存 | 第二批审查发现名册「最后一句」恒为空：`buildRosterRows` 支持 `lastMessages` 但 ui-dsh-bot 侧无调用方喂数据；根因是 spec 只写了要预览没写数据从哪来（iframe 的预览来自 Transcript 组件回调，左栏没有该组件） | Task 8 增步骤 6（`roster-rpc.ts` 加 `lastMessages` store + `ensurePreview`；`BoundRoster` 接线），状态板 Task 8 改回「进行中」，第三批开工先补；Task 7 store 形状扩展；UF-607 步骤 1「预览更新为最后一句」的核对点由此可达 |
 | 2026-09-08 | Task 7 走 B 路（`listBots` + `listGroups` + 选中 bot 懒拉 `listBotSessions`），overview 落地后切 A | ASM-607：`rg` `packages/dsh-bot-host/src/workbench-routes.ts` 无 `case 'overview'` | store 形状保持 A/B 兼容，上层不感知 |
 | 2026-09-08 | BR-607 v0.3.1：preset 匹配从「仅 `dsh-bot--` 前缀」改为「`dsh-bot` 或 `dsh-bot--` 前缀」；Task 8/17 注意事项补 betterSidebar inject 墙 | Task 1 校准发现默认 DSH Bot 的 agentPreset 是 `dsh-bot`；Phase 1 真机踩到 slot 组件读未 inject 服务崩溃 | Task 17 实现按新文案；Task 8/11/12 的 activateTab 接线走 inject 回调 |
 | 2026-09-08 | ASM-601~605 消解（Task 1 校准）：priority -1 遮蔽、dispose 恢复、footer wide/rail、header kit 读 agentPreset 全部证实；默认 DSH Bot 的 preset 是 `dsh-bot` 不是 `dsh-bot--` | 真机 :3084 + `session.list` | 事实回写 §1.3，§1.4 删五行；BR-607 实现时同时匹配 `dsh-bot` 与 `dsh-bot--` 前缀 |
@@ -111,6 +112,7 @@
 | 日期 | 命令 | 结果 |
 |---|---|---|
 | 2026-09-07 | `python3 ~/.claude/skills/prd-workflow/scripts/validate_package.py docs/dsh-bot-left-tab --repo .` | 0 FAIL / 1 WARN（P0 豁免回归留痕）/ 21 PASS；§3.3 全部 21 条 rg anchor 命中；§3.5 的 7 条官方包 anchor 已手动 `rg --count` 逐条命中（1–2 次） |
+| 2026-09-08 | 第二批（Task 6–16）协调者独立复跑：`pnpm run typecheck` / `pnpm test` / `pnpm --filter ui-dsh-bot run build` / `git diff --stat packages/dsh-bot-host/src` / `validate_package --repo .` | typecheck 0 错；59 文件 400 测全过；bundle 纯度通过；host 零 diff；0 FAIL / 1 WARN / 21 PASS，§3.3 30 条 anchor 命中。审查结论：接受；发现 BR-604 预览数据源缺口（见 §1.5 v0.3.2）；worker 自报「⌘K 不响应 composer 焦点」核为 BR-621 设计行为，非缺陷 |
 
 ---
 
@@ -125,7 +127,7 @@
 | BR-601 | Bot 模式只通过向 `sidebar.workspaces` 以 `priority: -1` 注册来替换官方会话树；禁止注册 `root` / `sidebar` / `conversation` / `conversation.session` 任何 single 槽 | 注册 `{ name: 'sidebar.workspaces', priority: -1 }` | 注册 `root` 让整页只剩插件 | `packages/ui-dsh-bot/src/client/` | 单测断言 register 参数；真机 DOM 只有 `sidebar.workspaces` 变化 |
 | BR-602 | 会话模式对官方零侵入：插件不注册、不复刻、不用 CSS 隐藏官方会话树；切回会话模式 = dispose 遮蔽注册，官方 `WorkspaceBrowser` 原样回来 | 切回后能搜索会话、展开工作区、打开会话 | 会话模式下左栏还残留插件分段条或空白 | 同上 | UF-602 真机回放 |
 | BR-603 | 模式持久化在 `localStorage['dsh-bot:sidebar-mode']`（`'sessions'` \| `'bot'`），刷新页面保持；缺省 `'sessions'` | 切到 Bot 后刷新仍是名册 | 刷新后回到会话树 | `sidebar-mode.ts` | 单测 + UF-601 步骤 5 |
-| BR-604 | 名册行是身份不是会话：每行 = 头像 + 名字 + 最后一句预览 + 未读徽章 + 会话数；按置顶/工作/生活分组（沿用 `groupRosterItems`，隐藏项进底部「已隐藏 N 个」）；绑定会话只在**当前选中身份**下展开 | 选中审查官后其下挂 ≤8 段会话 | 每个 bot 都展开会话变成第二棵会话树 | `BotRoster.tsx` | 单测 + UF-603 |
+| BR-604 | 名册行是身份不是会话：每行 = 头像 + 名字 + 最后一句预览 + 未读徽章 + 会话数；按置顶/工作/生活分组（沿用 `groupRosterItems`，隐藏项进底部「已隐藏 N 个」）；绑定会话只在**当前选中身份**下展开。预览数据源（v0.3.2）：左栏没有 iframe 工作台的 Transcript `onPreview` 回调，改为——在 `ctx.sessions.list` 里按 BR-607 同规则（`agentPreset` 为 `dsh-bot` 或 `dsh-bot--<slug>` 且能匹配该 bot 的 `presetId`）找出该 bot 的会话，取 `updatedAt` 最新的一条，调 `/dsh-bot/history` 取最后一条 `kind:'message'` 且 `text` 非空的条目，截 80 字符做预览；以 `sessionId + updatedAt` 为缓存键，官方 `updatedAt` 变化时才重拉；无会话或无消息时预览留空不占位。小组行预览沿用 `listGroups` 已有字段，不另拉 | 选中审查官后其下挂 ≤8 段会话；例程说话后该行预览立刻变成新的最后一句 | 每个 bot 都展开会话变成第二棵会话树；预览恒为空；每 2s 轮询全部会话的 history | `BotRoster.tsx` / `roster-rpc.ts` | 单测 + UF-603 / UF-607 |
 | BR-605 | 点人设 = 打开最近绑定会话：先读 `readLastSession(botId)` 命中且仍在列表 → `sessions.open`；否则取 `listBotSessions` 最新非隐藏行；都没有 → `createBotSession` 后 `open`。任何一步失败：行内红字错误 + 可重试，选中态不变 | 无会话的新人设点一下即建会话并打开 | 失败时静默或选中跳到别处 | `BotRoster.tsx` / `roster-rpc.ts` | 单测三分支 + UF-603 失败分支 |
 | BR-606 | 1:1 对话面全部交官方中栏：插件不在左栏区域、中栏、浮层里再画 Transcript / composer；中栏只新增 `conversation.session.header.actions` 一个条目 | 打开 bot 会话后中栏是官方对话/轨迹 + 官方 composer | 左栏或浮层里出现插件自己的消息流 | 全部客户端代码 | code review + UF-605 |
 | BR-607 | 身份条只对 bot 会话渲染：`agentPreset` 等于 `dsh-bot`（默认 DSH Bot 的 seed preset）或以 `dsh-bot--` 开头，且能在 `listBots` 里按 `presetId` 找到 bot 才显示；否则返回 `null`，不留占位 | 普通「重构 api.ts」会话顶栏没有身份条 | 普通会话顶栏出现空 chip | `IdentityBar.tsx` | 单测 + UF-605 分支 |
@@ -920,6 +922,8 @@ P0 校准（Task 1）
 - `packages/ui-dsh-bot/src/client/BotRoster.tsx`（新建）+ `BotRoster.module.css`
 - `packages/ui-dsh-bot/src/client/BotRegion.tsx`（Task 3 产物，接入 store）
 - `packages/dsh-bot-shared/src/roster-sections.ts`：`groupRosterItems`（Task 6 迁入后）
+- `packages/ui-dsh-bot/src/client/roster-rpc.ts`：`historyOf`，`rg "const historyOf" packages/ui-dsh-bot/src/client/roster-rpc.ts`（步骤 6 预览数据源）
+- `packages/ui-dsh-bot/src/client/roster-items.ts`：`lastMessages?:`，`rg "lastMessages\?:" packages/ui-dsh-bot/src/client/roster-items.ts`（步骤 6 已有入口）
 
 **具体操作**：
 
@@ -928,8 +932,9 @@ P0 校准（Task 1）
 3. `RailAvatars`：可见 bot 头像竖列 + 未读红点；onClick → `expandSidebar()` 后调 `onSelect(botId)`（Task 9）。
 4. `BotRegion` 接 rosterStore 驱动三态；`ModeFooterAction` 接总未读。
 5. 单测 `tests/bot-roster.spec.tsx`：分组渲染顺序、隐藏进底部、搜索过滤、rail 只画头像。
+6. （v0.3.2 补漏，第三批开工先做）预览数据源，按 BR-604 文案：`roster-rpc.ts` 新增 `lastMessages: ObservableHandle<Readonly<Record<string, string>>>` 与 `ensurePreview(botId, sessionId, updatedAt)`——以 `${sessionId}:${updatedAt}` 为缓存键，未命中才调 `historyOf(sessionId)`，取 `items` 中最后一条 `kind === 'message' && text` 非空的条目，`text.trim().slice(0, 80)` 写入 store；并发上限 2，Bot 模式关闭（`setActive(false)`）时中止未发请求。`BoundRoster`（或等价接线处）用 `useSyncExternalStore(sessions.list)` 得到 `byId`，对每个可见非隐藏 bot 按 BR-607 规则筛出其会话、取 `updatedAt` 最大者调 `ensurePreview`，把 `lastMessages` 快照传给 `BotRoster` 的 `lastMessages` prop（`buildRosterRows` 已支持该入参）。单测 `tests/bot-roster-preview-source.spec.tsx`：同缓存键不重复拉；`updatedAt` 变化重拉；无 message 条目留空；`setActive(false)` 后不再发请求。
 
-**验证**：`./node_modules/.bin/vitest run packages/ui-dsh-bot/tests/bot-roster.spec.tsx packages/ui-dsh-bot/tests/bot-region.spec.tsx` → 通过
+**验证**：`./node_modules/.bin/vitest run packages/ui-dsh-bot/tests/bot-roster.spec.tsx packages/ui-dsh-bot/tests/bot-region.spec.tsx packages/ui-dsh-bot/tests/bot-roster-preview-source.spec.tsx` → 通过
 
 **Evidence**：`evidence/phase-2/commands.log`、`evidence/phase-2/roster.png`
 
