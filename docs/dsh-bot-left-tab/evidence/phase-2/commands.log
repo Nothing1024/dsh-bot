@@ -5,3 +5,7 @@ pnpm run typecheck → EXIT 0
 pnpm --filter workbench-ui run build → EXIT 0 (hashAvatarColor / groupRosterItems inlined in lib/workbench.js)
 pnpm --filter dsh-bot-shared run build → EXIT 0
 pnpm --filter ui-dsh-bot run build → EXIT 0 (DEFAULT_ROSTER_SECTIONS / 置顶 inlined in lib/client.js)
+
+===== 2026-09-07T17:32:39Z Task 7 =====
+rg -n "case 'overview'" packages/dsh-bot-host/src/workbench-routes.ts → no hit (path B)
+./node_modules/.bin/vitest run packages/ui-dsh-bot/tests/roster-rpc.spec.ts → 4 passed

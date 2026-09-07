@@ -98,6 +98,7 @@
 
 | 日期 | 变更条目 ID | 原因 | 影响任务与处置 |
 |---|---|---|---|
+| 2026-09-08 | Task 7 走 B 路（`listBots` + `listGroups` + 选中 bot 懒拉 `listBotSessions`），overview 落地后切 A | ASM-607：`rg` `packages/dsh-bot-host/src/workbench-routes.ts` 无 `case 'overview'` | store 形状保持 A/B 兼容，上层不感知 |
 | 2026-09-08 | BR-607 v0.3.1：preset 匹配从「仅 `dsh-bot--` 前缀」改为「`dsh-bot` 或 `dsh-bot--` 前缀」；Task 8/17 注意事项补 betterSidebar inject 墙 | Task 1 校准发现默认 DSH Bot 的 agentPreset 是 `dsh-bot`；Phase 1 真机踩到 slot 组件读未 inject 服务崩溃 | Task 17 实现按新文案；Task 8/11/12 的 activateTab 接线走 inject 回调 |
 | 2026-09-08 | ASM-601~605 消解（Task 1 校准）：priority -1 遮蔽、dispose 恢复、footer wide/rail、header kit 读 agentPreset 全部证实；默认 DSH Bot 的 preset 是 `dsh-bot` 不是 `dsh-bot--` | 真机 :3084 + `session.list` | 事实回写 §1.3，§1.4 删五行；BR-607 实现时同时匹配 `dsh-bot` 与 `dsh-bot--` 前缀 |
 | 2026-09-08 | BR-619~621、UF-611~612、EVD-612~613、ASM-608 新增；§2.8 撤回三条非目标（v0.3.0） | 用户质疑非目标；复核后「@」可用官方 `pendingInteraction`、例程标签可用 `turnTail` chain + history `origin`，⌘K 可用 `shell.overlay` + 焦点分工，均不改 host | 新增 Task 15（⌘K 面板）、Task 19（turnTail 标签）；原 15-21 顺延为 16-18 / 20-23；Task 4/7/8 扩展；5.2 +3 行 |
