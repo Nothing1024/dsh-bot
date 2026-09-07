@@ -2,7 +2,7 @@
 import { act, cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import type { WorkbenchBot } from 'dsh-bot-shared'
-import { BotRoster } from '../src/client/BotRoster.tsx'
+import { BotRoster, previewAnchorFor } from '../src/client/BotRoster.tsx'
 
 const reviewer: WorkbenchBot = {
   id: 'reviewer',
@@ -53,5 +53,20 @@ describe('roster hover preview', () => {
     expect(screen.getByTestId('dsh-bot-preview-reviewer')).toBeTruthy()
     fireEvent.click(screen.getByTestId('dsh-bot-menu-btn-reviewer'))
     expect(screen.queryByTestId('dsh-bot-preview-reviewer')).toBeNull()
+  })
+})
+
+describe('previewAnchorFor (UF-610 portal anchor)', () => {
+  it('places the card right of the row and flips near the viewport bottom', () => {
+    const innerHeight = window.innerHeight
+    const rect = (top: number, bottom: number): Element => ({
+      getBoundingClientRect: () => ({ top, bottom, left: 0, right: 224, width: 224, height: bottom - top }),
+    }) as unknown as Element
+    const normal = previewAnchorFor(rect(100, 152))
+    expect(normal).toEqual({ top: 100, left: 232, flip: false })
+    const low = previewAnchorFor(rect(innerHeight - 20, innerHeight + 32))
+    expect(low?.flip).toBe(true)
+    expect((low?.top ?? 0) + 72).toBeLessThanOrEqual(innerHeight + 32)
+    expect(previewAnchorFor(null)).toBeNull()
   })
 })

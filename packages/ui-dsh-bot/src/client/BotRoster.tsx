@@ -2,6 +2,7 @@
  * Bot-mode roster: sections, search, hidden bucket, rail avatars (BR-604/610/619).
  */
 import { useEffect, useMemo, useRef, useState, type ReactElement } from 'react'
+import { createPortal } from 'react-dom'
 import { nameInitial } from 'dsh-bot-shared'
 import type { WorkbenchBot, WorkbenchGroup, WorkbenchSessionRow } from 'dsh-bot-shared'
 import { sessionDisplayTitle } from 'dsh-bot-shared'
@@ -62,6 +63,20 @@ export type RosterOverlayKind =
   | 'edit-group'
   | 'confirm-delete'
   | 'graph'
+
+const PREVIEW_CARD_WIDTH = 220
+const PREVIEW_CARD_HEIGHT = 72
+
+/** Fixed-position anchor for the portaled preview card: right of the row, flipped up near the bottom. */
+export function previewAnchorFor(target: Element | null): { top: number; left: number; flip: boolean } | null {
+  if (target === null || typeof target.getBoundingClientRect !== 'function' || typeof window === 'undefined') return null
+  const rect = target.getBoundingClientRect()
+  if (rect.width === 0 && rect.height === 0) return null
+  const flip = rect.top + PREVIEW_CARD_HEIGHT > window.innerHeight
+  const top = flip ? Math.max(8, rect.bottom - PREVIEW_CARD_HEIGHT) : rect.top
+  const left = Math.min(rect.right + 8, Math.max(8, window.innerWidth - PREVIEW_CARD_WIDTH - 8))
+  return { top, left, flip }
+}
 
 function isCoarsePointer(): boolean {
   if (typeof matchMedia !== 'function') return false
@@ -124,6 +139,7 @@ export function BotRoster(props: BotRosterProps): ReactElement {
   const [folded, setFolded] = useState<Set<string>>(() => readFoldedSections())
   const [hiddenOpen, setHiddenOpen] = useState(false)
   const [menuId, setMenuId] = useState<string | null>(props.menuOpenId ?? null)
+  const previewAnchor = useRef<{ top: number; left: number; flip: boolean } | null>(null)
   const [previewId, setPreviewId] = useState<string | null>(null)
   const enterTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const leaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -185,11 +201,12 @@ export function BotRoster(props: BotRosterProps): ReactElement {
     props.onMenuOpen?.(null)
   }
 
-  const onEnter = (id: string): void => {
+  const onEnter = (id: string, target: Element | null): void => {
     if (props.previewDisabled === true || !wide) return
     if (isCoarsePointer()) return
     if (leaveTimer.current !== null) clearTimeout(leaveTimer.current)
     if (enterTimer.current !== null) clearTimeout(enterTimer.current)
+    previewAnchor.current = previewAnchorFor(target)
     enterTimer.current = setTimeout(() => { setPreviewId(id) }, 400)
   }
 
@@ -223,11 +240,30 @@ export function BotRoster(props: BotRosterProps): ReactElement {
     )
   }
 
+  // Prototype `.rosterPreviewCard` sits to the right of the row (BR-617 / UF-610). The official
+  // sidebar clips overflow, so the card is portaled to document.body and positioned from the
+  // row's rect; it flips above the row when it would leave the viewport at the bottom.
+  const renderPreviewCard = (row: RosterRowModel): ReactElement => {
+    const text = row.kind === 'bot'
+      ? `${row.modelLabel ?? t('preview.defaultModel')} · ${t('preview.routines', { n: String(props.routineCounts?.[row.id] ?? 0) })} · ${t('preview.sessions', { n: String(row.sessionCount) })} · ${row.preview}`
+      : `${t('preview.group')} · ${t('preview.members', { n: String(row.memberIds.length) })} · ${row.preview}`
+    const anchor = previewAnchor.current
+    const card = (
+      <div
+        className={css.previewCard}
+        data-testid={`dsh-bot-preview-${row.id}`}
+        data-flip={anchor?.flip === true ? '1' : '0'}
+        style={anchor === null ? undefined : { top: anchor.top, left: anchor.left }}
+      >
+        {text}
+      </div>
+    )
+    if (anchor === null || typeof document === 'undefined') return card
+    return createPortal(card, document.body)
+  }
+
   const renderRow = (row: RosterRowModel, opts: { hiddenBucket?: boolean } = {}): ReactElement => {
     const selected = props.selectedId === row.id
-    const flip = typeof window !== 'undefined' && window.innerHeight > 0
-      ? false
-      : false
     return (
       <div key={row.id} className={css.rowWrap}>
         <button
@@ -237,9 +273,9 @@ export function BotRoster(props: BotRosterProps): ReactElement {
           data-kind={row.kind}
           data-selected={selected ? '1' : '0'}
           onClick={() => { closeMenu(); props.onSelect?.(row) }}
-          onPointerEnter={() => { onEnter(row.id) }}
+          onPointerEnter={event => { onEnter(row.id, event.currentTarget) }}
           onPointerLeave={onLeave}
-          onMouseEnter={() => { onEnter(row.id) }}
+          onMouseEnter={event => { onEnter(row.id, event.currentTarget) }}
           onMouseLeave={onLeave}
         >
           <Face row={row} />
@@ -274,16 +310,8 @@ export function BotRoster(props: BotRosterProps): ReactElement {
               ⋯
             </span>
           </span>
-          {previewId === row.id
-            ? (
-                <div className={css.previewCard} data-testid={`dsh-bot-preview-${row.id}`} data-flip={flip ? '1' : '0'}>
-                  {row.kind === 'bot'
-                    ? `${row.modelLabel ?? t('preview.defaultModel')} · ${t('preview.routines', { n: String(props.routineCounts?.[row.id] ?? 0) })} · ${t('preview.sessions', { n: String(row.sessionCount) })} · ${row.preview}`
-                    : `${t('preview.group')} · ${t('preview.members', { n: String(row.memberIds.length) })} · ${row.preview}`}
-                </div>
-              )
-            : null}
         </button>
+        {previewId === row.id ? renderPreviewCard(row) : null}
         {opts.hiddenBucket === true
           ? (
               <button

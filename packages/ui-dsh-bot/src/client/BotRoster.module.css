@@ -278,10 +278,10 @@
 }
 
 .previewCard {
-  position: absolute;
+  position: fixed;
   left: calc(100% + 8px);
   top: 0;
-  z-index: 8;
+  z-index: 70;
   width: 220px;
   padding: 8px 10px;
   background: Canvas;
@@ -293,8 +293,7 @@
 }
 
 .previewCard[data-flip='1'] {
-  top: auto;
-  bottom: 0;
+  /* anchor already computed from the row's bottom edge */
 }
 
 .rail {
