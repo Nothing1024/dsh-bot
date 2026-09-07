@@ -1,0 +1,445 @@
+{
+  "url": "http://127.0.0.1:3084/",
+  "title": "dsh-bot-manual-20260830-223715-override-off — DeepSeek Harness",
+  "theme": {
+    "colorScheme": "dark",
+    "bodyBg": "rgb(21, 21, 23)",
+    "font": "16px -apple-system, \"system-ui\", \"Segoe UI\", \"PingFang SC\", \"Hiragino Sans GB\", \"Microsoft YaHei\", \"Helvetica Neue\", Helvetica, Arial, sans-serif"
+  },
+  "frame": {
+    "tag": "div",
+    "className": "pI_x6G_frame",
+    "attrs": {
+      "data-details-collapsed": "true"
+    },
+    "text": "新会话 工作区 plugin 新会话 v1 leftover t18 6天 dsh-bot-manual-20260830-183331-override-off 6天 dsh-bot-manual-20260830-183331-override-on 6天 dsh-bot-manual-20260830-183331-plugin 6天 展开其余 12 个会话 未分组 设置 探索未至之境 预览",
+    "box": {
+      "x": 0,
+      "y": 0,
+      "w": 1440,
+      "h": 900
+    }
+  },
+  "slots": [
+    {
+      "tag": "div",
+      "className": "",
+      "slot": "root",
+      "attrs": {
+        "data-slot": "root"
+      },
+      "text": "新会话 工作区 plugin 新会话 v1 leftover t18 6天 dsh-bot-manual-20260830-183331-override-off 6天 dsh-bot-manual-20260830-183331-override-on 6天 dsh-bot-manual-20260830-183331-plugin 6天 展开其余 12 个会话 未分组 设置 探索未至之境 预览",
+      "box": {
+        "x": 0,
+        "y": 0,
+        "w": 0,
+        "h": 0
+      }
+    },
+    {
+      "tag": "div",
+      "className": "",
+      "slot": "sidebar",
+      "attrs": {
+        "data-slot": "sidebar"
+      },
+      "text": "新会话 工作区 plugin 新会话 v1 leftover t18 6天 dsh-bot-manual-20260830-183331-override-off 6天 dsh-bot-manual-20260830-183331-override-on 6天 dsh-bot-manual-20260830-183331-plugin 6天 展开其余 12 个会话 未分组 设置",
+      "box": {
+        "x": 0,
+        "y": 0,
+        "w": 0,
+        "h": 0
+      }
+    },
+    {
+      "tag": "div",
+      "className": "",
+      "slot": "sidebar.brand.mark",
+      "attrs": {
+        "data-slot": "sidebar.brand.mark"
+      },
+      "text": "",
+      "box": {
+        "x": 0,
+        "y": 0,
+        "w": 0,
+        "h": 0
+      }
+    },
+    {
+      "tag": "div",
+      "className": "",
+      "slot": "sidebar.brand.name",
+      "attrs": {
+        "data-slot": "sidebar.brand.name"
+      },
+      "text": "",
+      "box": {
+        "x": 0,
+        "y": 0,
+        "w": 0,
+        "h": 0
+      }
+    },
+    {
+      "tag": "div",
+      "className": "",
+      "slot": "sidebar.workspaces",
+      "attrs": {
+        "data-slot": "sidebar.workspaces"
+      },
+      "text": "工作区 plugin 新会话 v1 leftover t18 6天 dsh-bot-manual-20260830-183331-override-off 6天 dsh-bot-manual-20260830-183331-override-on 6天 dsh-bot-manual-20260830-183331-plugin 6天 展开其余 12 个会话 未分组",
+      "box": {
+        "x": 0,
+        "y": 0,
+        "w": 0,
+        "h": 0
+      }
+    },
+    {
+      "tag": "div",
+      "className": "",
+      "slot": "sidebar.workspaces.directoryFlow",
+      "attrs": {
+        "data-slot": "sidebar.workspaces.directoryFlow"
+      },
+      "text": "",
+      "box": {
+        "x": 0,
+        "y": 0,
+        "w": 0,
+        "h": 0
+      }
+    },
+    {
+      "tag": "div",
+      "className": "",
+      "slot": "sidebar.footer.action",
+      "attrs": {
+        "data-slot": "sidebar.footer.action"
+      },
+      "text": "",
+      "box": {
+        "x": 0,
+        "y": 0,
+        "w": 0,
+        "h": 0
+      }
+    },
+    {
+      "tag": "div",
+      "className": "",
+      "slot": "sidebar.settings",
+      "attrs": {
+        "data-slot": "sidebar.settings"
+      },
+      "text": "设置",
+      "box": {
+        "x": 0,
+        "y": 0,
+        "w": 0,
+        "h": 0
+      }
+    },
+    {
+      "tag": "div",
+      "className": "",
+      "slot": "settings.trigger",
+      "attrs": {
+        "data-slot": "settings.trigger"
+      },
+      "text": "设置",
+      "box": {
+        "x": 0,
+        "y": 0,
+        "w": 0,
+        "h": 0
+      }
+    },
+    {
+      "tag": "div",
+      "className": "",
+      "slot": "conversation",
+      "attrs": {
+        "data-slot": "conversation"
+      },
+      "text": "探索未至之境 预览版 plugin DSH Bot Workspace Write grok-4.6 Xhigh",
+      "box": {
+        "x": 0,
+        "y": 0,
+        "w": 0,
+        "h": 0
+      }
+    },
+    {
+      "tag": "div",
+      "className": "",
+      "slot": "conversation.session.header",
+      "attrs": {
+        "data-slot": "conversation.session.header"
+      },
+      "text": "",
+      "box": {
+        "x": 0,
+        "y": 0,
+        "w": 0,
+        "h": 0
+      }
+    },
+    {
+      "tag": "div",
+      "className": "",
+      "slot": "conversation.session",
+      "attrs": {
+        "data-slot": "conversation.session"
+      },
+      "text": "",
+      "box": {
+        "x": 0,
+        "y": 0,
+        "w": 0,
+        "h": 0
+      }
+    },
+    {
+      "tag": "div",
+      "className": "",
+      "slot": "conversation.composer",
+      "attrs": {
+        "data-slot": "conversation.composer"
+      },
+      "text": "探索未至之境 预览版 plugin DSH Bot Workspace Write grok-4.6 Xhigh",
+      "box": {
+        "x": 0,
+        "y": 0,
+        "w": 0,
+        "h": 0
+      }
+    },
+    {
+      "tag": "div",
+      "className": "",
+      "slot": "conversation.hero.brand.mark",
+      "attrs": {
+        "data-slot": "conversation.hero.brand.mark"
+      },
+      "text": "",
+      "box": {
+        "x": 0,
+        "y": 0,
+        "w": 0,
+        "h": 0
+      }
+    },
+    {
+      "tag": "div",
+      "className": "",
+      "slot": "conversation.hero.workspace",
+      "attrs": {
+        "data-slot": "conversation.hero.workspace"
+      },
+      "text": "",
+      "box": {
+        "x": 0,
+        "y": 0,
+        "w": 0,
+        "h": 0
+      }
+    },
+    {
+      "tag": "div",
+      "className": "",
+      "slot": "conversation.hero.workspace.directoryFlow",
+      "attrs": {
+        "data-slot": "conversation.hero.workspace.directoryFlow"
+      },
+      "text": "",
+      "box": {
+        "x": 0,
+        "y": 0,
+        "w": 0,
+        "h": 0
+      }
+    },
+    {
+      "tag": "div",
+      "className": "",
+      "slot": "conversation.hero.agentPreset",
+      "attrs": {
+        "data-slot": "conversation.hero.agentPreset"
+      },
+      "text": "DSH Bot",
+      "box": {
+        "x": 0,
+        "y": 0,
+        "w": 0,
+        "h": 0
+      }
+    },
+    {
+      "tag": "div",
+      "className": "",
+      "slot": "conversation.input.dock",
+      "attrs": {
+        "data-slot": "conversation.input.dock"
+      },
+      "text": "",
+      "box": {
+        "x": 0,
+        "y": 0,
+        "w": 0,
+        "h": 0
+      }
+    },
+    {
+      "tag": "div",
+      "className": "",
+      "slot": "conversation.composer.bar",
+      "attrs": {
+        "data-slot": "conversation.composer.bar"
+      },
+      "text": "Workspace Write grok-4.6 Xhigh",
+      "box": {
+        "x": 0,
+        "y": 0,
+        "w": 0,
+        "h": 0
+      }
+    },
+    {
+      "tag": "div",
+      "className": "",
+      "slot": "conversation.input.overlay",
+      "attrs": {
+        "data-slot": "conversation.input.overlay"
+      },
+      "text": "",
+      "box": {
+        "x": 0,
+        "y": 0,
+        "w": 0,
+        "h": 0
+      }
+    },
+    {
+      "tag": "div",
+      "className": "",
+      "slot": "conversation.input.attachments",
+      "attrs": {
+        "data-slot": "conversation.input.attachments"
+      },
+      "text": "",
+      "box": {
+        "x": 0,
+        "y": 0,
+        "w": 0,
+        "h": 0
+      }
+    },
+    {
+      "tag": "div",
+      "className": "",
+      "slot": "conversation.input.plan",
+      "attrs": {
+        "data-slot": "conversation.input.plan"
+      },
+      "text": "",
+      "box": {
+        "x": 0,
+        "y": 0,
+        "w": 0,
+        "h": 0
+      }
+    },
+    {
+      "tag": "div",
+      "className": "",
+      "slot": "conversation.input.left",
+      "attrs": {
+        "data-slot": "conversation.input.left"
+      },
+      "text": "",
+      "box": {
+        "x": 0,
+        "y": 0,
+        "w": 0,
+        "h": 0
+      }
+    },
+    {
+      "tag": "div",
+      "className": "",
+      "slot": "conversation.input.right",
+      "attrs": {
+        "data-slot": "conversation.input.right"
+      },
+      "text": "",
+      "box": {
+        "x": 0,
+        "y": 0,
+        "w": 0,
+        "h": 0
+      }
+    },
+    {
+      "tag": "div",
+      "className": "",
+      "slot": "conversation.input.model",
+      "attrs": {
+        "data-slot": "conversation.input.model"
+      },
+      "text": "grok-4.6 Xhigh",
+      "box": {
+        "x": 0,
+        "y": 0,
+        "w": 0,
+        "h": 0
+      }
+    },
+    {
+      "tag": "div",
+      "className": "",
+      "slot": "details",
+      "attrs": {
+        "data-slot": "details"
+      },
+      "text": "详情 点击消息流中的工具行查看详情",
+      "box": {
+        "x": 0,
+        "y": 0,
+        "w": 0,
+        "h": 0
+      }
+    },
+    {
+      "tag": "div",
+      "className": "",
+      "slot": "shell.overlay",
+      "attrs": {
+        "data-slot": "shell.overlay"
+      },
+      "text": "",
+      "box": {
+        "x": 0,
+        "y": 0,
+        "w": 0,
+        "h": 0
+      }
+    }
+  ],
+  "better": {
+    "tag": "div",
+    "className": "",
+    "attrs": {
+      "data-dsh-better-sidebar": ""
+    },
+    "text": "",
+    "box": {
+      "x": 0,
+      "y": 900,
+      "w": 1440,
+      "h": 0
+    }
+  },
+  "tabs": []
+}

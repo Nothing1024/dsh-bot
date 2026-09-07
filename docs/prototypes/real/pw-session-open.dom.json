@@ -1,0 +1,591 @@
+{
+  "url": "http://127.0.0.1:3084/",
+  "title": "v1 leftover t18 — DeepSeek Harness",
+  "theme": {
+    "colorScheme": "dark",
+    "bodyBg": "rgb(21, 21, 23)",
+    "font": "16px -apple-system, \"system-ui\", \"Segoe UI\", \"PingFang SC\", \"Hiragino Sans GB\", \"Microsoft YaHei\", \"Helvetica Neue\", Helvetica, Arial, sans-serif"
+  },
+  "frame": {
+    "tag": "div",
+    "className": "pI_x6G_frame",
+    "attrs": {
+      "data-details-collapsed": "true"
+    },
+    "text": "新会话 工作区 plugin v1 leftover t18 6天 dsh-bot-manual-20260830-183331-override-off dsh-bot-manual-20260830-183331-override-on 6天 dsh-bot-manual-20260830-183331-plugin 6天 v1 leftover 6天 展开其余 11 个会话 未分组 设置 v",
+    "box": {
+      "x": 0,
+      "y": 0,
+      "w": 1440,
+      "h": 900
+    }
+  },
+  "slots": [
+    {
+      "tag": "div",
+      "className": "",
+      "slot": "root",
+      "attrs": {
+        "data-slot": "root"
+      },
+      "text": "新会话 工作区 plugin v1 leftover t18 6天 dsh-bot-manual-20260830-183331-override-off dsh-bot-manual-20260830-183331-override-on 6天 dsh-bot-manual-20260830-183331-plugin 6天 v1 leftover 6天 展开其余 11 个会话 未分组 设置 v",
+      "box": {
+        "x": 0,
+        "y": 0,
+        "w": 0,
+        "h": 0
+      }
+    },
+    {
+      "tag": "div",
+      "className": "",
+      "slot": "sidebar",
+      "attrs": {
+        "data-slot": "sidebar"
+      },
+      "text": "新会话 工作区 plugin v1 leftover t18 6天 dsh-bot-manual-20260830-183331-override-off dsh-bot-manual-20260830-183331-override-on 6天 dsh-bot-manual-20260830-183331-plugin 6天 v1 leftover 6天 展开其余 11 个会话 未分组 设置",
+      "box": {
+        "x": 0,
+        "y": 0,
+        "w": 0,
+        "h": 0
+      }
+    },
+    {
+      "tag": "div",
+      "className": "",
+      "slot": "sidebar.brand.mark",
+      "attrs": {
+        "data-slot": "sidebar.brand.mark"
+      },
+      "text": "",
+      "box": {
+        "x": 0,
+        "y": 0,
+        "w": 0,
+        "h": 0
+      }
+    },
+    {
+      "tag": "div",
+      "className": "",
+      "slot": "sidebar.brand.name",
+      "attrs": {
+        "data-slot": "sidebar.brand.name"
+      },
+      "text": "",
+      "box": {
+        "x": 0,
+        "y": 0,
+        "w": 0,
+        "h": 0
+      }
+    },
+    {
+      "tag": "div",
+      "className": "",
+      "slot": "sidebar.workspaces",
+      "attrs": {
+        "data-slot": "sidebar.workspaces"
+      },
+      "text": "工作区 plugin v1 leftover t18 6天 dsh-bot-manual-20260830-183331-override-off dsh-bot-manual-20260830-183331-override-on 6天 dsh-bot-manual-20260830-183331-plugin 6天 v1 leftover 6天 展开其余 11 个会话 未分组",
+      "box": {
+        "x": 0,
+        "y": 0,
+        "w": 0,
+        "h": 0
+      }
+    },
+    {
+      "tag": "div",
+      "className": "",
+      "slot": "sidebar.workspaces.directoryFlow",
+      "attrs": {
+        "data-slot": "sidebar.workspaces.directoryFlow"
+      },
+      "text": "",
+      "box": {
+        "x": 0,
+        "y": 0,
+        "w": 0,
+        "h": 0
+      }
+    },
+    {
+      "tag": "div",
+      "className": "",
+      "slot": "sidebar.footer.action",
+      "attrs": {
+        "data-slot": "sidebar.footer.action"
+      },
+      "text": "",
+      "box": {
+        "x": 0,
+        "y": 0,
+        "w": 0,
+        "h": 0
+      }
+    },
+    {
+      "tag": "div",
+      "className": "",
+      "slot": "sidebar.settings",
+      "attrs": {
+        "data-slot": "sidebar.settings"
+      },
+      "text": "设置",
+      "box": {
+        "x": 0,
+        "y": 0,
+        "w": 0,
+        "h": 0
+      }
+    },
+    {
+      "tag": "div",
+      "className": "",
+      "slot": "settings.trigger",
+      "attrs": {
+        "data-slot": "settings.trigger"
+      },
+      "text": "设置",
+      "box": {
+        "x": 0,
+        "y": 0,
+        "w": 0,
+        "h": 0
+      }
+    },
+    {
+      "tag": "div",
+      "className": "",
+      "slot": "conversation",
+      "attrs": {
+        "data-slot": "conversation"
+      },
+      "text": "v1 leftover t18 DSH Bot Session log 对话 轨迹 你是谁? 请先说我是 DSH Bot。标记 t18fix-GUI 8月30日 19:41 上下文注入 @deepseek-ai/dsh-system-prompt 上下文注入 skill-catalog Think The user is asking who I am, and they want me to s",
+      "box": {
+        "x": 0,
+        "y": 0,
+        "w": 0,
+        "h": 0
+      }
+    },
+    {
+      "tag": "div",
+      "className": "",
+      "slot": "conversation.session.header",
+      "attrs": {
+        "data-slot": "conversation.session.header"
+      },
+      "text": "v1 leftover t18 DSH Bot Session log 对话 轨迹",
+      "box": {
+        "x": 0,
+        "y": 0,
+        "w": 0,
+        "h": 0
+      }
+    },
+    {
+      "tag": "div",
+      "className": "",
+      "slot": "conversation.session.header.lineage",
+      "attrs": {
+        "data-slot": "conversation.session.header.lineage"
+      },
+      "text": "",
+      "box": {
+        "x": 0,
+        "y": 0,
+        "w": 0,
+        "h": 0
+      }
+    },
+    {
+      "tag": "div",
+      "className": "",
+      "slot": "conversation.session.header.actions",
+      "attrs": {
+        "data-slot": "conversation.session.header.actions"
+      },
+      "text": "DSH Bot",
+      "box": {
+        "x": 0,
+        "y": 0,
+        "w": 0,
+        "h": 0
+      }
+    },
+    {
+      "tag": "div",
+      "className": "",
+      "slot": "conversation.session.header.utilities",
+      "attrs": {
+        "data-slot": "conversation.session.header.utilities"
+      },
+      "text": "Session log",
+      "box": {
+        "x": 0,
+        "y": 0,
+        "w": 0,
+        "h": 0
+      }
+    },
+    {
+      "tag": "div",
+      "className": "",
+      "slot": "conversation.session",
+      "attrs": {
+        "data-slot": "conversation.session"
+      },
+      "text": "你是谁? 请先说我是 DSH Bot。标记 t18fix-GUI 8月30日 19:41 上下文注入 @deepseek-ai/dsh-system-prompt 上下文注入 skill-catalog Think The user is asking who I am, and they want me to start by saying \"我是 DSH Bot\". They also men",
+      "box": {
+        "x": 0,
+        "y": 0,
+        "w": 0,
+        "h": 0
+      }
+    },
+    {
+      "tag": "div",
+      "className": "",
+      "slot": "conversation.view",
+      "attrs": {
+        "data-slot": "conversation.view"
+      },
+      "text": "你是谁? 请先说我是 DSH Bot。标记 t18fix-GUI 8月30日 19:41 上下文注入 @deepseek-ai/dsh-system-prompt 上下文注入 skill-catalog Think The user is asking who I am, and they want me to start by saying \"我是 DSH Bot\". They also men",
+      "box": {
+        "x": 0,
+        "y": 0,
+        "w": 0,
+        "h": 0
+      }
+    },
+    {
+      "tag": "div",
+      "className": "",
+      "slot": "conversation.chat.node",
+      "attrs": {
+        "data-slot": "conversation.chat.node"
+      },
+      "text": "你是谁? 请先说我是 DSH Bot。标记 t18fix-GUI 8月30日 19:41",
+      "box": {
+        "x": 0,
+        "y": 0,
+        "w": 0,
+        "h": 0
+      }
+    },
+    {
+      "tag": "div",
+      "className": "",
+      "slot": "conversation.message.images",
+      "attrs": {
+        "data-slot": "conversation.message.images"
+      },
+      "text": "",
+      "box": {
+        "x": 0,
+        "y": 0,
+        "w": 0,
+        "h": 0
+      }
+    },
+    {
+      "tag": "div",
+      "className": "",
+      "slot": "conversation.chat.node",
+      "attrs": {
+        "data-slot": "conversation.chat.node"
+      },
+      "text": "上下文注入 @deepseek-ai/dsh-system-prompt",
+      "box": {
+        "x": 0,
+        "y": 0,
+        "w": 0,
+        "h": 0
+      }
+    },
+    {
+      "tag": "div",
+      "className": "",
+      "slot": "conversation.chat.node",
+      "attrs": {
+        "data-slot": "conversation.chat.node"
+      },
+      "text": "上下文注入 skill-catalog",
+      "box": {
+        "x": 0,
+        "y": 0,
+        "w": 0,
+        "h": 0
+      }
+    },
+    {
+      "tag": "div",
+      "className": "",
+      "slot": "conversation.chat.node",
+      "attrs": {
+        "data-slot": "conversation.chat.node"
+      },
+      "text": "Think The user is asking who I am, and they want me to start by saying \"我是 DSH Bot\". They also mentioned \"标记 t18fix-GUI\". 我是 DSH Bot。 运行在本机 DSH 插件环境里的常驻对话助手，当前模型是 grok-4.6，工作区是 /Users/nothing/worksp",
+      "box": {
+        "x": 0,
+        "y": 0,
+        "w": 0,
+        "h": 0
+      }
+    },
+    {
+      "tag": "div",
+      "className": "",
+      "slot": "conversation.chat.node",
+      "attrs": {
+        "data-slot": "conversation.chat.node"
+      },
+      "text": "8月30日 19:41 · 用时 7秒 · 首 token 3.5秒 · 66 tok/s",
+      "box": {
+        "x": 0,
+        "y": 0,
+        "w": 0,
+        "h": 0
+      }
+    },
+    {
+      "tag": "div",
+      "className": "",
+      "slot": "conversation.chat.turnTail",
+      "attrs": {
+        "data-slot": "conversation.chat.turnTail"
+      },
+      "text": "",
+      "box": {
+        "x": 0,
+        "y": 0,
+        "w": 0,
+        "h": 0
+      }
+    },
+    {
+      "tag": "div",
+      "className": "",
+      "slot": "conversation.chat.assistant-actions",
+      "attrs": {
+        "data-slot": "conversation.chat.assistant-actions"
+      },
+      "text": "",
+      "box": {
+        "x": 0,
+        "y": 0,
+        "w": 0,
+        "h": 0
+      }
+    },
+    {
+      "tag": "div",
+      "className": "",
+      "slot": "conversation.composer",
+      "attrs": {
+        "data-slot": "conversation.composer"
+      },
+      "text": "Workspace Write grok-4.6 Xhigh 1 轮 · 1 步| LLM 7.9s| 首 token 平均 3.5s · 66 tok/s| 缓存命中 0%| 输入 11.4K tok · 输出 290 tok",
+      "box": {
+        "x": 0,
+        "y": 0,
+        "w": 0,
+        "h": 0
+      }
+    },
+    {
+      "tag": "div",
+      "className": "",
+      "slot": "conversation.input.dock",
+      "attrs": {
+        "data-slot": "conversation.input.dock"
+      },
+      "text": "",
+      "box": {
+        "x": 0,
+        "y": 0,
+        "w": 0,
+        "h": 0
+      }
+    },
+    {
+      "tag": "div",
+      "className": "",
+      "slot": "conversation.composer.bar",
+      "attrs": {
+        "data-slot": "conversation.composer.bar"
+      },
+      "text": "Workspace Write grok-4.6 Xhigh 1 轮 · 1 步| LLM 7.9s| 首 token 平均 3.5s · 66 tok/s| 缓存命中 0%| 输入 11.4K tok · 输出 290 tok",
+      "box": {
+        "x": 0,
+        "y": 0,
+        "w": 0,
+        "h": 0
+      }
+    },
+    {
+      "tag": "div",
+      "className": "",
+      "slot": "conversation.input.overlay",
+      "attrs": {
+        "data-slot": "conversation.input.overlay"
+      },
+      "text": "",
+      "box": {
+        "x": 0,
+        "y": 0,
+        "w": 0,
+        "h": 0
+      }
+    },
+    {
+      "tag": "div",
+      "className": "",
+      "slot": "conversation.input.attachments",
+      "attrs": {
+        "data-slot": "conversation.input.attachments"
+      },
+      "text": "",
+      "box": {
+        "x": 0,
+        "y": 0,
+        "w": 0,
+        "h": 0
+      }
+    },
+    {
+      "tag": "div",
+      "className": "",
+      "slot": "conversation.input.plan",
+      "attrs": {
+        "data-slot": "conversation.input.plan"
+      },
+      "text": "",
+      "box": {
+        "x": 0,
+        "y": 0,
+        "w": 0,
+        "h": 0
+      }
+    },
+    {
+      "tag": "div",
+      "className": "",
+      "slot": "conversation.input.left",
+      "attrs": {
+        "data-slot": "conversation.input.left"
+      },
+      "text": "",
+      "box": {
+        "x": 0,
+        "y": 0,
+        "w": 0,
+        "h": 0
+      }
+    },
+    {
+      "tag": "div",
+      "className": "",
+      "slot": "conversation.input.right",
+      "attrs": {
+        "data-slot": "conversation.input.right"
+      },
+      "text": "",
+      "box": {
+        "x": 0,
+        "y": 0,
+        "w": 0,
+        "h": 0
+      }
+    },
+    {
+      "tag": "div",
+      "className": "",
+      "slot": "conversation.input.model",
+      "attrs": {
+        "data-slot": "conversation.input.model"
+      },
+      "text": "grok-4.6 Xhigh",
+      "box": {
+        "x": 0,
+        "y": 0,
+        "w": 0,
+        "h": 0
+      }
+    },
+    {
+      "tag": "div",
+      "className": "",
+      "slot": "conversation.composer.dock",
+      "attrs": {
+        "data-slot": "conversation.composer.dock"
+      },
+      "text": "1 轮 · 1 步| LLM 7.9s| 首 token 平均 3.5s · 66 tok/s| 缓存命中 0%| 输入 11.4K tok · 输出 290 tok",
+      "box": {
+        "x": 0,
+        "y": 0,
+        "w": 0,
+        "h": 0
+      }
+    },
+    {
+      "tag": "div",
+      "className": "",
+      "slot": "details",
+      "attrs": {
+        "data-slot": "details"
+      },
+      "text": "详情 点击消息流中的工具行查看详情",
+      "box": {
+        "x": 0,
+        "y": 0,
+        "w": 0,
+        "h": 0
+      }
+    },
+    {
+      "tag": "div",
+      "className": "",
+      "slot": "shell.overlay",
+      "attrs": {
+        "data-slot": "shell.overlay"
+      },
+      "text": "",
+      "box": {
+        "x": 0,
+        "y": 0,
+        "w": 0,
+        "h": 0
+      }
+    }
+  ],
+  "better": {
+    "tag": "div",
+    "className": "",
+    "attrs": {
+      "data-dsh-better-sidebar": ""
+    },
+    "text": "",
+    "box": {
+      "x": 0,
+      "y": 900,
+      "w": 1440,
+      "h": 0
+    }
+  },
+  "tabs": [
+    {
+      "text": "对话",
+      "selected": "true",
+      "className": "wSkVaW_tab wSkVaW_tabActive"
+    },
+    {
+      "text": "轨迹",
+      "selected": "false",
+      "className": "wSkVaW_tab"
+    }
+  ]
+}

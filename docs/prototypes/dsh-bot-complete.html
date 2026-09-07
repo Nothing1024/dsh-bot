@@ -1,0 +1,733 @@
+<!doctype html>
+<html lang="zh-CN" data-theme="dark">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>DSH Bot · 完善版原型（长在 DSH 官方壳上）</title>
+<style>
+/* ===================== 主题：跟随宿主 ===================== */
+:root[data-theme="dark"] { color-scheme:dark; --bg:#12151a; --panel:#181c22; --panel2:#1e232b; --border:#2c333c; --text:#e8eaed; --muted:#9aa3ad; --accent:#6b8cff; --accent-soft:rgba(107,140,255,.16); --danger:#f07178; --ok:#7fd18a; --warn:#f0c674; --hover:#222830; --user:#2a3446; --shadow:0 8px 30px rgba(0,0,0,.45); --plug:#f0c674; --plug-soft:rgba(240,198,116,.14); }
+:root[data-theme="light"] { color-scheme:light; --bg:#f6f7f9; --panel:#fff; --panel2:#f0f2f5; --border:#dfe3e8; --text:#1c2128; --muted:#667085; --accent:#3b63f3; --accent-soft:rgba(59,99,243,.12); --danger:#d64550; --ok:#2f9e5b; --warn:#b7791f; --hover:#eef1f5; --user:#e3e9f7; --shadow:0 8px 30px rgba(16,24,40,.14); --plug:#b7791f; --plug-soft:rgba(183,121,31,.12); }
+* { box-sizing:border-box; }
+html, body { margin:0; height:100%; background:var(--bg); color:var(--text); font:13px/1.5 ui-sans-serif, system-ui, -apple-system, "PingFang SC", sans-serif; }
+button { font:inherit; color:inherit; background:none; border:0; cursor:pointer; }
+button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-visible { outline:2px solid var(--accent); outline-offset:1px; }
+kbd { font:11px ui-monospace, monospace; padding:1px 5px; border:1px solid var(--border); border-bottom-width:2px; border-radius:4px; color:var(--muted); }
+.hidden { display:none !important; }
+.sp { flex:1; }
+.muted { color:var(--muted); }
+.small { font-size:11.5px; }
+
+/* ===================== 官方三栏壳 ===================== */
+.shell { display:grid; grid-template-columns:264px 1fr 320px; height:100%; transition:grid-template-columns .18s; }
+.shell.noRight { grid-template-columns:264px 1fr 0; }
+.shell.railLeft { grid-template-columns:56px 1fr 320px; }
+.shell.railLeft.noRight { grid-template-columns:56px 1fr 0; }
+.col { min-width:0; overflow:hidden; display:flex; flex-direction:column; }
+.sidebar { background:var(--panel); border-right:1px solid var(--border); }
+.right { background:var(--panel); border-left:1px solid var(--border); }
+@media (max-width:1100px) { .shell, .shell.railLeft { grid-template-columns:56px 1fr 0; } .right { display:none; } }
+
+/* 侧栏 */
+.brand { display:flex; align-items:center; gap:8px; padding:12px 14px; font-weight:700; border-bottom:1px solid var(--border); white-space:nowrap; }
+.brand .mark { width:22px; height:22px; border-radius:6px; background:linear-gradient(135deg,#4f7cf0,#9b6ee8); flex:none; }
+.railLeft .brand span:not(.mark), .railLeft .wsHead, .railLeft .rowMain, .railLeft .rowMeta, .railLeft .footRow span, .railLeft .secHead, .railLeft .subSess, .railLeft .sessT, .railLeft .sess .m, .railLeft .newBtn { display:none !important; }
+.railLeft .sess, .railLeft .rosterRow { grid-template-columns:1fr; justify-items:center; padding:6px 0; }
+.railLeft .footRow { justify-content:center; }
+.wsHead { display:flex; align-items:center; gap:6px; padding:10px 12px 4px; color:var(--muted); font-size:11px; text-transform:uppercase; letter-spacing:.06em; }
+.seg { display:inline-flex; border:1px solid var(--border); border-radius:7px; overflow:hidden; font-size:11px; }
+.seg button { padding:2px 8px; color:var(--muted); } .seg button.on { background:var(--accent-soft); color:var(--accent); }
+.wsList { flex:1; overflow:auto; padding:0 6px 8px; }
+.ws { padding:6px 8px; font-weight:600; display:flex; align-items:center; gap:6px; }
+.ws small { color:var(--muted); font-weight:400; }
+.sess { display:grid; grid-template-columns:18px 1fr auto; align-items:center; gap:8px; padding:5px 8px 5px 12px; border-radius:7px; cursor:pointer; }
+.sess:hover { background:var(--hover); } .sess.active { background:var(--accent-soft); }
+.sess .sessT { white-space:nowrap; overflow:hidden; text-overflow:ellipsis; display:flex; gap:6px; align-items:center; }
+.sess .m { color:var(--muted); font-size:11px; }
+.run { width:7px; height:7px; border-radius:50%; background:var(--warn); animation:pulse 1.2s infinite; display:inline-block; flex:none; }
+@keyframes pulse { 0%,100%{transform:scale(1)} 50%{transform:scale(1.4)} }
+.tag { font-size:10px; padding:0 5px; border-radius:999px; background:var(--plug-soft); color:var(--plug); font-weight:600; letter-spacing:.03em; white-space:nowrap; }
+.newBtn { display:flex; align-items:center; gap:6px; padding:6px 8px 6px 12px; color:var(--muted); cursor:pointer; border-radius:7px; }
+.newBtn:hover { background:var(--hover); color:var(--text); }
+.sideFoot { border-top:1px solid var(--border); padding:6px; display:flex; flex-direction:column; gap:2px; }
+.footRow { display:flex; align-items:center; gap:8px; padding:6px 8px; border-radius:7px; cursor:pointer; color:var(--muted); }
+.footRow:hover { background:var(--hover); color:var(--text); }
+.badge { min-width:18px; height:18px; padding:0 5px; border-radius:9px; background:var(--accent); color:#fff; font-size:11px; font-weight:700; display:grid; place-items:center; }
+.badge.mention { background:var(--danger); }
+.badge.soft { background:var(--panel2); color:var(--muted); font-weight:500; }
+
+/* 名册模式（插件） */
+.secHead { display:flex; align-items:center; gap:6px; padding:8px 8px 3px; color:var(--muted); font-size:11px; text-transform:uppercase; letter-spacing:.06em; cursor:pointer; user-select:none; }
+.secHead .caret { display:inline-block; transition:transform .15s; }
+.section.collapsed .caret { transform:rotate(-90deg); }
+.section.collapsed .rosterRow, .section.collapsed .subSess { display:none; }
+.rosterRow { display:grid; grid-template-columns:32px 1fr auto; gap:8px; align-items:center; padding:6px 8px; border-radius:8px; cursor:pointer; position:relative; }
+.rosterRow:hover { background:var(--hover); } .rosterRow.active { background:var(--accent-soft); }
+.rosterRow.dragging { opacity:.4; } .rosterRow.dropTarget::before { content:""; position:absolute; left:8px; right:8px; top:-1px; height:2px; background:var(--accent); border-radius:2px; }
+.rowMain { min-width:0; }
+.rowMain .n { font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; display:flex; gap:4px; align-items:center; }
+.rowMain .p { color:var(--muted); font-size:11.5px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.rowMeta { display:flex; flex-direction:column; align-items:flex-end; gap:3px; font-size:11px; color:var(--muted); }
+.rowMenu { position:absolute; right:6px; top:50%; transform:translateY(-50%); display:none; }
+.rosterRow:hover .rowMenu { display:grid; } .rosterRow:hover .rowMeta { visibility:hidden; }
+.subSess { padding:3px 8px 3px 48px; color:var(--muted); font-size:11.5px; cursor:pointer; border-radius:6px; display:flex; gap:6px; align-items:center; }
+.subSess:hover { background:var(--hover); color:var(--text); } .subSess.active { color:var(--accent); }
+.av { width:32px; height:32px; border-radius:9px; display:grid; place-items:center; color:#fff; font-weight:700; font-size:13px; position:relative; flex:none; }
+.av.sm { width:20px; height:20px; font-size:10px; border-radius:6px; } .av.xs { width:16px; height:16px; font-size:9px; border-radius:5px; } .av.lg { width:56px; height:56px; font-size:22px; border-radius:16px; }
+.av.blob { border-radius:40% 60% 55% 45% / 55% 45% 55% 45%; } .av.hex { clip-path:polygon(25% 5%,75% 5%,100% 50%,75% 95%,25% 95%,0 50%); border-radius:0; } .av.pebble { border-radius:50% 50% 45% 55% / 60% 60% 40% 40%; } .av.cloud { border-radius:50% 50% 40% 40% / 60% 60% 45% 45%; }
+.av .st { position:absolute; right:-2px; bottom:-2px; width:9px; height:9px; border-radius:50%; border:2px solid var(--panel); background:var(--muted); }
+.av .st.working { background:var(--warn); animation:pulse 1.2s infinite; } .av .st.online { background:var(--ok); }
+.mosaic { display:grid; grid-template-columns:1fr 1fr; gap:2px; padding:3px; background:var(--panel2); border-radius:9px; } .mosaic i { display:block; border-radius:3px; min-height:10px; }
+.mosaic.sm i { min-height:6px; } .mosaic.xs i { min-height:4px; }
+
+/* 对话面 */
+.conv { background:var(--bg); position:relative; }
+.convHead { display:flex; align-items:center; gap:8px; padding:8px 14px; border-bottom:1px solid var(--border); background:var(--panel); min-height:46px; }
+.convHead .title { font-weight:600; min-width:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.convHead .lineage { color:var(--muted); font-size:12px; white-space:nowrap; }
+.identity { display:inline-flex; align-items:center; gap:6px; }
+.pill { padding:3px 9px; border-radius:999px; border:1px solid var(--border); background:var(--panel2); color:var(--muted); font-size:12px; display:inline-flex; align-items:center; gap:5px; cursor:pointer; white-space:nowrap; }
+.pill:hover { color:var(--text); border-color:var(--accent); } .pill.on { color:var(--accent); border-color:var(--accent); background:var(--accent-soft); }
+.viewTabs { display:flex; gap:2px; padding:0 14px; border-bottom:1px solid var(--border); background:var(--panel); }
+.viewTabs button { padding:7px 12px; color:var(--muted); font-size:12.5px; border-bottom:2px solid transparent; }
+.viewTabs button.on { color:var(--text); border-bottom-color:var(--accent); }
+.membersBar { display:flex; gap:6px; padding:6px 14px; border-bottom:1px solid var(--border); background:var(--panel); align-items:center; overflow:auto; }
+.chip { display:inline-flex; align-items:center; gap:6px; padding:3px 8px 3px 3px; border-radius:999px; border:1px solid var(--border); font-size:12px; white-space:nowrap; }
+.chip.speaking { border-color:var(--warn); box-shadow:0 0 0 2px rgba(240,198,116,.25); } .chip.spoke { opacity:.6; } .chip.pass { opacity:.45; text-decoration:line-through; } .chip.pending { opacity:.8; }
+.transcript { flex:1; overflow:auto; padding:16px 18px 8px; scroll-behavior:smooth; }
+.dateSep { text-align:center; color:var(--muted); font-size:11px; margin:12px 0 10px; display:flex; align-items:center; gap:10px; }
+.dateSep::before, .dateSep::after { content:""; flex:1; height:1px; background:var(--border); }
+.dateSep.unread { color:var(--danger); } .dateSep.unread::before, .dateSep.unread::after { background:var(--danger); opacity:.5; }
+.turn { max-width:860px; margin:0 0 14px; }
+.turn.user { display:flex; flex-direction:column; align-items:flex-end; }
+.turn.user .bubble { background:var(--user); border-color:transparent; }
+.who { display:flex; gap:6px; align-items:center; margin-bottom:4px; font-size:12px; color:var(--muted); }
+.who b { color:var(--text); }
+.split { display:flex; flex-direction:column; gap:6px; align-items:flex-start; }
+.bubble { display:inline-block; max-width:100%; padding:8px 12px; border-radius:12px; background:var(--panel2); border:1px solid var(--border); }
+.bubble p { margin:0 0 .5em; } .bubble p:last-child { margin:0; }
+.bubble code { font:12px ui-monospace, monospace; background:var(--bg); padding:0 4px; border-radius:4px; }
+.bubble pre { margin:.5em 0; padding:10px 12px 22px; background:var(--bg); border:1px solid var(--border); border-radius:8px; font:12px/1.5 ui-monospace, monospace; overflow:auto; position:relative; }
+.bubble pre .lang { position:absolute; right:8px; top:6px; font-size:10px; color:var(--muted); } .bubble pre .copy { position:absolute; right:8px; bottom:4px; font-size:11px; color:var(--muted); }
+.bubble ul { margin:.3em 0; padding-left:1.3em; }
+.tok-k { color:#c792ea; } .tok-s { color:#c3e88d; } .tok-c { color:var(--muted); }
+.quote { border-left:3px solid var(--accent); padding:4px 8px; margin:0 0 6px; color:var(--muted); font-size:12px; background:var(--accent-soft); border-radius:0 6px 6px 0; }
+.quote b { color:var(--text); }
+.cursor { display:inline-block; width:7px; height:14px; background:var(--accent); vertical-align:-2px; margin-left:2px; animation:blink .9s steps(1) infinite; } @keyframes blink { 50%{opacity:0} }
+.card { border:1px solid var(--border); border-radius:10px; background:var(--panel); margin:2px 0; max-width:640px; overflow:hidden; }
+.cardHead { display:flex; align-items:center; gap:8px; padding:7px 10px; font-size:12px; cursor:pointer; user-select:none; }
+.cardHead .name { font-weight:600; font-family:ui-monospace, monospace; } .cardHead .sub { flex:1; color:var(--muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.st { font-size:11px; padding:1px 6px; border-radius:999px; border:1px solid var(--border); color:var(--muted); white-space:nowrap; } .st.ok { color:var(--ok); border-color:var(--ok); } .st.run { color:var(--warn); border-color:var(--warn); } .st.err { color:var(--danger); border-color:var(--danger); }
+.cardBody { display:none; border-top:1px solid var(--border); padding:8px 10px; font:12px/1.5 ui-monospace, monospace; color:var(--muted); white-space:pre-wrap; background:var(--bg); max-height:220px; overflow:auto; } .card.open .cardBody { display:block; }
+.card.approval { border-color:var(--warn); } .card.question { border-color:var(--accent); }
+.card.approval .cardBody, .card.question .cardBody { display:block; font-family:inherit; color:var(--text); background:var(--panel); }
+.card.approval pre { margin:6px 0; padding:8px; background:var(--bg); border-radius:6px; font:12px ui-monospace, monospace; }
+.card.resolved { opacity:.7; }
+.card.peer { border-color:var(--plug); }
+.btnRow { display:flex; gap:6px; margin-top:8px; flex-wrap:wrap; }
+.btn { padding:5px 11px; border-radius:7px; border:1px solid var(--border); background:var(--panel2); font-size:12px; white-space:nowrap; } .btn:hover { border-color:var(--accent); }
+.btn.primary { background:var(--accent); border-color:var(--accent); color:#fff; } .btn.danger { color:var(--danger); } .btn.ghost { border-color:transparent; color:var(--muted); } .btn.chosen { background:var(--accent-soft); border-color:var(--accent); color:var(--accent); }
+.btn:disabled { opacity:.5; cursor:default; }
+.turnTail { display:flex; align-items:center; gap:8px; margin-top:6px; font-size:11.5px; color:var(--muted); min-height:20px; }
+.turnTail .acts { display:flex; gap:2px; opacity:0; transition:opacity .12s; } .turn:hover .turnTail .acts { opacity:1; }
+.turnTail .acts button { padding:1px 6px; border-radius:5px; } .turnTail .acts button:hover { background:var(--hover); color:var(--text); }
+.reactions { display:inline-flex; gap:4px; } .reactions span { padding:0 7px; border-radius:999px; border:1px solid var(--border); background:var(--panel2); font-size:11.5px; cursor:pointer; } .reactions span.mine { border-color:var(--accent); background:var(--accent-soft); }
+.typing { display:inline-flex; gap:3px; padding:8px 12px; } .typing i { width:6px; height:6px; border-radius:50%; background:var(--muted); animation:bob 1s infinite; } .typing i:nth-child(2){animation-delay:.15s} .typing i:nth-child(3){animation-delay:.3s} @keyframes bob { 0%,100%{transform:translateY(0);opacity:.5} 50%{transform:translateY(-3px);opacity:1} }
+.jumpNew { position:absolute; left:50%; transform:translateX(-50%); bottom:110px; display:none; z-index:5; box-shadow:var(--shadow); } .jumpNew.show { display:inline-flex; }
+
+/* 新会话 hero（官方） */
+.hero { flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:18px; padding:40px 20px; }
+.hero h2 { margin:0; font-size:22px; font-weight:600; }
+.hero .pickers { display:flex; gap:8px; flex-wrap:wrap; justify-content:center; }
+.presetGrid { display:grid; grid-template-columns:repeat(auto-fill, minmax(150px, 1fr)); gap:8px; width:min(700px, 100%); }
+.presetCard { display:flex; gap:10px; align-items:center; padding:10px; border:1px solid var(--border); border-radius:10px; background:var(--panel); cursor:pointer; text-align:left; }
+.presetCard:hover { border-color:var(--accent); } .presetCard.sel { border-color:var(--accent); background:var(--accent-soft); }
+.presetCard b { display:block; font-size:12.5px; } .presetCard small { color:var(--muted); font-size:11px; display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+
+/* 队列 + composer */
+.queue { padding:0 14px; display:flex; flex-direction:column; gap:4px; }
+.qItem { display:flex; align-items:center; gap:8px; padding:5px 10px; border:1px dashed var(--border); border-radius:8px; font-size:12px; color:var(--muted); background:var(--panel); }
+.qItem .txt { flex:1; color:var(--text); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; } .qItem button { font-size:11px; color:var(--muted); padding:1px 6px; border-radius:5px; } .qItem button:hover { background:var(--hover); color:var(--text); }
+.composerWrap { padding:8px 14px 12px; }
+.replyBar { display:flex; align-items:center; gap:8px; padding:6px 10px; border:1px solid var(--border); border-bottom:0; border-radius:10px 10px 0 0; background:var(--panel2); font-size:12px; color:var(--muted); }
+.replyBar b { color:var(--text); }
+.attachRow { display:flex; gap:6px; padding:8px 10px 0; flex-wrap:wrap; }
+.att { display:inline-flex; align-items:center; gap:6px; padding:3px 8px 3px 4px; border-radius:7px; border:1px solid var(--border); background:var(--panel2); font-size:12px; } .att .thumb { width:22px; height:22px; border-radius:4px; background:linear-gradient(135deg,#6b8cff,#c792ea); }
+.composer { border:1px solid var(--border); border-radius:12px; background:var(--panel); transition:border-color .12s; }
+.composer.reply { border-top-left-radius:0; border-top-right-radius:0; }
+.composer:focus-within { border-color:var(--accent); } .composer.dragOver { border-color:var(--accent); border-style:dashed; background:var(--accent-soft); }
+.composer textarea { width:100%; border:0; background:transparent; color:var(--text); padding:10px 12px 4px; resize:none; min-height:40px; max-height:200px; font:inherit; line-height:1.5; } .composer textarea:focus { outline:none; }
+.composerBar { display:flex; align-items:center; gap:4px; padding:4px 8px 8px; }
+.iconBtn { width:28px; height:28px; border-radius:7px; display:grid; place-items:center; color:var(--muted); } .iconBtn:hover { background:var(--hover); color:var(--text); }
+.send { padding:5px 12px; border-radius:8px; background:var(--accent); color:#fff; font-weight:600; } .send.stop { background:var(--danger); }
+.modeSel { display:inline-flex; border:1px solid var(--border); border-radius:7px; overflow:hidden; font-size:11px; } .modeSel button { padding:3px 8px; color:var(--muted); } .modeSel button.on { background:var(--accent-soft); color:var(--accent); }
+.hint { color:var(--muted); font-size:11px; padding:4px 4px 0; display:flex; gap:12px; flex-wrap:wrap; }
+
+/* 右栏 */
+.tabs { display:flex; gap:2px; padding:8px 8px 0; border-bottom:1px solid var(--border); overflow:auto; }
+.tabs button { padding:6px 10px; color:var(--muted); font-size:12px; border-bottom:2px solid transparent; border-radius:7px 7px 0 0; white-space:nowrap; } .tabs button.on { color:var(--text); border-bottom-color:var(--accent); }
+.tabBody { flex:1; overflow:auto; padding:12px; }
+.tabBody h3 { font-size:11px; text-transform:uppercase; letter-spacing:.06em; color:var(--muted); margin:14px 0 6px; } .tabBody h3:first-child { margin-top:0; }
+.fact { display:flex; gap:8px; align-items:flex-start; padding:5px 8px; border-radius:8px; font-size:12.5px; } .fact:hover { background:var(--hover); } .fact .t { flex:1; min-width:0; } .fact .src { font-size:10px; color:var(--muted); white-space:nowrap; margin-top:3px; } .fact .del { visibility:hidden; color:var(--muted); font-size:11px; } .fact:hover .del { visibility:visible; } .fact.faded { opacity:.55; } .fact.click { cursor:pointer; }
+.routine { padding:8px 10px; border:1px solid var(--border); border-radius:9px; margin-bottom:8px; font-size:12.5px; } .routine .top { display:flex; align-items:center; gap:8px; } .routine .top b { flex:1; } .routine .cron { font:11px ui-monospace, monospace; color:var(--muted); }
+.sw { width:30px; height:17px; border-radius:999px; background:var(--border); position:relative; cursor:pointer; flex:none; } .sw::after { content:""; position:absolute; top:2px; left:2px; width:13px; height:13px; border-radius:50%; background:#fff; transition:left .15s; } .sw.on { background:var(--ok); } .sw.on::after { left:15px; }
+.inp { width:100%; padding:6px 8px; border-radius:7px; border:1px solid var(--border); background:var(--panel2); color:var(--text); font:inherit; }
+.avPalette { display:flex; gap:5px; flex-wrap:wrap; } .avPalette .av { width:24px; height:24px; cursor:pointer; font-size:0; } .avPalette .av.sel { outline:2px solid var(--accent); outline-offset:2px; }
+.field { margin-bottom:10px; } .field label { display:block; font-size:11.5px; color:var(--muted); margin-bottom:4px; }
+
+/* 弹层 / 命令面板 / 模态 / toast */
+.pop { position:absolute; z-index:30; background:var(--panel); border:1px solid var(--border); border-radius:10px; box-shadow:var(--shadow); min-width:220px; padding:4px; }
+.pop button { display:flex; width:100%; align-items:center; gap:8px; padding:6px 10px; border-radius:7px; text-align:left; font-size:12.5px; } .pop button:hover, .pop button.sel { background:var(--hover); } .pop button .k { margin-left:auto; color:var(--muted); font-size:11px; } .pop hr { border:0; border-top:1px solid var(--border); margin:4px 0; }
+.pop.emoji { display:grid; grid-template-columns:repeat(8, 30px); gap:2px; padding:8px; min-width:0; } .pop.emoji button { width:30px; height:30px; padding:0; justify-content:center; font-size:17px; }
+.scrim { position:fixed; inset:0; background:rgba(0,0,0,.4); z-index:90; display:none; } .scrim.show { display:block; }
+.palette { position:fixed; z-index:100; top:12vh; left:50%; transform:translateX(-50%); width:min(640px, 92vw); background:var(--panel); border:1px solid var(--border); border-radius:14px; box-shadow:var(--shadow); display:none; overflow:hidden; } .palette.show { display:block; }
+.palette input { width:100%; border:0; padding:14px 16px; font-size:15px; background:transparent; color:var(--text); border-bottom:1px solid var(--border); } .palette input:focus { outline:none; }
+.palList { max-height:52vh; overflow:auto; padding:6px; }
+.palGroup { font-size:11px; color:var(--muted); text-transform:uppercase; letter-spacing:.06em; padding:8px 10px 3px; }
+.palItem { display:grid; grid-template-columns:26px 1fr auto; gap:10px; align-items:center; padding:7px 10px; border-radius:8px; cursor:pointer; } .palItem.sel, .palItem:hover { background:var(--hover); }
+.palItem .ic { text-align:center; display:grid; place-items:center; } .palItem .t { min-width:0; } .palItem .t small { display:block; color:var(--muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; } .palItem mark { background:var(--accent-soft); color:var(--accent); padding:0 1px; border-radius:2px; } .palItem .k { color:var(--muted); font-size:11px; }
+.palFoot { display:flex; gap:14px; padding:8px 14px; border-top:1px solid var(--border); color:var(--muted); font-size:11px; }
+.modal { position:fixed; z-index:100; top:50%; left:50%; transform:translate(-50%,-50%); width:min(560px, 94vw); max-height:88vh; overflow:auto; background:var(--panel); border:1px solid var(--border); border-radius:14px; box-shadow:var(--shadow); display:none; }
+.modal.show { display:block; } .modal.wide { width:min(860px, 94vw); }
+.modalHead { display:flex; align-items:center; gap:8px; padding:14px 16px; border-bottom:1px solid var(--border); font-weight:600; }
+.modalBody { padding:14px 16px; } .modalFoot { display:flex; gap:8px; justify-content:flex-end; padding:12px 16px; border-top:1px solid var(--border); }
+.tplGrid { display:grid; grid-template-columns:repeat(2, 1fr); gap:6px; margin-bottom:10px; }
+.tpl { display:flex; gap:8px; align-items:center; padding:7px 8px; border:1px solid var(--border); border-radius:8px; cursor:pointer; font-size:12px; text-align:left; } .tpl:hover { border-color:var(--accent); } .tpl small { display:block; color:var(--muted); font-size:11px; }
+.memberPick { display:flex; flex-wrap:wrap; gap:6px; } .memberPick .chip { cursor:pointer; } .memberPick .chip.sel { border-color:var(--accent); background:var(--accent-soft); }
+.toasts { position:fixed; right:16px; bottom:60px; z-index:120; display:flex; flex-direction:column; gap:8px; }
+.toast { display:grid; grid-template-columns:30px 1fr auto; gap:10px; align-items:center; width:340px; padding:10px 12px; background:var(--panel); border:1px solid var(--border); border-radius:12px; box-shadow:var(--shadow); cursor:pointer; animation:slidein .2s ease-out; } .toast .t b { display:block; } .toast .t span { color:var(--muted); font-size:12px; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; } @keyframes slidein { from{transform:translateY(12px);opacity:0} }
+.helpGrid { display:grid; grid-template-columns:1fr 1fr; gap:4px 20px; font-size:12.5px; } .helpGrid div { display:flex; justify-content:space-between; gap:10px; padding:4px 0; border-bottom:1px solid var(--border); }
+.orgSvg { width:100%; height:420px; background:var(--bg); border:1px solid var(--border); border-radius:10px; }
+.orgSvg text { font:11px ui-sans-serif, system-ui; fill:var(--text); }
+.orgSvg .edge { stroke:var(--muted); stroke-width:1.2; fill:none; opacity:.7; } .orgSvg .edge.group { stroke:var(--accent); stroke-dasharray:4 3; }
+.orgSvg .node { cursor:pointer; } .orgSvg .node:hover circle { stroke:var(--accent); stroke-width:2; }
+
+/* 插件贡献高亮 / 只看原生 */
+[data-plug] { position:relative; }
+body.hl [data-plug] { outline:1.5px dashed var(--plug); outline-offset:-1px; }
+body.hl [data-plug]::after { content:attr(data-plug); position:absolute; z-index:60; right:4px; top:-9px; font:10px/1.3 ui-monospace, monospace; background:var(--plug); color:#1c2128; padding:1px 6px; border-radius:4px; pointer-events:none; white-space:nowrap; }
+body.native [data-plug] { display:none !important; }
+.demoBar { position:fixed; left:50%; bottom:12px; transform:translateX(-50%); z-index:80; display:flex; gap:6px; padding:6px 8px; background:var(--panel); border:1px solid var(--border); border-radius:12px; box-shadow:var(--shadow); align-items:center; flex-wrap:wrap; justify-content:center; max-width:96vw; }
+.demoBar .lbl { color:var(--muted); font-size:11px; padding:0 4px; } .demoBar .btn { font-size:11.5px; padding:4px 9px; }
+.legend { position:fixed; left:12px; bottom:12px; z-index:80; font-size:11px; color:var(--muted); background:var(--panel); border:1px solid var(--border); border-radius:8px; padding:5px 9px; display:flex; gap:10px; align-items:center; }
+.legend i { display:inline-block; width:10px; height:10px; border:1.5px dashed var(--plug); vertical-align:-1px; margin-right:4px; }
+</style>
+</head>
+<body class="hl">
+<div class="shell" id="shell">
+  <!-- ============ 官方左栏（ui-sidebar 占据；插件只往内部座位加东西） ============ -->
+  <aside class="col sidebar">
+    <div class="brand"><span class="mark"></span><span>DSH</span><span class="sp"></span><button class="iconBtn" onclick="toggleRail()" title="折叠侧栏 ⌘B">⟨</button></div>
+    <div class="wsHead">
+      <span id="wsLabel">工作区</span><span class="sp"></span>
+      <span class="seg" data-plug="sidebar.workspaces 顶部 · 视图切换"><button class="on" data-view="ws" onclick="setSideView('ws')">会话</button><button data-view="roster" onclick="setSideView('roster')">Bot</button></span>
+    </div>
+    <div class="wsList" id="wsList"></div>
+    <div class="sideFoot">
+      <div class="footRow" data-plug="sidebar.footer.action" onclick="setSideView('roster')">🤖 <span>DSH Bot</span><span class="sp"></span><span class="badge" id="footBadge">3</span></div>
+      <div class="footRow" onclick="openPalette()">🔍 <span>跳转 / 搜索</span><span class="sp"></span><kbd>⌘K</kbd></div>
+      <div class="footRow" onclick="openModal('settings')">⚙ <span>设置</span></div>
+    </div>
+  </aside>
+
+  <!-- ============ 官方中栏（ui-conversation 占据） ============ -->
+  <main class="col conv">
+    <header class="convHead">
+      <span class="identity" id="identity" data-plug="session.header.actions（order<0 身份区）"></span>
+      <span class="title" id="convTitle" ondblclick="renameSession()" title="双击重命名"></span>
+      <span class="lineage" id="lineage"></span>
+      <span class="sp"></span>
+      <span id="botActions" style="display:inline-flex;gap:6px">
+        <button class="pill" data-plug="session.header.actions" onclick="openRight('memory')" title="这个 Bot 记住的事">🧠 <span id="memCount">6</span></button>
+        <button class="pill" data-plug="session.header.actions" onclick="openRight('routines')" title="例程">⏰ <span id="rtCount">2</span></button>
+      </span>
+      <button class="pill" id="modelPill" onclick="openModal('model')" title="官方模型选择器">🧠 deepseek-r1</button>
+      <button class="pill" onclick="toast('⑂','分叉','官方 sessions.fork(atSeq)')" title="分叉">⑂</button>
+      <button class="pill" onclick="sessionMenu(event)" title="更多">⋯</button>
+      <button class="pill" id="rightBtn" onclick="toggleRight()" title="详情栏">▥</button>
+    </header>
+    <div class="viewTabs" id="viewTabs">
+      <button class="on" data-view="chat" onclick="setView('chat')">Chat</button>
+      <button data-view="traj" onclick="setView('traj')">Trajectory</button>
+      <button data-view="room" id="roomTab" class="hidden" data-plug="conversation.view（房间视图，仅小组）" onclick="setView('room')">房间</button>
+    </div>
+    <div id="membersBar" class="membersBar hidden" data-plug="session.header.utilities（成员三态 + 轮次）"></div>
+
+    <!-- 官方 hero：新会话页 -->
+    <section class="hero hidden" id="hero">
+      <h2>开始一段新对话</h2>
+      <div class="pickers">
+        <button class="pill">📁 dsh-bot · ~/workspace/dsh-bot ▾</button>
+        <button class="pill" id="heroPreset" data-plug="hero.agentPreset（bot 人设即 preset）">🤖 DSH Bot ▾</button>
+        <button class="pill">🧠 deepseek-v3 ▾</button>
+      </div>
+      <div class="presetGrid" id="presetGrid" data-plug="hero 人设卡（插件贡献，替代平铺的 preset 下拉）"></div>
+      <div class="muted small">选一个人设，下面直接输入。人设的默认模型只是初值，随时可换。</div>
+    </section>
+
+    <section class="transcript" id="transcript"></section>
+    <button class="btn jumpNew" id="jumpNew" onclick="scrollBottom()">↓ 新消息</button>
+    <div class="queue" id="queue"></div>
+    <div class="composerWrap">
+      <div class="replyBar hidden" id="replyBar" data-plug="回复引用（小组：replyTo 落 jsonl；1:1：quote 进 prompt）">↩ 回复 <b id="replyWho"></b>：<span id="replyText"></span><span class="sp"></span><button onclick="clearReply()">✕</button></div>
+      <div class="composer" id="composer">
+        <div class="attachRow hidden" id="attachRow"></div>
+        <textarea id="input" rows="1" placeholder="给 Bot 发消息…（粘贴 / 拖入图片，@ 提及，:emoji:，/ 命令）"></textarea>
+        <div class="composerBar">
+          <button class="iconBtn" title="附件（官方 input.attachments）" onclick="addAttachment()">📎</button>
+          <button class="iconBtn" data-plug="input.left" title="@ 其他 Bot（异步，回复稍后到达）" onclick="insertText('@')">@</button>
+          <button class="iconBtn" data-plug="input.left" title="Emoji" id="emojiBtn">🙂</button>
+          <button class="iconBtn" title="斜杠命令（官方 dsh-commands）" onclick="insertText('/')">/</button>
+          <span class="sp"></span>
+          <span class="modeSel" id="modeSel" title="Bot 工作中时这条消息怎么送达（官方）"><button data-mode="queue" class="on">排队</button><button data-mode="steer">打断</button></span>
+          <button class="send" id="sendBtn">发送 ↵</button>
+        </div>
+      </div>
+      <div class="hint"><span><kbd>↵</kbd> 发送</span><span><kbd>⇧↵</kbd> 换行</span><span><kbd>⌘K</kbd> 跳转</span><span><kbd>⌥↑↓</kbd> 切 Bot</span><span><kbd>Esc</kbd> 停止</span><span><kbd>?</kbd> 全部快捷键</span></div>
+    </div>
+  </main>
+
+  <!-- ============ 右栏：better-sidebar / details 页签，原生渲染 ============ -->
+  <aside class="col right" id="right" data-plug="better-sidebar 页签 · 原生 React（无 iframe）">
+    <div class="tabs" id="rightTabs">
+      <button class="on" data-tab="bot" onclick="openRight('bot')">人设</button>
+      <button data-tab="memory" onclick="openRight('memory')">记忆</button>
+      <button data-tab="routines" onclick="openRight('routines')">例程</button>
+      <button data-tab="peers" onclick="openRight('peers')">同事</button>
+      <button data-tab="tasks" onclick="openRight('tasks')">任务</button>
+    </div>
+    <div class="tabBody" id="tabBody"></div>
+  </aside>
+</div>
+
+<!-- 命令面板 -->
+<div class="scrim" id="scrim" onclick="closeAll()"></div>
+<div class="palette" id="palette" data-plug="Cmd+K：本地命令 + Bot/会话 + sessions.search">
+  <input id="palInput" placeholder="跳转到 Bot / 会话，或输入关键字搜索所有消息…（> 只看命令）" autocomplete="off" />
+  <div class="palList" id="palList"></div>
+  <div class="palFoot"><span><kbd>↑↓</kbd> 选择</span><span><kbd>↵</kbd> 打开</span><span><kbd>Esc</kbd> 关闭</span><span class="sp"></span><span>跨会话消息搜索走官方 sessions.search</span></div>
+</div>
+
+<!-- 模态：新建/编辑人设、新建小组、模型、设置、关系图、快捷键 -->
+<div class="modal" id="modal"><div class="modalHead" id="modalHead"></div><div class="modalBody" id="modalBody"></div><div class="modalFoot" id="modalFoot"></div></div>
+
+<div class="toasts" id="toasts"></div>
+<div class="legend"><span><i></i>虚线框 = 插件贡献；其余是 DSH 官方自带</span></div>
+<div class="demoBar">
+  <span class="lbl">演示</span>
+  <button class="btn primary" id="nativeBtn" onclick="toggleNative()">只看 DSH 原生</button>
+  <button class="btn" id="hlBtn" onclick="toggleHl()">隐藏高亮</button>
+  <button class="btn" onclick="toggleTheme()">◐ 主题</button>
+  <span class="lbl">|</span>
+  <button class="btn" onclick="demoStream()">流式</button>
+  <button class="btn" onclick="demoTool()">工具</button>
+  <button class="btn" onclick="demoApproval()">审批</button>
+  <button class="btn" onclick="demoQuestion()">提问</button>
+  <button class="btn" onclick="demoWake()">主动来消息</button>
+  <button class="btn" onclick="demoPeer()">Bot 传话</button>
+  <button class="btn" onclick="demoNudge()">主动提议例程</button>
+  <button class="btn" onclick="openSession('g-design')">小组</button>
+  <button class="btn" onclick="openHero()">新会话页</button>
+  <button class="btn" onclick="openModal('org')">关系图</button>
+</div>
+<script>
+/* ===================== 数据（真实实现：bots.json / groups.json / marks / events.host / events.mux） ===================== */
+const COLORS = { blue:'#4f7cf0', green:'#3aa76d', orange:'#e0894a', purple:'#9b6ee8', red:'#d95a63', teal:'#2fa3a8', gray:'#7a8594', pink:'#d76aa6' };
+const SHAPES = ['sq','blob','pebble','hex','cloud'];
+const bots = [
+  { id:'dsh-bot',  name:'DSH Bot',   avatar:{ shape:'sq', color:'blue', text:'D' },     section:'pinned', pinned:true, status:'online',  unread:0, mention:false, preview:'我先看一下仓库结构再回你', model:'deepseek-v3', persona:'你是这个仓库的默认人设，负责回答关于插件本身的问题。' },
+  { id:'reviewer', name:'代码审查官', avatar:{ shape:'hex', color:'red', text:'审' },     section:'pinned', pinned:true, status:'working', unread:2, mention:true,  preview:'@你 PR #142 有两处要你决定', model:'deepseek-r1', persona:'你是一位严格但友善的代码审查官。只指出会影响行为的问题，不评价风格。用中文，术语保留英文。' },
+  { id:'poet',     name:'诗人小北',  avatar:{ shape:'blob', color:'purple', text:'北' }, section:'work',   status:'idle',    unread:0, mention:false, preview:'今晚的月色像一封没寄出的信', model:'deepseek-v3', persona:'你是一位现代诗人，句子短，意象具体，不解释。' },
+  { id:'ops',      name:'运维夜班',  avatar:{ shape:'pebble', color:'teal', text:'夜' }, section:'work',   status:'idle',    unread:1, mention:false, preview:'[routine] 06:00 巡检正常', model:'deepseek-v3', persona:'你负责巡检 :3084 网关与 env/ 磁盘。没事就不说话。' },
+  { id:'shopper',  name:'比价助手',  avatar:{ shape:'cloud', color:'orange', text:'比' }, section:'life',  status:'idle',    unread:0, mention:false, preview:'M2 Air 16G 这周没降', model:'deepseek-v3', persona:'你每天盯几个商品价格，降到目标价才叫用户。' },
+];
+const groups = [ { id:'g-design', name:'需求评审小组', members:['dsh-bot','reviewer','poet'], section:'work', round:2, rounds:3, status:'working', preview:'第 2 轮 · 审查官正在回应小北' } ];
+const sections = [ { id:'pinned', name:'置顶' }, { id:'work', name:'工作' }, { id:'life', name:'生活' } ];
+const collapsed = new Set(); let hiddenBots = [];
+// 会话 = 官方 session；bot 字段来自 marks；group 行是房间（非官方 session）
+const sessions = [
+  { id:'s-142',   title:'PR #142 审查',          bot:'reviewer', time:'刚刚', running:true },
+  { id:'s-mark',  title:'marks 过滤方案',         bot:'reviewer', time:'周五' },
+  { id:'s-intro', title:'介绍一下你自己',         bot:'dsh-bot',  time:'09:10' },
+  { id:'s-sep',   title:'九月',                   bot:'poet',     time:'昨天' },
+  { id:'s-ops',   title:'早间巡检',               bot:'ops',      time:'06:02', wake:true },
+  { id:'s-shop',  title:'M2 Air 比价',            bot:'shopper',  time:'周二', wake:true },
+  { id:'s-plain', title:'重构 api.ts 的错误处理', bot:null,       time:'周三' },
+  { id:'g-design', title:'引用回复持久化方案',     bot:'g-design', time:'15:23', group:true },
+];
+const transcripts = {
+  's-142': [
+    { t:'date', text:'今天' },
+    { t:'user', md:'帮我看一下 PR #142，重点看 group-engine 的改动是不是会影响一轮语义', time:'14:02' },
+    { t:'asst', time:'14:03', parts:[
+      { k:'text', md:'收到，先拉 diff 看一下。' },
+      { k:'tool', name:'Shell', sub:'git diff main...pr-142 -- packages/dsh-bot-host/src/group-engine.ts', st:'ok', out:'+53 -12  group-engine.ts\n+ messagesSinceMemberLastSpoke()\n+ OLD_TURN_CLOSE strip in toRoomSpeech()\n- const recent = room.slice(-24)' },
+      { k:'tool', name:'Read', sub:'packages/dsh-bot-host/tests/group-engine.spec.ts', st:'ok', out:'42 cases · 3 new' },
+      { k:'think', out:'新逻辑只喂"该成员上次发言之后"的行，一轮语义不变……需要确认 memberIds 顺序稳定' },
+      { k:'text', md:'看完了，**一轮语义没有变**，改动只影响每个成员看到的上下文窗口：\n\n- 以前：所有成员看最近 24 行\n- 现在：只看自己上次发言之后的行\n\n有两处需要你拍板，第一处：\n\n```ts\n// group-engine.ts\nconst since = messagesSinceMemberLastSpoke(room, memberId)\nreturn since.length ? since : room.slice(-24)  // 首发言者回退到 24 行\n```\n\n这个回退要不要保留？' } ] },
+    { t:'user', md:'保留。第二处是什么', time:'14:05', unreadAfter:true },
+  ],
+  's-mark': [ { t:'date', text:'周五' }, { t:'user', md:'listBotSessions 要不要过滤 group-room 会话' }, { t:'asst', parts:[{ k:'text', md:'要。它们是成员轮次的隐藏会话，混进 1:1 列表会让用户以为是自己开的。' }] } ],
+  's-intro': [ { t:'date', text:'今天' }, { t:'user', md:'介绍一下你自己', time:'09:10' }, { t:'asst', time:'09:10', parts:[{ k:'text', md:'我是这个仓库里的默认人设，负责回答关于插件本身的问题。\n\n我记得你上次让我把小组会话标题改成首句自动起题，那个已经排上了。' }] } ],
+  's-sep': [ { t:'date', text:'昨天' }, { t:'user', md:'写两句关于九月的', time:'21:40' }, { t:'asst', time:'21:41', parts:[{ k:'text', md:'九月把夏天叠好，放进抽屉最里层\n\n今晚的月色像一封没寄出的信' }] } ],
+  's-ops': [ { t:'date', text:'今天' }, { t:'asst', wake:'routine', time:'06:02', parts:[{ k:'text', md:'btw，06:00 巡检跑完了：:3084 正常，`env/` 磁盘 71%，比昨天多 2%。没别的事。' }] } ],
+  's-shop': [ { t:'date', text:'周二' }, { t:'asst', wake:'routine', time:'08:00', parts:[{ k:'text', md:'M2 Air 16G 这周三家都没降，最低还是 8,499。降到 8,000 以下再叫你。' }] } ],
+  's-plain': [ { t:'date', text:'周三' }, { t:'user', md:'把 api.ts 里的 try/catch 收敛成一个 wrap()' }, { t:'asst', plain:true, parts:[{ k:'text', md:'好，我先看 api.ts 现在有几处 catch。' }] } ],
+  'g-design': [
+    { t:'date', text:'今天' },
+    { t:'user', md:'我们要不要把小组回复引用真正写进房间 jsonl？现在是纯前端匹配。', time:'15:20' },
+    { t:'asst', who:'dsh-bot', round:1, time:'15:21', parts:[{ k:'text', md:'我倾向写进去。纯前端用正文字符串匹配，刷新就丢，同文会串。加可选 `replyTo: {seq, speaker}`，旧行照常渲染。' }] },
+    { t:'asst', who:'poet', round:1, time:'15:21', parts:[{ k:'text', md:'被引用的人应该"听见"自己被引用了。现在被点名的成员只收到平铺的最近几行，看不出哪句在回它。' }] },
+    { t:'asst', who:'reviewer', round:1, pass:true },
+    { t:'asst', who:'reviewer', round:2, time:'15:23', parts:[{ k:'quote', who:'诗人小北', text:'被引用的人应该"听见"自己被引用了' }, { k:'text', md:'补一句：写进 jsonl 后 `buildMemberTurnPrompt` 就能渲染成引用块，成员的 prompt 里也有结构，不只是 UI 好看。' }] },
+  ],
+};
+const memory = {
+  reviewer: { profile:[ { t:'用户叫 Nothing，中文回复，术语保留英文', src:'自己' }, { t:'本仓一口一仓，只能打 :3084', src:'自己' }, { t:'不喜欢 "Certainly" 之类客套开场', src:'via DSH Bot', shared:true } ], log:[ { t:'09-05 审了 PR #139，用户接受 marks 过滤方案', src:'自己' }, { t:'09-01 用户曾把 token 流式列为非目标（后来推翻）', src:'via DSH Bot', shared:true } ], note:[ { t:'用户常在 14:00 左右发 PR', src:'自己', faded:true } ] },
+  'dsh-bot': { profile:[ { t:'用户叫 Nothing，偏好中文', src:'自己' } ], log:[ { t:'09-06 用户决定把对话面交还官方，插件只做身份/名册/记忆/例程', src:'自己' } ], note:[] },
+};
+const routines = {
+  ops:[ { name:'早间巡检', cron:'0 6 * * *', on:true, last:'今天 06:00 · 成功 · 已汇报' }, { name:'磁盘 >85% 提醒', cron:'@every 30m', on:true, last:'14:30 · 无事，静默' } ],
+  shopper:[ { name:'M2 Air 比价', cron:'0 8 * * *', on:true, last:'周二 08:00 · 已汇报' } ],
+  reviewer:[ { name:'PR 队列晨报', cron:'0 9 * * 1-5', on:false, last:'尚未启用（Bot 主动提议）' }, { name:'nightly 回归', cron:'0 2 * * *', on:true, last:'今天 02:00 · 成功，静默' } ],
+};
+const peerLog = [ { from:'reviewer', to:'dsh-bot', n:3 }, { from:'ops', to:'reviewer', n:1 } ];
+
+let currentSession = 's-142'; let sideView = 'ws'; let rightTab = 'bot'; let heroMode = false; let heroPreset = 'dsh-bot';
+const $ = s => document.querySelector(s); const $$ = s => [...document.querySelectorAll(s)];
+const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const botById = id => bots.find(b => b.id === id); const groupById = id => groups.find(g => g.id === id);
+const sessOf = id => sessions.find(s => s.id === id);
+const identityOf = s => !s || !s.bot ? null : (s.group ? groupById(s.bot) : botById(s.bot));
+function av(a, cls='', st='') { return `<span class="av ${a.shape} ${cls}" style="background:${COLORS[a.color]}">${esc(a.text)}${st ? `<i class="st ${st}"></i>` : ''}</span>`; }
+function mosaic(g, cls='') { return `<span class="av mosaic ${cls}">${g.members.slice(0,4).map(id => `<i style="background:${COLORS[botById(id).avatar.color]}"></i>`).join('')}</span>`; }
+function idAv(idn, cls='', st='') { return idn.members ? mosaic(idn, cls) : av(idn.avatar, cls, st); }
+function hl(c) { return c.replace(/\b(const|let|return|if|await|async|function|import|from)\b/g,'<span class="tok-k">$1</span>').replace(/('[^']*')/g,'<span class="tok-s">$1</span>').replace(/(\/\/.*)/g,'<span class="tok-c">$1</span>'); }
+function md(text) {
+  let o = esc(text);
+  o = o.replace(/```(\w*)\n([\s\S]*?)```/g, (_, lang, code) => `<pre><span class="lang">${lang}</span>${hl(code)}<button class="copy" onclick="event.stopPropagation(); toast('📋','已复制','')">复制</button></pre>`);
+  o = o.replace(/`([^`]+)`/g,'<code>$1</code>').replace(/\*\*([^*]+)\*\*/g,'<b>$1</b>');
+  return o.split(/\n\n+/).map(p => p.startsWith('<pre>') ? p : /^- /m.test(p) ? '<ul>' + p.split('\n').map(l => `<li>${l.replace(/^- /,'')}</li>`).join('') + '</ul>' : `<p>${p.replace(/\n/g,'<br>')}</p>`).join('');
+}
+function totalUnread() { return bots.reduce((n, b) => n + b.unread, 0); }
+
+/* ===================== 左栏 ===================== */
+function setSideView(v) { sideView = v; $$('.seg button').forEach(b => b.classList.toggle('on', b.dataset.view === v)); $('#wsLabel').textContent = v === 'ws' ? '工作区' : 'Bot 名册'; renderSide(); }
+function renderSide() {
+  const host = $('#wsList');
+  if (sideView === 'ws') {
+    host.innerHTML = `<div class="ws">📁 dsh-bot <small>· ~/workspace/dsh-bot</small></div><div class="newBtn" onclick="openHero()">＋ <span>新会话</span></div>` + sessions.map(s => {
+      const idn = identityOf(s);
+      const chip = idn ? `<span data-plug="身份 chip（marks）" style="display:inline-grid;place-items:center">${idAv(idn,'xs')}</span>` : `<span class="muted" style="text-align:center">💬</span>`;
+      return `<div class="sess ${s.id === currentSession && !heroMode ? 'active' : ''}" onclick="openSession('${s.id}')" oncontextmenu="sessMenu(event,'${s.id}')">${chip}<span class="sessT">${esc(s.title)}${s.running ? '<i class="run"></i>' : ''}${s.wake ? '<span class="tag" data-plug="主动">主动</span>' : ''}</span><span class="m">${esc(s.time)}</span></div>`;
+    }).join('');
+  } else {
+    host.innerHTML = `<div data-plug="sidebar.workspaces（名册模式）">` + sections.map(sec => {
+      const rows = [...bots.filter(b => b.section === sec.id && !hiddenBots.includes(b.id)), ...groups.filter(g => g.section === sec.id)];
+      if (!rows.length && sec.id !== 'pinned') return '';
+      return `<div class="section ${collapsed.has(sec.id) ? 'collapsed' : ''}" data-sec="${sec.id}"><div class="secHead" onclick="toggleSection('${sec.id}')"><span class="caret">▾</span>${sec.name}<span class="sp"></span><span style="font-weight:400">${rows.length}</span></div>${rows.map(rosterRowHtml).join('')}</div>`;
+    }).join('') + `<div class="newBtn" onclick="openModal('bot')">＋ <span>新建人设</span></div><div class="newBtn" onclick="openModal('group')">＋ <span>新建小组</span></div>${hiddenBots.length ? `<div class="newBtn muted small" onclick="hiddenBots=[]; renderSide()">🙈 已隐藏 ${hiddenBots.length} 个 · 点击全部显示</div>` : ''}</div>`;
+    bindDrag();
+  }
+  $('#footBadge').textContent = totalUnread(); $('#footBadge').classList.toggle('hidden', totalUnread() === 0);
+}
+function rosterRowHtml(r) {
+  const isGroup = !!r.members; const mine = isGroup ? [] : sessions.filter(s => s.bot === r.id);
+  const active = isGroup ? currentSession === r.id : mine.some(s => s.id === currentSession);
+  const st = r.status === 'working' ? 'working' : r.status === 'online' ? 'online' : '';
+  return `<div class="rosterRow ${active && !heroMode ? 'active' : ''}" draggable="true" data-id="${r.id}" onclick="${isGroup ? `openSession('${r.id}')` : `openSession('${(mine[0]||{}).id || ''}','${r.id}')`}" oncontextmenu="rowMenu(event,'${r.id}',${isGroup})" onmouseenter="showPreview(event,'${r.id}',${isGroup})" onmouseleave="hidePreview()">
+    ${idAv(r, '', st)}
+    <div class="rowMain"><div class="n">${r.pinned ? '<span class="muted small">📌</span>' : ''}${esc(r.name)}${isGroup ? `<small class="muted" style="font-weight:400">· ${r.members.length} 人</small>` : ''}</div><div class="p">${r.status === 'working' ? '<span style="color:var(--warn)">● </span>' : ''}${esc(r.preview)}</div></div>
+    <div class="rowMeta">${isGroup ? '' : `<span>${esc(mine[0]?.time || '')}</span>`}${r.unread ? `<span class="badge ${r.mention ? 'mention' : ''}">${r.mention ? '@' : r.unread}</span>` : ''}</div>
+    <button class="iconBtn rowMenu" onclick="event.stopPropagation(); rowMenu(event,'${r.id}',${isGroup})">⋯</button></div>` +
+    (active && !isGroup ? mine.map(s => `<div class="subSess ${s.id === currentSession ? 'active' : ''}" onclick="event.stopPropagation(); openSession('${s.id}')">🗒 ${esc(s.title)}${s.running ? ' <i class="run"></i>' : ''}</div>`).join('') + `<div class="subSess" onclick="event.stopPropagation(); openHero('${r.id}')">＋ 新对话</div>` : '');
+}
+function toggleSection(id) { collapsed.has(id) ? collapsed.delete(id) : collapsed.add(id); renderSide(); }
+let dragId = null;
+function bindDrag() {
+  $$('.rosterRow').forEach(el => {
+    el.addEventListener('dragstart', () => { dragId = el.dataset.id; el.classList.add('dragging'); });
+    el.addEventListener('dragend', () => { el.classList.remove('dragging'); $$('.dropTarget').forEach(x => x.classList.remove('dropTarget')); });
+    el.addEventListener('dragover', e => { e.preventDefault(); el.classList.add('dropTarget'); });
+    el.addEventListener('dragleave', () => el.classList.remove('dropTarget'));
+    el.addEventListener('drop', e => { e.preventDefault(); dropOn(el.dataset.id, el.closest('.section').dataset.sec); });
+  });
+}
+function dropOn(targetId, sec) {
+  const src = botById(dragId) || groupById(dragId); if (!src || src.id === targetId) return;
+  src.section = sec; src.pinned = sec === 'pinned';
+  const list = src.members ? groups : bots; list.splice(list.indexOf(src), 1); const i = list.findIndex(x => x.id === targetId); list.splice(i < 0 ? list.length : i, 0, src);
+  renderSide(); toast('↕','已移动',`${src.name} → ${sections.find(s => s.id === sec).name}，顺序持久化到 bots.json`);
+}
+function rowMenu(e, id, isGroup) {
+  e.preventDefault(); e.stopPropagation(); closePops(); const r = botById(id) || groupById(id);
+  const p = document.createElement('div'); p.id = 'rowPop'; p.className = 'pop'; p.style.left = Math.min(e.clientX, innerWidth - 240) + 'px'; p.style.top = e.clientY + 'px';
+  p.innerHTML = `<button onclick="togglePin('${id}')">📌 ${r.pinned ? '取消置顶' : '置顶'}</button><button onclick="closePops(); openModal('${isGroup ? 'group' : 'bot'}','${id}')">✎ 编辑${isGroup ? '小组' : '人设'}</button><button onclick="moveTo('${id}')">📁 移到「${r.section === 'work' ? '生活' : '工作'}」</button><button onclick="markRead('${id}')">✓ 标为已读</button><hr>${isGroup ? '' : `<button onclick="hideBot('${id}')">🙈 隐藏（继续后台跑）</button>`}<button onclick="closePops(); toast('🔕','已静音','主动消息不弹通知，只累积未读')">🔕 静音</button><hr><button style="color:var(--danger)" onclick="closePops(); toast('🗑','删除需二次确认','Bot 自己没有任何工具能删自己，只有这里能')">🗑 删除</button>`;
+  document.body.appendChild(p);
+}
+function togglePin(id) { const r = botById(id) || groupById(id); r.pinned = !r.pinned; r.section = r.pinned ? 'pinned' : 'work'; closePops(); renderSide(); }
+function moveTo(id) { const r = botById(id) || groupById(id); r.section = r.section === 'work' ? 'life' : 'work'; r.pinned = false; closePops(); renderSide(); }
+function markRead(id) { const r = botById(id) || groupById(id); r.unread = 0; r.mention = false; closePops(); renderSide(); }
+function hideBot(id) { hiddenBots.push(id); closePops(); renderSide(); toast('🙈','已隐藏','例程照常运行，未读记在「已隐藏」里'); }
+let prevTimer = null;
+function showPreview(e, id, isGroup) {
+  clearTimeout(prevTimer); const rc = e.currentTarget.getBoundingClientRect();
+  prevTimer = setTimeout(() => { const r = botById(id) || groupById(id); const p = document.createElement('div'); p.id = 'prevPop'; p.className = 'pop'; p.style.pointerEvents = 'none'; p.style.padding = '10px 12px'; p.style.left = rc.right + 8 + 'px'; p.style.top = rc.top + 'px'; const rs = routines[id] || [];
+    p.innerHTML = `<div style="display:flex;gap:10px;align-items:center;margin-bottom:6px">${idAv(r)}<div><b>${esc(r.name)}</b><br><small class="muted">${isGroup ? `${r.members.length} 名成员 · 第 ${r.round}/${r.rounds} 轮` : `${r.model} · ${r.status === 'working' ? '工作中' : '空闲'} · ${sessions.filter(s => s.bot === id).length} 段会话`}</small></div></div><div class="muted small">${esc(r.preview)}</div>${rs.length ? `<div class="muted small" style="margin-top:6px">⏰ ${rs.filter(x => x.on).length} 个例程在跑</div>` : ''}`;
+    document.body.appendChild(p); }, 500);
+}
+function hidePreview() { clearTimeout(prevTimer); $('#prevPop')?.remove(); }
+function closePops() { ['#rowPop','#prevPop','#emojiPop','#sugPop','#sessPop'].forEach(s => $(s)?.remove()); }
+document.addEventListener('click', e => { if (!e.target.closest('.pop,#emojiBtn,.rowMenu')) closePops(); });
+</script>
+<script>
+/* ===================== 对话面 ===================== */
+function openHero(botId) {
+  heroMode = true; heroPreset = botId || heroPreset; currentSession = null;
+  $('#hero').classList.remove('hidden'); $('#transcript').classList.add('hidden'); $('#membersBar').classList.add('hidden'); $('#roomTab').classList.add('hidden');
+  $('#identity').innerHTML = ''; $('#convTitle').textContent = '新会话'; $('#lineage').textContent = ''; $('#botActions').classList.add('hidden');
+  $('#heroPreset').innerHTML = `🤖 ${esc(botById(heroPreset).name)} ▾`;
+  $('#presetGrid').innerHTML = bots.filter(b => !hiddenBots.includes(b.id)).map(b => `<button class="presetCard ${b.id === heroPreset ? 'sel' : ''}" onclick="heroPreset='${b.id}'; openHero()">${av(b.avatar)}<span style="min-width:0"><b>${esc(b.name)}</b><small>${esc(b.persona)}</small></span></button>`).join('') + `<button class="presetCard" onclick="openModal('bot')"><span class="av" style="background:var(--panel2);color:var(--muted)">＋</span><span><b>新建人设</b><small>生成一个 dsh-bot--<slug> preset</small></span></button>`;
+  renderSide(); renderRight(); $('#input').focus();
+}
+function openSession(id, botFallback) {
+  if (!id) { openHero(botFallback); return; }
+  heroMode = false; currentSession = id; const s = sessOf(id); const idn = identityOf(s);
+  $('#hero').classList.add('hidden'); $('#transcript').classList.remove('hidden');
+  if (idn && !s.group) { idn.unread = 0; idn.mention = false; }
+  $('#convTitle').textContent = s.title;
+  $('#identity').innerHTML = idn ? `${idAv(idn,'sm')} <b>${esc(idn.name)}</b> <small class="muted">${s.group ? idn.members.map(m => botById(m).name).join(' · ') : (idn.status === 'working' ? '工作中' : '在线')}</small>` : '';
+  $('#botActions').classList.toggle('hidden', !idn || !!s.group);
+  if (idn && !s.group) { const m = memory[idn.id]; $('#memCount').textContent = m ? m.profile.length + m.log.length + m.note.length : 0; $('#rtCount').textContent = (routines[idn.id] || []).length; }
+  $('#modelPill').innerHTML = `🧠 ${s.group ? '各成员自选' : (idn ? idn.model : 'deepseek-v3')}`;
+  $('#roomTab').classList.toggle('hidden', !s.group); $('#membersBar').classList.toggle('hidden', !s.group);
+  $('#lineage').textContent = s.group ? '· 房间 jsonl（非官方 session）' : '· ~/workspace/dsh-bot';
+  if (s.group) { renderMembers(idn); setView('room'); } else setView('chat');
+  renderTranscript(); renderSide(); renderRight(); clearReply();
+}
+function setView(v) { $$('#viewTabs button').forEach(b => b.classList.toggle('on', b.dataset.view === v)); if (v === 'traj') toast('📈','Trajectory','官方 ui-trajectory 视图，bot 会话天然可用'); }
+function renderMembers(g, state = {}) {
+  $('#membersBar').innerHTML = g.members.map(id => { const m = botById(id); const st = state[id] || (g.status === 'working' ? (id === 'reviewer' ? 'speaking' : 'spoke') : 'spoke'); return `<span class="chip ${st}" title="${st === 'speaking' ? '正在发言' : st === 'pass' ? '本轮 pass' : st === 'pending' ? '等待发言' : '已发言'}">${av(m.avatar,'sm')}${esc(m.name)}</span>`; }).join('') +
+    `<span class="sp"></span><span class="muted small" style="display:flex;gap:8px;align-items:center;white-space:nowrap">第 <b>${g.round}</b>/${g.rounds} 轮 · 发言 4/10 <button class="pill" onclick="demoGroup()">▶ 继续讨论</button><button class="pill" onclick="stop()">⏹</button></span>`;
+}
+function part(p) {
+  if (p.k === 'text') return `<div class="bubble">${md(p.md)}</div>`;
+  if (p.k === 'quote') return `<div class="quote" data-plug="replyTo">↩ 回复 <b>${esc(p.who)}</b>：${esc(p.text)}</div>`;
+  if (p.k === 'tool') return `<div class="card" onclick="this.classList.toggle('open')"><div class="cardHead">🔧 <span class="name">${esc(p.name)}</span><span class="sub">${esc(p.sub)}</span><span class="st ${p.st}">${p.st === 'ok' ? '完成' : p.st === 'run' ? '运行中' : '失败'}</span></div><div class="cardBody">${esc(p.out)}</div></div>`;
+  if (p.k === 'think') return `<div class="card" onclick="this.classList.toggle('open')"><div class="cardHead">💭 <span class="sub">思考了 4 秒</span></div><div class="cardBody">${esc(p.out)}</div></div>`;
+  return '';
+}
+function partsHtml(parts) { const out = []; for (let i = 0; i < parts.length; i++) { const p = parts[i]; if (p.k === 'quote' && parts[i+1]?.k === 'text') { out.push(`<div class="bubble">${part(p)}${md(parts[i+1].md)}</div>`); i++; } else out.push(part(p)); } return out.join(''); }
+function whoHtml(who, it) { return `<div class="who" data-plug="chat.node 身份行">${av(who.avatar,'xs')}<b>${esc(who.name)}</b>${it.wake ? `<span class="tag">主动 · ${it.wake}</span>` : ''}${it.round ? `<span>第 ${it.round} 轮</span>` : ''}${it.time ? `<span>${esc(it.time)}</span>` : ''}</div>`; }
+function tail(role='asst') { return `<div class="turnTail"><span class="acts"><button title="回复引用" onclick="startReply(this)">↩</button><button title="复制" onclick="toast('📋','已复制','')">⧉</button>${role === 'asst' ? `<button title="重新生成（官方 fork 重发）" onclick="toast('↻','重新生成','sessions.fork(atSeq) 后重发，旧分支保留')">↻</button>` : `<button title="编辑并重发" onclick="toast('✎','编辑重发','fork 到该条之前 + 重新 prompt')">✎</button>`}<button data-plug="turnTail 表情" title="表情回应" onclick="react(this)">🙂</button>${role === 'asst' ? `<button data-plug="turnTail 记住" title="让 Bot 记住这条" onclick="toast('🧠','已记住','写入该 Bot memory/log，标 explicit，后台合成不改写')">📌</button>` : ''}</span></div>`; }
+function renderTranscript() {
+  const s = sessOf(currentSession); const items = transcripts[currentSession] || [];
+  $('#transcript').innerHTML = items.map(it => {
+    if (it.t === 'date') return `<div class="dateSep">${esc(it.text)}</div>`;
+    if (it.t === 'user') return `<div class="turn user">${it.time ? `<div class="who"><span>${esc(it.time)}</span></div>` : ''}<div class="bubble">${md(it.md)}</div>${tail('user')}</div>` + (it.unreadAfter ? `<div class="dateSep unread">以下为新消息</div>` : '');
+    const who = it.who ? botById(it.who) : identityOf(s);
+    if (it.pass) return `<div class="turn"><div class="who">${av(who.avatar,'xs')}<b>${esc(who.name)}</b><span>第 ${it.round} 轮</span></div><div class="muted small" style="font-style:italic">本轮没有补充</div></div>`;
+    return `<div class="turn">${it.plain || !who ? '' : whoHtml(who, it)}<div class="split">${partsHtml(it.parts)}</div>${tail()}</div>`;
+  }).join('');
+  scrollBottom();
+}
+function scrollBottom() { const t = $('#transcript'); t.scrollTop = t.scrollHeight; $('#jumpNew').classList.remove('show'); }
+$('#transcript').addEventListener('scroll', () => { const t = $('#transcript'); $('#jumpNew').classList.toggle('show', t.scrollHeight - t.scrollTop - t.clientHeight > 120); });
+function react(btn) { const t = btn.closest('.turnTail'); let r = t.querySelector('.reactions'); if (!r) { r = document.createElement('span'); r.className = 'reactions'; t.insertBefore(r, t.firstChild); } r.insertAdjacentHTML('beforeend', `<span class="mine" onclick="this.remove()">${['👍','❤️','🎯','👀','😂'][r.children.length % 5]} 1</span>`); }
+function startReply(btn) { const turn = btn.closest('.turn'); const who = turn.querySelector('.who b')?.textContent || '我'; const text = turn.querySelector('.bubble')?.textContent.trim().slice(0, 60) || ''; $('#replyWho').textContent = who; $('#replyText').textContent = text; $('#replyBar').classList.remove('hidden'); $('#composer').classList.add('reply'); $('#input').focus(); }
+function clearReply() { $('#replyBar').classList.add('hidden'); $('#composer').classList.remove('reply'); }
+function renameSession() { if (heroMode) return; const s = sessOf(currentSession); const v = prompt('重命名会话', s.title); if (v) { s.title = v; openSession(s.id); toast('✎','已重命名','官方 sessions.rename；bot 会以 [event] 被唤醒得知'); } }
+function sessionMenu(e) {
+  closePops(); if (heroMode) return; const p = document.createElement('div'); p.id = 'sessPop'; p.className = 'pop'; const rc = e.currentTarget.getBoundingClientRect(); p.style.left = rc.right - 230 + 'px'; p.style.top = rc.bottom + 6 + 'px';
+  const s = sessOf(currentSession);
+  p.innerHTML = `<button onclick="renameSession(); closePops()">✎ 重命名</button><button onclick="closePops(); toast('🏷','自动起题','首轮闭合后用首句派生 ≤20 字，不覆盖人工名')">🏷 重新起题</button><button onclick="closePops(); toast('📦','已归档','官方 workspace.archiveSession')">📦 归档</button><hr>${s.bot && !s.group ? `<button data-plug="" onclick="closePops(); toast('🔁','换人设','复制到另一个 Bot 的新会话（fork + 换 preset）')">🔁 换个 Bot 接着聊</button>` : `<button onclick="closePops(); toast('🏷','归入 Bot','给会话打 bot:<id> marks')">🏷 归入某个 Bot…</button>`}<button onclick="closePops(); toast('↗','导出','官方 downloads')">↗ 导出对话</button>`;
+  document.body.appendChild(p);
+}
+function sessMenu(e, id) { e.preventDefault(); openSession(id); sessionMenu({ currentTarget: $('#convTitle') }); }
+
+/* ===================== Composer（官方行为的模拟） ===================== */
+let mode = 'queue', working = false, timer = null; const queue = [];
+const input = $('#input'), composer = $('#composer');
+$$('#modeSel button').forEach(b => b.onclick = () => { mode = b.dataset.mode; $$('#modeSel button').forEach(x => x.classList.toggle('on', x === b)); });
+input.addEventListener('input', () => { input.style.height = 'auto'; input.style.height = Math.min(input.scrollHeight, 200) + 'px'; suggest(); });
+input.addEventListener('keydown', e => { if (sugOpen && ['ArrowDown','ArrowUp','Enter','Escape','Tab'].includes(e.key)) { sugKey(e); return; } if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); } if (e.key === 'Escape' && working) stop(); });
+input.addEventListener('paste', e => { for (const it of e.clipboardData.items) if (it.type.startsWith('image/')) { e.preventDefault(); addAttachment('pasted.png','212 KB'); } });
+composer.addEventListener('dragover', e => { e.preventDefault(); composer.classList.add('dragOver'); }); composer.addEventListener('dragleave', () => composer.classList.remove('dragOver'));
+composer.addEventListener('drop', e => { e.preventDefault(); composer.classList.remove('dragOver'); const f = e.dataTransfer.files?.[0]; addAttachment(f?.name || 'dropped.png', f ? Math.round(f.size/1024) + ' KB' : '96 KB'); });
+$('#sendBtn').onclick = () => working ? stop() : send();
+function setWorking(v) {
+  working = v; const b = $('#sendBtn'); b.textContent = v ? '停止 ⎋' : '发送 ↵'; b.classList.toggle('stop', v);
+  input.placeholder = v ? (mode === 'queue' ? 'Bot 正在回复，输入会排队…' : 'Bot 正在回复，输入会打断并插话…') : '给 Bot 发消息…（粘贴 / 拖入图片，@ 提及，:emoji:，/ 命令）';
+  const s = sessOf(currentSession); const idn = identityOf(s); if (idn) { idn.status = v ? 'working' : (idn.members ? 'idle' : 'online'); if (s) s.running = v; renderSide(); }
+  renderQueue(); if (!v) flush();
+}
+function renderQueue() { $('#queue').innerHTML = queue.map((q, i) => `<div class="qItem">⏳ 排队 ${i+1}<span class="txt">${esc(q)}</span><button onclick="input.value=queue.splice(${i},1)[0]; renderQueue(); input.focus()">编辑</button><button onclick="steerQueued(${i})">立即插话</button><button onclick="queue.splice(${i},1); renderQueue()">✕</button></div>`).join(''); }
+function steerQueued(i) { const t = queue.splice(i,1)[0]; renderQueue(); appendUser(t,'steer'); restart(); }
+function flush() { if (queue.length && !working) { appendUser(queue.shift()); renderQueue(); demoStream(); } }
+function send() {
+  const t = input.value.trim(); const atts = $$('#attachRow .att').length; if (!t && !atts) return;
+  if (heroMode) { const b = botById(heroPreset); const id = 's-new-' + Date.now(); sessions.unshift({ id, title:'新对话', bot:b.id, time:'刚刚', running:true }); transcripts[id] = [{ t:'date', text:'今天' }]; openSession(id); toast('🗒','已建会话',`sessions.create({agentPreset:"dsh-bot--${b.id}"}) + 打标 bot:${b.id}；首轮后自动起题`); }
+  input.value = ''; input.style.height = 'auto'; $('#attachRow').innerHTML = ''; $('#attachRow').classList.add('hidden');
+  const shown = t + (atts ? `\n\n📎 ${atts} 张图片` : '');
+  if (working) { if (mode === 'queue') { queue.push(shown); renderQueue(); toast('⏳','已排队','官方 sessions.prompt{mode:"queue"}'); } else { appendUser(shown,'steer'); toast('⚡','已打断','官方 sessions.prompt{mode:"steer"}'); restart(); } clearReply(); return; }
+  appendUser(shown); clearReply(); sessOf(currentSession)?.group ? demoGroup() : demoStream();
+}
+function appendUser(t, tag) { const reply = $('#replyBar').classList.contains('hidden') ? '' : `<div class="quote">↩ 回复 <b>${esc($('#replyWho').textContent)}</b>：${esc($('#replyText').textContent)}</div>`; $('#transcript').insertAdjacentHTML('beforeend', `<div class="turn user"><div class="who">${tag === 'steer' ? '<span class="tag">插话</span>' : ''}<span>刚刚</span></div><div class="bubble">${reply}${md(t)}</div>${tail('user')}</div>`); scrollBottom(); }
+function stop() { if (!working) return; clearInterval(timer); timer = null; $$('.cursor').forEach(c => c.remove()); setWorking(false); toast('⏹','已停止','官方 sessions.cancel，已生成部分保留，队列不清空'); }
+function addAttachment(name='screenshot.png', size='184 KB') { const r = $('#attachRow'); r.classList.remove('hidden'); r.insertAdjacentHTML('beforeend', `<span class="att"><span class="thumb"></span>${esc(name)} <small class="muted">${size}</small><button class="muted" onclick="this.parentNode.remove(); if(!document.querySelector('#attachRow .att')) document.querySelector('#attachRow').classList.add('hidden')">✕</button></span>`); toast('🖼','图片已暂存','官方 input.attachments → PromptContentPart image'); }
+function insertText(t) { input.value += t; input.focus(); input.dispatchEvent(new Event('input')); }
+
+/* 建议弹窗：@ / : / / */
+let sugOpen = false, sugItems = [], sugSel = 0;
+const EMOJI = ['😀','😂','🙂','😉','😍','🤔','😴','😎','🥳','😭','😡','👍','👎','👏','🙏','🎉','🔥','💡','✅','❌','⚠️','📌','🔧','🚀'];
+const SLASH = [ { c:'/新对话', d:'在当前 Bot 下开新会话' }, { c:'/起题', d:'用首句给当前会话起标题' }, { c:'/归档', d:'归档当前会话（官方）' }, { c:'/模型', d:'切换本会话模型（官方）' }, { c:'/例程', d:'把这条消息设成定时例程' }, { c:'/忘记', d:'让 Bot 忘掉某条记忆' }, { c:'/广播', d:'发给所有 Bot' } ];
+function suggest() {
+  const m = input.value.match(/(^|\s)([@:\/])([^\s]*)$/); if (!m) return closeSug();
+  const [, , trig, q] = m; const s = sessOf(currentSession);
+  if (trig === '@') { const pool = s?.group ? [...identityOf(s).members.map(botById), { id:'all', name:'all', avatar:{ shape:'sq', color:'gray', text:'*' } }] : bots.filter(b => b.id !== s?.bot); sugItems = pool.filter(b => b.name.includes(q)).map(b => ({ label:b.name, sub: b.id === 'all' ? '全员' : (s?.group ? '点名' : '发给这个 Bot（异步）'), ins:`@${b.name} `, av:b.avatar })); }
+  else if (trig === ':') { if (!q) return closeSug(); sugItems = EMOJI.slice(0,8).map(e => ({ label:e, sub:q, ins:e + ' ' })); }
+  else sugItems = SLASH.filter(x => x.c.includes(q)).map(x => ({ label:x.c, sub:x.d, ins:x.c + ' ' }));
+  if (!sugItems.length) return closeSug(); sugSel = 0; sugOpen = true; renderSug();
+}
+function renderSug() { let p = $('#sugPop'); if (!p) { p = document.createElement('div'); p.id = 'sugPop'; p.className = 'pop'; document.body.appendChild(p); } const rc = composer.getBoundingClientRect(); p.style.left = rc.left + 8 + 'px'; p.style.top = 'auto'; p.style.bottom = (innerHeight - rc.top + 6) + 'px'; p.innerHTML = sugItems.map((x, i) => `<button class="${i === sugSel ? 'sel' : ''}" onmousedown="event.preventDefault(); pickSug(${i})">${x.av ? av(x.av,'sm') : `<span style="width:20px;text-align:center">${x.label}</span>`}<span>${x.av ? esc(x.label) : ''}</span><span class="k">${esc(x.sub)}</span></button>`).join(''); }
+function closeSug() { sugOpen = false; $('#sugPop')?.remove(); }
+function pickSug(i) { input.value = input.value.replace(/([@:\/])[^\s]*$/, sugItems[i].ins); closeSug(); input.focus(); input.dispatchEvent(new Event('input')); }
+function sugKey(e) { e.preventDefault(); if (e.key === 'ArrowDown') { sugSel = (sugSel+1) % sugItems.length; renderSug(); } else if (e.key === 'ArrowUp') { sugSel = (sugSel-1+sugItems.length) % sugItems.length; renderSug(); } else if (e.key === 'Enter' || e.key === 'Tab') pickSug(sugSel); else closeSug(); }
+$('#emojiBtn').onclick = e => { e.stopPropagation(); if ($('#emojiPop')) { $('#emojiPop').remove(); return; } const p = document.createElement('div'); p.id = 'emojiPop'; p.className = 'pop emoji'; const rc = e.currentTarget.getBoundingClientRect(); p.style.left = rc.left + 'px'; p.style.bottom = (innerHeight - rc.top + 6) + 'px'; p.innerHTML = EMOJI.map(x => `<button onclick="insertText('${x}'); document.getElementById('emojiPop').remove()">${x}</button>`).join(''); document.body.appendChild(p); };
+
+/* ===================== 右栏 ===================== */
+function openRight(tab) { rightTab = tab; $('#shell').classList.remove('noRight'); $$('#rightTabs button').forEach(b => b.classList.toggle('on', b.dataset.tab === tab)); renderRight(); }
+function toggleRight() { $('#shell').classList.toggle('noRight'); }
+function renderRight() {
+  const s = sessOf(currentSession); const idn = heroMode ? botById(heroPreset) : identityOf(s); const body = $('#tabBody');
+  if (!idn) { body.innerHTML = `<div class="muted">这是一个普通会话，不属于任何 Bot。</div><div class="btnRow"><button class="btn" onclick="toast('🏷','归入','给该会话打 bot:<id> marks')">归入某个 Bot…</button></div><h3>或者</h3><div class="muted small">在名册里选一个 Bot，官方会话就有了身份、记忆和例程。</div>`; return; }
+  if (rightTab === 'bot') {
+    if (idn.members) { body.innerHTML = `<h3>成员</h3>` + idn.members.map(id => { const m = botById(id); return `<div class="fact click" onclick="openSession('${(sessions.find(x => x.bot === id)||{}).id || ''}','${id}')">${av(m.avatar,'sm')}<span class="t"><b>${esc(m.name)}</b> <small class="muted">${m.model}</small></span></div>`; }).join('') +
+      `<h3>讨论设置</h3><div class="field"><label>每次讨论轮数</label><select class="inp"><option>1 轮（每发一条全员各回一句）</option><option>2 轮</option><option selected>3 轮（第 2 轮起回应同伴）</option></select></div><div class="fact"><span class="t">全员 pass 提前结束</span><span class="sw on" onclick="this.classList.toggle('on')"></span></div><div class="fact"><span class="t">每轮起点轮转</span><span class="sw on" onclick="this.classList.toggle('on')"></span></div>
+       <h3>成员轮次会话（隐藏）</h3>` + idn.members.map(id => `<div class="fact"><span class="t small">~dsh-bot-group: ${esc(botById(id).name)}</span><button class="btn ghost small" onclick="toast('↗','打开','ctx.sessions.open 直达隐藏会话，无桥')">打开 ↗</button></div>`).join('') + `<div class="btnRow"><button class="btn" onclick="openModal('group','${idn.id}')">✎ 编辑小组</button></div>`; return; }
+    body.innerHTML = `<div style="display:flex;gap:12px;align-items:center;margin-bottom:12px">${av(idn.avatar,'lg')}<div style="min-width:0"><b style="font-size:14px">${esc(idn.name)}</b><div class="muted small">preset: dsh-bot--${idn.id} · ${sessions.filter(x => x.bot === idn.id).length} 段会话</div></div></div>
+      <div class="field"><label>人设（只对之后的新会话生效）</label><textarea class="inp" rows="4" style="resize:vertical">${esc(idn.persona)}</textarea></div>
+      <div class="field"><label>默认模型（来自 sessions.models 目录）</label><select class="inp"><option>跟随全局默认</option><option ${idn.model==='deepseek-r1'?'selected':''}>deepseek · deepseek-r1 · reasoning high</option><option ${idn.model==='deepseek-v3'?'selected':''}>deepseek · deepseek-v3</option></select></div>
+      <h3>形象</h3><div class="avPalette">${SHAPES.map(sh => `<span class="av ${sh} ${idn.avatar.shape===sh?'sel':''}" style="background:${COLORS[idn.avatar.color]}" onclick="setAv('${idn.id}','shape','${sh}')"></span>`).join('')}<span style="width:10px"></span>${Object.keys(COLORS).map(c => `<span class="av sq ${idn.avatar.color===c?'sel':''}" style="background:${COLORS[c]}" onclick="setAv('${idn.id}','color','${c}')"></span>`).join('')}</div>
+      <h3>通知</h3><div class="fact"><span class="t">主动来消息时通知我</span><span class="sw on" onclick="this.classList.toggle('on')"></span></div><div class="fact"><span class="t">需要审批 / 提问时通知</span><span class="sw on" onclick="this.classList.toggle('on')"></span></div><div class="muted small" style="padding:0 8px">只在窗口失焦且 5 秒内无同类通知时才发系统通知。</div>
+      <h3>会话</h3>` + sessions.filter(x => x.bot === idn.id).map(x => `<div class="fact click ${x.id === currentSession ? '' : ''}" onclick="openSession('${x.id}')"><span class="t">🗒 ${esc(x.title)}${x.wake ? ' <span class="tag">主动</span>' : ''}</span><span class="src">${esc(x.time)}</span></div>`).join('') + `<div class="btnRow"><button class="btn" onclick="openHero('${idn.id}')">＋ 新对话</button><button class="btn ghost" onclick="openModal('bot','${idn.id}')">完整编辑</button></div>`;
+  } else if (rightTab === 'memory') {
+    const m = memory[idn.id]; if (!m) { body.innerHTML = `<div class="muted">还没记住什么。每轮对话后自动抽取；寒暄不记；你随时可以删。</div>`; return; }
+    const sec = (t, arr) => `<h3>${t}</h3>` + (arr.length ? arr.map(f => `<div class="fact ${f.faded?'faded':''}"><span class="t">${esc(f.t)}</span><span class="src" title="来源分片">${f.shared?'🔗 ':''}${esc(f.src)}</span><button class="del" onclick="this.closest('.fact').remove(); toast('🗑','已忘记','留 tombstone，后台合成不会捞回')">忘记</button></div>`).join('') : `<div class="muted small" style="padding:0 8px">（空）</div>`);
+    body.innerHTML = `<div class="muted small" style="margin-bottom:4px">文件在 env/dsh-bot/memory/${idn.id}/，Bot 自己也能 grep。优先级：自己 &gt; 项目 &gt; 用户。🔗 = 其他 Bot 写的共享分片。</div>` + sec('关于用户（长期，每轮都在提示词里）', m.profile) + sec('日志（30 天半衰期）', m.log) + sec('备注（最先淡出，留在磁盘）', m.note) + `<div class="btnRow"><button class="btn ghost small" onclick="toast('🌙','后台整理','每 24h 合成一次：合并/去重/移除；显式写入的不改写')">上次整理：今天 03:12</button><button class="btn small" onclick="toast('＋','手动写入','update_state(memory, write)')">＋ 记一条</button></div>`;
+  } else if (rightTab === 'routines') {
+    const rs = routines[idn.id] || [];
+    body.innerHTML = (rs.map(r => `<div class="routine"><div class="top"><b>${esc(r.name)}</b><span class="sw ${r.on?'on':''}" onclick="this.classList.toggle('on')"></span></div><div class="cron">${esc(r.cron)}</div><div class="muted small" style="margin-top:4px">${esc(r.last)}</div></div>`).join('') || `<div class="muted">没有例程。</div>`) + `<div class="btnRow"><button class="btn" onclick="openModal('routine','${idn.id}')">＋ 新建例程</button></div><div class="muted small" style="margin-top:10px">到期时 host 给该 Bot 的例程会话发 [routine] 唤醒词。Bot 知道"没人在等"，没事就一条都不发；有事则落到会话并亮未读。</div>`;
+  } else if (rightTab === 'peers') {
+    body.innerHTML = `<div class="muted small" style="margin-bottom:8px">这个 Bot 能异步给同事发消息（像发短信），回复以 [agent] 唤醒到达。它不会转述你的私下吐槽。</div>` + bots.filter(b => b.id !== idn.id).map(b => { const n = peerLog.filter(p => (p.from === idn.id && p.to === b.id) || (p.to === idn.id && p.from === b.id)).reduce((a, p) => a + p.n, 0); return `<div class="fact click" onclick="openSession('${(sessions.find(x => x.bot === b.id)||{}).id||''}','${b.id}')">${av(b.avatar,'sm')}<span class="t"><b>${esc(b.name)}</b><br><small class="muted">${n ? `今天互发 ${n} 条` : '暂无往来'}</small></span></div>`; }).join('') + `<h3>所在小组</h3>` + (groups.filter(g => g.members.includes(idn.id)).map(g => `<div class="fact click" onclick="openSession('${g.id}')">${mosaic(g,'sm')}<span class="t">${esc(g.name)}</span></div>`).join('') || `<div class="muted small" style="padding:0 8px">（无）</div>`) + `<div class="btnRow"><button class="btn ghost" onclick="openModal('org')">🕸 查看关系图</button></div>`;
+  } else {
+    body.innerHTML = `<h3>后台任务（官方 session/jobs）</h3><div class="routine"><div class="top"><b>跑 PR #142 全量测试</b><span class="st run">运行中 2m14s</span></div><div class="cron">pnpm -r test · 子代理</div></div><div class="routine"><div class="top"><b>整理 marks 过滤逻辑</b><span class="st ok">完成</span></div><div class="cron">完成后已唤醒 Bot 汇报</div></div><div class="muted small" style="margin-top:10px">任务完成会触发一次唤醒，Bot 用自己的口吻汇报，不说"任务已完成"这种系统腔。</div>`;
+  }
+}
+function setAv(id, k, v) { botById(id).avatar[k] = v; renderSide(); renderRight(); if (!heroMode) openSession(currentSession); }
+</script>
+<script>
+/* ===================== 命令面板 ===================== */
+let palSel = 0, palRows = [];
+function openPalette(prefill='') { closeAll(); $('#scrim').classList.add('show'); $('#palette').classList.add('show'); const i = $('#palInput'); i.value = prefill; i.focus(); renderPal(); }
+function closeAll() { $('#scrim').classList.remove('show'); $('#palette').classList.remove('show'); $('#modal').classList.remove('show'); closePops(); }
+$('#palInput').addEventListener('input', renderPal);
+$('#palInput').addEventListener('keydown', e => { if (e.key === 'ArrowDown') { palSel = Math.min(palSel+1, palRows.length-1); paintPal(); e.preventDefault(); } else if (e.key === 'ArrowUp') { palSel = Math.max(palSel-1, 0); paintPal(); e.preventDefault(); } else if (e.key === 'Enter') { palRows[palSel]?.run(); closeAll(); } else if (e.key === 'Escape') closeAll(); });
+function hi(t, q) { if (!q) return esc(t); const i = t.toLowerCase().indexOf(q.toLowerCase()); return i < 0 ? esc(t) : esc(t.slice(0,i)) + '<mark>' + esc(t.slice(i, i+q.length)) + '</mark>' + esc(t.slice(i+q.length)); }
+function renderPal() {
+  const raw = $('#palInput').value; palRows = []; palSel = 0; const cmdOnly = raw.startsWith('>'); const q = raw.replace(/^>\s*/, '').trim(); const out = [];
+  const commands = [ { ic:'🤖', t:'新建人设', s:'BotForm 模态', k:'⌘N', run:() => openModal('bot') }, { ic:'👥', t:'新建小组', s:'选 2–6 个人设', run:() => openModal('group') }, { ic:'🗒', t:'新会话', s:'官方 hero', run:() => openHero() }, { ic:'📣', t:'广播给所有 Bot', s:'每个 Bot 各开一个隐藏 turn', run:() => toast('📣','已广播','') }, { ic:'🕸', t:'Bot 关系图', s:'', run:() => openModal('org') }, { ic:'◐', t:'切换主题', s:'跟随宿主', run:toggleTheme }, { ic:'⚙', t:'DSH Bot 设置', s:'settings.section', k:'⌘,', run:() => openModal('settings') }, { ic:'⌨', t:'快捷键', s:'', k:'?', run:() => openModal('help') } ].filter(c => !q || c.t.includes(q));
+  if (!cmdOnly) {
+    const bl = [...bots.filter(b => !hiddenBots.includes(b.id)), ...groups].filter(x => !q || x.name.includes(q));
+    if (bl.length) out.push({ name:'Bot / 小组', rows: bl.map((b, i) => ({ ic:idAv(b,'sm'), t:hi(b.name,q), s:b.preview, k: i < 9 ? `⌘${i+1}` : '', run:() => b.members ? openSession(b.id) : openSession((sessions.find(s => s.bot === b.id)||{}).id || '', b.id) })) });
+    const sl = sessions.filter(s => !q || s.title.includes(q)); if (sl.length) out.push({ name:'会话', rows: sl.map(s => { const idn = identityOf(s); return { ic:idn ? idAv(idn,'xs') : '💬', t:hi(s.title,q), s:(idn ? idn.name + ' · ' : '') + s.time, run:() => openSession(s.id) }; }) });
+  }
+  if (commands.length) out.push({ name:'命令', rows: commands.map(c => ({ ic:c.ic, t:hi(c.t,q), s:c.s, k:c.k||'', run:c.run })) });
+  if (!cmdOnly && q.length >= 2) { const hits = []; for (const [id, items] of Object.entries(transcripts)) for (const it of items) { const text = it.t === 'user' ? it.md : (it.parts||[]).filter(p => p.k === 'text').map(p => p.md).join(' '); if (text && text.includes(q)) { const i = text.indexOf(q); const s = sessOf(id); const who = it.t === 'user' ? '我' : (it.who ? botById(it.who).name : identityOf(s)?.name || 'Bot'); hits.push({ ic:'💬', t:`${esc(who)} · ${esc(s.title)}`, s:'…' + hi(text.slice(Math.max(0,i-30), i+40).replace(/\n/g,' '), q) + '…', run:() => openSession(id) }); } } out.push({ name:`消息（sessions.search · ${hits.length} 条）`, rows: hits.length ? hits : [{ ic:'∅', t:'没有匹配的消息', s:'', run:() => {} }] }); }
+  $('#palList').innerHTML = out.map(g => `<div class="palGroup">${g.name}</div>` + g.rows.map(r => { const i = palRows.push(r) - 1; return `<div class="palItem" data-i="${i}" onmousedown="palRows[${i}].run(); closeAll()"><span class="ic">${r.ic}</span><span class="t">${r.t}<small>${r.s}</small></span><span class="k">${r.k||''}</span></div>`; }).join('')).join('') || `<div class="palGroup">无结果</div>`; paintPal();
+}
+function paintPal() { $$('.palItem').forEach(el => el.classList.toggle('sel', +el.dataset.i === palSel)); $('.palItem.sel')?.scrollIntoView({ block:'nearest' }); }
+
+/* ===================== 模态 ===================== */
+function openModal(kind, id) {
+  closeAll(); const m = $('#modal'); m.className = 'modal show' + (kind === 'org' ? ' wide' : ''); $('#scrim').classList.add('show');
+  const H = $('#modalHead'), B = $('#modalBody'), F = $('#modalFoot'); F.innerHTML = `<button class="btn" onclick="closeAll()">关闭</button>`;
+  if (kind === 'bot') {
+    const b = id ? botById(id) : { name:'', persona:'', model:'', avatar:{ shape:'sq', color:'green', text:'新' } };
+    H.innerHTML = `${id ? '✎ 编辑人设' : '🤖 新建人设'} <span class="muted small" style="font-weight:400;margin-left:6px">→ env/.agent-presets/dsh-bot--<slug>/（写后校验，失败回滚）</span>`;
+    B.innerHTML = (id ? '' : `<div class="muted small" style="margin-bottom:6px">从模板开始（可改）</div><div class="tplGrid">${[['🌙','夜班','夜里巡检，早上给你一份摘要'],['📬','收件箱分拣','按紧急度整理未读'],['🧑‍💼','幕僚长','管理其他 Bot，需要决策时才叫你'],['🔍','研究员','给一个问题，回来一页带来源的结论'],['🛒','比价','盯几个商品，降到目标价才说'],['👀','哨兵','盯 PR / CI / 日志，出事才叫你']].map(([ic,n,d]) => `<button class="tpl" onclick="document.getElementById('bName').value='${n}'; document.getElementById('bPersona').value='${d}'"><span style="font-size:18px">${ic}</span><span><b>${n}</b><small>${d}</small></span></button>`).join('')}</div>`) +
+      `<div style="display:flex;gap:14px"><div>${av(b.avatar,'lg')}<div class="avPalette" style="margin-top:8px;max-width:130px">${SHAPES.map(sh => `<span class="av ${sh} ${b.avatar.shape===sh?'sel':''}" style="background:${COLORS[b.avatar.color]}"></span>`).join('')}${Object.keys(COLORS).map(c => `<span class="av sq ${b.avatar.color===c?'sel':''}" style="background:${COLORS[c]}"></span>`).join('')}</div><div class="muted small" style="margin-top:6px">或上传图片 / 让 Bot 自己生成</div></div>
+       <div style="flex:1"><div class="field"><label>名字</label><input class="inp" id="bName" value="${esc(b.name)}" placeholder="例如：代码审查官"></div><div class="field"><label>人设（写进 preset 的 dsh-persona 行；模型无关）</label><textarea class="inp" id="bPersona" rows="5" style="resize:vertical">${esc(b.persona)}</textarea></div><div class="field"><label>默认模型</label><select class="inp"><option>跟随全局默认</option><option>deepseek · deepseek-r1 · reasoning high</option><option>deepseek · deepseek-v3</option></select></div><div class="field"><label>分组</label><select class="inp">${sections.map(s => `<option>${s.name}</option>`).join('')}</select></div><div class="fact"><span class="t">允许自己改名字 / 描述</span><span class="sw on" onclick="this.classList.toggle('on')"></span></div><div class="fact"><span class="t">允许给其他 Bot 发消息</span><span class="sw on" onclick="this.classList.toggle('on')"></span></div></div></div>`;
+    F.innerHTML = `<button class="btn" onclick="closeAll()">取消</button><button class="btn primary" onclick="saveBot('${id||''}')">${id ? '保存（只对新会话生效）' : '创建并开始对话'}</button>`;
+  } else if (kind === 'group') {
+    const g = id ? groupById(id) : { name:'', members:[], rounds:1 };
+    H.textContent = id ? '✎ 编辑小组' : '👥 新建小组';
+    B.innerHTML = `<div class="field"><label>名字</label><input class="inp" id="gName" value="${esc(g.name)}"></div><div class="field"><label>成员（2–6 个已有人设）</label><div class="memberPick" id="gMembers">${bots.map(b => `<span class="chip ${g.members.includes(b.id)?'sel':''}" onclick="this.classList.toggle('sel')">${av(b.avatar,'sm')}${esc(b.name)}</span>`).join('')}</div></div><div class="field"><label>每次讨论轮数</label><select class="inp"><option ${g.rounds===1?'selected':''}>1 轮</option><option ${g.rounds===2?'selected':''}>2 轮</option><option ${g.rounds===3?'selected':''}>3 轮</option></select></div><div class="muted small">小组没有自己的 preset，只记名单（groups.json）。房间 jsonl 是唯一的多作者记录；每个成员的轮次走自己的隐藏会话。</div>`;
+    F.innerHTML = `<button class="btn" onclick="closeAll()">取消</button><button class="btn primary" onclick="closeAll(); toast('👥','已保存','${id ? '成员变更以 [event] 唤醒各成员' : '写入 groups.json'}')">保存</button>`;
+  } else if (kind === 'routine') {
+    const b = botById(id); H.innerHTML = `⏰ 给 ${esc(b.name)} 新建例程`;
+    B.innerHTML = `<div class="field"><label>名字</label><input class="inp" placeholder="例如：PR 队列晨报"></div><div class="field"><label>什么时候</label><div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px">${['每天 9:00','工作日 9:00','每小时','每 30 分钟','每周一 8:00'].map(x => `<button class="pill" onclick="this.parentNode.nextSibling.value='${x}'">${x}</button>`).join('')}</div><input class="inp" placeholder="或直接写 cron：0 9 * * 1-5 / @every 30m / CRON_TZ=Asia/Shanghai …"></div><div class="field"><label>到期时告诉它什么</label><textarea class="inp" rows="3">看一下 open 的 PR，有需要我决定的才告诉我；没有就别说话。</textarea></div><div class="fact"><span class="t">结果落到独立会话「例程 · 名字」</span><span class="sw on" onclick="this.classList.toggle('on')"></span></div><div class="fact"><span class="t">有输出时通知我</span><span class="sw on" onclick="this.classList.toggle('on')"></span></div><div class="muted small">运行历史最多留 20 条；连续失败 3 次会以 [event] 唤醒 Bot 让它告诉你。</div>`;
+    F.innerHTML = `<button class="btn" onclick="closeAll()">取消</button><button class="btn primary" onclick="closeAll(); toast('⏰','例程已创建','写入 env/dsh-bot/routines.json，重启后重新武装')">创建</button>`;
+  } else if (kind === 'model') {
+    H.textContent = '🧠 模型（官方 sessions.models 目录）';
+    B.innerHTML = [['deepseek',['deepseek-v3','deepseek-r1 · reasoning low/medium/high']],['openrouter',['anthropic/claude-sonnet-4.5','google/gemini-2.5-pro']]].map(([p, ms]) => `<h3>${p}</h3>` + ms.map(mm => `<div class="fact click" onclick="closeAll(); toast('🧠','已切换','仅本会话；Bot 的默认模型不变')"><span class="t">${mm}</span></div>`).join('')).join('') + `<div class="muted small" style="margin-top:8px">Bot 的"默认模型"只是新会话的初值；会话内切换走官方选择器，不再需要插件快照/还原全局默认。</div>`;
+  } else if (kind === 'settings') {
+    H.textContent = '⚙ DSH Bot 设置（官方 settings.section slot）';
+    B.innerHTML = `<h3>名册</h3><div class="fact"><span class="t">官方会话列表里显示身份 chip</span><span class="sw on" onclick="this.classList.toggle('on')"></span></div><div class="fact"><span class="t">新建 bot 会话默认收纳（不在官方列表顶层显示）</span><span class="sw" onclick="this.classList.toggle('on')"></span></div><div class="fact"><span class="t">首轮闭合后自动起题</span><span class="sw on" onclick="this.classList.toggle('on')"></span></div>
+      <h3>主动行为</h3><div class="fact"><span class="t">允许例程运行</span><span class="sw on" onclick="this.classList.toggle('on')"></span></div><div class="fact"><span class="t">允许 Bot 之间互发消息</span><span class="sw on" onclick="this.classList.toggle('on')"></span></div><div class="field"><label>每个 Bot 每天主动消息上限</label><input class="inp" value="20"></div><div class="fact"><span class="t">系统通知（仅窗口失焦时）</span><span class="sw on" onclick="this.classList.toggle('on')"></span></div>
+      <h3>记忆</h3><div class="fact"><span class="t">每轮后自动抽取</span><span class="sw on" onclick="this.classList.toggle('on')"></span></div><div class="fact"><span class="t">Bot 之间共享「用户记忆」分片</span><span class="sw on" onclick="this.classList.toggle('on')"></span></div><div class="btnRow"><button class="btn danger" onclick="toast('🗑','需二次确认','')">清空所有 Bot 的记忆</button></div>
+      <h3>高级</h3><div class="field"><label>askTimeoutMs（dsh_bot_ask / 小组成员轮次）</label><input class="inp" value="180000"></div><div class="muted small">命名空间 dsh-bot，热更新，免重启。</div>`;
+  } else if (kind === 'help') {
+    H.textContent = '⌨ 快捷键';
+    B.innerHTML = `<div class="helpGrid">${[['⌘K','跳转 / 搜索'],['⌘N','新建人设'],['⌘B','折叠侧栏'],['⌘,','设置'],['⌘1–9','直达第 N 个 Bot'],['⌥↑ / ⌥↓','上 / 下一个 Bot'],['⌘⇧B','会话 / Bot 名册切换'],['↵ / ⇧↵','发送 / 换行'],['Esc','停止生成 / 关闭浮层'],['/','聚焦输入框并输入 /'],['@','提及 Bot'],['?','本帮助']].map(([k,d]) => `<div><span>${d}</span><kbd>${k}</kbd></div>`).join('')}</div><div class="muted small" style="margin-top:10px">与官方冲突的键位一律让路；这些都注册在同一个 client 里，不再有 iframe 吞键问题。</div>`;
+  } else if (kind === 'org') {
+    H.innerHTML = `🕸 Bot 关系图 <span class="muted small" style="font-weight:400;margin-left:6px">实线 = 今天互发过消息（粗细 = 条数）；虚线 = 同一小组；节点脉动 = 工作中</span>`;
+    const n = bots.length; const cx = 380, cy = 200, R = 140; const pos = {}; bots.forEach((b, i) => { const a = -Math.PI/2 + i * 2*Math.PI/n; pos[b.id] = { x: cx + R*Math.cos(a), y: cy + R*Math.sin(a) }; });
+    const gEdges = []; groups.forEach(g => { for (let i = 0; i < g.members.length; i++) for (let j = i+1; j < g.members.length; j++) gEdges.push([g.members[i], g.members[j]]); });
+    B.innerHTML = `<svg class="orgSvg" viewBox="0 0 760 420">${gEdges.map(([a,b]) => `<line class="edge group" x1="${pos[a].x}" y1="${pos[a].y}" x2="${pos[b].x}" y2="${pos[b].y}"/>`).join('')}${peerLog.map(p => `<line class="edge" style="stroke-width:${1 + p.n}" x1="${pos[p.from].x}" y1="${pos[p.from].y}" x2="${pos[p.to].x}" y2="${pos[p.to].y}"/><text x="${(pos[p.from].x+pos[p.to].x)/2}" y="${(pos[p.from].y+pos[p.to].y)/2 - 4}" text-anchor="middle" style="fill:var(--muted);font-size:10px">${p.n} 条</text>`).join('')}${bots.map(b => `<g class="node" onclick="closeAll(); openSession('${(sessions.find(s => s.bot === b.id)||{}).id||''}','${b.id}')"><circle cx="${pos[b.id].x}" cy="${pos[b.id].y}" r="22" fill="${COLORS[b.avatar.color]}" stroke="var(--border)">${b.status === 'working' ? '<animate attributeName="r" values="22;25;22" dur="1.2s" repeatCount="indefinite"/>' : ''}</circle><text x="${pos[b.id].x}" y="${pos[b.id].y+4}" text-anchor="middle" style="fill:#fff;font-weight:700;font-size:12px">${esc(b.avatar.text)}</text><text x="${pos[b.id].x}" y="${pos[b.id].y+38}" text-anchor="middle">${esc(b.name)}</text>${b.unread ? `<circle cx="${pos[b.id].x+16}" cy="${pos[b.id].y-16}" r="7" fill="var(--danger)"/><text x="${pos[b.id].x+16}" y="${pos[b.id].y-13}" text-anchor="middle" style="fill:#fff;font-size:9px;font-weight:700">${b.unread}</text>` : ''}</g>`).join('')}${groups.map(g => { const xs = g.members.map(m => pos[m].x), ys = g.members.map(m => pos[m].y); return `<text x="${xs.reduce((a,b)=>a+b)/xs.length}" y="${ys.reduce((a,b)=>a+b)/ys.length}" text-anchor="middle" style="fill:var(--accent);font-size:11px">👥 ${esc(g.name)}</text>`; }).join('')}</svg><div class="muted small" style="margin-top:8px">数据来自 host 记录的 Bot 间消息日志 + groups.json。点节点直达该 Bot。</div>`;
+  }
+}
+function saveBot(id) { const name = $('#bName').value.trim() || '新人设'; const persona = $('#bPersona').value.trim(); if (id) { const b = botById(id); b.name = name; b.persona = persona; closeAll(); renderSide(); renderRight(); if (!heroMode) openSession(currentSession); toast('✎','已保存','重写 dsh-bot--' + id + ' preset；旧会话保持原口吻；Bot 以 [event] 得知被改名'); return; } const nid = 'b' + Date.now(); bots.push({ id:nid, name, avatar:{ shape:'sq', color:'green', text:name.slice(0,1) }, section:'work', status:'online', unread:0, mention:false, preview:'（新）', model:'deepseek-v3', persona }); closeAll(); setSideView('roster'); openHero(nid); toast('🤖','已创建', `生成 dsh-bot--${nid} preset，agentPreset.list 校验通过`); }
+
+/* ===================== 演示流程 ===================== */
+function shell(whoId) {
+  const s = sessOf(currentSession); const who = whoId ? botById(whoId) : identityOf(s); const el = document.createElement('div'); el.className = 'turn';
+  el.innerHTML = `${who && !who.members ? whoHtml(who, {}) : ''}<div class="split"><div class="typing"><i></i><i></i><i></i></div></div>${tail()}`; $('#transcript').appendChild(el); scrollBottom(); return el.querySelector('.split');
+}
+function stream(split, text, done) { split.querySelector('.typing')?.remove(); const b = document.createElement('div'); b.className = 'bubble'; b.innerHTML = '<span class="cursor"></span>'; split.appendChild(b); let i = 0; clearInterval(timer); timer = setInterval(() => { i += 1 + Math.floor(Math.random()*3); b.innerHTML = md(text.slice(0,i)) + '<span class="cursor"></span>'; if (!$('#jumpNew').classList.contains('show')) scrollBottom(); if (i >= text.length) { clearInterval(timer); timer = null; b.innerHTML = md(text); done && done(); } }, 28); }
+function ensureChat() { if (heroMode || sessOf(currentSession)?.group) openSession('s-142'); }
+function demoStream() { ensureChat(); if (working) return; setWorking(true); const sp = shell(); setTimeout(() => stream(sp, '第二处在 `toRoomSpeech` 的签名：第二个参数从 `turnPrompt` 变成了 `written`，默认空串。\n\n有一个测试还按旧语义传参，仍然过是因为剥离逻辑是子串匹配。改测试或加断言，你选。', () => { setWorking(false); const b = identityOf(sessOf(currentSession)); if (b) { b.preview = '改测试或加断言，你选'; renderSide(); } }), 600); }
+function restart() { clearInterval(timer); $$('.cursor').forEach(c => c.remove()); const sp = shell(); setTimeout(() => stream(sp, '好，先回你插进来的这句：改测试更干净。\n\n回到刚才——', () => setWorking(false)), 500); }
+function demoTool() { ensureChat(); if (working) return; setWorking(true); const sp = shell(); setTimeout(() => { sp.querySelector('.typing')?.remove(); sp.insertAdjacentHTML('beforeend', `<div class="bubble">${md('我跑一下测试确认。')}</div>` + part({ k:'tool', name:'Shell', sub:'pnpm --filter dsh-bot-host test -- group-engine', st:'run', out:'' })); scrollBottom(); }, 400); setTimeout(() => { const c = sp.querySelector('.card'); c.querySelector('.st').className = 'st ok'; c.querySelector('.st').textContent = '完成 · 3.2s'; c.querySelector('.cardBody').textContent = '✓ 42 passed\n  ✓ since-last-spoke\n  ✓ error-line-filter\n  ✓ old-close-strip'; }, 2600); setTimeout(() => stream(sp, '42 个全过，包括新加的 3 个。可以合。', () => setWorking(false)), 3000); }
+function demoApproval() { ensureChat(); if (working) return; setWorking(true); const sp = shell(); setTimeout(() => { sp.querySelector('.typing')?.remove(); sp.insertAdjacentHTML('beforeend', `<div class="bubble">${md('这一步要动 git，我先问你。')}</div><div class="card approval" id="apv"><div class="cardHead" style="cursor:default">🛡 <span class="name">需要你批准</span><span class="sub">官方 approval/requested</span></div><div class="cardBody">在 <code>packages/dsh-bot-host</code> 执行：<pre>git commit -am "test: assert toRoomSpeech(written)"</pre><div class="btnRow"><button class="btn primary" onclick="resolveA(true)">允许这次</button><button class="btn" onclick="resolveA(true,'本会话内 git commit 不再询问')">本会话都允许</button><button class="btn danger" onclick="resolveA(false)">拒绝</button></div></div></div>`); scrollBottom(); }, 500); toast('🛡','代码审查官 需要你批准','git commit … 点击查看', () => {}); }
+function resolveA(ok, note) { const c = $('#apv'); c.classList.add('resolved'); c.querySelector('.btnRow').innerHTML = `<span style="color:${ok?'var(--ok)':'var(--danger)'};font-size:12px">${ok?'✓ 已允许':'✕ 已拒绝'}${note?' · '+note:''}</span>`; setTimeout(() => stream(c.closest('.split'), ok ? '提交了，`a3f19c2`。' : '好，不提交。补丁在 `/tmp/toRoomSpeech.patch`。', () => setWorking(false)), 400); }
+function demoQuestion() { ensureChat(); if (working) return; setWorking(true); const sp = shell(); setTimeout(() => { sp.querySelector('.typing')?.remove(); sp.insertAdjacentHTML('beforeend', `<div class="card question" id="qst"><div class="cardHead" style="cursor:default">❔ <span class="name">两种修法，你选哪种</span><span class="sub">官方 question/requested</span></div><div class="cardBody"><div class="btnRow"><button class="btn" onclick="answerQ(this,'改测试')">改测试，传真实 written</button><button class="btn" onclick="answerQ(this,'加断言')">函数头加断言</button><button class="btn ghost" onclick="answerQ(this,'都不')">都不改，先合</button></div></div></div>`); scrollBottom(); }, 500); }
+function answerQ(btn, c) { btn.classList.add('chosen'); btn.parentNode.querySelectorAll('button').forEach(b => b.disabled = true); $('#qst').classList.add('resolved'); setTimeout(() => stream($('#qst').closest('.split'), `行，${c}。给我半分钟。`, () => setWorking(false)), 300); }
+function demoWake() { const b = botById('ops'); b.unread += 1; b.preview = '磁盘涨到 86% 了'; const s = sessOf('s-ops'); s.time = '刚刚'; transcripts['s-ops'].push({ t:'asst', wake:'routine', time:'刚刚', parts:[{ k:'text', md:'磁盘涨到 **86%** 了，超过你设的 85%。`env/sessions/` 占大头，要我清 30 天前的隐藏轮次会话吗？' }] }); sessions.splice(sessions.indexOf(s),1); sessions.unshift(s); renderSide(); if (currentSession === 's-ops') renderTranscript(); toast('🌙','运维夜班','磁盘涨到 86% 了，要我清一下吗？（失焦时才发系统通知）', () => openSession('s-ops')); }
+function demoPeer() { openSession('s-142'); if (working) return; setWorking(true); const sp = shell(); setTimeout(() => { sp.querySelector('.typing')?.remove(); sp.insertAdjacentHTML('beforeend', `<div class="bubble">${md('这个断言写法我不确定，问一下 DSH Bot。')}</div><div class="card peer" data-plug="Bot 间消息 · dsh_bot_send（异步）"><div class="cardHead" style="cursor:default">✉ <span class="name">发给 DSH Bot</span><span class="sub">toRoomSpeech(written) 该断言还是改测试？</span><span class="st run">等回复</span></div></div>`); scrollBottom(); }, 500); setTimeout(() => { const st = sp.querySelector('.card.peer .st'); if (st) { st.className = 'st ok'; st.textContent = '已回复'; } stream(sp, 'DSH Bot 说改测试，理由是断言会把实现细节钉死。那就改测试。', () => { setWorking(false); botById('dsh-bot').preview = '[agent] 回了审查官：改测试'; peerLog[0].n += 1; renderSide(); }); }, 3200); }
+function demoNudge() { openSession('s-142'); if (working) return; setWorking(true); const sp = shell(); setTimeout(() => stream(sp, '顺便：你这几天早上都让我看 PR 队列，要不我每个工作日 9 点自己跑一遍，有需要你决定的再叫你？', () => { sp.insertAdjacentHTML('beforeend', `<div class="card question" data-plug="主动提议（Initiative）→ 一键成例程"><div class="cardBody"><div class="btnRow"><button class="btn primary" onclick="this.closest('.card').classList.add('resolved'); this.parentNode.innerHTML='<span style=color:var(--ok);font-size:12px>✓ 已启用「PR 队列晨报」</span>'; routines.reviewer[0].on=true; routines.reviewer[0].last='刚刚启用'; toast('⏰','例程已启用','0 9 * * 1-5 · 被拒一次后 Bot 不会再提')">好，设成例程</button><button class="btn ghost" onclick="this.closest('.card').classList.add('resolved'); this.parentNode.innerHTML='<span class=muted style=font-size:12px>已拒绝，Bot 不再提此建议</span>'">不用</button></div></div></div>`); scrollBottom(); setWorking(false); }), 500); }
+function demoGroup() { if (currentSession !== 'g-design') openSession('g-design'); if (working) return; setWorking(true); const g = groupById('g-design'); const order = ['poet','reviewer','dsh-bot']; const lines = { poet:'字段名就叫 `replyTo`，别叫 `quote`，会和 markdown 引用混。', reviewer:null, 'dsh-bot':'定了：`replyTo:{seq,speaker}` 可选，旧行兼容。我去开 spec 包。' }; const state = {}; order.forEach(id => state[id] = 'pending'); g.round = 3; g.status = 'working'; let i = 0; const step = () => { if (i >= order.length) { g.status = 'idle'; g.preview = '第 3 轮结束 · 已定方案'; renderMembers(g, state); setWorking(false); return; } const id = order[i]; state[id] = 'speaking'; renderMembers(g, state); if (!lines[id]) { state[id] = 'pass'; $('#transcript').insertAdjacentHTML('beforeend', `<div class="turn"><div class="who">${av(botById(id).avatar,'xs')}<b>${esc(botById(id).name)}</b><span>第 3 轮</span></div><div class="muted small" style="font-style:italic">本轮没有补充</div></div>`); i++; setTimeout(step, 800); return; } const sp = shell(id); sp.closest('.turn').querySelector('.who')?.insertAdjacentHTML('beforeend', '<span>第 3 轮</span>'); setTimeout(() => stream(sp, lines[id], () => { state[id] = 'spoke'; i++; setTimeout(step, 500); }), 600); }; setTimeout(step, 400); }
+
+/* ===================== 开关 / 快捷键 / 启动 ===================== */
+function toggleNative() { const on = document.body.classList.toggle('native'); $('#nativeBtn').textContent = on ? '恢复插件' : '只看 DSH 原生'; if (on && sideView === 'roster') setSideView('ws'); toast(on ? '🧩' : '🤖', on ? '现在是没装插件的 DSH' : '插件已恢复', on ? '流式 / 停止 / 排队 / 附件 / 审批卡都还在，它们本来就是官方的' : '虚线框里的才是插件要写的'); }
+function toggleHl() { const on = document.body.classList.toggle('hl'); $('#hlBtn').textContent = on ? '隐藏高亮' : '显示高亮'; }
+function toggleTheme() { const h = document.documentElement; h.dataset.theme = h.dataset.theme === 'dark' ? 'light' : 'dark'; }
+function toggleRail() { $('#shell').classList.toggle('railLeft'); }
+function toast(ic, title, body, onClick) { const el = document.createElement('div'); el.className = 'toast'; el.innerHTML = `<span class="av" style="background:var(--panel2);color:var(--text);font-size:15px;width:30px;height:30px">${ic}</span><div class="t"><b>${esc(title)}</b><span>${esc(body)}</span></div><button class="muted">✕</button>`; el.onclick = e => { if (e.target.tagName !== 'BUTTON' && onClick) onClick(); el.remove(); }; $('#toasts').appendChild(el); setTimeout(() => el.remove(), 6500); }
+document.addEventListener('keydown', e => {
+  const mod = e.metaKey || e.ctrlKey; const inInput = ['INPUT','TEXTAREA'].includes(document.activeElement?.tagName);
+  if (mod && e.key.toLowerCase() === 'k') { e.preventDefault(); $('#palette').classList.contains('show') ? closeAll() : openPalette(); return; }
+  if (mod && e.shiftKey && e.key.toLowerCase() === 'b') { e.preventDefault(); setSideView(sideView === 'ws' ? 'roster' : 'ws'); return; }
+  if (mod && e.key.toLowerCase() === 'b') { e.preventDefault(); toggleRail(); return; }
+  if (mod && e.key.toLowerCase() === 'n') { e.preventDefault(); openModal('bot'); return; }
+  if (mod && e.key === ',') { e.preventDefault(); openModal('settings'); return; }
+  if (mod && /^[1-9]$/.test(e.key)) { e.preventDefault(); const all = [...bots.filter(b => !hiddenBots.includes(b.id)), ...groups]; const r = all[+e.key-1]; if (r) r.members ? openSession(r.id) : openSession((sessions.find(s => s.bot === r.id)||{}).id||'', r.id); return; }
+  if (e.altKey && (e.key === 'ArrowDown' || e.key === 'ArrowUp')) { e.preventDefault(); const all = [...bots.filter(b => !hiddenBots.includes(b.id)), ...groups]; const cur = identityOf(sessOf(currentSession)); const i = all.findIndex(x => x.id === cur?.id); const n = all[(i + (e.key === 'ArrowDown' ? 1 : all.length-1)) % all.length]; n.members ? openSession(n.id) : openSession((sessions.find(s => s.bot === n.id)||{}).id||'', n.id); return; }
+  if (e.key === 'Escape') { if ($('#palette').classList.contains('show') || $('#modal').classList.contains('show')) closeAll(); else if ($('.pop')) closePops(); else if (working) stop(); return; }
+  if (!inInput && !mod) { if (e.key === '/') { e.preventDefault(); insertText('/'); } if (e.key === '?') { e.preventDefault(); openModal('help'); } }
+});
+renderSide(); openSession('s-142');
+setTimeout(() => toast('👋','完善版原型','这是 DSH 官方壳；虚线框是插件贡献。试试：底部演示按钮、⌘K、名册切换（左上 Bot）、右键 Bot 行、新会话页、关系图。'), 600);
+</script>
+</body>
+</html>

@@ -1,0 +1,111 @@
+{
+  "docs/dsh-bot-workbench/evidence/phase-4/closer-gui-new.png": {
+    "code": 0,
+    "text": "& deepseck HARNESS\n④ 新会话\n工作区\nQ 日\n口 plugin\n新会话\nV1leftover t18\n1小时\ndsh-bot-manual-202608..57分钟\ndsh-bot-manual-202608... 52分钟\ndsh-bot-manual-202608... 50分钟\n升其余12个会话\n口 未分组\n© 设置\n白 plugin 62 DSH Botv\n描述你想要构建的内容\n十\n⑦ Workspace Writev\n& 探索未至之境预资版\n00\ngrok-4.6 Xhigh v\n",
+    "err": ""
+  },
+  "docs/dsh-bot-workbench/evidence/phase-4/live-conversation.png": {
+    "code": 0,
+    "text": "人设\n+新建人设\nDSHBot\ndsh-bot-manual-2026\n包含隐藏\n新开对话\nD\nDSH Bot\n我是 DSH Bot。运行在本机 D.\n27m\n•⋯\n你是谁？请先说我是 DSH Bot。标记 t18fix-GUI8 1788093268592\n思考\n我是DSH Bot。运行在本机 DSH 插件环境里的常驻对话助手，当前模型是 grok-4.6，工作区\n是/Users/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin’。不是外部品牌或桌面产\n品的复刻。\n标记：'t18fix-GUI8 1788093268592\n给 DSH Bot 发消息\n发送\n",
+    "err": ""
+  },
+  "docs/dsh-bot-workbench/evidence/phase-4/bot-session-binding.png": {
+    "code": 0,
+    "text": "人设\n+新建人设\n+新建小组\n诗人小北\nDSH Bot\n收到标记“t18fix-GUI6 17880..\n64\n4h\n21h\n校对阿宁\n我是诗人小北 君问何人立此间\n北窗诗客对青山\n诗人小北\n我是诗人小北 君问何人立此间⋯\n1d\n说书人小北\n新对话\n新对话\n新对话\n新对话\n+新开对话\n1d\n1d\n1d\n1d\n1d\n给 诗人小北 发消息\n对话 新对话\n新开对话\n说书人小北\n新对话\n新对话\n新对话\n新对话\n+ 新开对话\n包含隐藏\n1d\n1d\n1d\n1d\n1d\n你是\n谁？\n发送\n",
+    "err": ""
+  },
+  "docs/dsh-bot-session-nav/evidence/phase-1/jump-tab-open.png": {
+    "code": 0,
+    "text": "&\n④\nC\nY探索未至之境\n；预览版\n口 plugin v 62 DSH Bot~\n描述你想要构建的内容\n+ ⑦ Workspace Write ~\ngrok-4.6 Xhigh v\n回终端1 ×\n人设\n6 74 DSH Bot ×\n+新建人设\n校对阿宁\n诗人小北\n＋\n+新建小组\n1d\n1d\n16\nDSH Bot\n对话 新对话\n还没有对话\n输入文件路径（相对会话目录或绝对路径）\n给 DSH Bot 发消息\n白 Files x\n给DSH Bot 发一条消息开始，或点「新开对话\n始预览\n新开对话\n发送\n白\nG\n按文件名搜紧..\n日 plugin\n口 .cursor\n口.git\n.grok\n口 .vscode\n口 docs\nenv\n口 node_modules\n口 packages\n口 scripts\nC standards\n#.gitignore\n# package.json\n# pnpm-lock.yaml\n# pnpm-workspace.yaml\n# README.md\n# tsconfig.base.json\n# tsconfig.json\n# vitest.config.ts\n",
+    "err": ""
+  },
+  "docs/dsh-bot-session-nav/evidence/phase-1/jump-visible.png": {
+    "code": 0,
+    "text": "& deepseck HARNESS\ndsh-bot-manual-20260829-. 633 DSH Bot\n对话\n轨迹\nSession log\n④ 新会话\n你是谁？请先说我是 DSH Bot。标记t18fix-GUI7 1788093170872\n工作区\nQ品日\nplugin\nv1 leftover t18\n1天\ndsh-bot-manual-20260830.. 1天\ndsh-bot-manual-20260830. 1大\ndsh-bot-manual-20260830. 1天\nv1 leftover\n展升其余11个会话\n1天\n口 未分组\n日 上下文注入．@deepseek-ai/dsh-system-prompt\n日 上下文注入•skill-catalog\n88 Think • The user is asking me who l am, and they want me to first say \"我是 DSH Bot\". There's also a marker: t..\n我是 DSH Bot。\n运行在本机 DSH 插件环境里的常驻对话助手。当前模型是 grok-4.6，工作区是\n/users/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin。不是任何外部品牌或桌面产品的复\n刻。说话直率，先查证再下结论，不确定就明说不知道。\n标记：t18fix-GUI7 1788093170872\n设置\n给智能体发消息\n+ ⑦ Workspace Writev\ngrok-4.8xigh、〇の\n1轮•1步 | LLM 26.5s | 首 token 平均 21.5s•75 tok/s | 缓存命中 0% | 输入 11.4K tok•输出 381 tok\n",
+    "err": ""
+  },
+  "docs/dsh-bot-session-nav/evidence/phase-1/jump-hidden.png": {
+    "code": 0,
+    "text": "& deepseck HARWESS\n④ 新会话\n工作区\nQ始日\n口 plugin\nv1 leftover t18\n1天\ndsh-bot-manual-20260830..\n1大\ndsh-bot-manual-20260830...\n1大\ndsh-bot-manual-20260830... 1大\nv1 leftover\n1天\n升其余11个会话\n口 未分组\n心 设置\n口 选择工作区~ 63 DSH Bot\n选择一个工作区开始\n十\nD口\n& 探索未至之境预资版\n",
+    "err": ""
+  },
+  "docs/dsh-bot-session-nav/evidence/phase-1/roster-jump-menu.png": {
+    "code": 0,
+    "text": "&\n④\nC\n口 plugin ~ 62 DSH Bot ~\n描述你想要构建的内容\n+ ⑦ Workspace Write ~\n回终端1 ×\n人设\n6 74 DSH Bot ×\n+新建人设\n＋\n+新建小组\n64\n18h\nDSH Bot\n看过了。当前工作区是/User..\ndsh-bot-manual-20260...\n18h\n在 DSH 打开\nY探索未至之境\n；预览版\ngrok-4.6 Xhigh v|\nDSH Bot\n对\ndsh-bot-manual-202608..\n话\n天迎 仕采|寸日 有\nEuxu env/、\npackages/、\ndocs/），直接说名字就行。\n给 DSH Bot 发消息\n新开对话\n白 Files x\n输入文件路径（相对会话目录或绝对路径），Enter 打开\n按文件名搜紧..\n日 plugin\n口 .cursor\n口.git\n.grok\n口 .vscode\n口 docs\nenv\n口 node_modules\n口 packages\n口 scripts\nC standards\n从石侧文件树或上方路径输入框选择文件开\n始预览\n#.gitignore\n# package.json\n# pnpm-lock.yaml\n# pnpm-workspace.yaml\n# README.md\n# tsconfig.base.json\n# tsconfig.json\n# vitest.config.ts\n白\nG\n发送\n",
+    "err": ""
+  },
+  "docs/dsh-bot-session-nav/evidence/phase-1/standalone-fallback.png": {
+    "code": 0,
+    "text": "人设\n+新建人设\n+ 新建小组\n64\n18h\nDSH Bot\n看过了。当前工作区是“/user..\ndsh-bot-manual-20260...\n18h\ndsh-bot-manual-202608...\n1d\ndsh-bot-manual-202608..\n1d\nUF-003 jump t19\n1d\n新对话\n1d\nvileftover\n1d\ndsh-bot-manual-202608..\n1d\ndsh-bot-manual-202608..1d\n还有56段，用顶栏「对话」查看全部\n＋新开对话\n校对阿宁\n诗人小北\n⋯.•\n1d\n5\n1d\nDSH Bot\n已复制会话 ID\n你好。我是DSH Bot，有什么需要\n帮忙的直接说。\n我先看一下当前工作目录和\n里面有什么。\n看过了。当前工作区是\n/Users/nothing/workspace/dsh/plugin/dsh-grok-\nbot/plugin，这是DSH Grok Bot 插件仓库根目录。\n顶层大概是这样：\n路径\nREADME.md\npackage.json / pnpm-workspace.yaml/ pnpm-lock.yaml\ntsconfig.json / tsconfig.base.json / vitest.config.ts\nenv/\npackages/\ndocs/\nstandards/\nscripts/\nnode_modules/\n•git/\n.cursor/\n.vscode/\n-grok/\n要 往其个子日看（H加 enud\n已复制会话 ID\nnackanes/dncs/\n给 DSH Bot 发消息\n对 dsh-bot-manual-202608...\n话\ndsh-bot-manual-20260829 …\n18h\ndsh-bot-manual-20260829-2...\n1d\ndsh-bot-manual-20260829-2... 1d\nUF-003 jump t19\n1d\n新对话\n1d\nv1 leftover\n1d\n1A\n＋新开对话\n包含隐藏\n新开对话\n你\n好\n自一\n发送\n",
+    "err": ""
+  },
+  "docs/dsh-bot-session-nav/evidence/phase-0/asm401-visible.png": {
+    "text": "& deepseck HARNESS\n+ 新会话\n工作区\nQ始日\n口 plugin\nv1 leftover t18\n1天\ndsh-bot-manual-20260830.. 1天\ndsh-bot-manual-20260830.. 1大\ndsh-bot-manual-20260830... 1大\nv1 leftover\n1天\nDSH Bot\n⋯•\nDSH Bot\n1天\nUF-006 invalid t19\n2大\nUF-006 override-off t19\n2天\nUF-006 override-on t19\n2天\nUF-003 jump t19\n1天\ndsh-bot-manual-20260829.. 1大\ndsh-bot-manual-20260829.. 1天\ndsh-bot-manual-202608.. 16小时\n询问你是谁\n2大\ngui stream ok\n2大\n收起\n日 未分组\n新会话\n°9 设置\nDSH Bot\n2天前\n• 空闲\n圣工作区~ 63 DSH Botv\n•个工作区开始\n十\nF Workspace Write <\n& 探索未至之境预资版\n00\ngrok-4.6 Xhigh v\n①\n"
+  },
+  "docs/dsh-bot-session-nav/evidence/phase-0/asm401-visible-open.png": {
+    "text": "& deepseck HARWESS\n新会话\n工作区\nQ始日\n口 plugin\nv1 leftover t18\n1天\ndsh-bot-manual-20260830..\n1天\ndsh-bot-manual-20260830..\n1大\ndsh-bot-manual-20260830... 1大\nv1 leftover\n1天\n展升其余11个会话\n白 未分组\n新会话\ncalib-nav-pinned-403\n14分钟\nCall dsh_bot_ask exactly on... 1天\nt18fix-poet-hist\n1天\n诗人小北\n1大\n展开其余 52个会话\n° 设置\n口 选择工作区~ 6% DSH Bot~\n选择一个工作区开始\n十⑦ Workspace Write v\n& 探索未至之境预资版\n00\ngrok-4.6 Xhigh v\n①\n"
+  },
+  "docs/dsh-bot-session-nav/evidence/phase-0/asm401-hidden.png": {
+    "text": "& deepseck HARWESS\nD\n④ 新会话\n工作区\nQ始日\nv1 leftover\n1天\nDSH Bot\n2天\nDSH Bot\n1天\nUF-006 invalid t19\n2大\nUF-006 override-off t19\n2天\nUF-006 override-on t19\n2天\nUF-003 jump t19\n1天\ndsh-bot-manual-20260829.. 1大\ndsh-bot-manual-20260829... 1大\ndsh-bot-manual-202608.. 16小时\n询问你是谁\n2天\ngui stream ok\n收起\n2天\n日 未分组\n新会话\ncalib-nav-pinned-403\n12分钟\nCall dsh_bot_ask exactly on..1天\nt18fix-poet-hist\n1天\n诗人小北\n1天\nDSH Bot\n° 设置\n口 选择工作区~ 6% DSH Bot~\n选择一个工作区开始\n+ E Workspace Write ＜\n& 探索未至之境预资版\n00\ngrok-4.6 Xhigh <|\n①\n"
+  },
+  "docs/dsh-bot-session-nav/evidence/phase-0/asm401-hidden-open.png": {
+    "text": "& deepseck HARWESS\n新会话\n工作区\nQ始日\n口 plugin\nv1 leftover t18\n1天\ndsh-bot-manual-20260830..\n1天\ndsh-bot-manual-20260830..\n1大\ndsh-bot-manual-20260830... 1大\nv1 leftover\n1天\n展升其余11个会话\n白 未分组\n新会话\ncalib-nav-pinned-403\n14分钟\nCall dsh_bot_ask exactly on... 1天\nt18fix-poet-hist\n1天\n诗人小北\n1大\n展开其余 52个会话\n° 设置\n口 选择工作区~ 6% DSH Bot~\n选择一个工作区开始\n十⑦ Workspace Write v\n& 探索未至之境预资版\n00\ngrok-4.6 Xhigh v\n①\n"
+  },
+  "docs/dsh-bot-session-nav/evidence/phase-0/asm401-archived.png": {
+    "text": "& deepseck HARWESS\nD\n④ 新会话\n工作区\nQ始日\nv1 leftover\n1天\nDSH Bot\n2天\nDSH Bot\n1天\nUF-006 invalid t19\n2大\nUF-006 override-off t19\n2天\nUF-006 override-on t19\n2天\nUF-003 jump t19\n1天\ndsh-bot-manual-20260829.. 1大\ndsh-bot-manual-20260829... 1大\ndsh-bot-manual-202608.. 16小时\n询问你是谁\n2天\ngui stream ok\n收起\n2天\n日 未分组\ncalib-nav-pinned-403\n9分钟\nCall dsh_bot_ask exactly on.. 1大\nt18fix-poet-hist\n1大\n诗人小北\n1天\nDSH Bot\n1天\n诗人小北\n8 设置\n口 选择工作区~ 63 DSH Bot\n选择一个工作区开始\n十\n诗人小北\n1天前\n• 空肉\nD日\n& 探索未至之境预资版\n"
+  },
+  "docs/dsh-bot-session-nav/evidence/phase-0/asm401-archived-open.png": {
+    "text": "& deepseck HARNESS\n新会话\n工作区\nQ始日\n口 plugin\nvl leftover t18\n1天\ndsh-bot-manual-20260830.. 1天\ndsh-bot-manual-20260830.. 1大\ndsh-bot-manual-20260830... 1大\nv1 leftover\n1天\n展升其余11个会话\n白 未分组\ncalib-nav-pinned-403\n14分钟\nCall dsh_bot_ask exactly on.. 1天\nt18fix-poet-hist\n1天\n诗人小北\n1天\nDSH Bot\n1大\n展开其余 51个会话\n° 设置\n口 选择工作区 6S3 DSH Bot~\n选择一个工作区开始\n十\nD日\n& 探索未至之境预资版\n"
+  },
+  "docs/dsh-bot-session-nav/evidence/phase-0/asm401-load.png": {
+    "text": "& deepseck HARWESS\n新会话\n工作区\nQ始日\n口 plugin\n新会话\nV1leftover t18\n1天\ndsh-bot-manual-20260830...\n1大\ndsh-bot-manual-20260830...\n1大\ndsh-bot-manual-20260830..\n1天\n升其余12个会话\n口 未分组\n©设置\n白 plugin 6S DSH Bot~\n描述你想要构建的内容\n十\n⑦ Workspace Writev\n& 探索未至之境预资版\n00\ngrok-4.6 Xhigh v\n"
+  },
+  "docs/dsh-bot-session-nav/evidence/phase-0/asm402-tab.png": {
+    "text": "&\n④\nC\nY探索未至之境\n；预览版\n口 plugin v 62 DSH Bot~\n描述你想要构建的内容\n+ ⑦ Workspace Write ~\ngrok-4.6 Xhigh v\n回终端1 ×\n人设\n6 74 DSH Bot ×\n+新建人设\n校对阿宁\n诗人小北\n＋\n+新建小组\n1d\n1d\n16\nDSH Bot\n对话 新对话\n还没有对话\n输入文件路径（相对会话目录或绝对路径）\n给 DSH Bot 发消息\n白 Files x\n给DSH Bot 发一条消息开始，或点「新开对话\n始预览\n新开对话\n发送\n白\nG\n按文件名搜紧..\n日 plugin\n口 .cursor\n口.git\n.grok\n口 .vscode\n口 docs\nenv\n口 node_modules\n口 packages\n口 scripts\nC standards\n#.gitignore\n# package.json\n# pnpm-lock.yaml\n# pnpm-workspace.yaml\n# README.md\n# tsconfig.base.json\n# tsconfig.json\n# vitest.config.ts\n"
+  },
+  "docs/dsh-bot-native-experience/evidence/UF-001/cmd-k-open.png": {
+    "text": "人设\n+新建人设\n＋新建小组\nDSH Bot\n8m\n校对组\n8m\n编辑室\n3d\n校对阿宁\n3d\n诗人小北\n3d\nDSH Bot\n还没有对话\n+新开对话\n命令\n+ 新建人设\n+新建小组\n清空当前对话\n校对组\n编辑室\n校对阿宁\n诗人小北\nDSH Bot\n给 DSH Bot 发消息\n动作\n动作\n动作\n3\n小组\n4\n小组\n人设 6\n人设\n7\n人设\n8\n对话 新对话\n新开对话\n对话」\n发送\n"
+  },
+  "docs/dsh-bot-native-experience/evidence/UF-001/composer-focus.png": {
+    "text": "人设\n+ 新建人设\n+新建小组\n诗人小北\ninternal: cannot get property \"sessionProjections\" without inject\n对话 新对话\n新开对话\n8m\n编辑室\nD\n8m\n校对组\n3d\n校对阿宁\n诗人小北\n保留这段草稿 ©\n还没有对话\n+ 新开对话\n3d\n3d\nDSH Bot\n命令\n+ 新建人设\n+新建小组\n清空当前对话\n编辑室\n校对组\n校对阿宁\n诗人小北\nDSH Bot\n动作\n动作 2\n动作3\n小組\n4\n小组\n5\n人设 6\n人设 7\n人设\n8\n保留这段草稿@\n发送\n"
+  },
+  "docs/dsh-bot-native-experience/evidence/UF-001/selection.png": {
+    "text": "人设\n+新建人设\n＋新建小组\n•诗人小北\n对话 新对话\n新开对话\n8m\n校对组\n8m\n编辑室\n3d\n校对阿宁\n3d\n诗人小北\n还没有对话\n+新开对话\n3d\nDSH Bot\n还没有对话\n给诗人小北 发一条消息开始，或点「新开对话」\n给 诗人小北 发消息\n发送\n"
+  },
+  "docs/dsh-bot-native-experience/evidence/UF-003/sent-message.png": {
+    "text": "人设\n+新建人设\n+新建小组\n诗人小北\n工作中\ninternal: cannot get property \"sessionProjections\" without inject\n对话 新对话\n新开对话\n8m\n编辑室\n8m\nD\nUF-002发\n送探针\n校对组\n3d\n校对阿宁\n诗人小北\n你好\n还没有对话\n＋新开对话\n像一颗投入静湖的石子，涟漪会告诉\n对岸：我在这里。\n探针已收到。UF-002 通道畅通。\n3d\n你好\n••\n3d\nDSH Bot\n给 诗人小北 发消息\n发送\n"
+  },
+  "docs/dsh-bot-native-experience/evidence/UF-003/emoji-insert.png": {
+    "text": "人设\n+新建人设\n+新建小组\n诗人小北\ninternal: cannot get property \"sessionProjections\" without inject\n对话 新对话\n新开对话\n8m\n编辑室\n8m\nD\nUF-002发\n送探针\n校对组\n3d\n校对阿宁\n诗人小北\n像一颗投入静湖的石子，涟漪会告诉\n对岸：我在这里。\n探针已收到。UF-002 通道畅通。\n3d\n还没有对话\n+新开对话\nDSH Bot\n3d\n⋯.\n发送\n"
+  },
+  "docs/dsh-bot-native-experience/evidence/UF-004/reply-menu.png": {
+    "text": "人设\n+新建人设\n＋新建小组\n编辑室\n对话 房间 room-155\n新开对话\n编辑室\n先把主语写清楚。\n房间 room-155\n+新升对话\n8m\n诗人小北\n校对阿宁\n8m\n你们\n是谁？\n8m\n校对组\n3d\n3d\n诗人小北\n我是诗人小北，\n过竹林。\n校对阿宁\n先把主语写\n清楚。\n风\n回复\n复制\n校对阿宁\n诗人小北\n• 你好\nDSH Bot\n3d\n给 编辑室 发消息\n发送\n"
+  },
+  "docs/dsh-bot-native-experience/evidence/UF-004/reply-card.png": {
+    "text": "人设\n+新建人设\n＋新建小组\n编辑室\n对话 房间 room-155\n新开对话\n编辑室\n先把主语写清楚。\n房间 room-155\n+新升对话\n8m\n诗人小北\n校对阿宁\n8m\n你们\n是谁？\n8m\n校对组\n3d\n校对阿宁\n诗人小北\n• 你好\nDSH Bot\n3d\n诗人小北\n我是诗人小北，风\n过竹林。\n校对阴宁\n先把主语写\n清楚。\n3d\n回复：诗人小北：我是诗人小北，风过竹林。\n给编辑室 发消息\n发送\n"
+  },
+  "docs/dsh-bot-native-experience/evidence/UF-004/tree-display.png": {
+    "text": "人设\n+ 新建人设\n+ 新建小组\nnow\n编辑室\n对话 居旧 room-155\n新开对话\n编辑室\n「名字」悬空。谁的，没着落….\n房间 room-155\n+ 新开对话\n校对组\n校对阿宁\n诗人小北\n你好\nDSH Bot\n诗人小北\n校对阿宁\nnow\n你们\n是谁？\n9m\n3d\n3d\n诗人小北\n我是诗人小北，风\n过竹林。\n校对阴宁\n先把主语写\n清楚。\n3d\n诗 小北\n再来\n一句\n诗人小北\n主语像灯芯，不点明，整句就只剩烟。下一句：夜把\n名字轻轻搁在窗沿上。\n校对阿宁\n「名字」悬空。谁的，没着落。「轻轻」只\n给手感，不给物件。\n可改：夜把那人的名字搁在窗沿上。\n给 编辑室 发消息\n发送\n"
+  },
+  "docs/dsh-bot-workbench/evidence/phase-4/probe-gui.png": {
+    "text": "& deepseck HARNESS\n+ 新会话\n工作区\n白 plugin\n新会话\nDSH Bot\nUF-006 invalid t19\nUF-006 override-off t19\nUF-006 override-on t19\n展升其余2个会话\n口 未分组\nQ 日\n18小时\n19小时\n19小时\n19小时\n© 设置\n白 plugin 6 DSH Botv\n描述你想要构建的内容\n十\nE Workspace Write <\n& 探索未至之境预资版\n00\ngrok-4.6 Xhigh v\n"
+  },
+  "docs/dsh-bot-workbench/evidence/phase-4/v1-gui-chat.png": {
+    "text": "& deepseck HARWESS\n④ 新会话\nQ UF-003 jump t19\nUF-003 jump t19\nplugin\n内容搜索暂不可用，仅显示名称匹配。\n° 设置\nUF-003 jump t19 638 DSH Bot\n对话\n轨迹\nSession log 飞\n×\n日 上下文注入•skill-catalog\n88 Think • The user is asking me to do \"GUI直建补标\"with a marker \"t18fix-GUI6 1788091891395\". This seems r...\n先查工作区和相关约定，确认 t18fix-GUI6 这次 GUI 直建补标要补什么。\nQ Glob•**/*GUI*\nQ Glob•**/*t18*\nQ Grep• t18fix-GUI6|GUI直建补标|补标\nQ Glob• **/*：｛md,json.yml.yaml｝\n88 Think • The user sent a message that looks like a ping/health check for GUl session labeling （补标）.Based on t..\n日 Read•docs/dsh-bot-workbench/evidence/phase-4/task18-uf205-only.mjs\n目 Read．docs/dsh-bot-workbench/evidence/UF-205/marks-diff.txt\n日 Read． docs/dsh-bot-workbench/spec.md\nQ Grep•gui-reconcile-ok/t18fix-GUI\n& Think• The user is sending a GUl direct-build labeling ping. Looking at previous responses from t18fix-GUI5, t..\n收到标记 t18fix-GUI6 1788091891395。\nDSH Bot 在线。这是 GUI 直建补标 ping （UF-205/ Task 18）：官方 GUI 直建的 bot preset 会话，打开工\n作台后应对账补上 kind:dsh-bot,bot:dsh-bot。\nB9d\n给智能体发消息\n+ ⑦ Workspace Write ~\ngrok-4.6 Xhigh ~\n◎\n个\n1轮• 3步 | LLM 1m11s•工具调用 1s | 首 token 平均 20s•91 tok/s | 缓存命中 36% | 输入 92.9K tok． 输出 1K tok\n"
+  },
+  "docs/dsh-bot-mvp/evidence/phase-0/gui-home.png": {
+    "text": "& deepseck FARMESS\n④ 新会话\n工作区\nplugin\n新会话\n口 未分组\n白 plugin v 6 标准模式～\n描述你想要构建的内容\n十⑦Workspace Writev\n¢ 设置\nSY 探索未至之境預施版\nerokaexigh~①\n"
+  },
+  "docs/dsh-bot-mvp/evidence/phase-0/gui-new-session.png": {
+    "text": "& deepseck HARNESS\n④ 新会话\nD\n工作区\nQ\n品\n臼 未分组\nReply with exactly the three\n1分钟\nExact reply switch smoke ok 1分钟\n© 设置\n口 选择工作区~ 6%标准模式\n；选择一个工作区开始\n十一\nQY 探索未至之境 预觉版\n^\n"
+  },
+  "docs/dsh-bot-mvp/evidence/phase-0/gui-session-composer.png": {
+    "text": "o deepseck HARNESS\n④新会话\n工作区\n口 未分组\nQ始日\n©设置\n口 选择工作区~ 6%标准模式\n：选择一个工作区开始\nQY 探索未至之境 预览版\n^\n"
+  },
+  "docs/dsh-bot-mvp/evidence/phase-0/gui-stream-reply.png": {
+    "text": "& deepseck HARNESS\ngui stream ok\n62 标准模式\n对话\n轨迹\nSession logt\n+ 新会话\nReply with exactly the three words: gui stream ok\n工作区\n白 plugin\ngui stream ok\n口 未分组\nQ品味\n刚刚\n目 上下文注入•@deepseek-ai/dsh-system-prompt\n日 上下文注入•skill-catalog\n&8 Think• The user asks to reply with exactly three words： \"gui stream ok\". Simple response.\ngui stream ok\n心 设置\n给智能体发消息\n+令 Workspace Write ~\nDeepSeek-V4-Flash Max v C|\n①\n1轮.1步 | LLM 2.5s | 首token 平均 2.4s • 142 tok/s | 缓存命中 0% | 输入 11.2K tok •输出 22 tok\n"
+  },
+  "docs/dsh-bot-mvp/evidence/phase-1/gui-open.png": {
+    "text": "deepseck HARNESS\n①\n④ 新会话\n工作区\n白 plugin\n新会话\ngui stream ok\n口 未分组\nQ口\n17分钟\n© 设置\n白 plugin 63 DSH Bot~\n描述你想要构建的内容\n十\nE Workspace Write v\n&Y 探索未至之境预资版\ngrok-4.6 Xhigh v\n"
+  }
+}
