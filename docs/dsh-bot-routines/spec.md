@@ -1,6 +1,6 @@
 # dsh-bot-routines Spec
 
-> Version: 0.2.0 | Date: 2026-09-06 | Status: Ready 可执行
+> Version: 0.2.0 | Date: 2026-09-06 | Status: Done 已验收（状态板 100%，5.2 证据齐全；2026-09-08 梳理时改标）
 >
 > 本文件是本需求的**唯一事实源**。其他文件（tasks.csv）只引用本文件，不复制内容。
 >

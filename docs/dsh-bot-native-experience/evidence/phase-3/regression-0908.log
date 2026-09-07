@@ -1,0 +1,18 @@
+# 2026-09-08 Task 9 复验
+$ pnpm -r --filter ./packages/* run build && pnpm run typecheck && pnpm -r --filter ./packages/* run typecheck && pnpm test && pnpm run standard:check
+packages/workbench-ui build: Done
+packages/ui-dsh-bot build: Done
+packages/dsh-bot-host build: Done
+packages/tool-dsh-bot build: Done
+$ tsc -p tsconfig.json
+packages/ui-dsh-bot typecheck: Done
+packages/workbench-ui typecheck: Done
+packages/dsh-bot-host typecheck: Done
+packages/tool-dsh-bot typecheck: Done
+ Test Files  46 passed (46)
+      Tests  349 passed (349)
+✓ 无未评审的新增上游触点
+
+结论：全部通过
+
+注：不带 --filter 的 pnpm -r run typecheck 会进入 pnpm-workspace.yaml 链接的邻仓 session-tool-local，该包有自己的类型错误（src/index.ts L1060 等），属邻仓、不在本仓改动面；2026-09-03 的阻塞原因 ui-dsh-bot/tests/jump-bridge.spec.ts TS2375 已随 session-nav 提交 a558375 修复。

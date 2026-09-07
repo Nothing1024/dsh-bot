@@ -1,6 +1,6 @@
 # dsh-bot-group-chat Spec
 
-> Version: 0.1.0 | Date: 2026-08-30 | Status: Ready 可执行
+> Version: 0.1.0 | Date: 2026-08-30 | Status: Done 已验收（状态板 100%，5.2 证据齐全；2026-09-08 梳理时改标）
 >
 > 本文件是本需求的**唯一事实源**。三期包:在工作台(`../dsh-bot-workbench/spec.md`)之上加「多 bot 小组对话」。
 > 参考产品小组形状只读:`../dsh-bot-workbench/reference-ui-notes.md` 与仓外 `../reference`(禁拷代码/文案/品牌)。

@@ -1,6 +1,6 @@
 # dsh-bot-native-experience Spec
 
-> Version: 0.1.0 | Date: 2026-09-02 | Status: Ready 可执行
+> Version: 0.1.0 | Date: 2026-09-08 | Status: Done 已验收
 >
 > 本文件是本需求的**唯一事实源**：事实基线、业务合同、技术方案、任务计划、验收协议全部在此。
 > 其他文件（handoff.md、tasks.csv）只引用本文件，不复制内容。
@@ -68,6 +68,7 @@
 
 | 日期 | 变更条目 ID | 原因 | 影响任务与处置 |
 |---|---|---|---|
+| 2026-09-08 | Task 9 | 原阻塞（`pnpm -r run typecheck` 撞上 session-nav 未提交测试文件的 TS2375）已随 a558375 修复；本仓四包 build/typecheck/test/standard 全绿 | Task 9 已阻塞→已完成；验证命令限定本仓包范围（邻仓 session-tool-local 自身类型错误不计） |
 | 2026-09-02 | 初版 | — | — |
 | 2026-09-03 | ASM-101 / ASM-102 | Task 4/7 证实：无新 emoji 依赖；不改 RoomMessage | 无第 2 章变更；3.3 新文件落盘 |
 | 2026-09-03 | §0 / ASM-101 / ASM-103 / Task 9 | 人工 review：§0 范围漂移（「会话」「GroupForm」）、ASM-101 阈值双版本、10 处任务编号错位、Task 9 状态与验证标准不符 | 无 BR/UF 语义变更（§0 收敛为已交付范围）；Task 9 改判 `已阻塞`；详见「质量记录 / Stage 4」 |
@@ -360,7 +361,7 @@ After:  + 全局快捷键 hook（Cmd+K 主，可选补其他）
 | 6 | Conversation + App 补 reply 状态管理与展示（reply 卡片） | 5 | `pnpm -w test packages/workbench-ui` 通过 + reply 卡片显示与清除正确 | 已完成 | |
 | 7 | 后端 groups.ts 回复持久化评估（ASM-102 验证） | 6 | 结论落盘 `evidence/phase-3/reply-backend-assessment.md`；需改则按变更协议另开子包 | 已完成 | ASM-102 证实：不改 RoomMessage |
 | 8 | 执行 spec 5.2 真实场景全套测试 | 6;7 | 5.2 执行矩阵 8 行全部通过并落 evidence | 已完成 | Playwright Chromium 回放：7 行跑通 + UF-003 降级行「不适用」（按 5.2 通过标准允许）；其中 UF-002 冲突行证据弱，见 `evidence/UF-002/no-conflict.md` 声明 |
-| 9 | 执行 Phase 3 回归验证（收尾） | 8 | `pnpm -r run build && pnpm -r run typecheck && pnpm test && pnpm run standard:check` 全绿 | 已阻塞:`pnpm -r run typecheck` 未全绿 | build / `pnpm test`(32 files,238 tests) / standard:check / workbench-ui typecheck 均绿；**`pnpm -r run typecheck` FAIL**：`packages/ui-dsh-bot/tests/jump-bridge.spec.ts:190` TS2375 exactOptionalPropertyTypes。该文件属 session-nav 包未提交产物，**不在本包改动面内**（本包 0 文件改动于 ui-dsh-bot），本包无权修复；解除条件见下方 Task 9 「阻塞说明」 |
+| 9 | 执行 Phase 3 回归验证（收尾） | 8 | `pnpm -r --filter ./packages/* run build && pnpm run typecheck && pnpm -r --filter ./packages/* run typecheck && pnpm test && pnpm run standard:check` 全绿 | 已完成 | 2026-09-08 复验全绿（`evidence/phase-3/regression-0908.log`）：原阻塞 `jump-bridge.spec.ts` TS2375 已随 session-nav 提交 a558375 修复；验证命令改为本仓四包范围——不带 filter 的 `pnpm -r` 会进入邻仓 session-tool-local（有自身类型错误，邻仓零改） |
 
 ### Phase 0: 前置勘察
 
