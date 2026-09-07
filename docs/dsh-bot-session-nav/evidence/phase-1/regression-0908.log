@@ -1,0 +1,9 @@
+packages/tool-dsh-bot build: ℹ lib/index.d.ts      0.30 kB │ gzip: 0.23 kB
+packages/tool-dsh-bot build: ℹ 4 files, total: 11.31 kB
+packages/tool-dsh-bot build: ✔ Build complete in 451ms
+packages/tool-dsh-bot build: Done
+ Test Files  46 passed (46)
+      Tests  349 passed (349)
+   Start at  00:26:51
+   Duration  2.21s (transform 2.95s, setup 0ms, import 7.89s, tests 4.38s, environment 10.32s)
+

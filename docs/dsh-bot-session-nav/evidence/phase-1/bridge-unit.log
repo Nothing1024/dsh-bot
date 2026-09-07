@@ -1,0 +1,14 @@
+$ vitest run --config ../../vitest.config.ts packages/ui-dsh-bot/tests
+
+ RUN  v4.1.11 /Users/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin
+
+ ✓ packages/ui-dsh-bot/tests/apply-sidebar.spec.ts (2 tests) 2ms
+ ✓ packages/ui-dsh-bot/tests/jump-bridge.spec.ts (13 tests) 6ms
+ ✓ packages/ui-dsh-bot/tests/rpc.spec.ts (4 tests) 158ms
+ ✓ packages/ui-dsh-bot/tests/tab.spec.tsx (6 tests) 107ms
+
+ Test Files  4 passed (4)
+      Tests  25 passed (25)
+   Start at  09:28:43
+   Duration  453ms (transform 111ms, setup 0ms, import 195ms, tests 273ms, environment 171ms)
+

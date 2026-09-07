@@ -1,0 +1,115 @@
+{
+  "sessionListKeys": [
+    "agentPreset",
+    "blank",
+    "cwd",
+    "projections",
+    "running",
+    "sessionId",
+    "updatedAt"
+  ],
+  "sessionListSample": {
+    "sessionId": "session-f3d91875-899a-4411-835c-4356c952d32c",
+    "updatedAt": 1788219895575,
+    "running": false,
+    "blank": true,
+    "cwd": "/Users/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin",
+    "agentPreset": "dsh-bot",
+    "projections": {
+      "asOfSeq": 3,
+      "values": {
+        "sessionStats": {
+          "turns": 0,
+          "steps": 0,
+          "llmMs": 0,
+          "toolMs": 0,
+          "ttftMs": 0,
+          "ttftSteps": 0,
+          "decodeMs": 0,
+          "decodeTokens": 0
+        },
+        "title": "calib-nav-archived",
+        "goal": null,
+        "tokenUsage": {
+          "uncachedInputTokens": 0,
+          "outputTokens": 0,
+          "cacheReadTokens": 0,
+          "cacheWriteTokens": 0
+        },
+        "contextPressure": {},
+        "contextBreakdown": {
+          "systemTokens": 0,
+          "toolsTokens": 0,
+          "messageTokens": 0
+        },
+        "subagentTiming": {
+          "settledMs": 0
+        },
+        "subagent": null,
+        "permissions": {
+          "options": [
+            {
+              "value": "read-only",
+              "name": "read-only"
+            },
+            {
+              "value": "workspace-write",
+              "name": "workspace-write"
+            },
+            {
+              "value": "danger-full-access",
+              "name": "danger-full-access"
+            }
+          ],
+          "currentValue": "workspace-write"
+        },
+        "delegation": {
+          "status": "idle",
+          "promptCount": 0
+        },
+        "sessionListMetadata": {
+          "blank": true,
+          "lastPromptAt": null
+        },
+        "imageLimits": {
+          "maxImageBytes": 20971520,
+          "maxImagesPerMessage": 20,
+          "maxMessageImageBytes": 209715200,
+          "maxImagePixels": 64000000,
+          "maxImageDimension": 8192,
+          "mediaTypes": [
+            "image/png",
+            "image/jpeg",
+            "image/webp",
+            "image/gif"
+          ]
+        },
+        "todos": null,
+        "plan": {
+          "active": false,
+          "pending": false
+        }
+      }
+    }
+  },
+  "listBotSessionsKeys": [
+    "createdAt",
+    "hidden",
+    "sessionId",
+    "status",
+    "tags",
+    "title",
+    "updatedAt",
+    "working"
+  ],
+  "workspaceListKeys": [
+    "items",
+    "archivedSessionIds"
+  ],
+  "archivedCountBefore": 31,
+  "ids": {
+    "visible": "session-17bec9cb-14db-469e-9517-8a03ae4ac1d5",
+    "hidden": "session-974c0fc9-afa6-4a7c-a316-d0186ba7fd42",
+    "archived": "session-f3d91875-899a-4411-835c-4356c952d32c"
+  }
+}

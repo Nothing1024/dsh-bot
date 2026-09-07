@@ -29,6 +29,7 @@ export function formatJumpReason(reason: string | undefined): string {
   if (reason === undefined || reason === '') return '跳转失败'
   if (reason === 'unsupported') return '当前页签不支持跳转'
   if (reason === 'not-found') return '会话不存在或已删除'
+  if (reason === 'archived') return '该会话已归档（委托会话默认归档），官方界面无法查看'
   if (reason === 'timeout') return '跳转超时'
   return reason
 }

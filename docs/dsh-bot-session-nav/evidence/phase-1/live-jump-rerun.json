@@ -1,0 +1,57 @@
+{
+  "startedAt": "2026-09-07T16:24:02.280Z",
+  "cases": [
+    {
+      "name": "visible",
+      "id": "session-e33be2c2-6dcc-434d-83d2-930fc8692460",
+      "expectOk": true,
+      "result": {
+        "type": "dsh-bot:jump-result",
+        "ok": true,
+        "current": "session-e33be2c2-6dcc-434d-83d2-930fc8692460"
+      },
+      "chrome": {
+        "phase": "active",
+        "title": "DSH Bot — DeepSeek Harness"
+      },
+      "pass": true,
+      "screenshot": "/tmp/live-jump-out/jump-visible.png"
+    },
+    {
+      "name": "hidden",
+      "id": "session-974c0fc9-afa6-4a7c-a316-d0186ba7fd42",
+      "expectOk": true,
+      "result": {
+        "type": "dsh-bot:jump-result",
+        "ok": true,
+        "current": "session-974c0fc9-afa6-4a7c-a316-d0186ba7fd42"
+      },
+      "chrome": {
+        "phase": "hero",
+        "title": "~ calib-nav-hidden — DeepSeek Harness"
+      },
+      "pass": true,
+      "screenshot": "/tmp/live-jump-out/jump-hidden.png"
+    },
+    {
+      "name": "archived",
+      "id": "session-de32fc13-88fa-44a0-b7bd-ded6e1694e64",
+      "expectOk": false,
+      "expectReason": "archived",
+      "result": {
+        "type": "dsh-bot:jump-result",
+        "ok": false,
+        "reason": "archived",
+        "current": "session-42157980-fffc-453a-a885-22570c9c52d2"
+      },
+      "chrome": {
+        "phase": "hero",
+        "title": "dsh-bot-manual-20260906-190135-override-off — DeepSeek Harness"
+      },
+      "pass": true,
+      "screenshot": "/tmp/live-jump-out/jump-archived.png"
+    }
+  ],
+  "consoleErrors": [],
+  "allPass": true
+}

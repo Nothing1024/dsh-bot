@@ -1,11 +1,11 @@
 序号,Phase,名称,详情锚点,前置任务,验证命令,状态,备注
-1,P0:校准,校准跳转/起题/归档/事件源五条机制,spec.md#task-1,无,calibration.md 存在且 ASM-401~405 全消解,待开始,豁免回归:P0 单实现任务
-2,P1:跳转桥,实现页签宿主 postMessage 桥,spec.md#task-2,1,pnpm --filter ui-dsh-bot run build && pnpm --filter ui-dsh-bot test → 全绿,待开始,
-3,P1:跳转桥,实现工作台跳转入口与直开降级,spec.md#task-3,2,pnpm --filter workbench-ui run build && pnpm --filter workbench-ui test → 全绿,待开始,
-4,P1:跳转桥,执行 Phase 1 回归验证,spec.md#task-4,3,pnpm -r run build && pnpm -r test + 页签实测可见/隐藏会话各跳一次,待开始,
+1,P0:校准,校准跳转/起题/归档/事件源五条机制,spec.md#task-1,无,calibration.md 存在且 ASM-401~405 全消解,已完成,豁免回归:P0 单实现任务
+2,P1:跳转桥,实现页签宿主 postMessage 桥,spec.md#task-2,1,pnpm --filter ui-dsh-bot run build && pnpm --filter ui-dsh-bot test → 全绿,已完成,
+3,P1:跳转桥,实现工作台跳转入口与直开降级,spec.md#task-3,2,pnpm --filter workbench-ui run build && pnpm --filter workbench-ui test → 全绿,已完成,
+4,P1:跳转桥,执行 Phase 1 回归验证,spec.md#task-4,3,pnpm -r run build && pnpm -r test + 页签实测可见/隐藏会话各跳一次,已完成,2026-09-08 重跑:根因是委托会话归档非隐藏;桥端 archived 分支已实现;live-jump-rerun.json allPass
 5,P2:起题与收纳,实现 host 自动起题,spec.md#task-5,1,pnpm --filter dsh-bot-host run build && pnpm --filter dsh-bot-host test → 全绿,待开始,
 6,P2:起题与收纳,实现收纳开关与创建分支,spec.md#task-6,1,pnpm --filter dsh-bot-host test + curl createBotSession 后 session.list 见 ~ 标题,待开始,
-7,P2:起题与收纳,实现会话行动作(重命名/隐藏/归档),spec.md#task-7,5;6,pnpm --filter dsh-bot-host test && pnpm --filter workbench-ui test → 全绿,待开始,
+7,P2:起题与收纳,实现会话行动作(重命名/隐藏/归档),spec.md#task-7,5;6,pnpm --filter dsh-bot-host test && pnpm --filter workbench-ui test → 全绿,待开始,开工前消解 ASM-406(归档不可寻回)
 8,P2:起题与收纳,执行 Phase 2 回归验证,spec.md#task-8,7,pnpm -r run build && pnpm -r test + 浏览器起题/开关/归档实测 + v2 隔离抽验,待开始,
 9,P3:聚合与推送,实现 overview 聚合接口与 roster 接入,spec.md#task-9,8,pnpm -r test + network 每拍仅 1 个 overview 请求,待开始,
 10,P3:聚合与推送,实现 SSE 事件通道与 UI 接入,spec.md#task-10,9,pnpm -r test + curl -N /dsh-bot/events 首帧 ≤1s,待开始,

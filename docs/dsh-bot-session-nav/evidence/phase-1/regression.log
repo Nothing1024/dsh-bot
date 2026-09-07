@@ -1,0 +1,196 @@
+==== pnpm -r run build && pnpm -r test ====
+date: 2026-09-01T01:09:32Z
+Scope: 7 of 8 workspace projects
+packages/ui-dsh-bot build$ tsc -p tsconfig.build.json && tsdown
+packages/workbench-ui build$ tsdown && cp index.html lib/index.html && cp src/styles.css lib/workbench.css
+.../plugin/packages/session-marks build$ tsdown
+.../plugin/packages/session-tool build$ tsdown
+.../plugin/packages/session-marks build: ℹ tsdown v0.22.14 powered by rolldown v1.2.6
+packages/workbench-ui build: ℹ tsdown v0.22.14 powered by rolldown v1.2.6
+.../plugin/packages/session-tool build: ℹ tsdown v0.22.14 powered by rolldown v1.2.6
+packages/workbench-ui build: ℹ config file: /Users/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin/packages/workbench-ui/tsdown.config.ts 
+packages/workbench-ui build: ℹ entry: src/main.tsx
+packages/workbench-ui build: ℹ target: es2022
+packages/workbench-ui build: ℹ tsconfig: tsconfig.json
+packages/workbench-ui build: ℹ Build start
+packages/workbench-ui build: ℹ Cleaning 4 files
+packages/workbench-ui build: ℹ lib/workbench.js      324.27 kB │ gzip:  79.64 kB
+packages/workbench-ui build: ℹ lib/workbench.js.map  552.87 kB │ gzip: 127.97 kB
+packages/workbench-ui build: ℹ 2 files, total: 877.15 kB
+packages/workbench-ui build: ✔ Build complete in 57ms
+.../plugin/packages/session-tool build: ℹ config file: /Users/nothing/workspace/dsh/plugin/session-tool/plugin/packages/session-tool/tsdown.config.ts 
+.../plugin/packages/session-marks build: ℹ config file: /Users/nothing/workspace/dsh/plugin/session-tool/plugin/packages/session-marks/tsdown.config.ts 
+.../plugin/packages/session-tool build: ℹ entry: src/index.ts
+.../plugin/packages/session-tool build: ℹ target: es2024
+.../plugin/packages/session-tool build: ℹ tsconfig: tsconfig.json
+.../plugin/packages/session-marks build: ℹ entry: src/index.ts
+.../plugin/packages/session-marks build: ℹ target: es2024
+.../plugin/packages/session-marks build: ℹ tsconfig: tsconfig.json
+.../plugin/packages/session-tool build:  WARN  `external` is deprecated. Use `deps.neverBundle` instead.
+packages/workbench-ui build: Done
+.../plugin/packages/session-tool build: ℹ Build start
+.../plugin/packages/session-marks build: ℹ Build start
+.../plugin/packages/session-marks build: ℹ lib/index.js         6.85 kB │ gzip: 2.57 kB
+.../plugin/packages/session-marks build: ℹ lib/index.js.map    12.64 kB │ gzip: 4.20 kB
+.../plugin/packages/session-marks build: ℹ lib/index.d.ts.map   0.45 kB │ gzip: 0.26 kB
+.../plugin/packages/session-marks build: ℹ lib/index.d.ts       3.22 kB │ gzip: 1.28 kB
+.../plugin/packages/session-marks build: ℹ 4 files, total: 23.17 kB
+.../plugin/packages/session-marks build: ✔ Build complete in 371ms
+.../plugin/packages/session-marks build: Done
+.../plugin/packages/session-tool build: ℹ lib/index.js         3.07 kB │ gzip: 1.18 kB
+.../plugin/packages/session-tool build: ℹ lib/index.js.map    24.03 kB │ gzip: 6.38 kB
+.../plugin/packages/session-tool build: ℹ lib/index.d.ts.map   1.85 kB │ gzip: 0.58 kB
+.../plugin/packages/session-tool build: ℹ lib/index.d.ts      22.07 kB │ gzip: 5.84 kB
+.../plugin/packages/session-tool build: ℹ 4 files, total: 51.03 kB
+.../plugin/packages/session-tool build: ✔ Build complete in 394ms
+.../plugin/packages/session-tool build: Done
+packages/ui-dsh-bot build: ℹ tsdown v0.22.14 powered by rolldown v1.2.6
+packages/ui-dsh-bot build: ℹ config file: /Users/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin/packages/ui-dsh-bot/tsdown.config.ts 
+packages/ui-dsh-bot build: ℹ [ui-dsh-bot] entry: src/index.ts
+packages/ui-dsh-bot build: ℹ [ui-dsh-bot] target: es2024
+packages/ui-dsh-bot build: ℹ [ui-dsh-bot] tsconfig: tsconfig.json
+packages/ui-dsh-bot build: ℹ [ui-dsh-bot/client] entry: src/client/index.ts
+packages/ui-dsh-bot build: ℹ [ui-dsh-bot/client] tsconfig: tsconfig.json
+packages/ui-dsh-bot build:  WARN  `external` is deprecated. Use `deps.neverBundle` instead.
+packages/ui-dsh-bot build:  WARN  `noExternal` is deprecated. Use `deps.alwaysBundle` instead.
+packages/ui-dsh-bot build: ℹ Build start
+packages/ui-dsh-bot build: ℹ [ui-dsh-bot] [ESM] lib/index.js  0.30 kB │ gzip: 0.24 kB
+packages/ui-dsh-bot build: ℹ [ui-dsh-bot] [ESM] 1 files, total: 0.30 kB
+packages/ui-dsh-bot build: ✔ [ui-dsh-bot] Build complete in 9ms
+packages/ui-dsh-bot build: ℹ [ui-dsh-bot/client] [CJS] lib/client.js      20.01 kB │ gzip: 6.41 kB
+packages/ui-dsh-bot build: ℹ [ui-dsh-bot/client] [CJS] lib/client.js.map  32.37 kB │ gzip: 9.96 kB
+packages/ui-dsh-bot build: ℹ [ui-dsh-bot/client] [CJS] 2 files, total: 52.37 kB
+packages/ui-dsh-bot build: ✔ [ui-dsh-bot/client] Build complete in 15ms
+packages/ui-dsh-bot build: Done
+packages/dsh-bot-host build$ tsdown
+.../plugin/packages/session-tool-local build$ tsdown
+packages/dsh-bot-host build: ℹ tsdown v0.22.14 powered by rolldown v1.2.6
+.../plugin/packages/session-tool-local build: ℹ tsdown v0.22.14 powered by rolldown v1.2.6
+packages/dsh-bot-host build: ℹ config file: /Users/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin/packages/dsh-bot-host/tsdown.config.ts 
+packages/dsh-bot-host build: ℹ entry: src/index.ts
+packages/dsh-bot-host build: ℹ target: es2024
+packages/dsh-bot-host build: ℹ tsconfig: tsconfig.json
+packages/dsh-bot-host build:  WARN  `external` is deprecated. Use `deps.neverBundle` instead.
+packages/dsh-bot-host build: ℹ Build start
+.../plugin/packages/session-tool-local build: ℹ config file: /Users/nothing/workspace/dsh/plugin/session-tool/plugin/packages/session-tool-local/tsdown.config.ts 
+.../plugin/packages/session-tool-local build: ℹ entry: src/index.ts
+.../plugin/packages/session-tool-local build: ℹ target: es2024
+.../plugin/packages/session-tool-local build: ℹ tsconfig: tsconfig.json
+.../plugin/packages/session-tool-local build:  WARN  `external` is deprecated. Use `deps.neverBundle` instead.
+.../plugin/packages/session-tool-local build: ℹ Build start
+.../plugin/packages/session-tool-local build: ℹ Hint: consider adding deps.onlyBundle option to avoid unintended bundling of dependencies, or set deps.onlyBundle: false to disable this hint.
+.../plugin/packages/session-tool-local build: See more at https://tsdown.dev/options/dependencies#deps-onlybundle
+.../plugin/packages/session-tool-local build: Detected dependencies in bundle:
+.../plugin/packages/session-tool-local build: - zod
+.../plugin/packages/session-tool-local build: ℹ lib/index.js        177.17 kB │ gzip: 38.34 kB
+.../plugin/packages/session-tool-local build: ℹ lib/index.js.map    478.91 kB │ gzip: 91.17 kB
+.../plugin/packages/session-tool-local build: ℹ lib/index.d.ts.map    0.98 kB │ gzip:  0.42 kB
+.../plugin/packages/session-tool-local build: ℹ lib/index.d.ts       10.63 kB │ gzip:  3.44 kB
+.../plugin/packages/session-tool-local build: ℹ 4 files, total: 667.70 kB
+.../plugin/packages/session-tool-local build: ✔ Build complete in 516ms
+.../plugin/packages/session-tool-local build: Done
+packages/dsh-bot-host build: ℹ lib/index.js        100.72 kB │ gzip: 25.91 kB
+packages/dsh-bot-host build: ℹ lib/index.js.map    213.95 kB │ gzip: 49.57 kB
+packages/dsh-bot-host build: ℹ lib/index.d.ts.map    5.40 kB │ gzip:  1.63 kB
+packages/dsh-bot-host build: ℹ lib/index.d.ts       31.31 kB │ gzip:  8.27 kB
+packages/dsh-bot-host build: ℹ 4 files, total: 351.38 kB
+packages/dsh-bot-host build: ✔ Build complete in 593ms
+packages/dsh-bot-host build: Done
+packages/tool-dsh-bot build$ tsdown
+packages/tool-dsh-bot build: ℹ tsdown v0.22.14 powered by rolldown v1.2.6
+packages/tool-dsh-bot build: ℹ config file: /Users/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin/packages/tool-dsh-bot/tsdown.config.ts 
+packages/tool-dsh-bot build: ℹ entry: src/index.ts
+packages/tool-dsh-bot build: ℹ target: es2024
+packages/tool-dsh-bot build: ℹ tsconfig: tsconfig.json
+packages/tool-dsh-bot build:  WARN  `external` is deprecated. Use `deps.neverBundle` instead.
+packages/tool-dsh-bot build: ℹ Build start
+packages/tool-dsh-bot build: ℹ lib/index.js        2.34 kB │ gzip: 1.06 kB
+packages/tool-dsh-bot build: ℹ lib/index.js.map    4.33 kB │ gzip: 1.75 kB
+packages/tool-dsh-bot build: ℹ lib/index.d.ts.map  0.12 kB │ gzip: 0.13 kB
+packages/tool-dsh-bot build: ℹ lib/index.d.ts      0.30 kB │ gzip: 0.23 kB
+packages/tool-dsh-bot build: ℹ 4 files, total: 7.09 kB
+packages/tool-dsh-bot build: ✔ Build complete in 444ms
+packages/tool-dsh-bot build: Done
+Scope: 7 of 8 workspace projects
+packages/ui-dsh-bot test$ vitest run --config ../../vitest.config.ts packages/ui-dsh-bot/tests
+packages/workbench-ui test$ vitest run --config ../../vitest.config.ts packages/workbench-ui/tests
+.../plugin/packages/session-marks test$ vitest run --config ../../vitest.config.ts packages/session-marks/tests
+packages/workbench-ui test:  RUN  v4.1.11 /Users/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin
+packages/ui-dsh-bot test:  RUN  v4.1.11 /Users/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin
+.../plugin/packages/session-marks test:  RUN  v4.1.11 /Users/nothing/workspace/dsh/plugin/session-tool/plugin
+packages/workbench-ui test:  ✓ packages/workbench-ui/tests/avatar.spec.ts (4 tests) 4ms
+packages/ui-dsh-bot test:  ✓ packages/ui-dsh-bot/tests/jump-bridge.spec.ts (10 tests) 5ms
+packages/workbench-ui test:  ✓ packages/workbench-ui/tests/api.spec.ts (5 tests) 4ms
+packages/ui-dsh-bot test:  ✓ packages/ui-dsh-bot/tests/apply-sidebar.spec.ts (2 tests) 3ms
+.../plugin/packages/session-marks test:  ✓ packages/session-marks/tests/marks.spec.ts (9 tests) 26ms
+.../plugin/packages/session-marks test:  Test Files  1 passed (1)
+.../plugin/packages/session-marks test:       Tests  9 passed (9)
+.../plugin/packages/session-marks test:    Start at  09:09:35
+.../plugin/packages/session-marks test:    Duration  215ms (transform 38ms, setup 0ms, import 55ms, tests 26ms, environment 0ms)
+.../plugin/packages/session-marks test: Done
+packages/workbench-ui test:  ✓ packages/workbench-ui/tests/mentions.spec.ts (3 tests) 2ms
+packages/ui-dsh-bot test:  ✓ packages/ui-dsh-bot/tests/rpc.spec.ts (4 tests) 164ms
+packages/workbench-ui test:  ✓ packages/workbench-ui/tests/jump.spec.ts (7 tests) 6ms
+packages/workbench-ui test:  ✓ packages/workbench-ui/tests/session-binding.spec.ts (5 tests) 5ms
+packages/workbench-ui test:  ✓ packages/workbench-ui/tests/markdown.spec.tsx (2 tests) 23ms
+packages/workbench-ui test:  ✓ packages/workbench-ui/tests/session-poll.spec.tsx (3 tests) 33ms
+packages/workbench-ui test:  ✓ packages/workbench-ui/tests/persona.spec.tsx (7 tests) 25ms
+packages/workbench-ui test:  ✓ packages/workbench-ui/tests/group-form.spec.tsx (2 tests) 36ms
+packages/workbench-ui test:  ✓ packages/workbench-ui/tests/transcript.spec.tsx (6 tests) 33ms
+packages/workbench-ui test:  ✓ packages/workbench-ui/tests/bot-form.spec.tsx (4 tests) 57ms
+packages/ui-dsh-bot test:  ✓ packages/ui-dsh-bot/tests/tab.spec.tsx (6 tests) 106ms
+packages/ui-dsh-bot test:  Test Files  4 passed (4)
+packages/ui-dsh-bot test:       Tests  22 passed (22)
+packages/ui-dsh-bot test:    Start at  09:09:35
+packages/ui-dsh-bot test:    Duration  853ms (transform 196ms, setup 0ms, import 391ms, tests 277ms, environment 446ms)
+packages/workbench-ui test:  ✓ packages/workbench-ui/tests/roster.spec.tsx (7 tests) 66ms
+packages/ui-dsh-bot test: Done
+packages/workbench-ui test:  ✓ packages/workbench-ui/tests/session-list.spec.tsx (4 tests) 86ms
+packages/workbench-ui test:  ✓ packages/workbench-ui/tests/composer.spec.tsx (5 tests) 84ms
+packages/workbench-ui test:  ✓ packages/workbench-ui/tests/app.spec.tsx (9 tests) 133ms
+packages/workbench-ui test:  ✓ packages/workbench-ui/tests/conversation.spec.tsx (11 tests) 207ms
+packages/workbench-ui test:  Test Files  16 passed (16)
+packages/workbench-ui test:       Tests  84 passed (84)
+packages/workbench-ui test:    Start at  09:09:35
+packages/workbench-ui test:    Duration  1.02s (transform 623ms, setup 0ms, import 2.05s, tests 801ms, environment 6.20s)
+packages/workbench-ui test: Done
+packages/dsh-bot-host test$ vitest run --config ../../vitest.config.ts packages/dsh-bot-host/tests
+.../plugin/packages/session-tool-local test$ vitest run --config ../../vitest.config.ts packages/session-tool-local/tests
+packages/dsh-bot-host test:  RUN  v4.1.11 /Users/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin
+.../plugin/packages/session-tool-local test:  RUN  v4.1.11 /Users/nothing/workspace/dsh/plugin/session-tool/plugin
+packages/dsh-bot-host test:  ✓ packages/dsh-bot-host/tests/workbench-routes.spec.ts (5 tests) 11ms
+.../plugin/packages/session-tool-local test:  ✓ packages/session-tool-local/tests/collect.spec.ts (6 tests) 2ms
+.../plugin/packages/session-tool-local test:  ✓ packages/session-tool-local/tests/delegation-projection.spec.ts (9 tests) 4ms
+packages/dsh-bot-host test:  ✓ packages/dsh-bot-host/tests/groups.spec.ts (10 tests) 39ms
+packages/dsh-bot-host test:  ✓ packages/dsh-bot-host/tests/workbench-sessions.spec.ts (13 tests) 34ms
+.../plugin/packages/session-tool-local test:  ✓ packages/session-tool-local/tests/workspace-client.spec.ts (11 tests) 19ms
+packages/dsh-bot-host test:  ✓ packages/dsh-bot-host/tests/reconcile.spec.ts (7 tests) 42ms
+packages/dsh-bot-host test:  ✓ packages/dsh-bot-host/tests/bots.spec.ts (17 tests) 92ms
+packages/dsh-bot-host test:  ✓ packages/dsh-bot-host/tests/group-engine.spec.ts (18 tests) 95ms
+.../plugin/packages/session-tool-local test:  ✓ packages/session-tool-local/tests/session-client.spec.ts (22 tests) 45ms
+.../plugin/packages/session-tool-local test:  ✓ packages/session-tool-local/tests/workspace.spec.ts (12 tests) 39ms
+packages/dsh-bot-host test:  ✓ packages/dsh-bot-host/tests/ask.spec.ts (20 tests) 84ms
+packages/dsh-bot-host test:  ✓ packages/dsh-bot-host/tests/routes.spec.ts (15 tests) 781ms
+packages/dsh-bot-host test:  Test Files  8 passed (8)
+packages/dsh-bot-host test:       Tests  105 passed (105)
+packages/dsh-bot-host test:    Start at  09:09:36
+packages/dsh-bot-host test:    Duration  973ms (transform 640ms, setup 0ms, import 1.04s, tests 1.18s, environment 0ms)
+packages/dsh-bot-host test: Done
+.../plugin/packages/session-tool-local test:  ✓ packages/session-tool-local/tests/service.spec.ts (50 tests) 1636ms
+.../plugin/packages/session-tool-local test:        ✓ wait-all aggregates when every member is terminal  336ms
+.../plugin/packages/session-tool-local test:        ✓ returns a timeout snapshot without error when the deadline passes  338ms
+.../plugin/packages/session-tool-local test:        ✓ resolves a tag aggregation and reports an empty set as unsatisfied  513ms
+.../plugin/packages/session-tool-local test:  Test Files  6 passed (6)
+.../plugin/packages/session-tool-local test:       Tests  110 passed (110)
+.../plugin/packages/session-tool-local test:    Start at  09:09:36
+.../plugin/packages/session-tool-local test:    Duration  1.89s (transform 435ms, setup 0ms, import 802ms, tests 1.75s, environment 0ms)
+.../plugin/packages/session-tool-local test: Done
+packages/tool-dsh-bot test$ vitest run --config ../../vitest.config.ts packages/tool-dsh-bot/tests
+packages/tool-dsh-bot test:  RUN  v4.1.11 /Users/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin
+packages/tool-dsh-bot test:  ✓ packages/tool-dsh-bot/tests/tools.spec.ts (5 tests) 7ms
+packages/tool-dsh-bot test:  Test Files  1 passed (1)
+packages/tool-dsh-bot test:       Tests  5 passed (5)
+packages/tool-dsh-bot test:    Start at  09:09:38
+packages/tool-dsh-bot test:    Duration  209ms (transform 80ms, setup 0ms, import 129ms, tests 7ms, environment 0ms)
+packages/tool-dsh-bot test: Done
+exit:0

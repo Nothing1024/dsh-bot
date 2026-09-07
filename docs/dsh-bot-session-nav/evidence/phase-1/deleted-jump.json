@@ -1,0 +1,5 @@
+{
+  "type": "dsh-bot:jump-result",
+  "ok": false,
+  "reason": "会话不存在或已删除"
+}

@@ -6,7 +6,7 @@
 import { useEffect, useRef, useState, type ReactElement, type SVGProps } from 'react'
 import { zh } from './locales.ts'
 import type { IDshBotClient } from './rpc.ts'
-import type { SessionJumpFace } from './session-jump.ts'
+import { handleJumpMessage, type SessionJumpFace } from './session-jump.ts'
 import css from './DshBotTab.module.css'
 
 export interface WorkspaceCwdFace {
@@ -14,6 +14,7 @@ export interface WorkspaceCwdFace {
     getSnapshot(): {
       items?: readonly { path?: string; id?: string }[]
       recentWorkspaceId?: string
+      archivedSessionIds?: readonly string[]
     }
   }
 }
@@ -113,10 +114,28 @@ async function probeWorkbench(signal: AbortSignal): Promise<boolean> {
 export function DshBotTab({ ctx }: DshBotTabProps) {
   const t = (key: string, vars?: Record<string, string>) => translate(ctx.locale, key, vars)
   const iframeRef = useRef<HTMLIFrameElement>(null)
+  const sessionsRef = useRef(ctx.sessions)
+  sessionsRef.current = ctx.sessions
+  const workspacesRef = useRef(ctx.workspaces)
+  workspacesRef.current = ctx.workspaces
   const [nonce, setNonce] = useState(0)
   const [probeOk, setProbeOk] = useState(false)
   const [loaded, setLoaded] = useState(false)
   const [error, setError] = useState(false)
+
+  useEffect(() => {
+    const onMessage = (event: MessageEvent): void => {
+      handleJumpMessage(
+        event,
+        iframeRef.current?.contentWindow ?? null,
+        sessionsRef.current,
+        window.location.origin,
+        workspacesRef.current,
+      )
+    }
+    window.addEventListener('message', onMessage)
+    return () => window.removeEventListener('message', onMessage)
+  }, [])
 
   useEffect(() => {
     let cancelled = false

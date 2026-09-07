@@ -1,0 +1,79 @@
+{
+  "visible": {
+    "id": "session-17bec9cb-14db-469e-9517-8a03ae4ac1d5",
+    "inSessionList": true,
+    "sessionListRowKeys": [
+      "agentPreset",
+      "blank",
+      "cwd",
+      "projections",
+      "running",
+      "sessionId",
+      "updatedAt"
+    ],
+    "sessionListHasTitle": false,
+    "sessionListHasArchived": false,
+    "inWorkspaceArchivedIds": false,
+    "inListBotSessionsIncludeHidden": false,
+    "includeHiddenRow": null,
+    "inListBotSessionsDefault": false
+  },
+  "hidden": {
+    "id": "session-974c0fc9-afa6-4a7c-a316-d0186ba7fd42",
+    "inSessionList": true,
+    "sessionListRowKeys": [
+      "agentPreset",
+      "blank",
+      "cwd",
+      "projections",
+      "running",
+      "sessionId",
+      "updatedAt"
+    ],
+    "sessionListHasTitle": false,
+    "sessionListHasArchived": false,
+    "inWorkspaceArchivedIds": false,
+    "inListBotSessionsIncludeHidden": false,
+    "includeHiddenRow": null,
+    "inListBotSessionsDefault": false
+  },
+  "archived": {
+    "id": "session-f3d91875-899a-4411-835c-4356c952d32c",
+    "inSessionList": true,
+    "sessionListRowKeys": [
+      "agentPreset",
+      "blank",
+      "cwd",
+      "projections",
+      "running",
+      "sessionId",
+      "updatedAt"
+    ],
+    "sessionListHasTitle": false,
+    "sessionListHasArchived": false,
+    "inWorkspaceArchivedIds": true,
+    "inListBotSessionsIncludeHidden": false,
+    "includeHiddenRow": null,
+    "inListBotSessionsDefault": false
+  },
+  "sessionListKeysUnion": [
+    "agentPreset",
+    "blank",
+    "cwd",
+    "projections",
+    "running",
+    "sessionId",
+    "updatedAt"
+  ],
+  "listBotSessionsKeysUnion": [
+    "createdAt",
+    "hidden",
+    "sessionId",
+    "status",
+    "tags",
+    "title",
+    "updatedAt",
+    "working"
+  ],
+  "archivedCount": 32
+}

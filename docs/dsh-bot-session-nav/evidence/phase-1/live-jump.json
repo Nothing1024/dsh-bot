@@ -1,0 +1,123 @@
+{
+  "summary": {
+    "visibleOk": true,
+    "hiddenOk": false,
+    "standaloneCopy": true,
+    "rosterMenu": true,
+    "visibleLanded": true,
+    "hiddenLanded": false,
+    "deletedOk": true,
+    "hiddenOfficialTitle": false,
+    "emptyWorkspace": false
+  },
+  "log": [
+    {
+      "step": "tab-open",
+      "iframe": 1
+    },
+    {
+      "step": "roster-nested-menu",
+      "count": 8,
+      "label": "在 DSH 打开"
+    },
+    {
+      "step": "deleted-jump",
+      "result": {
+        "type": "dsh-bot:jump-result",
+        "ok": false,
+        "reason": "会话不存在或已删除"
+      }
+    },
+    {
+      "step": "jump-visible",
+      "sessionId": "session-91293f51-624b-4826-9144-b82cd32c3f67",
+      "before": [],
+      "after": [
+        "dsh-bot-manual-20260830-183331-override-off1天",
+        "dsh-bot-manual-20260830-183331-override-off1天",
+        "dsh-bot-manual-20260830-183331-override-off",
+        "dsh-bot-manual-20260830-183331-override-on1天",
+        "dsh-bot-manual-20260830-183331-override-on1天",
+        "dsh-bot-manual-20260830-183331-override-on",
+        "dsh-bot-manual-20260830-183331-plugin1天",
+        "dsh-bot-manual-20260830-183331-plugin1天",
+        "dsh-bot-manual-20260830-183331-plugin",
+        "dsh-bot-manual-20260829-231307-override-onDSH BotSession log对话轨迹",
+        "dsh-bot-manual-20260829-231307-override-onDSH BotSession log对话轨迹",
+        "dsh-bot-manual-20260829-231307-override-onDSH BotSession log"
+      ],
+      "label": "在 DSH 打开",
+      "title": "在官方 conversation 视图打开此会话",
+      "result": {
+        "type": "dsh-bot:jump-result",
+        "ok": true,
+        "current": "session-91293f51-624b-4826-9144-b82cd32c3f67"
+      },
+      "seen": [
+        {
+          "type": "dsh-bot:jump",
+          "sessionId": "session-91293f51-624b-4826-9144-b82cd32c3f67"
+        }
+      ],
+      "officialHasTitle": true,
+      "shot": "/Users/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin/docs/dsh-bot-session-nav/evidence/phase-1/jump-visible.png"
+    },
+    {
+      "step": "jump-hidden",
+      "sessionId": "session-5384934e-28ca-4585-a6fb-31ee0ff078d3",
+      "before": [
+        "dsh-bot-manual-20260830-183331-override-off1天",
+        "dsh-bot-manual-20260830-183331-override-off1天",
+        "dsh-bot-manual-20260830-183331-override-off",
+        "dsh-bot-manual-20260830-183331-override-on1天",
+        "dsh-bot-manual-20260830-183331-override-on1天",
+        "dsh-bot-manual-20260830-183331-override-on",
+        "dsh-bot-manual-20260830-183331-plugin1天",
+        "dsh-bot-manual-20260830-183331-plugin1天",
+        "dsh-bot-manual-20260830-183331-plugin",
+        "dsh-bot-manual-20260829-231307-override-onDSH BotSession log对话轨迹",
+        "dsh-bot-manual-20260829-231307-override-onDSH BotSession log对话轨迹",
+        "dsh-bot-manual-20260829-231307-override-onDSH BotSession log"
+      ],
+      "after": [
+        "dsh-bot-manual-20260830-183331-override-off1天",
+        "dsh-bot-manual-20260830-183331-override-off1天",
+        "dsh-bot-manual-20260830-183331-override-off",
+        "dsh-bot-manual-20260830-183331-override-on1天",
+        "dsh-bot-manual-20260830-183331-override-on1天",
+        "dsh-bot-manual-20260830-183331-override-on",
+        "dsh-bot-manual-20260830-183331-plugin1天",
+        "dsh-bot-manual-20260830-183331-plugin1天",
+        "dsh-bot-manual-20260830-183331-plugin"
+      ],
+      "label": "在 DSH 打开",
+      "title": "在官方 conversation 视图打开此会话",
+      "result": {
+        "type": "dsh-bot:jump-result",
+        "ok": false,
+        "reason": "会话不存在或已删除"
+      },
+      "seen": [
+        {
+          "type": "dsh-bot:jump",
+          "sessionId": "session-5384934e-28ca-4585-a6fb-31ee0ff078d3"
+        },
+        {
+          "type": "dsh-bot:jump",
+          "sessionId": "session-5384934e-28ca-4585-a6fb-31ee0ff078d3"
+        }
+      ],
+      "officialHasTitle": false,
+      "emptyWorkspace": false,
+      "shot": "/Users/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin/docs/dsh-bot-session-nav/evidence/phase-1/jump-hidden.png"
+    },
+    {
+      "step": "standalone",
+      "label": "复制会话 ID",
+      "title": "在右栏页签内可直接跳转",
+      "toast": "已复制会话 ID",
+      "clipboard": "session-91293f51-624b-4826-9144-b82cd32c3f67",
+      "shot": "/Users/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin/docs/dsh-bot-session-nav/evidence/phase-1/standalone-fallback.png"
+    }
+  ]
+}

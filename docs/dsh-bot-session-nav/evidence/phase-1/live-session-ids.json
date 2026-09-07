@@ -1,0 +1,30 @@
+{
+  "visible": {
+    "sessionId": "session-5a0ca88e-49dc-4397-afd6-3e56e81b9e7a",
+    "title": "dsh-bot-manual-20260829-231307-plugin",
+    "tags": [
+      "bot:dsh-bot",
+      "kind:dsh-bot"
+    ],
+    "status": "idle",
+    "createdAt": 1788016389241,
+    "updatedAt": 1788161413719,
+    "hidden": false,
+    "working": false
+  },
+  "hidden": {
+    "sessionId": "session-5384934e-28ca-4585-a6fb-31ee0ff078d3",
+    "title": "~dsh-bot: 委托成功四字回复",
+    "tags": [
+      "bot:dsh-bot",
+      "kind:delegated",
+      "kind:dsh-bot",
+      "kind:hidden"
+    ],
+    "status": "idle",
+    "createdAt": 1788020707321,
+    "updatedAt": 1788020707417,
+    "hidden": true,
+    "working": false
+  }
+}

@@ -32,6 +32,7 @@ describe('jump helpers', () => {
   it('maps machine reasons for the failure toast', () => {
     expect(formatJumpReason('unsupported')).toBe('当前页签不支持跳转')
     expect(formatJumpReason('timeout')).toBe('跳转超时')
+    expect(formatJumpReason('archived')).toMatch(/已归档/)
     expect(formatJumpReason('会话不存在或已删除')).toBe('会话不存在或已删除')
   })
 

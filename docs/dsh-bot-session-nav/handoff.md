@@ -55,7 +55,7 @@ P0 校准(T1) → P1 跳转桥(T2-T4) → P2 起题与收纳(T5-T8)
 - BR-401: 跳转桥 origin+source+type 三重校验;直开降级复制 ID
 - BR-402: 收纳默认开;工作台默认列表必含自家隐藏会话(`kind:dsh-bot-wb` 例外通道)
 - BR-403: 自动起题幂等,永不覆盖人工名/DSH 已落标题
-- BR-404: 归档=archiveSession+列表排除;失败回滚零半删
+- BR-404: 归档=archiveSession+`archivedSessionIds` 排除;list 行无 archived 字段不降级隐藏;失败回滚零半删
 - BR-405: roster 每拍只打一个 overview
 - BR-406: SSE 走 :3084 既有 webServer;断线回落轮询;事件源订阅只读
 - BR-407: 不拷参考树;`~` 约定与 marks 语义不变

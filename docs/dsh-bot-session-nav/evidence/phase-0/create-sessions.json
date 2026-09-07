@@ -1,0 +1,29 @@
+{
+  "visible": {
+    "ok": true,
+    "value": {
+      "sessionId": "session-17bec9cb-14db-469e-9517-8a03ae4ac1d5",
+      "title": "calib-nav-visible",
+      "botId": "dsh-bot",
+      "presetId": "dsh-bot"
+    }
+  },
+  "hidden": {
+    "ok": true,
+    "value": {
+      "sessionId": "session-974c0fc9-afa6-4a7c-a316-d0186ba7fd42",
+      "title": "calib-nav-hidden",
+      "botId": "dsh-bot",
+      "presetId": "dsh-bot"
+    }
+  },
+  "archived": {
+    "ok": true,
+    "value": {
+      "sessionId": "session-f3d91875-899a-4411-835c-4356c952d32c",
+      "title": "calib-nav-archived",
+      "botId": "dsh-bot",
+      "presetId": "dsh-bot"
+    }
+  }
+}

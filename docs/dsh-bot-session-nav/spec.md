@@ -1,6 +1,6 @@
 # dsh-bot-session-nav Spec
 
-> Version: 0.1.0 | Date: 2026-09-01 | Status: Ready 可执行
+> Version: 0.2.1 | Date: 2026-09-08 | Status: InProgress 执行中
 >
 > 本文件是本需求的**唯一事实源**。四期包:在工作台(`../dsh-bot-workbench/spec.md`,Done)与小组对话(`../dsh-bot-group-chat/spec.md`,Done)之上做「会话导航与展示」。
 > 由母包 `../dsh-bot-interaction-master/spec.md` 统筹(先本包后 `../dsh-bot-group-rounds/`)。
@@ -34,7 +34,7 @@
 | 原始需求 | 「涉及到 session 的能否有更好的展示:bot 当前的 session 可以点击触发到 dsh 的对应 session 中(dsh 内是隐藏的);bot 能否切换到属于 bot 的历史 session 而不是一大堆都堆在这里了」+ 调研结论(2026-09-01 会话) |
 | 输入类型 | description(用户反馈 + 本会话调研报告) |
 | Mode | oneclick(新包;v1/v2/v3 包保持 Done 不改) |
-| 置信度 | 高(跳转通道 v1 已用过;隐藏约定 v2/v3 已实证;剩余 5 条 ASM 由 P0 校准消解) |
+| 置信度 | 高(跳转通道 v1 已用过;隐藏约定 v2/v3 已实证;ASM-401~405 已由 Task 1 消解,见 1.3/1.4) |
 | 输出目录 | `docs/dsh-bot-session-nav/` |
 
 ### 1.2 任务类型路由
@@ -42,7 +42,7 @@
 | 维度 | 结论 |
 |---|---|
 | 任务类型 | frontend(跳转入口/会话行动作/SSE 接入)+ backend(起题/收纳/聚合/SSE 通道)+ infra(页签桥) |
-| 主要风险 | `sessions.open` 对隐藏会话的行为未实测;marks 是否可摘除未实测;自动起题与 DSH first-prompt 起题的竞争 |
+| 主要风险 | 归档会话 `sessions.open` 不能落地(工作台默认列表排除即可);iframe 桥必须三重校验 |
 | 行号引用策略 | 既有文件 symbol+rg,行号仅 hint;新建文件标「新建」 |
 | 必需验收方式 | browser 真实点击(chrome-devtools MCP,v2/v3 已实证)+ 官方 GUI 截图 + RPC/CLI 取证 + 单测 |
 | 必须覆盖用户场景 | UF-401 跳转、UF-402 收纳、UF-403 起题与重命名、UF-404 归档、UF-405 实时 roster |
@@ -59,32 +59,54 @@
 | 工作台 1:1 创建标题逻辑:显式标题走 `visibleBotTitle`(剥 `~`),否则固定「新对话」;rename 双通道 `platform.renameSession`(L374)与 `sessionTool.rename`(L377)都已在用 | `rg -n 'title' packages/dsh-bot-host/src/workbench-sessions.ts`(L361-362、374、377、385) | 起题/收纳的改造点即此函数 |
 | `listOwnedSessions` 隐藏判定 = `kind:hidden` mark 或标题 `~` 前缀(`isTitleHidden(meta.title, ['~'])` L435);默认排除,`includeHidden` 才含;无分页 | `rg -n 'visibleBotTitle\|HIDDEN_KIND\|~' packages/dsh-bot-host/src/workbench-sessions.ts` | 收纳后需给「工作台自建隐藏会话」开例外通道(BR-402) |
 | platform 面已有 `createSession`(L207)、`renameSession`(L245)、`archiveSession`(L118)、`listSessions`(L267) | `rg -n 'renameSession\|createSession\|async' packages/dsh-bot-host/src/platform.ts` | 起题/归档零新增网关通道 |
-| sessionTool 服务面含 `wait`(L395)、`rename`(L420);marks 面经 `listByKind`(README L12) | `rg -n 'rename(\|archive(\|wait(\|listByKind' ../../session-tool/plugin/packages/session-tool/src/index.ts` | rename 有 CLI caller 通道;marks 摘除面待校准(ASM-404) |
+| sessionTool 服务面含 `wait`(L395)、`rename`(L420);marks 面经 `listByKind`(README L12) | `rg -n 'rename(\|archive(\|wait(\|listByKind' ../../session-tool/plugin/packages/session-tool/src/index.ts` | rename 有 CLI caller 通道;marks 摘除=put 整集替换(见 1.3 Task 1 行) |
 | 每会话写锁已存在:`promptLocks` Map + `withPromptLock`(L42-47) | `rg -n -i 'lock' packages/dsh-bot-host/src/workbench-sessions.ts` | 起题 rename 可复用同款防抖形状 |
 | roster 轮询是 O(N):`App.tsx` 每 2s 对**每个** bot `listBotSessions`、每个 group `listGroupSessions`(L163-260 tick);transcript 轮询 2s idle/1s working(`useSessionPoll.ts` L7-8) | Read `packages/workbench-ui/src/App.tsx`;`rg -n 'POLL\|1000\|2000' packages/workbench-ui/src/useSessionPoll.ts` | 聚合 overview + SSE 的改造对象 |
 | SSE 同通道先例:vibee `rpc-http.ts` L137 `res.setHeader('Content-Type', 'text/event-stream; charset=utf-8')`(host webServer 注入面) | `rg -n 'text/event-stream' ../../vibee/plugin/packages/vibee-viz/src/rpc-http.ts` | `/dsh-bot/events` 可走同形状,不开新口 |
-| 网关进程内事件总线存在:dsh-session 文档「插件订阅 `session/event`,在 `session/flush` 时刷新」 | `rg -n -i 'event\|subscribe' packages/dsh-bot-host/node_modules/@deepseek-ai/dsh-session/README.zh.md`(L11、L91) | SSE 事件源候选①;候选②=host 内聚合扫描(见 ASM-405) |
+| 网关进程内事件总线存在:dsh-session 文档「插件订阅 `session/event`,在 `session/flush` 时刷新」 | `rg -n -i 'event\|subscribe' packages/dsh-bot-host/node_modules/@deepseek-ai/dsh-session/README.zh.md`(L11、L91) | SSE 事件源采用候选①(Task 1 已冒烟);候选②内部扫描仅兜底 |
 | host 服务:`static inject = ['sessionTool']`(L225),webServer 可选注入(L277),settings 面 `installSettingsSection`(L271,命名空间 `dsh-bot`) | `rg -n 'inject\|Service\|webServer' packages/dsh-bot-host/src/index.ts` | 收纳开关放 `dsh-bot` settings 命名空间 |
 | workbench API dispatch 现有 15 个 case(`listBots`…`listGroupSessions`,L183-220) | `rg -n "case '" packages/dsh-bot-host/src/workbench-routes.ts` | 新方法并列追加 |
 | marks helpers:`DSH_BOT_KIND`/`DSH_BOT_HIDDEN_KIND`(L12-14)、`botMark` L24、`groupRoomMark` L62、`mergeBotMarks`(merge 语义,L112) | `rg -n 'export function\|KIND' packages/dsh-bot-host/src/marks.ts` | 新增 mark 常量放这里 |
 | 官方 GUI 隐藏 `~` 标题会话、`kind:hidden` 默认不进列表——v2/v3 已验收事实(委托 `~dsh-bot:`、轮次 `~dsh-bot-group:` 均实证不出现在官方侧栏) | `../dsh-bot-workbench/spec.md` 1.3 与其官方栏不变量、`../dsh-bot-group-chat/spec.md` 1.3(实机行);README「隐藏轮次会话」节 | 收纳 = 复用同一约定,零新平台机制 |
 | 会话切换 UI 已有两处:Header `sessionSwitchBtn` 弹出 `SessionList` + roster 嵌套列表(≤8 条);`sessionDisplayTitle` 已做 `~` 剥离显示 | Read `packages/workbench-ui/src/Conversation.tsx`、`SessionList.tsx`、`session-binding.ts` | 跳转/重命名/归档动作挂在 SessionList 行与 Header 菜单 |
+| Task 1 ASM-401:`sessions.open` 对可见与 `~`+`kind:hidden` 会话均可把 `list.getSnapshot().current` 切到目标;对 archived 调用不抛但 current 不落地。三条校准会话 `subagentAddress` 均为 undefined,`jumpToSession` 走 `open` | Playwright `calib-jump.mjs`(who 3084 后);证据 `evidence/phase-0/calib-jump.json` + `asm401-*-open.png` | BR-401:隐藏直接开;归档不直开 |
+| Task 1 ASM-402:同源 iframe `/dsh-bot/ui` 内 `window.parent.postMessage({type:'dsh-bot:calib-402'}, location.origin)` 被页签 window 收到,`sourceIsIframe:true`,`origin=http://127.0.0.1:3084` | 临时 tab `message` 监听(已撤);`calib-browser.json` step `asm402-iframe-fn` + `asm402-tab.png` | 桥用 postMessage;必须 origin+source+type 三重校验 |
+| Task 1 ASM-403:无名会话 `session.rename` 钉 `calib-nav-pinned-403` 后再发首轮,history 仍仅一条 `session/title`(source.kind=user),标题未被 first-prompt 覆盖 | `dsh-rpc.sh 3084 session.rename` + `POST /dsh-bot/prompt` + `session.history`;`asm403-rename-turn.json` overwritten=false | 自动起题只碰占位标题 |
+| Task 1 ASM-404:`session.list` 行键无 archived/title(题在 projections.values.title);`listBotSessions`/SessionToolListRow 无 archived;`workspace.list.archivedSessionIds` 是归档集,`workspace.archiveSession` 有效。session-marks 摘除面=`put` 整集替换(`get/put/listByKind/gc`),无 delete/removeTag | who 后 `session.list`/`workspace.list`/`workspace.archiveSession`;host 进程内 `session-marks` put/get;`asm404-*.json` `marks-rewrite.json` | BR-404:真归档+archivedSessionIds 排除,不降级隐藏;隐藏 toggling=标题 `~`+put |
+| Task 1 ASM-405:host plugin ctx `ctx.on('session/event')` 可收到只读事件`{sessionId,type,seq,time}`(plugin 与 root 双份);样例含 assistant/chunk/message、step/end、turn/end | 临时订阅+GET `/dsh-bot/calib-405`(已撤);`asm405-events.json` subscribed=true count=80 | BR-406:SSE 源用 session/event 只读;内部扫描仅兜底。Task 10 只订 plugin ctx 一次 |
+
+| 委托会话 `~dsh-bot:` 由 `askBot` 创建后**立即归档**(`platform.archiveSession`),所以工作台 includeHidden 列出的委托行全部在 `archivedSessionIds` 里;Phase 1 首轮把它当成「隐藏会话」是误判 | `rg -n "archiveSession" packages/dsh-bot-host/src/ask.ts`;`dsh-rpc.sh 3084 workspace.list` 对照 `listBotSessions(includeHidden)` | ask.ts L268;`~dsh-bot:` / `~dsh-bot-group:` / `~dsh-bot-memory:` 行均 archived |
+| rc.2 客户端投影会在 `current` 落入 `archivedSessionIds` 时立刻 `sessions.clear()`;官方 UI **没有任何归档会话的查看或取消归档面**(ui-workspace README 明示) | `rg -n "archivedSessionIds.includes(sessions.current)" env/profiles/gb/node_modules/@deepseek-ai/dsh-client-runtime/lib/client.js`;`rg -n -i "unarchive" env/profiles/gb/node_modules/@deepseek-ai/dsh-client-ui-workspace/README.md` | runtime client.js L10065;README L34「No Session deletion or unarchive control」 |
+| 页签桥可读 `ctx.workspaces.list.getSnapshot().archivedSessionIds`,能在 open 前判归档 | `rg -n "archivedSessionIds" env/profiles/gb/node_modules/@deepseek-ai/dsh-client-runtime/lib/types/client/workspaces/service.d.ts` | service.d.ts L18 |
+| 2026-09-08 重跑页签实测:可见 / `~ calib-nav-hidden`(kind:hidden,未归档)两条 `current` 均落地;委托归档行回执 `{ok:false, reason:"archived"}`,current 不动 | `node evidence/phase-1/live-jump-rerun.mjs <out>`(Playwright channel chrome) | `evidence/phase-1/live-jump-rerun.json` allPass:true;`jump-hidden.png` / `jump-archived.png` |
 
 ### 1.4 假设清单
 
+ASM-401~405 已由 Task 1 消解(结论见 1.3 末行与 `evidence/phase-0/calibration.md`)。2026-09-08 新增 ASM-406(未消解,Task 7 开工前处置):
+
 | 假设 ID | 内容 | 风险 | 确认方式 |
 |---|---|---|---|
-| ASM-401 | 页签内 `sessions.open(sessionId)` 对 `kind:hidden` + `~` 标题(含 archived)会话也能打开官方 conversation 视图 | 打不开 → 跳转前先经 host「显形」(rename 去 `~`)再跳,BR-401 已写降级分支 | Task 1 对三类会话(可见/隐藏/归档)实测 |
-| ASM-402 | 工作台 iframe(同源 `/dsh-bot/ui`)`window.parent.postMessage` 能被页签组件 `message` 监听收到 | 收不到 → 退化为页签内会话列表直跳(v1 形状),iframe 内隐藏跳转按钮 | Task 1 临时监听器实测(临时物不入 git) |
-| ASM-403 | host 显式 `renameSession` 后,DSH 不会再用 first-prompt 自动标题覆盖该会话 | 被覆盖 → 起题改在 first-prompt 标题落地后执行(以 DSH 标题为底,仅补 `~` 前缀) | Task 1 rename 后再发一轮实测标题 |
-| ASM-404 | sessionTool `list` 行可区分 archived 状态;session-marks 面有摘除/重写通道(或等价) | 无 archived 字段 → 归档动作降级为「隐藏」;marks 不可摘 → 显示/隐藏切换只改标题 `~`,mark 保留,列表判定以标题为准 | Task 1 读 list 投影字段 + session-marks API |
-| ASM-405 | host(网关进程内)可订阅 cordis `session/event` 总线作为 SSE 事件源;v1「会话 I/O 只走 sessionTool」红线对**只读事件订阅**按本包合同显式放行 | 订阅不可用 → SSE 事件源降级为 host 内部 1s 聚合扫描扇出(用户可见行为等价,BR-406 两通道皆合法) | Task 1 网关内订阅冒烟(evidence 记录事件样例) |
+| ASM-406 | UF-404 / BR-404 的「归档后官方 GUI 归档区可寻回」在 rc.2 **不成立**:ui-workspace README 明示无归档查看/取消归档面,投影会清掉归档 current(§1.3 2026-09-08 行)。假设:产品接受「归档 = 工作台与官方双向不可见、平台升级前不可恢复」,否则 Task 7 的「归档」动作应改为「隐藏」或增加二次确认文案「归档后当前版本无法再查看」 | 用户按「可寻回」预期归档后丢会话 | Task 7 开工前由用户拍板;若接受则改 BR-404 正例与 UF-404 Then,若不接受则 Task 7 去掉归档只留隐藏 |
+
+
+ASM-401/402/403/405 为**证实**(合同已写分支,不走变更协议)。ASM-404 **证伪**了降级触发「`sessionTool.list`/`session.list` 行无 archived 字段 ⇒ 归档必须降级为隐藏」:行确实无该字段,但 `workspace.archiveSession` + `workspace.list.archivedSessionIds` 可识别可归档。UF-404 Then「官方可寻回」不变。按 shared-rules §12 改第 2 章降级触发(见 1.5)。
+
+| 原假设 | 结论(已消解) | 选定分支 |
+|---|---|---|
+| ASM-401 | 可见与 `~`+hidden:`sessions.open` 落地 current;archived:open 不落地 | BR-401 隐藏 **直接开**;归档会话不提供直开(列表排除 / 先 unarchive) |
+| ASM-402 | iframe `parent.postMessage` 可达页签,`source` 为 iframe contentWindow | 实现页签桥(origin+source+type);不退回 v1 列表直跳 |
+| ASM-403 | 显式 rename 钉题,随后首轮不覆盖 | 自动起题只对占位标题;不必等 DSH first-prompt 再改 |
+| ASM-404 | list 行无 archived 字段;**识别面**在 `archivedSessionIds`;`archiveSession` 可用;marks 用 put 重写。「无行字段⇒降级隐藏」已证伪 | 真归档+`archivedSessionIds` 排除;toggleHidden = `~` 标题 + put(±`kind:hidden`);仅 `archive-unavailable` 才降级隐藏 |
+| ASM-405 | 网关内只读 `session/event` 订阅可用 | SSE 事件源用总线订阅;内部 ≤1s 扫描仅失败/断线兜底 |
 
 ### 1.5 变更记录
 
 | 日期 | 变更条目 ID | 原因 | 影响任务与处置 |
 |---|---|---|---|
 | 2026-09-01 | 初版 | — | — |
+| 2026-09-01 | Task 1 校准回写 **1.3 事实 + 1.4 ASM 消解**:BR-401 隐藏直接 `sessions.open`、归档不直开;BR-406 `session/event` 只读订阅。ASM-401/402/403/405 证实,第 2 章那些条目不改 | P0 勘察;证据 `evidence/phase-0/calibration.md` | Task 2/5/6/10 按选定分支实现 |
+| 2026-09-08 | **变更协议 BR-401 / UF-401**(§12;Version 0.2.0→0.2.1):Task 4 阻塞根因不是隐藏标题而是**归档**——`askBot` 把委托会话归档,rc.2 投影会清掉归档 current 且平台无 unarchive。BR-401 增「归档目标桥端拒绝,reason `archived`」;UF-401 步骤 3 限定为「未归档的隐藏会话」,失败分支增「目标已归档」;5.2 增归档行。**连带发现**:UF-404 / BR-404 里「官方 GUI 归档区可寻回」与 rc.2 事实冲突(官方无查看面),归档在当前平台等于工作台可见性单向消失,Task 7 开工前需重议(记 ASM-406) | Phase 1 重跑实测 `evidence/phase-1/live-jump-rerun.json` | Task 4 解除阻塞→已完成;Task 7 备注加 ASM-406 前提;ui-dsh-bot `session-jump.ts` + workbench `jump.ts` 已实现 archived 分支(单测 3 例) |
+| 2026-09-01 | **变更协议 BR-404 / UF-404**(§12;Version 0.1.0→0.2.0):ASM-404 证伪「list 行无 archived 字段 ⇒ 归档降级为隐藏」。`workspace.archiveSession` 与 `archivedSessionIds` 实测可用(`asm404-fields.json` / `asm404-membership.json`)。UF-404 Then「官方 GUI 可寻回」与 BR-404 正例「归档后列表消失、官方仍能找回」**不变**;BR-404 规则句与 UF-404 失败分支的降级触发改为「仅 `archiveSession` 抛 `archive-unavailable`」;list 行无 archived 字段不再构成降级。marks 显示/隐藏走 `put` 整集 ±`kind:hidden` | P0 review p1:1.4 选真归档却宣称不改第 2 章,Task 7 仍按「无行字段→toggleHidden+degraded」实现会破坏 UF-404 寻回 | Task 7 按真归档接线(仍待开始,不回退);Task 1 校准事实保持已完成;handoff BR-404 一行摘要同步 |
 
 ---
 
@@ -96,10 +118,10 @@
 
 | 规则 ID | 规则 | 正例 | 反例 | 影响范围 | 验证方式 |
 |---|---|---|---|---|---|
-| BR-401 | 跳转桥:工作台会话行/Header 菜单提供「在 DSH 打开」;iframe 内经 `postMessage({type:'dsh-bot:jump', sessionId}, location.origin)` 投递,页签宿主校验 `event.origin === location.origin` 且 type 白名单后调 `jumpToSession(ctx.sessions, id)`;隐藏会话按 ASM-401 结论(直接开,或先经 host 显形再跳并 toast 说明);**浏览器直开**(无宿主,`window.parent === window`)该按钮降级为「复制会话 ID」+ 提示去页签打开 | 页签内点一下,官方视图切到该会话 | 直开时点了没反应也不提示;不校验 origin 就执行任意消息 | ui-dsh-bot + workbench-ui | Task 2/3 + UF-401 矩阵 |
+| BR-401 | 跳转桥:工作台会话行/Header 菜单提供「在 DSH 打开」;iframe 内经 `postMessage({type:'dsh-bot:jump', sessionId}, location.origin)` 投递,页签宿主校验 `event.origin === location.origin` 且 type 白名单后调 `jumpToSession(ctx.sessions, id)`;隐藏(`~` / `kind:hidden`,未归档)会话直接 `open`(ASM-401 证实);目标在 `ctx.workspaces.list.archivedSessionIds` 内(委托 `~dsh-bot:` 会话默认归档)时桥端**不调 open**,回执 `reason:"archived"`,工作台 toast「该会话已归档(委托会话默认归档),官方界面无法查看」——rc.2 无 unarchive,不得假装可达;**浏览器直开**(无宿主,`window.parent === window`)该按钮降级为「复制会话 ID」+ 提示去页签打开 | 页签内点一下,官方视图切到该会话 | 直开时点了没反应也不提示;不校验 origin 就执行任意消息 | ui-dsh-bot + workbench-ui | Task 2/3 + UF-401 矩阵 |
 | BR-402 | 收纳:settings `dsh-bot.workbench.hiddenSessions`(boolean,**默认 true**,热生效)。开启时 `createOwnedSession` 起标题 `~ 新对话` + marks 追加 `kind:hidden` 与 `kind:dsh-bot-wb`(新常量,标识"工作台自建");`listOwnedSessions` 默认列表 = 可见会话 + 带 `kind:dsh-bot-wb` 的隐藏会话(即自家会话永远可见于工作台),「包含隐藏」开关只再放开委托 `~dsh-bot:` 会话;关闭开关后新会话回 v2 可见行为;**存量会话不自动迁移** | 开着时官方侧栏看不到新建的 bot 会话,工作台里照常可见可聊 | 收纳后工作台自己也看不到该会话;把存量会话批量改名 | dsh-bot-host | Task 6 单测 + UF-402 矩阵 |
 | BR-403 | 自动起题:会话首轮闭合后,若标题仍是占位(「新对话」/空/裸 `~`),host 用首条用户消息派生标题(去空白/换行/@提及,≤20 字,超长截断加 `…`);隐藏会话保留 `~ ` 前缀;起题幂等(只对占位标题执行一次),**永不覆盖**用户手动改的名或 DSH 已落的 first-prompt 标题(ASM-403 结论落地);起题失败静默保留占位并记 host log | 问「帮我写首诗」→ 会话列表显示「帮我写首诗」 | 用户手动改名后被自动起题覆盖;对旧会话批量改名 | dsh-bot-host | Task 5 单测 + UF-403 矩阵 |
-| BR-404 | 会话行动作:每行菜单含「重命名」(host rename,隐藏态自动保 `~` 前缀)、「在 DSH 显示/隐藏」(切换标题 `~` 前缀;marks 按 ASM-404 结论同步或保留)、「归档」(=`platform.archiveSession`,工作台默认列表排除,官方 GUI 归档区可寻回;按 ASM-404 无 archived 字段时本动作降级为「隐藏」并在 UI 注明);归档当前打开的会话自动切到该 bot 下一条;所有动作乐观更新失败回滚 + 错误条 | 归档后列表即刻消失;官方 GUI 仍能找回 | 物理删除会话数据;归档失败但列表已删行 | dsh-bot-host + workbench-ui | Task 7 + UF-404 矩阵 |
+| BR-404 | 会话行动作:每行菜单含「重命名」(host rename,隐藏态自动保 `~` 前缀)、「在 DSH 显示/隐藏」(切换标题 `~` 前缀;marks 经 session-marks `put` 整集重写同步 ±`kind:hidden`)、「归档」(=`platform.archiveSession`,工作台默认列表按 `workspace.list.archivedSessionIds` 排除,官方 GUI 归档区可寻回)。`sessionTool.list`/`session.list` 行无 archived 字段**不**构成降级(识别面是 `archivedSessionIds`,ASM-404 已消解)。仅当 `archiveSession` 抛 `archive-unavailable` 时菜单降级为「隐藏」并注明。归档当前打开的会话自动切到该 bot 下一条;所有动作乐观更新失败回滚 + 错误条 | 归档后列表即刻消失;官方 GUI 仍能找回 | 因 list 行无 archived 字段就把归档做成隐藏;物理删除会话数据;归档失败但列表已删行 | dsh-bot-host + workbench-ui | Task 7 + UF-404 矩阵 |
 | BR-405 | 聚合 overview:新增 `POST /dsh-bot/overview {}` 一次返回全部 bot/group 的 `{sessions 摘要(含 title/updatedAt/working/hidden), lastMessage 预览, working}`;roster 轮询只打这一个接口(替换 App 每 owner 一请求的 tick);选中会话的 transcript 轮询不变 | 5 个 bot 时 roster 每拍只有 1 个 HTTP 请求 | overview 与 listBotSessions 字段语义漂移 | dsh-bot-host + workbench-ui | Task 9 单测 + UF-405 矩阵(network 证据) |
 | BR-406 | SSE 推送:host 经既有 webServer 提供 `GET /dsh-bot/events`(`text/event-stream`,vibee 同形状,仍走 :3084);事件为脏通知 `{kind:'session'\|'roster', sessionId?, ownerId?}`,UI 收到才拉增量(overview / history sinceSeq);事件源按 ASM-405 结论:候选① 网关 `session/event` 订阅(只读,不写),候选② host 内部 ≤1s 聚合扫描,两者对外行为等价;EventSource 断线自动重连,重连期间回落 2s 轮询,不白屏不丢草稿 | 发消息后 roster 预览 ≤2s 更新;SSE 断开页面照常可用 | 为推送另开端口;事件里塞整段 transcript;断线后页面死掉 | dsh-bot-host + workbench-ui | Task 10 + UF-405 矩阵 |
 | BR-407 | 红线与兼容:v1 `dsh_bot_ask`/`dsh-bot.model` override/marks CLI、v2 工作台 1:1 全链、v3 小组一轮语义零回归;`~` 隐藏约定与既有 marks 语义不变;不拷参考树代码/文案/品牌(`rg -i 'anysphere\|sand://' packages/` 为空);全部面 loopback :3084;运行数据不入 git | v1/v2/v3 spec 5.2 主路径抽验全过 | 改坏隐藏轮次会话的过滤;新开端口 | 全仓 | Task 14 终检 |
@@ -126,7 +148,7 @@
 |---|---|---|---|---|
 | 1 | 展开 Header「对话」下拉或 roster 嵌套列表 | 会话行出现 ⋯ 菜单 | — | 菜单含「在 DSH 打开」 |
 | 2 | 点「在 DSH 打开」 | 菜单收起 | iframe `postMessage({type:'dsh-bot:jump', sessionId})` → 页签校验 origin/type → `jumpToSession(ctx.sessions, id)` | 官方 conversation 视图切到该会话,历史与工具卡完整可见 |
-| 3 | 对隐藏会话重复步骤 2 | 同上(按 ASM-401 结论可能出 toast「已在 DSH 显示该会话」) | 直接 open,或 host 先 rename 去 `~` 再 open | 官方视图达到该隐藏会话 |
+| 3 | 对**未归档**的隐藏会话(`~` 标题 + `kind:hidden`,如收纳开关产物)重复步骤 2 | 同上 | 直接 `open`(ASM-401 证实,不需显形) | 官方视图达到该隐藏会话(空会话显示为「新会话」hero,`list.current` 已是该 id) |
 
 **失败分支**:
 
@@ -135,6 +157,7 @@
 | 浏览器直开 | `window.parent === window`(无页签宿主) | 菜单项变为「复制会话 ID」,tooltip 说明「在右栏页签内可直接跳转」 | 复制到剪贴板 + toast | 用户去页签操作 |
 | 宿主无 sessions face | 官方 GUI 未注入该服务(异常态) | 点了出 toast「当前页签不支持跳转」 | 页签回 `{ok:false}` 消息 | 记录 host log;不静默 |
 | 跳转目标已被删除 | 会话被外部清理 | toast「会话不存在或已删除」 | open 失败被捕获 | 刷新会话列表 |
+| 跳转目标已归档 | 目标在 `archivedSessionIds`(委托 `~dsh-bot:` 会话默认归档) | toast「该会话已归档(委托会话默认归档),官方界面无法查看」,列表不变 | 桥端不调 open,回执 `reason:"archived"` | 无(rc.2 无 unarchive);在工作台内查看 |
 
 **界面状态机**:
 
@@ -233,7 +256,7 @@
 |---|---|---|---|---|
 | 归档失败 | 网关错误 | 错误条 + 行恢复 | 乐观更新回滚 | 重试 |
 | 最后一条会话被归档 | 该 bot 无剩余会话 | 对话面回到空态 CTA | activeSession 置空 | 「新开对话」 |
-| ASM-404 降级 | list 无 archived 字段 | 菜单项显示为「隐藏」并注明 | 走隐藏 toggle 路径 | 文档写明边界 |
+| archive 通道不可用 | `archiveSession` 抛 `archive-unavailable` | 菜单项显示为「隐藏」并注明 | 走隐藏 toggle 路径 | 文档写明边界 |
 
 **界面状态机**:
 
@@ -493,7 +516,7 @@ P0 校准(T1) → P1 跳转桥(T2-T4) → P2 起题与收纳(T5-T8)
 - **关联**:本 Phase 全部条目 + INV-402
 - **前置任务**:3
 
-**验证**:`pnpm -r run build && pnpm -r test` + 页签实测:可见/隐藏会话各跳一次,官方视图达标;直开降级复制 ID
+**验证**:`pnpm -r run build && pnpm -r test` + 页签实测:可见 / 未归档隐藏会话各跳一次 `current` 落地;归档委托会话回执 `archived`;直开降级复制 ID
 
 **Evidence**:`evidence/phase-1/phase-summary.md`
 
@@ -569,16 +592,16 @@ P0 校准(T1) → P1 跳转桥(T2-T4) → P2 起题与收纳(T5-T8)
 
 **具体操作**:
 
-1. host 增 `renameSession {sessionId,title}`(清洗控制字符/空名拒绝;隐藏态自动保 `~`)、`toggleSessionHidden {sessionId,hidden}`(rename 加/去 `~`;marks 按 ASM-404 结论)、`archiveSession {sessionId}`(按 ASM-404,无 archived 字段时本方法退化为 toggleHidden 并在响应注明 `degraded:true`)、`revealSession {sessionId}`(跳转显形用)。
-2. SessionList 行 ⋯ 菜单:重命名(行内输入)/在 DSH 显示·隐藏/归档(确认气泡);乐观更新失败回滚 + 错误条;归档当前会话自动切下一条(复用 `pickBoundSession`)。
+1. host 增 `renameSession {sessionId,title}`(清洗控制字符/空名拒绝;隐藏态自动保 `~`)、`toggleSessionHidden {sessionId,hidden}`(rename 加/去 `~`;marks 用 `put` 整集 ±`kind:hidden`)、`archiveSession {sessionId}`(调用 `platform.archiveSession`;`listOwnedSessions` 排除 `archivedSessionIds`;**禁止**因 list 行无 archived 字段退化为 toggleHidden。仅 `archive-unavailable` 时响应 `degraded:true` 并走隐藏)、`revealSession {sessionId}`(跳转显形用;隐藏跳转按 ASM-401 直接 open,本方法非隐藏跳转必需)。
+2. SessionList 行 ⋯ 菜单:重命名(行内输入)/在 DSH 显示·隐藏/归档(确认气泡,文案「归档」不是「隐藏」);乐观更新失败回滚 + 错误条;归档当前会话自动切下一条(复用 `pickBoundSession`)。
 3. 行增最后消息预览(来自 overview 数据,Task 9 前先空置字段)。
-4. host 单测(清洗/前缀/降级)+ 组件单测(菜单/确认/回滚)。
+4. host 单测(清洗/前缀/`archiveSession`+排除 `archivedSessionIds`;仅 `archive-unavailable` 才 `degraded`)+ 组件单测(菜单/确认/回滚)。
 
 **验证**:`pnpm --filter dsh-bot-host test && pnpm --filter workbench-ui test` → 期望全绿
 
 **Evidence**:`evidence/phase-2/session-actions-unit.log`
 
-**注意事项**:归档动作文案按 ASM-404 结论定稿;默认 bot 的会话同样可操作(动作对会话,不对 bot)。
+**注意事项**:**开工前先消解 ASM-406**(§1.4):rc.2 官方 GUI 没有归档查看面,「官方可寻回」不成立,文案与确认气泡要按拍板结果改;默认 bot 的会话同样可操作(动作对会话,不对 bot)。
 
 ### Task 8: 执行 Phase 2 回归验证
 
@@ -670,7 +693,7 @@ P0 校准(T1) → P1 跳转桥(T2-T4) → P2 起题与收纳(T5-T8)
 
 1. standards:host-descriptor 增 events/overview 能力描述;adapter-baseline 增新触点;`pnpm run standard:check` 0 FAIL。
 2. `scripts/manual-test.sh` 增:overview → createBotSession(核 `~` 标题)→ prompt(--write)→ 起题核验 → rename → archive(或降级隐藏)→ 清理;`--no-write` 跳过 prompt/起题。
-3. README:收纳开关(默认开/如何关/存量不迁移)、「在 DSH 打开」双入口行为差异、自动起题规则、归档语义(或降级说明)、SSE 兜底行为。
+3. README:收纳开关(默认开/如何关/存量不迁移)、「在 DSH 打开」双入口行为差异、自动起题规则、归档语义(真归档+`archivedSessionIds` 排除;仅 `archive-unavailable` 才降级隐藏)、SSE 兜底行为。
 
 **验证**:`pnpm run standard:check` 0 FAIL;`bash scripts/manual-test.sh --no-write` 全步通过
 
@@ -730,6 +753,7 @@ P0 校准(T1) → P1 跳转桥(T2-T4) → P2 起题与收纳(T5-T8)
 | UF | 执行方式 | 操作来源 | 必须核对的点 | Evidence |
 |---|---|---|---|---|
 | UF-401 主路径(页签跳转) | browser | 2.3 UF-401 步骤 1-3 | 可见与隐藏会话都能到达官方视图 | `evidence/UF-401/jump-tab.png` + `evidence/UF-401/jump-hidden.png` |
+| UF-401 失败分支 已归档 | browser | 2.3 UF-401 失败分支 4 | 桥端回执 `archived`,current 不动,toast 文案含「已归档」 | `evidence/UF-401/jump-archived.png` |
 | UF-401 直开降级 | browser | 2.3 UF-401 失败分支 1 | 菜单项为复制 ID + tooltip | `evidence/UF-401/standalone-fallback.png` |
 | UF-401 恶意消息 | browser console | 2.7 恶意消息 | 异源/异 type 不触发跳转 | `evidence/UF-401/bad-message.md` |
 | UF-402 主路径(收纳开) | browser + 官方 GUI | 2.3 UF-402 步骤 1-2 | 新会话官方侧栏不可见、工作台可见 | `evidence/UF-402/hidden-on.png` + `evidence/UF-402/marks.txt` |
@@ -760,7 +784,7 @@ docs/dsh-bot-session-nav/evidence/
 - [ ] BR-401:postMessage 桥有 origin + source + type 三重校验;直开降级可用
 - [ ] BR-402:收纳开着时工作台默认列表仍含自家隐藏会话;委托/轮次过滤零回归
 - [ ] BR-403:自动起题幂等且不覆盖人工名;失败不阻塞 history
-- [ ] BR-404:归档/隐藏动作失败回滚,无半删状态
+- [ ] BR-404:归档走 `archiveSession`+`archivedSessionIds` 排除(不因 list 行无 archived 字段改成隐藏);失败回滚,无半删状态
 - [ ] BR-405/406:network 面板证据在案;SSE 断线回落实测;INV-404 订阅只读
 - [ ] 红线终检:`rg -i 'anysphere|sand://' packages/` 为空;运行数据不入 git
 - [ ] 5.2 执行矩阵全部通过,evidence 与 2.5 清单一致

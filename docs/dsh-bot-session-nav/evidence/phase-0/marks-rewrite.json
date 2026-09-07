@@ -1,0 +1,50 @@
+{
+  "surface": {
+    "exports": [
+      "get",
+      "put",
+      "listByKind",
+      "gc"
+    ],
+    "noDeleteRow": true,
+    "noRemoveSingleTag": true
+  },
+  "visBefore": [
+    "bot:dsh-bot",
+    "kind:dsh-bot"
+  ],
+  "hidBefore": [
+    "bot:dsh-bot",
+    "kind:dsh-bot"
+  ],
+  "withHidden": [
+    "bot:dsh-bot",
+    "calib:nav-404",
+    "kind:dsh-bot",
+    "kind:hidden"
+  ],
+  "hidAfterPut": [
+    "bot:dsh-bot",
+    "calib:nav-404",
+    "kind:dsh-bot",
+    "kind:hidden"
+  ],
+  "listedHidden": true,
+  "withoutProbe": [
+    "bot:dsh-bot",
+    "kind:dsh-bot",
+    "kind:hidden"
+  ],
+  "hidAfterRemove": [
+    "bot:dsh-bot",
+    "kind:dsh-bot",
+    "kind:hidden"
+  ],
+  "restored": [
+    "bot:dsh-bot",
+    "kind:dsh-bot",
+    "kind:hidden"
+  ],
+  "gcIsLazyKnownIdsOnly": true,
+  "note": "Removal surface = put(full remaining set). No delete(sessionId) or removeTag(token). gc(knownIds) drops whole rows not in knownIds."
+}

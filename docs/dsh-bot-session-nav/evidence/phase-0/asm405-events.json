@@ -1,0 +1,328 @@
+{
+  "ok": true,
+  "subscribed": true,
+  "subscribeErrors": [],
+  "count": 80,
+  "samples": [
+    {
+      "at": 1788220025715,
+      "via": "plugin",
+      "sessionId": "session-a9d4ea94-3b17-45ae-88f3-0dbfe2372c56",
+      "type": "assistant/chunk",
+      "seq": 29,
+      "time": 1788220025715
+    },
+    {
+      "at": 1788220025715,
+      "via": "root",
+      "sessionId": "session-a9d4ea94-3b17-45ae-88f3-0dbfe2372c56",
+      "type": "assistant/chunk",
+      "seq": 29,
+      "time": 1788220025715
+    },
+    {
+      "at": 1788220025716,
+      "via": "plugin",
+      "sessionId": "session-a9d4ea94-3b17-45ae-88f3-0dbfe2372c56",
+      "type": "assistant/chunk",
+      "seq": 30,
+      "time": 1788220025716
+    },
+    {
+      "at": 1788220025716,
+      "via": "root",
+      "sessionId": "session-a9d4ea94-3b17-45ae-88f3-0dbfe2372c56",
+      "type": "assistant/chunk",
+      "seq": 30,
+      "time": 1788220025716
+    },
+    {
+      "at": 1788220025716,
+      "via": "plugin",
+      "sessionId": "session-a9d4ea94-3b17-45ae-88f3-0dbfe2372c56",
+      "type": "assistant/chunk",
+      "seq": 31,
+      "time": 1788220025716
+    },
+    {
+      "at": 1788220025716,
+      "via": "root",
+      "sessionId": "session-a9d4ea94-3b17-45ae-88f3-0dbfe2372c56",
+      "type": "assistant/chunk",
+      "seq": 31,
+      "time": 1788220025716
+    },
+    {
+      "at": 1788220025717,
+      "via": "plugin",
+      "sessionId": "session-a9d4ea94-3b17-45ae-88f3-0dbfe2372c56",
+      "type": "assistant/chunk",
+      "seq": 32,
+      "time": 1788220025717
+    },
+    {
+      "at": 1788220025717,
+      "via": "root",
+      "sessionId": "session-a9d4ea94-3b17-45ae-88f3-0dbfe2372c56",
+      "type": "assistant/chunk",
+      "seq": 32,
+      "time": 1788220025717
+    },
+    {
+      "at": 1788220025717,
+      "via": "plugin",
+      "sessionId": "session-a9d4ea94-3b17-45ae-88f3-0dbfe2372c56",
+      "type": "assistant/chunk",
+      "seq": 33,
+      "time": 1788220025717
+    },
+    {
+      "at": 1788220025717,
+      "via": "root",
+      "sessionId": "session-a9d4ea94-3b17-45ae-88f3-0dbfe2372c56",
+      "type": "assistant/chunk",
+      "seq": 33,
+      "time": 1788220025717
+    },
+    {
+      "at": 1788220025717,
+      "via": "plugin",
+      "sessionId": "session-a9d4ea94-3b17-45ae-88f3-0dbfe2372c56",
+      "type": "assistant/chunk",
+      "seq": 34,
+      "time": 1788220025717
+    },
+    {
+      "at": 1788220025717,
+      "via": "root",
+      "sessionId": "session-a9d4ea94-3b17-45ae-88f3-0dbfe2372c56",
+      "type": "assistant/chunk",
+      "seq": 34,
+      "time": 1788220025717
+    },
+    {
+      "at": 1788220025733,
+      "via": "plugin",
+      "sessionId": "session-a9d4ea94-3b17-45ae-88f3-0dbfe2372c56",
+      "type": "assistant/chunk",
+      "seq": 35,
+      "time": 1788220025732
+    },
+    {
+      "at": 1788220025733,
+      "via": "root",
+      "sessionId": "session-a9d4ea94-3b17-45ae-88f3-0dbfe2372c56",
+      "type": "assistant/chunk",
+      "seq": 35,
+      "time": 1788220025732
+    },
+    {
+      "at": 1788220025733,
+      "via": "plugin",
+      "sessionId": "session-a9d4ea94-3b17-45ae-88f3-0dbfe2372c56",
+      "type": "assistant/chunk",
+      "seq": 36,
+      "time": 1788220025733
+    },
+    {
+      "at": 1788220025733,
+      "via": "root",
+      "sessionId": "session-a9d4ea94-3b17-45ae-88f3-0dbfe2372c56",
+      "type": "assistant/chunk",
+      "seq": 36,
+      "time": 1788220025733
+    },
+    {
+      "at": 1788220025777,
+      "via": "plugin",
+      "sessionId": "session-a9d4ea94-3b17-45ae-88f3-0dbfe2372c56",
+      "type": "assistant/chunk",
+      "seq": 37,
+      "time": 1788220025777
+    },
+    {
+      "at": 1788220025777,
+      "via": "root",
+      "sessionId": "session-a9d4ea94-3b17-45ae-88f3-0dbfe2372c56",
+      "type": "assistant/chunk",
+      "seq": 37,
+      "time": 1788220025777
+    },
+    {
+      "at": 1788220025828,
+      "via": "plugin",
+      "sessionId": "session-a9d4ea94-3b17-45ae-88f3-0dbfe2372c56",
+      "type": "assistant/chunk",
+      "seq": 38,
+      "time": 1788220025828
+    },
+    {
+      "at": 1788220025828,
+      "via": "root",
+      "sessionId": "session-a9d4ea94-3b17-45ae-88f3-0dbfe2372c56",
+      "type": "assistant/chunk",
+      "seq": 38,
+      "time": 1788220025828
+    },
+    {
+      "at": 1788220025829,
+      "via": "plugin",
+      "sessionId": "session-a9d4ea94-3b17-45ae-88f3-0dbfe2372c56",
+      "type": "assistant/chunk",
+      "seq": 39,
+      "time": 1788220025828
+    },
+    {
+      "at": 1788220025829,
+      "via": "root",
+      "sessionId": "session-a9d4ea94-3b17-45ae-88f3-0dbfe2372c56",
+      "type": "assistant/chunk",
+      "seq": 39,
+      "time": 1788220025828
+    },
+    {
+      "at": 1788220025844,
+      "via": "plugin",
+      "sessionId": "session-a9d4ea94-3b17-45ae-88f3-0dbfe2372c56",
+      "type": "assistant/chunk",
+      "seq": 40,
+      "time": 1788220025843
+    },
+    {
+      "at": 1788220025844,
+      "via": "root",
+      "sessionId": "session-a9d4ea94-3b17-45ae-88f3-0dbfe2372c56",
+      "type": "assistant/chunk",
+      "seq": 40,
+      "time": 1788220025843
+    },
+    {
+      "at": 1788220025845,
+      "via": "plugin",
+      "sessionId": "session-a9d4ea94-3b17-45ae-88f3-0dbfe2372c56",
+      "type": "assistant/chunk",
+      "seq": 41,
+      "time": 1788220025844
+    },
+    {
+      "at": 1788220025845,
+      "via": "root",
+      "sessionId": "session-a9d4ea94-3b17-45ae-88f3-0dbfe2372c56",
+      "type": "assistant/chunk",
+      "seq": 41,
+      "time": 1788220025844
+    },
+    {
+      "at": 1788220025846,
+      "via": "plugin",
+      "sessionId": "session-a9d4ea94-3b17-45ae-88f3-0dbfe2372c56",
+      "type": "assistant/chunk",
+      "seq": 42,
+      "time": 1788220025845
+    },
+    {
+      "at": 1788220025846,
+      "via": "root",
+      "sessionId": "session-a9d4ea94-3b17-45ae-88f3-0dbfe2372c56",
+      "type": "assistant/chunk",
+      "seq": 42,
+      "time": 1788220025845
+    },
+    {
+      "at": 1788220025846,
+      "via": "plugin",
+      "sessionId": "session-a9d4ea94-3b17-45ae-88f3-0dbfe2372c56",
+      "type": "assistant/chunk",
+      "seq": 43,
+      "time": 1788220025846
+    },
+    {
+      "at": 1788220025846,
+      "via": "root",
+      "sessionId": "session-a9d4ea94-3b17-45ae-88f3-0dbfe2372c56",
+      "type": "assistant/chunk",
+      "seq": 43,
+      "time": 1788220025846
+    },
+    {
+      "at": 1788220025884,
+      "via": "plugin",
+      "sessionId": "session-a9d4ea94-3b17-45ae-88f3-0dbfe2372c56",
+      "type": "assistant/chunk",
+      "seq": 44,
+      "time": 1788220025884
+    },
+    {
+      "at": 1788220025884,
+      "via": "root",
+      "sessionId": "session-a9d4ea94-3b17-45ae-88f3-0dbfe2372c56",
+      "type": "assistant/chunk",
+      "seq": 44,
+      "time": 1788220025884
+    },
+    {
+      "at": 1788220025885,
+      "via": "plugin",
+      "sessionId": "session-a9d4ea94-3b17-45ae-88f3-0dbfe2372c56",
+      "type": "assistant/chunk",
+      "seq": 45,
+      "time": 1788220025885
+    },
+    {
+      "at": 1788220025885,
+      "via": "root",
+      "sessionId": "session-a9d4ea94-3b17-45ae-88f3-0dbfe2372c56",
+      "type": "assistant/chunk",
+      "seq": 45,
+      "time": 1788220025885
+    },
+    {
+      "at": 1788220025887,
+      "via": "plugin",
+      "sessionId": "session-a9d4ea94-3b17-45ae-88f3-0dbfe2372c56",
+      "type": "assistant/message",
+      "seq": 46,
+      "time": 1788220025887
+    },
+    {
+      "at": 1788220025887,
+      "via": "root",
+      "sessionId": "session-a9d4ea94-3b17-45ae-88f3-0dbfe2372c56",
+      "type": "assistant/message",
+      "seq": 46,
+      "time": 1788220025887
+    },
+    {
+      "at": 1788220025888,
+      "via": "plugin",
+      "sessionId": "session-a9d4ea94-3b17-45ae-88f3-0dbfe2372c56",
+      "type": "step/end",
+      "seq": 47,
+      "time": 1788220025887
+    },
+    {
+      "at": 1788220025888,
+      "via": "root",
+      "sessionId": "session-a9d4ea94-3b17-45ae-88f3-0dbfe2372c56",
+      "type": "step/end",
+      "seq": 47,
+      "time": 1788220025887
+    },
+    {
+      "at": 1788220025888,
+      "via": "plugin",
+      "sessionId": "session-a9d4ea94-3b17-45ae-88f3-0dbfe2372c56",
+      "type": "turn/end",
+      "seq": 48,
+      "time": 1788220025888
+    },
+    {
+      "at": 1788220025888,
+      "via": "root",
+      "sessionId": "session-a9d4ea94-3b17-45ae-88f3-0dbfe2372c56",
+      "type": "turn/end",
+      "seq": 48,
+      "time": 1788220025888
+    }
+  ]
+}

@@ -1,0 +1,49 @@
+{
+  "hook": {
+    "hasSessions": true,
+    "hasCalib": true,
+    "hasOpen": true
+  },
+  "jumps": {
+    "visible": {
+      "id": "session-17bec9cb-14db-469e-9517-8a03ae4ac1d5",
+      "result": {
+        "jumped": true,
+        "used": "open",
+        "addressType": "undefined",
+        "before": "session-1d15541b-cfae-48c6-a64e-b98c4bcc52e8",
+        "afterSync": "session-17bec9cb-14db-469e-9517-8a03ae4ac1d5"
+      },
+      "after": "session-17bec9cb-14db-469e-9517-8a03ae4ac1d5",
+      "currentIsTarget": true,
+      "bodyHasTitle": false,
+      "shot": "/Users/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin/docs/dsh-bot-session-nav/evidence/phase-0/asm401-visible-open.png"
+    },
+    "hidden": {
+      "id": "session-974c0fc9-afa6-4a7c-a316-d0186ba7fd42",
+      "result": {
+        "jumped": true,
+        "used": "open",
+        "addressType": "undefined",
+        "before": "session-17bec9cb-14db-469e-9517-8a03ae4ac1d5",
+        "afterSync": "session-974c0fc9-afa6-4a7c-a316-d0186ba7fd42"
+      },
+      "after": "session-974c0fc9-afa6-4a7c-a316-d0186ba7fd42",
+      "currentIsTarget": true,
+      "bodyHasTitle": false,
+      "shot": "/Users/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin/docs/dsh-bot-session-nav/evidence/phase-0/asm401-hidden-open.png"
+    },
+    "archived": {
+      "id": "session-f3d91875-899a-4411-835c-4356c952d32c",
+      "result": {
+        "jumped": true,
+        "used": "open",
+        "addressType": "undefined",
+        "before": "session-974c0fc9-afa6-4a7c-a316-d0186ba7fd42"
+      },
+      "currentIsTarget": false,
+      "bodyHasTitle": false,
+      "shot": "/Users/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin/docs/dsh-bot-session-nav/evidence/phase-0/asm401-archived-open.png"
+    }
+  }
+}

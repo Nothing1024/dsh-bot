@@ -39,6 +39,7 @@ describe('DshBotTab', () => {
     cleanup()
     vi.unstubAllGlobals()
     vi.useRealTimers()
+    vi.restoreAllMocks()
   })
 
   it('shows loading copy and an iframe pointed at /dsh-bot/ui after probe', async () => {
@@ -69,6 +70,43 @@ describe('DshBotTab', () => {
     fireEvent.click(screen.getByTestId('dsh-bot-retry'))
     expect(await screen.findByTestId('dsh-bot-error')).toBeTruthy()
     expect(screen.queryByTestId('dsh-bot-iframe')).toBeNull()
+  })
+
+  it('jumps on a same-origin iframe jump message and ignores the rest', async () => {
+    vi.stubGlobal('fetch', vi.fn(async () => htmlOk()))
+    const open = vi.fn()
+    const log = vi.spyOn(console, 'info').mockImplementation(() => undefined)
+    render(<DshBotTab ctx={{ dshBot: client(), sessions: { open } }} />)
+    const frame = await screen.findByTestId('dsh-bot-iframe') as HTMLIFrameElement
+    const iframeWindow = frame.contentWindow
+    expect(iframeWindow).not.toBeNull()
+    const post = vi.spyOn(iframeWindow!, 'postMessage')
+    const origin = window.location.origin
+    window.dispatchEvent(new MessageEvent('message', {
+      origin,
+      source: iframeWindow,
+      data: { type: 'dsh-bot:jump', sessionId: 'session-live' },
+    }))
+    expect(open).toHaveBeenCalledWith('session-live')
+    expect(post).toHaveBeenCalledWith({ type: 'dsh-bot:jump-result', ok: true }, origin)
+    open.mockClear()
+    window.dispatchEvent(new MessageEvent('message', {
+      origin: 'https://evil.example',
+      source: iframeWindow,
+      data: { type: 'dsh-bot:jump', sessionId: 'session-live' },
+    }))
+    window.dispatchEvent(new MessageEvent('message', {
+      origin,
+      source: window,
+      data: { type: 'dsh-bot:jump', sessionId: 'session-live' },
+    }))
+    window.dispatchEvent(new MessageEvent('message', {
+      origin,
+      source: iframeWindow,
+      data: { type: 'dsh-bot:other', sessionId: 'session-live' },
+    }))
+    expect(open).not.toHaveBeenCalled()
+    expect(log).toHaveBeenCalled()
   })
 
   it('shows error when iframe load re-probe fails (error page load)', async () => {
