@@ -2,17 +2,23 @@
  * ui-dsh-bot plugin, browser half. Optionally registers a better-sidebar
  * "DSH Bot" tab. betterSidebar is never a hard inject (BR-008).
  */
-import { createElement } from 'react'
+import { createElement, useSyncExternalStore } from 'react'
 import type { Context } from '@deepseek-ai/cordis'
-import { BotRegion } from './BotRegion.tsx'
-import { ModeFooterAction } from './ModeFooterAction.tsx'
+import { BoundBotRegion, BoundModeFooter, BoundOverlay } from './BoundRoster.tsx'
+import type { SessionListFace } from './BoundRoster.tsx'
 import { DshBotIcon, DshBotTab } from './DshBotTab.tsx'
 import type { SessionCwdFace, WorkspaceCwdFace } from './DshBotTab.tsx'
 import { inject as requiredInject } from './inject.ts'
 import { en, NS, zh } from './locales.ts'
+import { observable } from './observable.ts'
+import { createOverlayStore } from './overlay-store.ts'
+import { bindPaletteHotkey } from './palette-hotkey.ts'
 import { bindBotRegion, hasSlots } from './region-registration.ts'
 import type { SlotsFace } from './region-registration.ts'
+import { readLastBot } from './roster-items.ts'
+import { createRosterRpc } from './roster-rpc.ts'
 import { createRpcDshBot } from './rpc.ts'
+import { selectBot } from './select-bot.ts'
 import { createSidebarMode } from './sidebar-mode.ts'
 import { DSH_BOT_SESSIONS_TAB_ID } from './tab-id.ts'
 
@@ -52,14 +58,10 @@ export type { IDshBotClient, DshBotListState, DshBotSessionRow } from './rpc.ts'
 export { DSH_BOT_SESSIONS_TAB_ID } from './tab-id.ts'
 export { jumpToSession } from './session-jump.ts'
 
-/**
- * Required services: sessions, locale, and slots. betterSidebar is optional
- * via ctx.inject (BR-008) — never a hard inject entry.
- */
 export const inject = [...requiredInject]
 
 /**
- * Register dictionaries and, when present, the better-sidebar sessions tab.
+ * Register dictionaries, Bot-mode region, overlay, and the optional tab.
  * @param ctx - client root context.
  */
 export function apply(ctx: Context): void {
@@ -67,28 +69,56 @@ export function apply(ctx: Context): void {
   client.effect(() => client.locale.register(NS, { zh, en }), 'ui-dsh-bot: dictionaries')
   const t = client.locale.bind(NS)
   const mode = createSidebarMode()
+  const roster = createRosterRpc()
+  const overlay = createOverlayStore()
+  const selected = observable<string | null>(readLastBot())
+  const sidebarFace = observable<{ activateTab?: (id: string) => void }>({})
+
+  client.effect(() => {
+    const sync = (): void => { roster.setActive(mode.getSnapshot() === 'bot') }
+    const unsub = mode.subscribe(sync)
+    sync()
+    return () => {
+      unsub()
+      roster.dispose()
+    }
+  }, 'ui-dsh-bot: roster active')
+
+  client.effect(() => bindPaletteHotkey(window, overlay), 'ui-dsh-bot: palette hotkey')
 
   if (!hasSlots(client)) {
     console.info('[ui-dsh-bot] ctx.slots missing; skip sidebar.workspaces / footer.action')
   } else {
-    const BoundBotRegion = (props: { wide?: boolean; expandSidebar?: () => void }) => {
-      const regionProps: import('./BotRegion.tsx').BotRegionProps = {
-        mode,
+    const BoundRegion = (props: { wide?: boolean; expandSidebar?: () => void }) => {
+      const activate = useSyncExternalStore(sidebarFace.subscribe, sidebarFace.getSnapshot, sidebarFace.getSnapshot)
+      const selectedId = useSyncExternalStore(selected.subscribe, selected.getSnapshot, selected.getSnapshot)
+      const regionProps: import('./BoundRoster.tsx').BoundRosterProps = {
         t,
-        rosterState: 'loading',
+        mode,
+        roster,
+        overlay,
+        sessions: client.sessions as SessionListFace,
+        selectedId,
+        onSelectedId: (id) => { selected.set(id) },
       }
       if (props.wide !== undefined) regionProps.wide = props.wide
       if (props.expandSidebar !== undefined) regionProps.expandSidebar = props.expandSidebar
-      return createElement(BotRegion, regionProps)
+      if (activate.activateTab !== undefined) regionProps.activateTab = activate.activateTab
+      return createElement(BoundBotRegion, regionProps)
     }
     client.effect(
-      () => bindBotRegion(client, mode, BoundBotRegion),
+      () => bindBotRegion(client, mode, BoundRegion),
       'ui-dsh-bot: bot region',
     )
     const BoundFooter = (props: { wide?: boolean }) => {
-      const footerProps: import('./ModeFooterAction.tsx').ModeFooterActionProps = { mode, t }
+      const footerProps: import('./BoundRoster.tsx').BoundFooterProps = {
+        t,
+        mode,
+        roster,
+        sessions: client.sessions as SessionListFace,
+      }
       if (props.wide !== undefined) footerProps.wide = props.wide
-      return createElement(ModeFooterAction, footerProps)
+      return createElement(BoundModeFooter, footerProps)
     }
     const slots = client.slots
     client.effect(
@@ -100,12 +130,48 @@ export function apply(ctx: Context): void {
       }, BoundFooter)),
       'ui-dsh-bot: mode footer',
     )
+    client.effect(
+      () => slots.inject('shell.overlay', () => slots.register({
+        name: 'shell.overlay',
+        id: 'dsh-bot:overlay',
+        order: 50,
+        locale: NS,
+      }, () => {
+        const activate = useSyncExternalStore(sidebarFace.subscribe, sidebarFace.getSnapshot, sidebarFace.getSnapshot)
+        const selectedId = useSyncExternalStore(selected.subscribe, selected.getSnapshot, selected.getSnapshot)
+        const overlayProps: Parameters<typeof BoundOverlay>[0] = {
+          overlay,
+          roster,
+          t,
+          mode,
+          sessions: client.sessions as SessionListFace,
+          selectedId,
+          onSelectedId: (id) => { selected.set(id) },
+          onSelectBot: (botId) => {
+            selected.set(botId)
+            mode.set('bot')
+            void selectBot(botId, {
+              sessionsOf: id => roster.sessionsOf(id),
+              createBotSession: id => roster.createBotSession(id),
+              markRead: id => roster.markRead(id),
+              sessions: client.sessions,
+            })
+          },
+        }
+        if (activate.activateTab !== undefined) overlayProps.activateTab = activate.activateTab
+        return createElement(BoundOverlay, overlayProps)
+      })),
+      'ui-dsh-bot: overlay',
+    )
   }
 
   ctx.inject(['betterSidebar'], (raw) => {
     const sidebarCtx = raw as unknown as ClientCtx
     if (sidebarCtx.betterSidebar === undefined) return
     const sidebar = sidebarCtx.betterSidebar
+    sidebarFace.set({
+      ...sidebar.activateTab === undefined ? {} : { activateTab: (id: string) => { sidebar.activateTab?.(id) } },
+    })
     const dshBot = createRpcDshBot()
     sidebarCtx.effect(
       () => {

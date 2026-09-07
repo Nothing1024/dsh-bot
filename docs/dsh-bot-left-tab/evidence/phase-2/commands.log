@@ -9,3 +9,7 @@ pnpm --filter ui-dsh-bot run build → EXIT 0 (DEFAULT_ROSTER_SECTIONS / 置顶 
 ===== 2026-09-07T17:32:39Z Task 7 =====
 rg -n "case 'overview'" packages/dsh-bot-host/src/workbench-routes.ts → no hit (path B)
 ./node_modules/.bin/vitest run packages/ui-dsh-bot/tests/roster-rpc.spec.ts → 4 passed
+
+
+===== 2026-09-07T17:40:42Z Task 8 =====
+./node_modules/.bin/vitest run packages/ui-dsh-bot/tests/bot-roster.spec.tsx packages/ui-dsh-bot/tests/bot-region.spec.tsx → 2 files / 7 passed

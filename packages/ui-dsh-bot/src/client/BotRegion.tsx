@@ -80,7 +80,7 @@ export function BotRegion(props: BotRegionProps): ReactElement {
   if (!wide) {
     return (
       <div className={css.root} data-testid="dsh-bot-region" data-wide="0">
-        <RailAvatars />
+        {props.children ?? <RailAvatars />}
       </div>
     )
   }

@@ -1,0 +1,190 @@
+.mask {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding-top: 10vh;
+  background: color-mix(in srgb, CanvasText 28%, transparent);
+  pointer-events: auto;
+  color: CanvasText;
+  color-scheme: inherit;
+}
+
+.card {
+  width: min(560px, calc(100vw - 32px));
+  max-height: min(80vh, 640px);
+  overflow: auto;
+  padding: 16px 18px;
+  border-radius: 12px;
+  border: 1px solid color-mix(in srgb, currentColor 16%, transparent);
+  background: Canvas;
+  color: CanvasText;
+  box-shadow: 0 16px 48px color-mix(in srgb, currentColor 18%, transparent);
+}
+
+.confirm {
+  width: min(360px, calc(100vw - 32px));
+}
+
+.graphCard {
+  width: min(520px, calc(100vw - 32px));
+  max-height: 420px;
+}
+
+.palette {
+  width: min(560px, calc(100vw - 32px));
+  margin-top: 6vh;
+}
+
+.head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.head h2 {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+  margin-right: auto;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 10px;
+  font-size: 13px;
+}
+
+.field input,
+.field textarea {
+  font: inherit;
+  color: inherit;
+  background: transparent;
+  border: 1px solid color-mix(in srgb, currentColor 16%, transparent);
+  border-radius: 8px;
+  padding: 6px 8px;
+}
+
+.field textarea {
+  min-height: 72px;
+  resize: vertical;
+}
+
+.colors {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.swatch {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  padding: 0;
+  cursor: pointer;
+}
+
+.swatch[data-on='1'] {
+  border-color: currentColor;
+}
+
+.checks {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-height: 220px;
+  overflow: auto;
+}
+
+.checks label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+}
+
+.error {
+  color: #e11d48;
+  font-size: 12px;
+  margin-bottom: 8px;
+}
+
+.hint {
+  color: color-mix(in srgb, currentColor 55%, transparent);
+  font-size: 12px;
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.actions button {
+  font: inherit;
+  border-radius: 8px;
+  border: 1px solid color-mix(in srgb, currentColor 16%, transparent);
+  background: color-mix(in srgb, currentColor 6%, transparent);
+  color: inherit;
+  padding: 6px 12px;
+  cursor: pointer;
+}
+
+.actions button[data-primary='1'] {
+  background: color-mix(in srgb, currentColor 12%, transparent);
+}
+
+.legend {
+  font-size: 12px;
+  color: color-mix(in srgb, currentColor 70%, transparent);
+  margin-top: 8px;
+}
+
+.palInput {
+  width: 100%;
+  box-sizing: border-box;
+  font: inherit;
+  color: inherit;
+  background: transparent;
+  border: 1px solid color-mix(in srgb, currentColor 16%, transparent);
+  border-radius: 8px;
+  padding: 8px 10px;
+  margin-bottom: 8px;
+}
+
+.palItem {
+  display: block;
+  width: 100%;
+  text-align: left;
+  font: inherit;
+  color: inherit;
+  background: transparent;
+  border: 0;
+  border-radius: 8px;
+  padding: 8px 10px;
+  cursor: pointer;
+}
+
+.palItem[data-active='1'] {
+  background: color-mix(in srgb, currentColor 10%, transparent);
+}
+
+.palKind {
+  font-size: 11px;
+  color: color-mix(in srgb, currentColor 50%, transparent);
+  margin-left: 8px;
+}
+
+.graphSvg {
+  display: block;
+  width: 100%;
+  height: auto;
+  color: inherit;
+}
