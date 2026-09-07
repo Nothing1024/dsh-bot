@@ -5,7 +5,7 @@ import { SELECT_GROUP_MESSAGE_TYPE } from 'dsh-bot-shared'
 import type { WorkbenchBot, WorkbenchGroup } from 'dsh-bot-shared'
 import { BotRoster } from '../src/client/BotRoster.tsx'
 import { DSH_BOT_SESSIONS_TAB_ID } from '../src/client/tab-id.ts'
-import { openGroup, postSelectGroup, setWorkbenchFrame } from '../src/client/workbench-frame.ts'
+import { openGroup, postSelectGroup, setSidebarOpener, setWorkbenchFrame, workbenchTabSeed } from '../src/client/workbench-frame.ts'
 
 const reviewer: WorkbenchBot = {
   id: 'reviewer',
@@ -53,6 +53,21 @@ describe('openGroup', () => {
       { type: SELECT_GROUP_MESSAGE_TYPE, groupId: 'editors', roomId: 'room-1' },
       location.origin,
     )
+  })
+
+  it('opens the tab in sight via openTab (url seed) before focusing it (BR-608 / UF-606 collapsed panel)', async () => {
+    const opened: unknown[] = []
+    setSidebarOpener(seed => { opened.push(seed) })
+    const activateTab = vi.fn()
+    const post = vi.fn()
+    setWorkbenchFrame({ postMessage: post } as unknown as Window)
+    const result = await openGroup({ groupId: 'editors', activateTab, tabId: DSH_BOT_SESSIONS_TAB_ID })
+    expect(result.ok).toBe(true)
+    expect(opened).toEqual([workbenchTabSeed(DSH_BOT_SESSIONS_TAB_ID)])
+    expect((opened[0] as { url: string }).url).toMatch(/\/dsh-bot\/ui$/)
+    expect(activateTab).toHaveBeenCalledWith(DSH_BOT_SESSIONS_TAB_ID)
+    setSidebarOpener(null)
+    setWorkbenchFrame(null)
   })
 
   it('returns the missing-tab copy when activateTab is absent', async () => {

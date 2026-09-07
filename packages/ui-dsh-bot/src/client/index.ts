@@ -23,6 +23,7 @@ import { createRpcDshBot } from './rpc.ts'
 import { selectBot } from './select-bot.ts'
 import { createSidebarMode } from './sidebar-mode.ts'
 import { DSH_BOT_SESSIONS_TAB_ID } from './tab-id.ts'
+import { setSidebarOpener } from './workbench-frame.ts'
 
 export { DEFAULT_ROSTER_SECTIONS } from 'dsh-bot-shared'
 
@@ -44,6 +45,7 @@ interface BetterSidebarService {
   getSnapshot: () => { state?: { panelOpen?: boolean } }
   subscribeState: (listener: () => void) => () => void
   activateTab?: (id: string) => void
+  openTab?: (seed: { type: string; url?: string; title?: string; id?: string }) => void
 }
 
 /** Duck-typed client ctx (locale + sessions + optional slots / betterSidebar). */
@@ -218,6 +220,9 @@ export function apply(ctx: Context): void {
     sidebarFace.set({
       ...sidebar.activateTab === undefined ? {} : { activateTab: (id: string) => { sidebar.activateTab?.(id) } },
     })
+    // BR-608: group jumps must land the tab in sight (closed tab / collapsed panel).
+    setSidebarOpener(sidebar.openTab === undefined ? null : seed => { sidebar.openTab?.(seed) })
+    sidebarCtx.effect(() => () => { setSidebarOpener(null) }, 'ui-dsh-bot: sidebar opener')
     const dshBot = createRpcDshBot()
     sidebarCtx.effect(
       () => {

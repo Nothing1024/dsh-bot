@@ -12,6 +12,28 @@ export interface SelectGroupMessage {
 let frame: Window | null = null
 let loadWaiters: Array<() => void> = []
 
+/** better-sidebar `openTab` seed (subset of OpenTabSeed). */
+export interface SidebarOpenSeed {
+  readonly type: string
+  readonly url?: string
+}
+
+let sidebarOpener: ((seed: SidebarOpenSeed) => void) | null = null
+
+/**
+ * Register better-sidebar's `openTab`. A content open (`url` seed) is the only
+ * documented way to land a tab "in sight": it re-opens a closed tab and expands
+ * a collapsed right panel, while `activateTab` is a strict no-op for unknown ids
+ * and never expands (dsh-better-sidebar service.d.ts, `openTab` / `activateTab`).
+ */
+export function setSidebarOpener(open: ((seed: SidebarOpenSeed) => void) | null): void {
+  sidebarOpener = open
+}
+
+export function workbenchTabSeed(tabId: string, origin = typeof location === 'undefined' ? '' : location.origin): SidebarOpenSeed {
+  return { type: tabId, url: `${origin}/dsh-bot/ui` }
+}
+
 export function setWorkbenchFrame(win: Window | null): void {
   frame = win
   if (win !== null) {
@@ -55,10 +77,12 @@ export async function openGroup(input: {
   activateTab?: (id: string) => void
   tabId: string
 }): Promise<{ ok: boolean; error?: string }> {
-  if (input.activateTab === undefined) {
+  if (input.activateTab === undefined && sidebarOpener === null) {
     return { ok: false, error: '需要右栏 DSH Bot 页签' }
   }
-  input.activateTab(input.tabId)
+  // Content open first (re-opens a closed tab / expands a collapsed panel), then focus.
+  if (sidebarOpener !== null) sidebarOpener(workbenchTabSeed(input.tabId))
+  input.activateTab?.(input.tabId)
   if (postSelectGroup(input.groupId, input.roomId)) return { ok: true }
   const ready = await waitForWorkbenchFrame(8000)
   if (ready === null) return { ok: false, error: '工作台未就绪，请再点一次' }
