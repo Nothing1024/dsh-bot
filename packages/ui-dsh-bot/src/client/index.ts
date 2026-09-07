@@ -4,6 +4,7 @@
  */
 import { createElement } from 'react'
 import type { Context } from '@deepseek-ai/cordis'
+import { BotRegion } from './BotRegion.tsx'
 import { DshBotIcon, DshBotTab } from './DshBotTab.tsx'
 import type { SessionCwdFace, WorkspaceCwdFace } from './DshBotTab.tsx'
 import { inject as requiredInject } from './inject.ts'
@@ -31,6 +32,7 @@ interface BetterSidebarService {
   }) => () => void
   getSnapshot: () => { state?: { panelOpen?: boolean } }
   subscribeState: (listener: () => void) => () => void
+  activateTab?: (id: string) => void
 }
 
 /** Duck-typed client ctx (locale + sessions + optional slots / betterSidebar). */
@@ -57,10 +59,6 @@ export const inject = [...requiredInject]
  * Register dictionaries and, when present, the better-sidebar sessions tab.
  * @param ctx - client root context.
  */
-function BotRegionPlaceholder(): null {
-  return null
-}
-
 export function apply(ctx: Context): void {
   const client = ctx as unknown as ClientCtx
   client.effect(() => client.locale.register(NS, { zh, en }), 'ui-dsh-bot: dictionaries')
@@ -70,8 +68,22 @@ export function apply(ctx: Context): void {
   if (!hasSlots(client)) {
     console.info('[ui-dsh-bot] ctx.slots missing; skip sidebar.workspaces / footer.action')
   } else {
+    const BoundBotRegion = (props: { wide?: boolean; expandSidebar?: () => void }) => {
+      const regionProps: import('./BotRegion.tsx').BotRegionProps = {
+        mode,
+        t,
+        rosterState: 'loading',
+      }
+      if (props.wide !== undefined) regionProps.wide = props.wide
+      if (props.expandSidebar !== undefined) regionProps.expandSidebar = props.expandSidebar
+      const activate = client.betterSidebar?.activateTab
+      if (activate !== undefined) {
+        regionProps.activateTab = () => { activate(DSH_BOT_SESSIONS_TAB_ID) }
+      }
+      return createElement(BotRegion, regionProps)
+    }
     client.effect(
-      () => bindBotRegion(client, mode, BotRegionPlaceholder),
+      () => bindBotRegion(client, mode, BoundBotRegion),
       'ui-dsh-bot: bot region',
     )
   }

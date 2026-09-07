@@ -20,6 +20,13 @@ export const zh = {
   'footer.model': '当前 bot 模型：{model}',
   'footer.source.override': 'override',
   'footer.source.global': '全局',
+  'mode.sessions': '会话',
+  'mode.bot': 'Bot',
+  'roster.loading': '加载名册…',
+  'roster.error': '名册加载失败',
+  'roster.retry': '重试',
+  'roster.empty': '还没有人设',
+  'roster.emptyHint': '在右栏 DSH Bot 页签新建',
 } satisfies Record<string, string>
 
 /** The dsh-bot tab namespace key union. */
@@ -43,6 +50,13 @@ export const en = {
   'footer.model': 'Current bot model: {model}',
   'footer.source.override': 'override',
   'footer.source.global': 'global',
+  'mode.sessions': 'Sessions',
+  'mode.bot': 'Bot',
+  'roster.loading': 'Loading roster…',
+  'roster.error': 'Could not load the roster',
+  'roster.retry': 'Retry',
+  'roster.empty': 'No personas yet',
+  'roster.emptyHint': 'Create one in the DSH Bot side tab',
 } satisfies Record<DshBotLocaleKey, string>
 
 /** Dictionary namespace owned by this plugin. */
