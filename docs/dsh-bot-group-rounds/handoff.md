@@ -25,7 +25,7 @@
 |---|---|---|---|
 | Spec(唯一事实源) | `spec.md` | found | 合同/方案/15 任务/验收矩阵 |
 | Tasks CSV(状态板) | `tasks.csv` | found | 每完成一条立即更新 |
-| 三期小组合同 | `../dsh-bot-group-chat/spec.md` | found | 一轮语义/隐藏会话/房间 jsonl 回归基线 |
+| 三期小组合同 | `../archive/dsh-bot-group-chat/spec.md` | found | 一轮语义/隐藏会话/房间 jsonl 回归基线 |
 | 四期会话导航合同 | `../dsh-bot-session-nav/spec.md` | found | overview 对接面(ASM-502) |
 | 母包统筹 | `../dsh-bot-interaction-master/spec.md` | found | 执行顺序(四期先行)与跨包接口 |
 | Evidence | `evidence/` | found | 证据归档 |

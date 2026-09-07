@@ -2,7 +2,7 @@
 
 > Version: 0.2.1 | Date: 2026-09-08 | Status: InProgress 执行中
 >
-> 本文件是本需求的**唯一事实源**。四期包:在工作台(`../dsh-bot-workbench/spec.md`,Done)与小组对话(`../dsh-bot-group-chat/spec.md`,Done)之上做「会话导航与展示」。
+> 本文件是本需求的**唯一事实源**。四期包:在工作台(`../dsh-bot-workbench/spec.md`,Done)与小组对话(`../archive/dsh-bot-group-chat/spec.md`,Done)之上做「会话导航与展示」。
 > 由母包 `../dsh-bot-interaction-master/spec.md` 统筹(先本包后 `../dsh-bot-group-rounds/`)。
 > 调研输入:2026-09-01 会话调研(参考产品交互清单 + 插件现状盘点);参考树 `../../../reference` 只读,禁拷代码/文案/品牌。
 >
@@ -67,7 +67,7 @@
 | host 服务:`static inject = ['sessionTool']`(L225),webServer 可选注入(L277),settings 面 `installSettingsSection`(L271,命名空间 `dsh-bot`) | `rg -n 'inject\|Service\|webServer' packages/dsh-bot-host/src/index.ts` | 收纳开关放 `dsh-bot` settings 命名空间 |
 | workbench API dispatch 现有 15 个 case(`listBots`…`listGroupSessions`,L183-220) | `rg -n "case '" packages/dsh-bot-host/src/workbench-routes.ts` | 新方法并列追加 |
 | marks helpers:`DSH_BOT_KIND`/`DSH_BOT_HIDDEN_KIND`(L12-14)、`botMark` L24、`groupRoomMark` L62、`mergeBotMarks`(merge 语义,L112) | `rg -n 'export function\|KIND' packages/dsh-bot-host/src/marks.ts` | 新增 mark 常量放这里 |
-| 官方 GUI 隐藏 `~` 标题会话、`kind:hidden` 默认不进列表——v2/v3 已验收事实(委托 `~dsh-bot:`、轮次 `~dsh-bot-group:` 均实证不出现在官方侧栏) | `../dsh-bot-workbench/spec.md` 1.3 与其官方栏不变量、`../dsh-bot-group-chat/spec.md` 1.3(实机行);README「隐藏轮次会话」节 | 收纳 = 复用同一约定,零新平台机制 |
+| 官方 GUI 隐藏 `~` 标题会话、`kind:hidden` 默认不进列表——v2/v3 已验收事实(委托 `~dsh-bot:`、轮次 `~dsh-bot-group:` 均实证不出现在官方侧栏) | `../dsh-bot-workbench/spec.md` 1.3 与其官方栏不变量、`../archive/dsh-bot-group-chat/spec.md` 1.3(实机行);README「隐藏轮次会话」节 | 收纳 = 复用同一约定,零新平台机制 |
 | 会话切换 UI 已有两处:Header `sessionSwitchBtn` 弹出 `SessionList` + roster 嵌套列表(≤8 条);`sessionDisplayTitle` 已做 `~` 剥离显示 | Read `packages/workbench-ui/src/Conversation.tsx`、`SessionList.tsx`、`session-binding.ts` | 跳转/重命名/归档动作挂在 SessionList 行与 Header 菜单 |
 | Task 1 ASM-401:`sessions.open` 对可见与 `~`+`kind:hidden` 会话均可把 `list.getSnapshot().current` 切到目标;对 archived 调用不抛但 current 不落地。三条校准会话 `subagentAddress` 均为 undefined,`jumpToSession` 走 `open` | Playwright `calib-jump.mjs`(who 3084 后);证据 `evidence/phase-0/calib-jump.json` + `asm401-*-open.png` | BR-401:隐藏直接开;归档不直开 |
 | Task 1 ASM-402:同源 iframe `/dsh-bot/ui` 内 `window.parent.postMessage({type:'dsh-bot:calib-402'}, location.origin)` 被页签 window 收到,`sourceIsIframe:true`,`origin=http://127.0.0.1:3084` | 临时 tab `message` 监听(已撤);`calib-browser.json` step `asm402-iframe-fn` + `asm402-tab.png` | 桥用 postMessage;必须 origin+source+type 三重校验 |
@@ -743,7 +743,7 @@ P0 校准(T1) → P1 跳转桥(T2-T4) → P2 起题与收纳(T5-T8)
 | 项 | 值 |
 |---|---|
 | 启动命令 | `cd <本仓> && pnpm install && pnpm -r run build && sh env/setup.sh && sh env/boot.sh`(已起则 `dsh-rpc-who.sh 3084` 核身份) |
-| 访问入口 | 工作台 `http://127.0.0.1:3084/dsh-bot/ui`(直开)与官方 GUI `http://127.0.0.1:3084` 右栏「DSH Bot」页签;RPC `dsh-rpc.sh 3084`;marks CLI 见 `../dsh-bot-mvp/spec.md` 2.3 节 |
+| 访问入口 | 工作台 `http://127.0.0.1:3084/dsh-bot/ui`(直开)与官方 GUI `http://127.0.0.1:3084` 右栏「DSH Bot」页签;RPC `dsh-rpc.sh 3084`;marks CLI 见 `../archive/dsh-bot-mvp/spec.md` 2.3 节 |
 | 测试账号/数据 | `env/settings.yaml` 现有模型路由 + `env/.env` 凭据;种子默认 bot;≥2 个人设(可现场新建) |
 | 干净状态定义 | 收纳/起题行只需新会话,无需清库;归档行新建专用会话 |
 | 可用测试工具 | chrome-devtools 类 MCP / Playwright(v2/v3 已实证);RPC/CLI 直跑留档 |

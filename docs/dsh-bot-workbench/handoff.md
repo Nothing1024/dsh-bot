@@ -26,7 +26,7 @@
 | Spec(唯一事实源) | `spec.md` | found | 合同/方案/19 任务/验收矩阵(15 行) |
 | Tasks CSV(状态板) | `tasks.csv` | found | 每完成一条立即更新 |
 | UI 设计形状 | `reference-ui-notes.md` | found | 布局尺寸/roster 行字段/身份呈现/裁剪表(§E) |
-| v1 合同基线 | `../dsh-bot-mvp/spec.md` | found | BR-208/INV-201 回归依据 |
+| v1 合同基线 | `../archive/dsh-bot-mvp/spec.md` | found | BR-208/INV-201 回归依据 |
 | Evidence 目录 | `evidence/` | found | 证据归档 |
 
 缺失资料与假设:

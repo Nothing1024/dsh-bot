@@ -52,7 +52,7 @@
 | 两包共享改造文件:五期 3.2 与四期 3.2 都点名 `packages/workbench-ui/src/Conversation.tsx`、`App.tsx`、`packages/dsh-bot-host/src/workbench-routes.ts` | Read 两子包 spec 3.2 模块表(2026-09-01) | BR-602 冲突规约的依据 |
 | 五期对四期有单向依赖:引擎态暴露走四期 `overview`(五期 ASM-502),roster 不得回退 O(N) 轮询(五期 handoff 禁止事项) | Read `docs/dsh-bot-group-rounds/spec.md` 1.4 ASM-502 | 执行顺序必须四期先行 |
 | 既有无人值守执行样板:`.grok/workflows/dsh-bot-workbench.rhai`(inspect→impl→双轴 review→fix→verify→closer 波次,按 tasks.csv 板面推进) | Read `.grok/workflows/dsh-bot-workbench.rhai` | 本包 rhai 启动器按同形状编排两包 |
-| 环境与验收工具(:3084/profile gb/浏览器 MCP/Playwright/RPC 脚本)在 v2/v3 验收全部实证 | `../dsh-bot-workbench/spec.md` 5.2、`../dsh-bot-group-chat/spec.md` 5.2(已验收) | 联合回放环境沿用 |
+| 环境与验收工具(:3084/profile gb/浏览器 MCP/Playwright/RPC 脚本)在 v2/v3 验收全部实证 | `../dsh-bot-workbench/spec.md` 5.2、`../archive/dsh-bot-group-chat/spec.md` 5.2(已验收) | 联合回放环境沿用 |
 
 ### 1.4 假设清单
 
@@ -362,7 +362,7 @@ P0 前置与启动器(T1) → P1 四期执行(T2) → P2 五期执行(T3) → P3
 | 项 | 值 |
 |---|---|
 | 启动命令 | `cd <本仓> && pnpm install && pnpm -r run build && sh env/setup.sh && sh env/boot.sh`(已起则 `dsh-rpc-who.sh 3084` 核身份) |
-| 访问入口 | 工作台 `http://127.0.0.1:3084/dsh-bot/ui` 与官方 GUI :3084 右栏页签;RPC `dsh-rpc.sh 3084`;marks CLI 见 `../dsh-bot-mvp/spec.md` 2.3 |
+| 访问入口 | 工作台 `http://127.0.0.1:3084/dsh-bot/ui` 与官方 GUI :3084 右栏页签;RPC `dsh-rpc.sh 3084`;marks CLI 见 `../archive/dsh-bot-mvp/spec.md` 2.3 |
 | 测试账号/数据 | ≥2 人设 + 两人小组(rounds=2);凭据沿 `env/.env` |
 | 干净状态定义 | 小组数据可单独清;老路径抽验用既有数据 |
 | 可用测试工具 | chrome-devtools 类 MCP / Playwright(v2/v3 已实证)+ RPC/CLI |

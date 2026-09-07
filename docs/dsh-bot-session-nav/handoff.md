@@ -26,7 +26,7 @@
 | Spec(唯一事实源) | `spec.md` | found | 合同/方案/14 任务/验收矩阵 |
 | Tasks CSV(状态板) | `tasks.csv` | found | 每完成一条立即更新 |
 | 工作台合同(v2) | `../dsh-bot-workbench/spec.md` | found | 1:1 回归基线 |
-| 小组合同(v3) | `../dsh-bot-group-chat/spec.md` | found | 隐藏轮次会话过滤基线 |
+| 小组合同(v3) | `../archive/dsh-bot-group-chat/spec.md` | found | 隐藏轮次会话过滤基线 |
 | 母包统筹 | `../dsh-bot-interaction-master/spec.md` | found | 执行顺序与跨包接口 |
 | Evidence | `evidence/` | found | 证据归档 |
 

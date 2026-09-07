@@ -2,7 +2,7 @@
 
 > Version: 0.1.0 | Date: 2026-08-30 | Status: Ready 可执行(机制已实机验证;剩余 ASM 由 P0 校准消解)
 >
-> 本文件是本需求的**唯一事实源**。二期包:在 v1(`../dsh-bot-mvp/spec.md`,已 Done)之上加「多人设工作台」。
+> 本文件是本需求的**唯一事实源**。二期包:在 v1(`../archive/dsh-bot-mvp/spec.md`,已 Done)之上加「多人设工作台」。
 > 设计素材:`reference-ui-notes.md`(参考产品 UI 结构调研,只读设计形状,禁拷代码)。
 >
 > 填写三态规则:每个表格单元格只允许三种内容——
@@ -86,7 +86,7 @@
 
 ## 2. 业务合同
 
-> BR/UF/INV/EVD 唯一定义处。v1 合同见 `../dsh-bot-mvp/spec.md`(引用 v1 条目时用描述性名称 + 该路径,不直写其条目编号——校验器要求本包编号闭环)。
+> BR/UF/INV/EVD 唯一定义处。v1 合同见 `../archive/dsh-bot-mvp/spec.md`(引用 v1 条目时用描述性名称 + 该路径,不直写其条目编号——校验器要求本包编号闭环)。
 
 ### 2.1 BR 业务规则
 
@@ -98,7 +98,7 @@
 | BR-204 | 独立面等价性:工作台页面由 host `webServer` 服务于 `GET /dsh-bot/ui`(loopback-only);右栏页签 = iframe 嵌同一 URL;**两个入口功能等价**(roster/对话/人设 CRUD 全可用) | 浏览器直开与页签内操作产生同样的会话与标记 | 页签里可用、直开缺功能(或反之) | workbench-ui + ui-dsh-bot | UF-201 矩阵双入口行 |
 | BR-205 | 对话呈现契约(按 `reference-ui-notes.md` §D 裁剪):Header = 当前 bot 头像+名字+working 态;消息按角色分侧,assistant 侧不重复大头像;thinking 与工具调用折叠为一行摘要;生成中显示三点/工作中;composer 占位「给 `{name}` 发消息」、按 bot 隔离草稿、running 时禁发;**消息级刷新(轮询 ≤2s)**,token 级流式为非目标 | 发消息后 ≤2s 内看到用户气泡,回复落地后 ≤2s 上屏 | 工具调用原文全量刷屏;A bot 的草稿出现在 B bot | workbench-ui | UF-202/203 矩阵 |
 | BR-206 | 身份视觉:头像 = emoji(可选)或「首字 + 确定性色块」(botId 哈希→8 色板);名字出现在 roster 行/Header/composer 占位符;roster 行含最后消息预览与相对时间、working 点 | 两个 bot 在 roster/Header 一眼可分 | 所有 bot 同一头像;头像需上传图片才可用 | workbench-ui | UF-203 矩阵 + 截图 |
-| BR-207 | 红线延续(v1 的凭据纪律与参考只读红线,原文见 `../dsh-bot-mvp/spec.md` 第 2.1 节):不拷参考树代码/品牌;凭据不入 git;不改官方 DSH 包与邻仓;工作台新增面全部 loopback | `rg -i 'anysphere\|sand://' packages/` 为空 | — | 全仓 | Task 19 终检 |
+| BR-207 | 红线延续(v1 的凭据纪律与参考只读红线,原文见 `../archive/dsh-bot-mvp/spec.md` 第 2.1 节):不拷参考树代码/品牌;凭据不入 git;不改官方 DSH 包与邻仓;工作台新增面全部 loopback | `rg -i 'anysphere\|sand://' packages/` 为空 | — | 全仓 | Task 19 终检 |
 | BR-208 | v1 兼容:`dsh_bot_ask`、`dsh-bot.model` override、marks CLI、默认 preset 会话链路零回归;v1 页签的「会话列表」职能由工作台取代,页签 id 保留、内容换 iframe;委托隐藏会话(kind:hidden)在工作台默认不显示(开关可见) | v1 spec 5.2 矩阵主路径复跑全过 | 改坏 askBot/override | 全仓 | Task 19 回归 |
 
 ### 2.2 UF 用户验收场景(索引)
@@ -398,7 +398,7 @@ ui-dsh-bot 页签:内容替换为 <iframe src="/dsh-bot/ui">(genoffice 模式;ta
 | `../../vibee/plugin/packages/vibee-viz/src/index.ts` | `static inject` 含 webServer | `rg "webServer" ../../vibee/plugin/packages/vibee-viz/src/index.ts` | L55 | 样板:host 服务 HTTP 面 |
 | `env/.agent-presets/dsh-bot/agent.cordis.yml` | `- id: persona` 行 | `rg "dsh-persona" env/.agent-presets/dsh-bot/agent.cordis.yml` | L24-28 | 既有:preset 模板源 |
 | `docs/dsh-bot-workbench/reference-ui-notes.md` | 布局/数据形状/裁剪表 | `rg "整体布局图" docs/dsh-bot-workbench/reference-ui-notes.md` | §A-E | 设计素材(本包内) |
-| `docs/dsh-bot-mvp/spec.md` | v1 合同(相对仓根) | `rg "dsh-bot-mvp Spec" docs/dsh-bot-mvp/spec.md` | 第 2 章 | v1 兼容基线 |
+| `docs/archive/dsh-bot-mvp/spec.md` | v1 合同(相对仓根) | `rg "dsh-bot-mvp Spec" docs/archive/dsh-bot-mvp/spec.md` | 第 2 章 | v1 兼容基线 |
 | `packages/dsh-bot-host/src/bots.ts` | 新建:注册表+preset 工厂 | 建成后 `rg -F "bots.json" packages/dsh-bot-host/src/bots.ts` | 新建 | Task 5 |
 | `packages/dsh-bot-host/src/workbench-routes.ts` | 新建:API+静态 | 建成后 `rg -F "/dsh-bot/ui" packages/dsh-bot-host/src/workbench-routes.ts` | 新建 | Task 2/5/8 |
 | `packages/dsh-bot-host/src/reconcile.ts` | 新建:补标对账 | 建成后 `rg -F "reconcile" packages/dsh-bot-host/src/reconcile.ts` | 新建 | Task 12 |
@@ -543,7 +543,7 @@ P0 勘察与骨架(T1-T4) → P1 人设注册表(T5-T7) → P2 对话面(T8-T11)
 
 **Evidence**:`evidence/phase-1/bots-unit.log`
 
-**注意事项**:modelOverride 语义沿 v1 的 bot 专属模型规则(空=跟随全局;创建会话时经 platform 应用;原文见 `../dsh-bot-mvp/spec.md` 2.1 节);注册表损坏按 2.7 兜底报错不崩。
+**注意事项**:modelOverride 语义沿 v1 的 bot 专属模型规则(空=跟随全局;创建会话时经 platform 应用;原文见 `../archive/dsh-bot-mvp/spec.md` 2.1 节);注册表损坏按 2.7 兜底报错不崩。
 
 ### Task 6: roster UI 与人设表单
 
@@ -823,7 +823,7 @@ P0 勘察与骨架(T1-T4) → P1 人设注册表(T5-T7) → P2 对话面(T8-T11)
 | 项 | 值 |
 |---|---|
 | 启动命令 | `cd <本仓> && pnpm install && pnpm -r run build && sh env/setup.sh && sh env/boot.sh` |
-| 访问入口 | 工作台 `http://127.0.0.1:3084/dsh-bot/ui`(直开)与右栏「DSH Bot」页签(iframe);官方 GUI `http://127.0.0.1:3084`;RPC `dsh-rpc.sh 3084`;marks CLI(命令模板见 `../dsh-bot-mvp/spec.md` 2.3 节 CLI 流程) |
+| 访问入口 | 工作台 `http://127.0.0.1:3084/dsh-bot/ui`(直开)与右栏「DSH Bot」页签(iframe);官方 GUI `http://127.0.0.1:3084`;RPC `dsh-rpc.sh 3084`;marks CLI(命令模板见 `../archive/dsh-bot-mvp/spec.md` 2.3 节 CLI 流程) |
 | 测试账号/数据 | `env/settings.yaml` 现有模型路由 + `env/.env` 凭据(v1 已消解);种子默认 bot |
 | 干净状态定义 | 停网关 → 清 `env/sessions/`、`env/session-tool/marks.jsonl`、`env/dsh-bot/`、`env/.agent-presets/dsh-bot--*` → 重启 boot |
 | 可用测试工具 | 浏览器自动化 MCP(本会话已实证)执行 GUI 行并截图;RPC/CLI 行直接执行留档;不可用时按 2.3 步骤表手动回填 |

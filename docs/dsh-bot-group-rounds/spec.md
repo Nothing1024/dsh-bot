@@ -2,7 +2,7 @@
 
 > Version: 0.1.0 | Date: 2026-09-01 | Status: Ready 可执行
 >
-> 本文件是本需求的**唯一事实源**。五期包:在小组对话(`../dsh-bot-group-chat/spec.md`,Done)之上做「多轮讨论与房间管理」。
+> 本文件是本需求的**唯一事实源**。五期包:在小组对话(`../archive/dsh-bot-group-chat/spec.md`,Done)之上做「多轮讨论与房间管理」。
 > 由母包 `../dsh-bot-interaction-master/spec.md` 统筹(先 `../dsh-bot-session-nav/` 后本包)。
 > 参考树 `../../../reference` 只读:轮次上限/轮转等**数值与调度形状**可对齐,实现与提示词必须自写,禁拷代码/文案/品牌。
 >
@@ -64,9 +64,9 @@
 | composer 已有 `@` 菜单(`mentionQuery` L6)与按 group 隔离草稿(`storageKey` L20-84) | `rg -n 'draftStorageKey\|mention\|storageKey' packages/workbench-ui/src/Composer.tsx` | 回复 pill 与排队挂 composer |
 | 每会话写锁 `promptLocks`(L42-47)按 sessionId 串行;房间 prompt 经 `runGroupRound` | `rg -n -i 'lock' packages/dsh-bot-host/src/workbench-sessions.ts` | 排队底座;房间级锁行为待实测(ASM-501) |
 | workbench API 现有 group 面:`createGroupSession`(L215)、`listGroupSessions`(L220) | `rg -n "case '" packages/dsh-bot-host/src/workbench-routes.ts` | 新方法并列追加 |
-| 成员轮次走隐藏会话(`~dsh-bot-group:` + `kind:hidden` + `group-room:` marks),复用按 (房间,成员);隐藏会话 wake 写入"同伴刚说的话",无协议标识;不出现在 1:1 列表(含 includeHidden) | `../dsh-bot-group-chat/spec.md` 1.3 实机行与其变更记录(2026-08-31 三条) | 多轮 = 复用同一链,每轮再 wake 一次 |
+| 成员轮次走隐藏会话(`~dsh-bot-group:` + `kind:hidden` + `group-room:` marks),复用按 (房间,成员);隐藏会话 wake 写入"同伴刚说的话",无协议标识;不出现在 1:1 列表(含 includeHidden) | `../archive/dsh-bot-group-chat/spec.md` 1.3 实机行与其变更记录(2026-08-31 三条) | 多轮 = 复用同一链,每轮再 wake 一次 |
 | 参考产品调度形状(只读,数值可对齐、实现自写):`GROUP_MAX_ROUNDS = 3`、`GROUP_MAX_MEMBER_TURNS = 10`、`GROUP_MAX_MESSAGES_PER_TURN = 2`、`GROUP_PROMPT_HISTORY_LIMIT = 24`;每轮起点轮转 `orderRoundSpeakers`(round 偏移取模) | `rg -n 'GROUP_MAX_ROUNDS\|orderRoundSpeakers' ../reference/extracted/grok-bot-0.18-reconstructed-main/source/host/groups/group-chat.ts`(相对仓外参考树) | 本包取 rounds≤3、总发言 ≤10、轮转;每成员每轮 1 条(差异见 BR-501 备注) |
-| 房间 jsonl 消息行形状 `{type:'message', id, seq, speaker, text, createdAt}`,speaker = `user \| member \| error` | `../dsh-bot-group-chat/spec.md` 3.2 与其 Task 8(已验收) | title/resolved 新行类型按 append-only 追加 |
+| 房间 jsonl 消息行形状 `{type:'message', id, seq, speaker, text, createdAt}`,speaker = `user \| member \| error` | `../archive/dsh-bot-group-chat/spec.md` 3.2 与其 Task 8(已验收) | title/resolved 新行类型按 append-only 追加 |
 | 网关 :3084/profile gb、浏览器 MCP、Playwright 全部在 v2/v3 验收实证可用 | `../dsh-bot-workbench/spec.md` 5.2 环境准备(已验收) | 5.2 环境沿用 |
 
 ### 1.4 假设清单

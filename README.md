@@ -156,4 +156,4 @@ pnpm run standard:check   # dsh-community-standard v0.15 对齐检查（见 stan
 
 对齐 [dsh-community-standard](https://github.com/oh-my-dsh/dsh-community-standard) v0.15 的静态声明面：`packages/tool-dsh-bot/dsh-plugin.json` 与 `packages/ui-dsh-bot/dsh-plugin.json` 是标准 manifest（与官方装载用的 `dsh.plugin.json` 并存），`standards/` 内有部署 Host Descriptor（profile `gb` / :3084，含 `WorkbenchUi` 能力）、纯函数协商、fixtures 与上游触点基线（adapter 审计）。`packages/workbench-ui` 是纯构建产物 SPA（无社区 manifest、不可挂载），由 host 静态服务。私有坐标用 `x-nothing1024.*` 命名空间，Registry 定案后做映射替换。详见 `standards/README.md`。
 
-合同与真实场景证据：v1 `docs/dsh-bot-mvp/`；工作台 `docs/dsh-bot-workbench/`；全部任务包索引与状态见 `docs/README.md`，已归档材料见 `docs/archive/README.md`。
+合同与真实场景证据：v1 `docs/archive/dsh-bot-mvp/`；工作台 `docs/dsh-bot-workbench/`；全部任务包索引与状态见 `docs/README.md`，已归档材料见 `docs/archive/README.md`。

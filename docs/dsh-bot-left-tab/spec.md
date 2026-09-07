@@ -73,7 +73,7 @@
 | 网关 :3084 正在监听（pid 60108） | `lsof -nP -iTCP:3084 -sTCP:LISTEN` | node 60108 |
 | 启动脚本 `sh env/boot.sh`：已起且身份对本仓则直接退出 | `sed -n 1,30p env/boot.sh`；`rg -n "boot" README.md` | README L28 |
 | 工作区有未提交改动（session-nav 在飞）：`ui-dsh-bot` DshBotTab/session-jump/tab.spec、`workbench-ui` App/Persona 等 21 文件 | `git status --short`；`git diff --stat` | 21 files changed, 547 insertions |
-| 本会话可用浏览器工具：cursor-ide-browser MCP（navigate/snapshot/click/screenshot）；邻仓有 Playwright | 本会话工具目录；`ls ../../dsh-genoffice/engine/node_modules/playwright/package.json`（见 `docs/dsh-bot-roster/spec.md` §1.3） | 可做真机回放 |
+| 本会话可用浏览器工具：cursor-ide-browser MCP（navigate/snapshot/click/screenshot）；邻仓有 Playwright | 本会话工具目录；`ls ../../dsh-genoffice/engine/node_modules/playwright/package.json`（见 `docs/archive/dsh-bot-roster/spec.md` §1.3） | 可做真机回放 |
 | session-nav Task 4 阻塞已于 2026-09-08 解除:根因是 `askBot` 把委托 `~dsh-bot:` 会话**归档**(非隐藏),rc.2 投影会清掉归档 current 且无 unarchive;页签桥现对归档目标回执 `archived`。实测 `~ calib-nav-hidden`(`kind:hidden`,未归档)`sessions.open` 落地 `current` → 本包 BR-605 依赖的「打开 `createBotSession` 建出的 1:1 会话」成立(这些会话不归档) | `python3 ~/.claude/skills/prd-workflow/scripts/board.py docs/dsh-bot-session-nav`;`Read docs/dsh-bot-session-nav/evidence/phase-1/live-jump-rerun.json` | Task 4 已完成;allPass:true |
 | session-nav 聚合与推送两条规则（其 spec §2.1「聚合 overview」「SSE 推送」）计划新增 `POST /dsh-bot/overview {}` 聚合接口（bot/group 会话摘要 + lastMessage + working）与 `GET /dsh-bot/events` SSE；对应 Task 9 / Task 10 均「待开始」 | `rg -n "聚合 overview|SSE 推送" docs/dsh-bot-session-nav/spec.md` | 本包 Task 7 数据层应复用而非另写 |
 
