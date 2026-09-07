@@ -1,0 +1,14 @@
+# UF-602 console after switch back to sessions
+date: 2026-09-08
+url: http://127.0.0.1:3084/
+mode: sessions
+footer Bot: not pressed
+search: official filter found "gui stream ok"
+open: clicked gui stream ok -> 标准模式, identity bar gone
+errors: none
+# 2026-09-07T20:32:46.620Z step3 (UF-606 tab-cold/group-jump @1440x900, UF-609 no-groups) console/page errors: 0
+
+# 2026-09-07T20:33:49.569Z step3 (UF-606 tab-cold/group-jump @1440x900, UF-609 no-groups) console/page errors: 0
+
+# 2026-09-07T20:50:42.027Z step6 (main-path re-shoots on bundle 14d797c; Bot→会话 restore) console/page errors: 0
+

@@ -15,3 +15,30 @@ rg -n "落地记录" docs/prototypes/left-sidebar-bot-tab.md
 → 101:## 落地记录（2026-09-08）
 git status --short docs/prototypes/dsh-bot-left-tab.html
 → empty (untouched)
+
+===== 2026-09-07T19:16Z–20:12Z Task 22 §5.2 回放（第一轮，omp worker + 协调者，bundle ac687ab）=====
+worker 逐行回放 UF-601 ~ UF-611（截图落 evidence/UF-60x/），UF-601 空名册行写 BLOCKED.md（host 启动种子受保护 DSH Bot，名册不可能为空）。
+协调者目视审查截图，判定以下行失败并回到对应 Task 修复（各自单独 commit）：
+- UF-609 关系图：SVG 超出卡片、描边过粗、无图例 → 19ff37b（Task 13 / BR-617 / BR-618）
+- BR-617 视觉对照：名册头部「人设」换行、按钮标签折行 → 36e003d（Task 8 / BR-617）
+- BR-617 视觉对照：行 grid 3 列 4 子元素，「⋯」掉到下一行 → aaa3812（Task 8 / BR-617）
+- UF-610 悬停预览卡：被官方侧栏 overflow 裁掉 → 2762df2（Task 14 / BR-617，portal 到 body）
+- UF-606 右栏页签折叠/关闭时 activateTab 不展开 → 33f630f（Task 10 / BR-608，openTab url seed）
+- BR-604 会话数：B 路未选中的行恒为 0 → e8c62a5（Task 7 / BR-604，按官方 sessions.list preset 计数）
+- UF-604 失败分支 rail 警示图标：无实现 → 14d797c（Task 8 / BR-610）
+
+===== 2026-09-07T20:20Z–20:55Z Task 22 §5.2 回放（第二轮，协调者，最终 bundle 14d797c）=====
+浏览器工具：cursor-ide-browser MCP 在 20:19Z 掉线（provider did not re-register），按 §5.2 退到 Playwright（playwright-core 1.50.1 + 缓存 chromium-1155，headless，1280x800；UF-606 / UF-607 / UF-609 new-room / UF-612 用 1680x1000 让左中右三栏同框）。脚本在 /tmp/lt-pw/step{1..7}.js（不入库）。
+网关：pnpm --filter ui-dsh-bot run build → 14d797c bundle；dsh-rpc-who.sh 3084 核 DSH_HOME=.../dsh-grok-bot/plugin/env 后 kill，sh env/boot.sh 拉起（pid 12924 → 网关拒绝行 kill 后再拉起）。
+干净状态：脚本开头清 dsh-bot:sidebar-mode / dsh-bot:last-bot / dsh-bot:roster-folded 并刷新。
+step1：UF-601 bot-mode / after-reload（slots=1, segs=1, footer aria-pressed=true, mode=bot）、phase-4/hmr.png（重建 + 重载后 [data-slot=sidebar.workspaces] 数量 1，页内角标记录）、UF-609 graph（6 节点 0 越界，虚线 1px 实线 2.5–3px，图例文案）/ node-select（overlay 关闭、选中诗人小北、最新会话打开）、UF-610 hover-bot / hover-group（卡片 portal 到 body，rect 可见，离开 300ms 后消失）、UF-606 group-jump@1280（折叠右栏后点小组 → iframe 448px）。console.error / pageerror = 0；requestfailed 5 条全部为 F5 时 ERR_ABORTED。
+step2：先在会话模式加载页面，kill 网关（pid 12924）→ 切 Bot → dsh-bot-region-error「名册加载失败 / 重试」→ UF-601/load-error.png；收起侧栏 → dsh-bot-rail-error title「名册加载失败」→ UF-604/rail-error.png；sh env/boot.sh 拉回（24s）→ 点重试 → 8 行恢复 → UF-601/load-error-recovered.png。
+step3（1680x1000）：DSH Bot 页签关闭态点 编辑室 → 53ms 后 iframe 出现 → UF-606/tab-cold.png；折叠右栏点 校对组 → 右栏展开、页签激活、iframe 504px、中栏标题不变 → UF-606/group-jump.png；cp groups.json → 写空注册表 → 刷新 → 关系图「还没有小组，节点之间没有同组虚线 / + 新建小组」dashed=0 → UF-609/no-groups.png → 还原 groups.json（diff identical）→ 刷新 8 行回来。
+step4（1680x1000）：校对阿宁 最新会话发「echo hi > ~/lt-approval-probe.txt」→ 沙箱拒绝家目录写入 → 官方「等待审批」ApprovalPanel（拒绝 / 允许一次）→ 名册行红「@」+ 底栏 Bot 红「@」→ UF-612/mention-badge.png；点「允许一次」→ 2s 内 @ 消失回数字 31 → UF-612/badge-cleared.png。（/tmp 写入不触发审批；探针文件已删）
+step5：原型 file://…/dsh-bot-left-tab.html 分镜 3 aside.sidebarCol 与真机 Bot 模式 sidebarCol 截图 + 尺寸量测，PIL 合成 UF-601/visual-diff.png（侧栏 280/280，face 32/32，行高 57/57|48，unreadBadge 18，seg 259/248）。
+step6：UF-603/open-existing（运维夜班 最新会话打开、下挂高亮）、UF-605/identity-bar（chip + 记忆 0 / 例程 24 / 同事 6 / 人设，计数已到）、memory-popover（portal, Esc 关）、UF-610/persona-panel（persona 文本 + preset + 编辑人设）、UF-611/palette（⌘K 输入框获焦 39 项）/ filtered（「校对」→ 校对阿宁 bot / 校对组 group）、Esc 关；UF-604/rail（6 头像 + 红点）/ expanded（点 校对阿宁 头像 → 展开并打开会话）；UF-602/sessions-restored（slots=1、无分段条、footer aria-pressed=false、搜索框在）；UF-605/plain-session（官方搜索「gui stream ok」standard 会话 → 顶栏「标准模式」无 chip）。
+step7（1680x1000）：POST /dsh-bot/sendToPeer {toBot: yunwei-yeban, fromBot: shiren-xiaobei} → 2.5s 内 运维夜班 行徽章「1」、会话数 30→31、预览更新 → UF-607/unread.png；点该行 → markRead → 徽章消失、会话打开 → UF-607/read.png；编辑室 → + 新开房间 → rooms.json 新增 bianji-shi 房间、右栏 iframe 进新房间 → UF-609/new-room.png。
+沿用第一轮 worker 截图（bundle ac687ab，核对点与本轮修复无关）：UF-603 create-new / create-failed / archived-fallback / createBotSession.json、UF-605 orphan-preset、UF-607 poll-fallback.log、UF-608 全部、UF-610 rail-no-card、UF-611 iframe-focus-no-palette、UF-612 routine-tag / seq-check.log。
+证据审计：§5.2 矩阵 28 行 48 个文件，47 个存在；缺 UF-601/empty.png（BLOCKED.md：host 种子受保护 DSH Bot → 空名册不可达，见 spec v0.3.4 §1.5）。
+python3 ~/.claude/skills/prd-workflow/scripts/validate_package.py docs/dsh-bot-left-tab --repo . → 0 FAIL（见 Task 23 段）
+收尾：deleteBot zuolan-ceshi / zuolan-konghui-hua-2（worker 建的测试人设）→ bots.json = worker 03:34 备份减 左栏测试；groups.json 与备份 diff 为空；rm ~/lt-approval-probe.txt。

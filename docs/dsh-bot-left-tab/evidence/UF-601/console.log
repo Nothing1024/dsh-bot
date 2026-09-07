@@ -1,0 +1,79 @@
+# 2026-09-07T20:28:34.556Z step1 (bundle 14d797c) console/page/requestfailed errors: 5
+[requestfailed] POST http://127.0.0.1:3084/dsh-bot/listSessions net::ERR_ABORTED
+[requestfailed] POST http://127.0.0.1:3084/api/session.list net::ERR_ABORTED
+[requestfailed] GET http://127.0.0.1:3084/plugins/events net::ERR_ABORTED
+[requestfailed] GET http://127.0.0.1:3084/plugins/events net::ERR_ABORTED
+[requestfailed] GET http://127.0.0.1:3084/dsh-bot/events net::ERR_ABORTED
+# 2026-09-07T20:30:27.057Z step2 (gateway killed → 名册加载失败 → restart → 重试) console/page errors: 70; requestfailed (expected while gateway down): 72
+[console.error] [cordis-client-runner] syncing inspect providers failed: Error: internal: client api: dynamicCordisRunner/syncInspectManifest failed: Failed to fetch
+    at Object.sync (http://127.0.0.1:3084/plugins/@deepseek-ai/dsh-cordis-client-runner/client.js?rev=99f7a9b63dac:4099:30)
+    at async http://127.0.0.1:3084/plugins/@deepseek-ai/dsh-cordis-client-runner/client.js?rev=99f7a9b63dac:1023:7
+[console.error] Failed to load resource: net::ERR_INCOMPLETE_CHUNKED_ENCODING
+[console.error] Failed to load resource: net::ERR_CONNECTION_REFUSED
+[console.error] Failed to load resource: net::ERR_CONNECTION_REFUSED
+[console.error] Failed to load resource: net::ERR_CONNECTION_REFUSED
+[console.error] WebSocket connection to 'ws://127.0.0.1:3084/api/events.mux' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED
+[console.error] WebSocket connection to 'ws://127.0.0.1:3084/api/events.mux' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED
+[console.error] Failed to load resource: net::ERR_CONNECTION_REFUSED
+[console.error] Failed to load resource: net::ERR_CONNECTION_REFUSED
+[console.error] Failed to load resource: net::ERR_CONNECTION_REFUSED
+[console.error] Failed to load resource: net::ERR_CONNECTION_REFUSED
+[console.error] Failed to load resource: net::ERR_CONNECTION_REFUSED
+[console.error] WebSocket connection to 'ws://127.0.0.1:3084/api/events.mux' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED
+[console.error] Failed to load resource: net::ERR_CONNECTION_REFUSED
+[console.error] Failed to load resource: net::ERR_CONNECTION_REFUSED
+[console.error] Failed to load resource: net::ERR_CONNECTION_REFUSED
+[console.error] Failed to load resource: net::ERR_CONNECTION_REFUSED
+[console.error] Failed to load resource: net::ERR_CONNECTION_REFUSED
+[console.error] Failed to load resource: net::ERR_CONNECTION_REFUSED
+[console.error] Failed to load resource: net::ERR_CONNECTION_REFUSED
+[console.error] Failed to load resource: net::ERR_CONNECTION_REFUSED
+[console.error] Failed to load resource: net::ERR_CONNECTION_REFUSED
+[console.error] Failed to load resource: net::ERR_CONNECTION_REFUSED
+[console.error] Failed to load resource: net::ERR_CONNECTION_REFUSED
+[console.error] WebSocket connection to 'ws://127.0.0.1:3084/api/events.mux' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED
+[console.error] Failed to load resource: net::ERR_CONNECTION_REFUSED
+[console.error] Failed to load resource: net::ERR_CONNECTION_REFUSED
+[console.error] Failed to load resource: net::ERR_CONNECTION_REFUSED
+[console.error] Failed to load resource: net::ERR_CONNECTION_REFUSED
+[console.error] Failed to load resource: net::ERR_CONNECTION_REFUSED
+[console.error] Failed to load resource: net::ERR_CONNECTION_REFUSED
+[console.error] Failed to load resource: net::ERR_CONNECTION_REFUSED
+[console.error] Failed to load resource: net::ERR_CONNECTION_REFUSED
+[console.error] Failed to load resource: net::ERR_CONNECTION_REFUSED
+[console.error] Failed to load resource: net::ERR_CONNECTION_REFUSED
+[console.error] Failed to load resource: net::ERR_CONNECTION_REFUSED
+[console.error] Failed to load resource: net::ERR_CONNECTION_REFUSED
+[console.error] Failed to load resource: net::ERR_CONNECTION_REFUSED
+[console.error] WebSocket connection to 'ws://127.0.0.1:3084/api/events.mux' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED
+[console.error] Failed to load resource: net::ERR_CONNECTION_REFUSED
+[console.error] Failed to load resource: net::ERR_CONNECTION_REFUSED
+[console.error] Failed to load resource: net::ERR_CONNECTION_REFUSED
+[console.error] Failed to load resource: net::ERR_CONNECTION_REFUSED
+[console.error] Failed to load resource: net::ERR_CONNECTION_REFUSED
+[console.error] Failed to load resource: net::ERR_CONNECTION_REFUSED
+[console.error] Failed to load resource: net::ERR_CONNECTION_REFUSED
+[console.error] Failed to load resource: net::ERR_CONNECTION_REFUSED
+[console.error] Failed to load resource: net::ERR_CONNECTION_REFUSED
+[console.error] Failed to load resource: net::ERR_CONNECTION_REFUSED
+[console.error] Failed to load resource: net::ERR_CONNECTION_REFUSED
+[console.error] Failed to load resource: net::ERR_CONNECTION_REFUSED
+[console.error] Failed to load resource: net::ERR_CONNECTION_REFUSED
+[console.error] Failed to load resource: net::ERR_CONNECTION_REFUSED
+[console.error] Failed to load resource: net::ERR_CONNECTION_REFUSED
+[console.error] Failed to load resource: net::ERR_CONNECTION_REFUSED
+[console.error] Failed to load resource: net::ERR_CONNECTION_REFUSED
+[console.error] Failed to load resource: net::ERR_CONNECTION_REFUSED
+[console.error] Failed to load resource: net::ERR_CONNECTION_REFUSED
+[console.error] Failed to load resource: net::ERR_CONNECTION_REFUSED
+[console.error] WebSocket connection to 'ws://127.0.0.1:3084/api/events.mux' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED
+[console.error] Failed to load resource: net::ERR_CONNECTION_REFUSED
+[console.error] Failed to load resource: net::ERR_CONNECTION_REFUSED
+[console.error] Failed to load resource: net::ERR_CONNECTION_REFUSED
+[console.error] Failed to load resource: net::ERR_CONNECTION_REFUSED
+[console.error] Failed to load resource: net::ERR_CONNECTION_REFUSED
+[console.error] Failed to load resource: net::ERR_CONNECTION_REFUSED
+[console.error] Failed to load resource: net::ERR_CONNECTION_REFUSED
+[console.error] Failed to load resource: net::ERR_CONNECTION_REFUSED
+[console.error] Failed to load resource: net::ERR_CONNECTION_REFUSED
+[console.error] Failed to load resource: the server responded with a status of 503 (Service Unavailable)

@@ -1,0 +1,20 @@
+{
+  "ok": true,
+  "value": {
+    "id": "zuolan-ceshi",
+    "name": "左栏测试",
+    "avatar": {
+      "color": "#e08a3c"
+    },
+    "presetId": "dsh-bot--zuolan-ceshi",
+    "persona": "用于左栏真实场景测试的临时人设。",
+    "createdAt": 1788809096059,
+    "pinned": false,
+    "section": "work",
+    "hidden": false,
+    "order": 1788809096059,
+    "muted": false,
+    "protected": false,
+    "unread": 0
+  }
+}

@@ -1,0 +1,33 @@
+{
+  "ok": true,
+  "value": {
+    "sessions": [
+      {
+        "sessionId": "session-ec2f4663-0db9-47ac-b230-1274fc9672d5",
+        "title": "左栏测试",
+        "tags": [
+          "bot:zuolan-ceshi",
+          "kind:dsh-bot"
+        ],
+        "status": "idle",
+        "createdAt": 1788809123786,
+        "updatedAt": 1788809123786,
+        "hidden": false,
+        "working": false
+      },
+      {
+        "sessionId": "session-9ff52cb9-d887-49b4-8e43-1ff1b1bfaaf1",
+        "title": "左栏测试",
+        "tags": [
+          "bot:zuolan-ceshi",
+          "kind:dsh-bot"
+        ],
+        "status": "idle",
+        "createdAt": 1788803083986,
+        "updatedAt": 1788803083986,
+        "hidden": false,
+        "working": false
+      }
+    ]
+  }
+}

@@ -1,0 +1,18 @@
+# UF-607 SSE disconnect → 2s poll fallback
+date: 2026-09-08
+url: http://127.0.0.1:3084/
+mode: bot (localStorage dsh-bot:sidebar-mode=bot)
+method: DevTools-side block of EventSource('/dsh-bot/events')
+  - first tried Network Offline (existing idle EventSource did not fire onerror)
+  - then reload with initScript rewriting EventSource('/dsh-bot/events')
+    to '/dsh-bot/events-blocked' (405) so onerror runs
+
+console.info hits (verbatim):
+  [ui-dsh-bot] roster SSE disconnected; falling back to 2s poll
+  (repeated as reconnect backoff retried the blocked URL)
+
+related:
+  Failed to load resource: the server responded with a status of 405 (Method Not Allowed)
+
+BR-612: onerror sets sseReady=false, startPoll() every 2s, then schedule reconnect.
+Roster still rendered after fallback (page stayed in Bot mode).
