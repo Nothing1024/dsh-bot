@@ -35,3 +35,13 @@ pnpm --filter ui-dsh-bot run build → EXIT 0
 
 ===== 2026-09-07T17:40:42Z Task 15 =====
 ./node_modules/.bin/vitest run packages/ui-dsh-bot/tests/command-palette.spec.tsx → 3 passed
+
+===== 2026-09-07T17:46:00Z Task 16 =====
+git diff --stat packages/dsh-bot-host/src → empty
+pnpm run typecheck → EXIT 0
+pnpm test → 59 files / 400 tests passed
+pnpm run build → EXIT 0
+live :3084 pid 19777 UF-603 1-6 + UF-608 1-2
+screenshots: roster.png open-session.png overlay-form.png graph.png palette.png
+python3 ~/.claude/skills/prd-workflow/scripts/validate_package.py docs/dsh-bot-left-tab --repo . → 0 FAIL / 1 WARN / 21 PASS
+spec.md §3.3 anchors rewritten: WorkbenchBot / origin / groupRosterItems / hashAvatarColor / pickBoundSession now point at packages/dsh-bot-shared/src

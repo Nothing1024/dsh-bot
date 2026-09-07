@@ -97,7 +97,7 @@ export function apply(ctx: Context): void {
         mode,
         roster,
         overlay,
-        sessions: client.sessions as SessionListFace,
+        sessions: client.sessions as unknown as SessionListFace,
         selectedId,
         onSelectedId: (id) => { selected.set(id) },
       }
@@ -115,7 +115,7 @@ export function apply(ctx: Context): void {
         t,
         mode,
         roster,
-        sessions: client.sessions as SessionListFace,
+        sessions: client.sessions as unknown as SessionListFace,
       }
       if (props.wide !== undefined) footerProps.wide = props.wide
       return createElement(BoundModeFooter, footerProps)
@@ -144,7 +144,7 @@ export function apply(ctx: Context): void {
           roster,
           t,
           mode,
-          sessions: client.sessions as SessionListFace,
+          sessions: client.sessions as unknown as SessionListFace,
           selectedId,
           onSelectedId: (id) => { selected.set(id) },
           onSelectBot: (botId) => {

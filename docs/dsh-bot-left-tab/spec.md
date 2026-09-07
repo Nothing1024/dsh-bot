@@ -66,12 +66,12 @@
 | 人设/小组管理 RPC 齐全：`createBot / updateBot / deleteBot / createGroup / updateGroup / deleteGroup / createGroupSession`；删 seed bot 抛 `bot-protected`；小组成员 2–6（`GROUP_MEMBER_MIN/MAX`） | `rg -n "case 'deleteBot'|case 'createGroupSession'" packages/dsh-bot-host/src/workbench-routes.ts`；`rg -n "bot-protected|GROUP_MEMBER_MIN =" packages/dsh-bot-host/src/bots.ts packages/dsh-bot-host/src/groups.ts` | routes L217 / L243；bots L508；groups L15 |
 | iframe 工作台已有 `BotForm` / `GroupForm` / `RelationshipGraph` 三个组件，字段与校验可对照（不可跨包 import，见纯度插件） | `rg -n "^export function" packages/workbench-ui/src/BotForm.tsx packages/workbench-ui/src/GroupForm.tsx packages/workbench-ui/src/RelationshipGraph.tsx` | L46 / L28 / L16 |
 | 原型悬停预览 400ms 出、120ms 收；预览卡 220px；表单 `formPane` 560px；关系图卡 ≤520×420；确认框 360px | `rg -n "hoverTimer = setTimeout|\.rosterPreviewCard \{|\.formPane \{|\.graphCard \{|\.confirmBox \{" docs/prototypes/dsh-bot-left-tab.html` | L1410 / L1422 / L78 / L166 / L176 / L190 |
-| 官方 `SessionSummary.pendingInteraction?: 'approval' \| 'plan-review' \| 'question'`（官方侧栏琥珀点的数据源）可在客户端直接读到；`/dsh-bot/history` 条目已有 `origin?: 'routine'` 与 `seq` | `rg -n "pendingInteraction\?: PendingInteractionStatus" env/profiles/gb/node_modules/@deepseek-ai/dsh-client-runtime/lib/types/client/sessions/service.d.ts`；`rg -n "origin\?: 'routine'|readonly seq: number" packages/workbench-ui/src/api.ts` | service.d.ts L48；api.ts L170 / L171 |
+| 官方 `SessionSummary.pendingInteraction?: 'approval' \| 'plan-review' \| 'question'`（官方侧栏琥珀点的数据源）可在客户端直接读到；`/dsh-bot/history` 条目已有 `origin?: 'routine'` 与 `seq` | `rg -n "pendingInteraction\?: PendingInteractionStatus" env/profiles/gb/node_modules/@deepseek-ai/dsh-client-runtime/lib/types/client/sessions/service.d.ts`；`rg -n "origin\?: 'routine'|readonly seq: number" packages/dsh-bot-shared/src/types.ts` | service.d.ts L48；types.ts L103 / L104 |
 | 官方 `conversation.chat.turnTail` 是 chain / session 槽：条目用 `select(owner)` 决定是否挂载，owner 给 `turn: TurnLocation`（`turn / start / end / status`）与闭合 `seq` | `rg -n "'conversation.chat.turnTail'" -B 6 -A 4 env/profiles/gb/node_modules/@deepseek-ai/dsh-client-ui-conversation/lib/types/client/contract/slots.d.ts`；`rg -n "interface TurnLocation" -A 8 env/profiles/gb/node_modules/@deepseek-ai/dsh-client-runtime/lib/types/client/contract/conversation.d.ts` | slots L154-L164 / L440-L450；conversation L67-L75 |
 | 宿主 RPC 方法：`listBots createBot updateBot deleteBot createBotSession listBotSessions history prompt reconcile listGroups ... markRead ... updateBotLayout`；`rosterSections` 不在 host 路由里（只在 workbench api.ts 有客户端封装） | `rg -n "case '[a-zA-Z]+':" packages/dsh-bot-host/src/workbench-routes.ts`；`rg -n rosterSections packages/dsh-bot-host/src/` | routes L211-L330；host 无命中 |
 | SSE `GET /dsh-bot/events` 只转发 `bot:` / `group-room:` marks 会话 | `Read packages/dsh-bot-host/src/bot-events.ts` | L2；L125 `text/event-stream` |
-| `WorkbenchBot` 已有 `unread/pinned/section/hidden/order/muted/presetId`；`CreateBotSessionValue` 有 `sessionId/title/botId/presetId` | `rg -n "export interface WorkbenchBot\b|export interface CreateBotSessionValue" -A 14 packages/workbench-ui/src/api.ts` | L64-L78；L147-L152 |
-| 名册逻辑可复用：`groupRosterItems` / `DEFAULT_ROSTER_SECTIONS`、`pickBoundSession` / `readLastSession`、`hashAvatarColor` / `nameInitial` / `relativeTime` | `rg -n "export function|export const" packages/workbench-ui/src/roster-sections.ts packages/workbench-ui/src/session-binding.ts packages/workbench-ui/src/avatar.ts` | roster-sections L28；session-binding L43/L85；avatar L22/L32/L45 |
+| `WorkbenchBot` 已有 `unread/pinned/section/hidden/order/muted/presetId`；`CreateBotSessionValue` 有 `sessionId/title/botId/presetId` | `rg -n "export interface WorkbenchBot\b|export interface CreateBotSessionValue" -A 14 packages/dsh-bot-shared/src/types.ts` | L22-L38；L80-L85 |
+| 名册逻辑可复用：`groupRosterItems` / `DEFAULT_ROSTER_SECTIONS`、`pickBoundSession` / `readLastSession`、`hashAvatarColor` / `nameInitial` / `relativeTime` | `rg -n "export function|export const" packages/dsh-bot-shared/src/roster-sections.ts packages/dsh-bot-shared/src/session-binding.ts packages/dsh-bot-shared/src/avatar.ts` | roster-sections L26；session-binding L43/L85；avatar L22/L32/L45 |
 | iframe → 宿主跳会话桥：`JUMP_MESSAGE_TYPE = 'dsh-bot:jump'`，宿主 `handleJumpMessage` | `rg -n "JUMP_MESSAGE_TYPE|export function handleJumpMessage" packages/workbench-ui/src/jump.ts packages/ui-dsh-bot/src/client/session-jump.ts` | jump.ts L6；session-jump.ts L117 |
 | 现有测试形态：jsdom + @testing-library/react，`describe('DshBotTab'` | `sed -n 1,60p packages/ui-dsh-bot/tests/tab.spec.tsx` | L1 `// @vitest-environment jsdom` |
 | vitest 根配置：`include: packages/*/tests/**/*.spec.ts(x)`，默认 environment node | `cat vitest.config.ts` | L21-L24 |
@@ -651,16 +651,16 @@ After:
 | `packages/ui-dsh-bot/src/client/DshBotTab.tsx` | `export function DshBotTab` | `rg "export function DshBotTab" packages/ui-dsh-bot/src/client/DshBotTab.tsx` | L113 | 不改；CSS modules 用法参照 |
 | `packages/ui-dsh-bot/tsdown.config.ts` | `dsh-client-bundle-purity` | `rg "dsh-client-bundle-purity" packages/ui-dsh-bot/tsdown.config.ts` | L101 | 共享包必须是 workspace 内相对源（`noExternal`） |
 | `packages/ui-dsh-bot/tests/tab.spec.tsx` | `describe('DshBotTab'` | `rg "describe\('DshBotTab'" packages/ui-dsh-bot/tests/tab.spec.tsx` | L36 | 新测试形态参照（jsdom 头注释） |
-| `packages/workbench-ui/src/roster-sections.ts` | `export function groupRosterItems` | `rg "export function groupRosterItems" packages/workbench-ui/src/roster-sections.ts` | L28 | 迁入共享包 |
-| `packages/workbench-ui/src/avatar.ts` | `export function hashAvatarColor` | `rg "export function hashAvatarColor" packages/workbench-ui/src/avatar.ts` | L22 | 迁入共享包 |
-| `packages/workbench-ui/src/session-binding.ts` | `export function pickBoundSession` | `rg "export function pickBoundSession" packages/workbench-ui/src/session-binding.ts` | L85 | 迁入共享包 |
-| `packages/workbench-ui/src/api.ts` | `export interface WorkbenchBot` | `rg "export interface WorkbenchBot" packages/workbench-ui/src/api.ts` | L64 | 类型迁入共享包，函数留下 |
+| `packages/dsh-bot-shared/src/roster-sections.ts` | `export function groupRosterItems` | `rg "export function groupRosterItems" packages/dsh-bot-shared/src/roster-sections.ts` | L26 | Task 6 已迁入共享包 |
+| `packages/dsh-bot-shared/src/avatar.ts` | `export function hashAvatarColor` | `rg "export function hashAvatarColor" packages/dsh-bot-shared/src/avatar.ts` | L22 | Task 6 已迁入共享包 |
+| `packages/dsh-bot-shared/src/session-binding.ts` | `export function pickBoundSession` | `rg "export function pickBoundSession" packages/dsh-bot-shared/src/session-binding.ts` | L85 | Task 6 已迁入共享包 |
+| `packages/dsh-bot-shared/src/types.ts` | `export interface WorkbenchBot` | `rg "export interface WorkbenchBot" packages/dsh-bot-shared/src/types.ts` | L22 | Task 6 类型迁入共享包；workbench-ui api.ts 改 re-export |
 | `packages/workbench-ui/src/jump.ts` | `JUMP_MESSAGE_TYPE` | `rg "JUMP_MESSAGE_TYPE" packages/workbench-ui/src/jump.ts` | L6 | 消息命名参照 |
 | `packages/workbench-ui/src/BotForm.tsx` | `export function BotForm` | `rg "export function BotForm" packages/workbench-ui/src/BotForm.tsx` | L46 | 字段与校验规则参照（不 import） |
 | `packages/workbench-ui/src/GroupForm.tsx` | `export function GroupForm` | `rg "export function GroupForm" packages/workbench-ui/src/GroupForm.tsx` | L28 | 成员多选参照 |
 | `packages/workbench-ui/src/RelationshipGraph.tsx` | `export function RelationshipGraph` | `rg "export function RelationshipGraph" packages/workbench-ui/src/RelationshipGraph.tsx` | L16 | 节点/边计算参照 |
 | `packages/dsh-bot-host/src/groups.ts` | `GROUP_MEMBER_MIN` | `rg "GROUP_MEMBER_MIN" packages/dsh-bot-host/src/groups.ts` | L15 | 小组成员 2–6 校验来源 |
-| `packages/workbench-ui/src/api.ts` | `origin?: 'routine'` | `rg "origin\?: 'routine'" packages/workbench-ui/src/api.ts` | L170 | history 项的例程来源标记（BR-620） |
+| `packages/dsh-bot-shared/src/types.ts` | `origin?: 'routine'` | `rg "origin\?: 'routine'" packages/dsh-bot-shared/src/types.ts` | L103 | history 项的例程来源标记（BR-620） |
 | `packages/workbench-ui/src/CommandPalette.tsx` | `export function CommandPalette` | `rg "export function CommandPalette" packages/workbench-ui/src/CommandPalette.tsx` | L66 | iframe 版 ⌘K 参照（不 import） |
 | `docs/prototypes/dsh-bot-left-tab.html` | `.palette {` | `rg "\.palette \{" docs/prototypes/dsh-bot-left-tab.html` | L193 | ⌘K 面板尺寸；`.wakeTag` L150 例程标签样式 |
 | `packages/dsh-bot-host/src/bots.ts` | `bot-protected` | `rg "bot-protected" packages/dsh-bot-host/src/bots.ts` | L508 | DSH Bot 不可删的错误码 |
@@ -859,10 +859,10 @@ P0 校准（Task 1）
 
 **涉及文件与定位**：
 
-- `packages/workbench-ui/src/roster-sections.ts`：`export function groupRosterItems`，L28
-- `packages/workbench-ui/src/avatar.ts`：`export function hashAvatarColor`，L22
-- `packages/workbench-ui/src/session-binding.ts`：`export function pickBoundSession`，L85
-- `packages/workbench-ui/src/api.ts`：`export interface WorkbenchBot`，L64（只迁类型）
+- `packages/dsh-bot-shared/src/roster-sections.ts`：`export function groupRosterItems`，L26
+- `packages/dsh-bot-shared/src/avatar.ts`：`export function hashAvatarColor`，L22
+- `packages/dsh-bot-shared/src/session-binding.ts`：`export function pickBoundSession`，L85
+- `packages/dsh-bot-shared/src/types.ts`：`export interface WorkbenchBot`，L22（只迁类型）
 - `packages/ui-dsh-bot/tsdown.config.ts`：`dsh-client-bundle-purity`，L101
 
 **具体操作**：
@@ -1211,7 +1211,7 @@ P0 校准（Task 1）
 
 - `packages/ui-dsh-bot/src/client/RoutineTurnTail.tsx`（新建）
 - `packages/ui-dsh-bot/src/client/index.ts`：`export function apply`，L56
-- `packages/workbench-ui/src/api.ts`：`origin?: 'routine'`，`rg "origin\?: 'routine'" packages/workbench-ui/src/api.ts`，L170
+- `packages/dsh-bot-shared/src/types.ts`：`origin?: 'routine'`，`rg "origin\?: 'routine'" packages/dsh-bot-shared/src/types.ts`，L103
 - `env/profiles/gb/node_modules/@deepseek-ai/dsh-client-ui-conversation/lib/types/client/contract/slots.d.ts`：`'conversation.chat.turnTail'`，L160；`TurnTailOwnerProps`，L440
 - `env/profiles/gb/node_modules/@deepseek-ai/dsh-client-runtime/lib/types/client/contract/conversation.d.ts`：`interface TurnLocation`，L67
 

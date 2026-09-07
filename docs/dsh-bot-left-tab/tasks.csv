@@ -14,7 +14,7 @@
 13,P2:名册内容与打开会话,关系图 overlay + 小组「+ 新开房间」,spec.md#task-13,11;12,./node_modules/.bin/vitest run packages/ui-dsh-bot/tests/relationship-graph-overlay.spec.tsx packages/ui-dsh-bot/tests/bot-roster-group.spec.tsx → 通过,已完成,
 14,P2:名册内容与打开会话,悬停预览卡,spec.md#task-14,8,./node_modules/.bin/vitest run packages/ui-dsh-bot/tests/bot-roster-preview.spec.tsx → 通过,已完成,
 15,P2:名册内容与打开会话,shell.overlay 命令面板（⌘K）,spec.md#task-15,12;9,./node_modules/.bin/vitest run packages/ui-dsh-bot/tests/command-palette.spec.tsx → 通过,已完成,
-16,P2:名册内容与打开会话,执行 Phase 2 回归验证,spec.md#task-16,9;12;13;14;15,pnpm run typecheck && pnpm test && pnpm run build → 全过；git diff --stat packages/dsh-bot-host/src → 空；真机 UF-603 截图,待开始,
+16,P2:名册内容与打开会话,执行 Phase 2 回归验证,spec.md#task-16,9;12;13;14;15,pnpm run typecheck && pnpm test && pnpm run build → 全过；git diff --stat packages/dsh-bot-host/src → 空；真机 UF-603 截图,已完成,
 17,P3:中栏身份条,header.actions 身份 chip（仅 bot 会话）,spec.md#task-17,16,./node_modules/.bin/vitest run packages/ui-dsh-bot/tests/identity-bar.spec.tsx → 通过,待开始,
 18,P3:中栏身份条,记忆 / 例程 / 同事 / 人设 pill 浮层 + 对话切换 + 新开对话,spec.md#task-18,17,./node_modules/.bin/vitest run packages/ui-dsh-bot/tests/identity-bar-popovers.spec.tsx → 通过,待开始,
 19,P3:中栏身份条,turnTail「例程触发」标签,spec.md#task-19,17;7,./node_modules/.bin/vitest run packages/ui-dsh-bot/tests/routine-turn-tail.spec.tsx → 通过,待开始,ASM-608 第一步核 seq 同源
