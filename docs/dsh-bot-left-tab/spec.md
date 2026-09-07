@@ -1,6 +1,6 @@
 # dsh-bot-left-tab Spec
 
-> Version: 0.2.0 | Date: 2026-09-08 | Status: Ready 可执行
+> Version: 0.3.0 | Date: 2026-09-08 | Status: Ready 可执行
 >
 > 本文件是本需求的**唯一事实源**：事实基线、业务合同、技术方案、任务计划、验收协议全部在此。
 > 其他文件（handoff.md、tasks.csv）只引用本文件，不复制内容。
@@ -14,7 +14,7 @@
 ## 0. 一页纸人话摘要
 
 - **给谁 / 场景**：在官方 DSH 前台（http://127.0.0.1:3084）里用「人设」聊天的本机用户。今天人设名册只住在右侧 iframe 工作台里，对话也在 iframe 里另画一套，和官方左栏会话树、官方中栏对话面是两套壳。
-- **做什么**：把原型 `docs/prototypes/dsh-bot-left-tab.html` 的方向落地——官方左栏可以切成「Bot 模式」：会话树的位置换成人设名册（分组、未读、悬停预览、新建/编辑/删除人设与小组、关系图），点人设直接在官方中栏打开它绑定的官方会话；中栏顶栏多一个人设身份条（记忆/例程/同事/人设/切对话）。切回「会话模式」后官方会话树原样回来。
+- **做什么**：把原型 `docs/prototypes/dsh-bot-left-tab.html` 的方向落地——官方左栏可以切成「Bot 模式」：会话树的位置换成人设名册（分组、未读与「要你决定」红标、悬停预览、新建/编辑/删除人设与小组、关系图、⌘K 跳转），点人设直接在官方中栏打开它绑定的官方会话；中栏顶栏多一个人设身份条（记忆/例程/同事/人设/切对话），例程主动发的那轮对话尾部带「例程触发」标签。切回「会话模式」后官方会话树原样回来。
 - **改哪里**：`packages/ui-dsh-bot`（浏览器插件半边，新增左栏区域注册、底栏 Bot 开关、中栏顶栏身份条）；抽一个共享逻辑包给 iframe 工作台和左栏名册共用；`packages/workbench-ui` 只加一个「被宿主选中小组」的消息接收。不改官方 npm 包，不改后端 RPC 契约。
 - **怎么算做完**：在真机前台点底栏「Bot」→ 左栏变成分组名册（置顶/工作/生活 + 未读徽章）→ 点「代码审查官」→ 中栏打开它最近的官方会话且顶栏出现身份条 → 点名册顶部「会话」→ 官方会话树完整回来；刷新页面模式保持。
 - **不做什么**：不把 1:1 对话再画一遍（对话面全部交官方中栏）；不改官方「+ 新会话」按钮的行为（平台没有接口）；小组房间不进官方中栏（继续在右侧「DSH Bot」页签里，名册点小组只负责跳过去）。
@@ -41,7 +41,7 @@
 | 主要风险 | ① `priority` 遮蔽只在 SlotCore 实现与报错文案中出现，`slots.d.ts` 未写成公开契约，升级可能变；② 遮蔽注册若未随 fiber 卸载清理会留下孤儿条目让官方树消失；③ 名册在 280px 左栏与 56px rail 两态都要能用；④ 工作区有在飞未提交改动（session-nav），不能被本包踩坏 |
 | 行号引用策略 | 仅 hint（frontend）；共享包抽取部分附 symbol + rg anchor |
 | 必需验收方式 | 真机浏览器点击 + 截图 + console；`pnpm run typecheck`；vitest（jsdom）；tsdown build 通过纯度插件 |
-| 必须覆盖用户场景 | UF-601 切入 Bot 模式、UF-602 切回会话模式、UF-603 点人设开官方会话、UF-604 收起 rail、UF-605 中栏身份条、UF-606 点小组跳页签、UF-607 未读与已读、UF-608 左栏管理人设与小组、UF-609 关系图与新开房间、UF-610 悬停预览与人设浮层 |
+| 必须覆盖用户场景 | UF-601 切入 Bot 模式、UF-602 切回会话模式、UF-603 点人设开官方会话、UF-604 收起 rail、UF-605 中栏身份条、UF-606 点小组跳页签、UF-607 未读与已读、UF-608 左栏管理人设与小组、UF-609 关系图与新开房间、UF-610 悬停预览与人设浮层、UF-611 ⌘K、UF-612 红「@」与例程标签 |
 
 ### 1.3 勘察事实清单
 
@@ -66,6 +66,8 @@
 | 人设/小组管理 RPC 齐全：`createBot / updateBot / deleteBot / createGroup / updateGroup / deleteGroup / createGroupSession`；删 seed bot 抛 `bot-protected`；小组成员 2–6（`GROUP_MEMBER_MIN/MAX`） | `rg -n "case 'deleteBot'|case 'createGroupSession'" packages/dsh-bot-host/src/workbench-routes.ts`；`rg -n "bot-protected|GROUP_MEMBER_MIN =" packages/dsh-bot-host/src/bots.ts packages/dsh-bot-host/src/groups.ts` | routes L217 / L243；bots L508；groups L15 |
 | iframe 工作台已有 `BotForm` / `GroupForm` / `RelationshipGraph` 三个组件，字段与校验可对照（不可跨包 import，见纯度插件） | `rg -n "^export function" packages/workbench-ui/src/BotForm.tsx packages/workbench-ui/src/GroupForm.tsx packages/workbench-ui/src/RelationshipGraph.tsx` | L46 / L28 / L16 |
 | 原型悬停预览 400ms 出、120ms 收；预览卡 220px；表单 `formPane` 560px；关系图卡 ≤520×420；确认框 360px | `rg -n "hoverTimer = setTimeout|\.rosterPreviewCard \{|\.formPane \{|\.graphCard \{|\.confirmBox \{" docs/prototypes/dsh-bot-left-tab.html` | L1410 / L1422 / L78 / L166 / L176 / L190 |
+| 官方 `SessionSummary.pendingInteraction?: 'approval' \| 'plan-review' \| 'question'`（官方侧栏琥珀点的数据源）可在客户端直接读到；`/dsh-bot/history` 条目已有 `origin?: 'routine'` 与 `seq` | `rg -n "pendingInteraction\?: PendingInteractionStatus" env/profiles/gb/node_modules/@deepseek-ai/dsh-client-runtime/lib/types/client/sessions/service.d.ts`；`rg -n "origin\?: 'routine'|readonly seq: number" packages/workbench-ui/src/api.ts` | service.d.ts L48；api.ts L170 / L171 |
+| 官方 `conversation.chat.turnTail` 是 chain / session 槽：条目用 `select(owner)` 决定是否挂载，owner 给 `turn: TurnLocation`（`turn / start / end / status`）与闭合 `seq` | `rg -n "'conversation.chat.turnTail'" -B 6 -A 4 env/profiles/gb/node_modules/@deepseek-ai/dsh-client-ui-conversation/lib/types/client/contract/slots.d.ts`；`rg -n "interface TurnLocation" -A 8 env/profiles/gb/node_modules/@deepseek-ai/dsh-client-runtime/lib/types/client/contract/conversation.d.ts` | slots L154-L164 / L440-L450；conversation L67-L75 |
 | 宿主 RPC 方法：`listBots createBot updateBot deleteBot createBotSession listBotSessions history prompt reconcile listGroups ... markRead ... updateBotLayout`；`rosterSections` 不在 host 路由里（只在 workbench api.ts 有客户端封装） | `rg -n "case '[a-zA-Z]+':" packages/dsh-bot-host/src/workbench-routes.ts`；`rg -n rosterSections packages/dsh-bot-host/src/` | routes L211-L330；host 无命中 |
 | SSE `GET /dsh-bot/events` 只转发 `bot:` / `group-room:` marks 会话 | `Read packages/dsh-bot-host/src/bot-events.ts` | L2；L125 `text/event-stream` |
 | `WorkbenchBot` 已有 `unread/pinned/section/hidden/order/muted/presetId`；`CreateBotSessionValue` 有 `sessionId/title/botId/presetId` | `rg -n "export interface WorkbenchBot\b|export interface CreateBotSessionValue" -A 14 packages/workbench-ui/src/api.ts` | L64-L78；L147-L152 |
@@ -92,12 +94,14 @@
 | ASM-603 | dispose 遮蔽注册后官方 `WorkspaceBrowser` 立即恢复渲染且搜索/展开状态可用 | 若 store 实例被回收导致官方树空白，需改为保持注册 + CSS 隐藏 | Task 1：切回后截图 + 点开一个会话 |
 | ASM-604 | `sidebar.footer.action`（list）注册一条 `{ id: 'dsh-bot:mode' }` 后在设置行旁渲染，wide/rail 两态都收到 `wide` | 若 rail 态不渲染 footer.action，rail 入口改为 region 内头像列 | Task 1：wide/rail 各一张截图 |
 | ASM-605 | `conversation.session.header.actions` 条目通过标准 kit 拿到 `sessionId`，再用 `ctx.sessions.list.getSnapshot().byId[sessionId].agentPreset` 能读到 `dsh-bot--<slug>` | 若 agentPreset 为空，需改用 `POST /dsh-bot/listBotSessions` 反查 | Task 1：在 bot 会话与普通会话各打印一次 |
+| ASM-608 | `/dsh-bot/history` 条目的 `seq` 与官方 `TurnLocation.start/end` 事件的 `seq` 同源（都是 session 事件序号），可直接做区间匹配 | 不同源则 turnTail 的 `select` 改按 `createdAt` 时间窗匹配，精度下降 | Task 19 第一步：在一条例程会话上同时打印两边 seq，写入 `evidence/UF-612/seq-check.log` |
 | ASM-607 | 到本包 Task 7 开工时，session-nav Task 9/10（`POST /dsh-bot/overview` + `GET /dsh-bot/events` 脏通知）已落地；Task 7 直接消费 overview 而不是逐 bot `listBotSessions` | 未落地则 Task 7 先按 `listBots` + `listGroups` + 懒拉 `listBotSessions(选中 bot)` 实现，并在 §1.5 登记「待 overview 落地后切换」 | Task 7 开工前 `rg -n "case 'overview'" packages/dsh-bot-host/src/workbench-routes.ts` |
 
 ### 1.5 变更记录
 
 | 日期 | 变更条目 ID | 原因 | 影响任务与处置 |
 |---|---|---|---|
+| 2026-09-08 | BR-619~621、UF-611~612、EVD-612~613、ASM-608 新增；§2.8 撤回三条非目标（v0.3.0） | 用户质疑非目标；复核后「@」可用官方 `pendingInteraction`、例程标签可用 `turnTail` chain + history `origin`，⌘K 可用 `shell.overlay` + 焦点分工，均不改 host | 新增 Task 15（⌘K 面板）、Task 19（turnTail 标签）；原 15-21 顺延为 16-18 / 20-23；Task 4/7/8 扩展；5.2 +3 行 |
 | 2026-09-08 | BR-613~618、UF-608~610、EVD-609~611 新增；§2.8 增三条非目标（@ 提及 / ⌘K / 例程标签）（v0.2.0） | 用户要求补齐与原型的功能与界面对齐：名册头部三按钮、overlay 表单与删除确认、菜单编辑/删除、新开房间、悬停预览、人设浮层、视觉基准 | 新增 Task 12（overlay 表单）/ 13（关系图 + 新开房间）/ 14（悬停预览）；原 Task 12-18 顺延为 15-21；Task 7 补六个管理 RPC；Task 8/10/17 扩展；5.2 矩阵 +8 行 |
 | 2026-09-08 | ASM-606 消解（v0.1.2）：session-nav 重跑证实隐藏未归档会话 open 落地，阻塞根因为归档；事实回写 §1.3，Task 1 去掉 5b，前置改为「已满足」 | 见 §1.3 2026-09-08 行 | Task 1 标题恢复 ASM-601~605；状态板备注同步 |
 | 2026-09-08 | ASM-606 / ASM-607 新增（v0.1.1） | 用户确认本包与在飞包 `dsh-bot-session-nav` 的两处耦合：隐藏会话 open 阻塞是 BR-605 前提；overview + SSE 与 Task 7 数据层重叠 | Task 1 增加隐藏会话 open 校准步骤并点名 session-nav Task 4；Task 7 前置增加「先查 overview 是否落地」分支；状态板备注同步 |
@@ -135,6 +139,9 @@
 | BR-616 | 身份条第四枚 pill「人设」：浮层显示 persona 文本 + `preset dsh-bot--<slug>` + 「编辑人设」按钮（打开 BR-613 的编辑模态）；身份 chip 本身点击也打开编辑模态 | 点 chip 直接进编辑 | 人设文本只能去 iframe 看 | `IdentityBar.tsx` | UF-610 |
 | BR-617 | 视觉基准：分段条 / 名册行 / 头像 / 未读徽章 / 预览卡 / 浮层 / 表单 / 确认框 / 关系图卡的尺寸、圆角、间距以 `docs/prototypes/dsh-bot-left-tab.html` 对应 class（`.seg` `.rosterRow` `.face` `.unreadBadge` `.rosterPreviewCard` `.floatPanel` `.formPane` `.confirmBox` `.graphCard`）为准，颜色 token 换成宿主 `color-scheme` 变量；实现不得自创另一套间距 | 名册行 36px 头像格 + 三列网格 | 行高、圆角随手写 | 全部 CSS modules | code review + UF-601 截图对照 |
 | BR-618 | 小组行选中后下挂「+ 新开房间」：调 `createGroupSession(groupId)` 后按 BR-608 跳右栏页签并选中该房间；「关系图」按钮打开 `shell.overlay` 关系图卡（虚线 = 同组，实线 = 有过传话），点节点 → 关闭卡并 `selectBot` | 点节点「诗人小北」名册选中小北并打开其会话 | 关系图画在中栏 | `RelationshipGraphOverlay.tsx` | UF-609 |
+| BR-619 | 「需要你决定」红徽章：某 bot 任一绑定会话在 `ctx.sessions.list.getSnapshot().byId[id].pendingInteraction` 有值（approval / plan-review / question）时，名册徽章改为红色「@」并优先于数字未读；底栏「Bot」行也带红点；pending 消失即回到数字 | 审批卡出现时审查官行变红「@」 | 用 host 新字段实现；红色永不清 | `BotRoster.tsx` / `ModeFooterAction.tsx` | UF-612 |
+| BR-620 | 例程触发标签：向 `conversation.chat.turnTail`（chain）注册，`select` 只在该 turn 的 seq 区间内存在 `origin === 'routine'` 的 history 项时匹配，渲染「例程触发 · {例程名}」小标签；其他 turn 一律 `null`（不挂载） | 06:00 巡检那轮尾部有标签 | 每个 turn 都挂一个空组件 | `RoutineTurnTail.tsx` | UF-612 |
+| BR-621 | ⌘K 命令面板：`shell.overlay` 里的 palette kind；`window` 级 `keydown` 只在焦点不在 iframe / 输入框时响应；项 = 人设 / 小组 / 当前人设绑定会话 / 切模式；↑↓↵ Esc；不做「分镜」项 | 焦点在官方 composer 外按 ⌘K 出面板 | 焦点在 iframe 内也抢键 | `CommandPalette.tsx` | UF-611 |
 | BR-612 | 未读：名册徽章读 `WorkbenchBot.unread`；点人设或身份条出现时调 `markRead(botId)` 清零；数据刷新靠 `/dsh-bot/events` SSE 触发 `listBots` 重拉，SSE 断开退回 2s 轮询（沿用 `rpc.ts` 策略） | 例程说话后徽章 +1，点开后归零 | 徽章永不更新或每秒闪烁 | `roster-rpc.ts` | 单测 + UF-607 |
 
 ### 2.2 UF 用户验收场景（索引）
@@ -151,6 +158,8 @@
 | UF-608 | Bot 模式 | 名册头部「+ 新建人设 / + 新建小组」、⋯ 菜单「编辑人设 / 删除人设 / 编辑成员 / 删除小组」 | overlay 模态表单；保存后名册刷新并选中；删除需确认，DSH Bot 不可删 | 用户 | browser | EVD-609 |
 | UF-609 | Bot 模式，存在小组 | 点「关系图」；点节点；小组行「+ 新开房间」 | overlay 关系图卡显示同组虚线；点节点回到该人设；新开房间后右栏页签选中新房间 | 用户 | browser | EVD-610 |
 | UF-610 | Bot 模式 / bot 会话 | 悬停名册行 0.4s；点身份条「人设」pill 或 chip | 预览卡出现且不挡点击；人设浮层显示 persona + preset，「编辑人设」打开编辑模态 | 用户 | browser | EVD-611 |
+| UF-611 | 任一模式，焦点在官方壳 | 按 ⌘K | 面板弹出；输入过滤；↵ 跳到人设/小组/会话或切模式；焦点在 iframe 时不触发 | 用户 | browser | EVD-612 |
+| UF-612 | bot 会话触发审批 / 例程主动说话 | 看名册与中栏 | 名册该 bot 红「@」；审批处理后回数字；例程那轮尾部有「例程触发」标签 | 用户 | browser + RPC | EVD-613 |
 
 ### 2.3 核心业务流程（步骤级交互脚本）
 
@@ -468,6 +477,64 @@ confirm: closed ──删除项──▶ confirming ──确认──▶ deleti
 - 名册行 `onPointerEnter/Leave` → hover 计时器 → `previewId`
 - 身份条「人设」pill onClick → `personaPanel`；「编辑人设」/ chip onClick → `openOverlay({ kind:'edit-bot', id })`
 
+#### UF-611: ⌘K 命令面板
+
+**前置状态**：官方前台任一模式，焦点在页面上（不在 iframe、不在输入框）。
+
+**成功主路径**：
+
+| 步骤 | 用户动作 | 界面即时反馈 | 系统行为 | 用户看到的结果 |
+|---|---|---|---|---|
+| 1 | 按 ⌘K（Win/Linux Ctrl+K） | `shell.overlay` 弹出面板（560px、顶距 16vh），输入框获焦 | `openOverlay({ kind:'palette' })` | 列表：可见人设 / 小组 / 当前人设的绑定会话 /「切到 Bot 模式」或「切到会话模式」 |
+| 2 | 输入「审」 | 列表即时过滤（名字 + 预览） | — | 只剩「代码审查官」及其会话 |
+| 3 | ↓ 到会话项，↵ | 面板关闭 | 若当前是会话模式先 `mode.set('bot')`；`sessions.open(id)` | 左栏 Bot 名册选中审查官，中栏打开该会话 |
+| 4 | 再按 ⌘K，选「切到会话模式」↵ | 面板关闭 | `mode.set('sessions')` | 官方树回来 |
+| 5 | 按 Esc 或点遮罩 | 面板关闭 | — | — |
+
+**失败分支**：
+
+| 分支 | 触发条件 | 界面表现 | 系统行为 | 恢复路径 |
+|---|---|---|---|---|
+| 焦点在 iframe 内 | 右栏工作台 iframe 获焦时按 ⌘K | 宿主面板不出现；iframe 自己的 ⌘K 出现 | 监听器判 `activeElement.tagName === 'IFRAME'` 放行 | 点回官方壳再按 |
+| 焦点在输入框 | 官方 composer 内按 ⌘K | 不触发 | 放行 | — |
+| 空结果 | 过滤词无匹配 | 「没有匹配」 | — | 改词 |
+| 名册未加载 | `listBots` 未返回 | 面板只列「切模式」项 + 「名册加载中…」 | — | 自动补齐 |
+
+**界面状态机**：`closed ──⌘K──▶ open(filter, sel) ──↵──▶ closed(+动作) / ──Esc──▶ closed`。
+
+**入口接线清单**：
+
+- `apply` 里 `ctx.effect(() => window.addEventListener('keydown', onKey))`（随 fiber 卸载）
+- 面板项 onClick / ↵ → `selectBot` / `openGroup` / `sessions.open` / `mode.set`
+
+#### UF-612: 「需要你决定」红徽章与「例程触发」标签
+
+**前置状态**：Bot 模式；审查官会话正在跑一个要审批的工具；运维夜班有 06:00 例程。
+
+**成功主路径**：
+
+| 步骤 | 用户动作 | 界面即时反馈 | 系统行为 | 用户看到的结果 |
+|---|---|---|---|---|
+| 1 | 审查官会话进入审批等待 | 名册审查官行徽章变红「@」；底栏「Bot」行红点 | `ctx.sessions.list` 的 `byId[id].pendingInteraction === 'approval'` 变化触发重渲染 | 与官方侧栏琥珀点同步出现 |
+| 2 | 点该行 → 中栏批准 | 红「@」消失，回到数字未读（或无） | `pendingInteraction` 清空 | — |
+| 3 | 用 RPC 触发运维夜班的 `routineRunNow` | 名册该行未读 +1 | 例程 wake 写入其会话 | — |
+| 4 | 点该行打开会话 | 中栏例程那轮的尾部出现「例程触发 · 早间巡检」小标签 | turnTail `select` 命中 `origin:'routine'` 的 history 项 | 其他轮无标签 |
+
+**失败分支**：
+
+| 分支 | 触发条件 | 界面表现 | 系统行为 | 恢复路径 |
+|---|---|---|---|---|
+| seq 不同源（ASM-608 证伪） | history seq 与官方 turn seq 对不上 | 标签不出现 | Task 19 改为 `createdAt` 时间窗匹配 | — |
+| 同一 bot 多会话 pending | 两条会话都在等 | 红「@」一个，悬停预览卡列「2 条待决定」 | — | 逐条处理 |
+| history 未加载 | 刚打开会话 | 标签延迟到 history 到达后出现 | store 更新触发链重选 | 自动 |
+
+**界面状态机**：`badge: number ──pending──▶ mention(@) ──resolved──▶ number`；`tail: unmounted ──select 命中──▶ shown`。
+
+**入口接线清单**：
+
+- `BotRoster` / `ModeFooterAction` 订阅 `ctx.sessions.list`（`useSyncExternalStore`）计算 pending 集合
+- `ctx.slots.inject('conversation.chat.turnTail', () => ctx.slots.register({ name, select }, RoutineTurnTail))`
+
 ### 2.4 INV 不变量
 
 | 不变量 ID | 内容 | 关联 BR/UF | 验证方式 |
@@ -494,6 +561,8 @@ confirm: closed ──删除项──▶ confirming ──确认──▶ deleti
 | EVD-608 | log | 各 Phase 命令级输出（typecheck / vitest / build） | `evidence/phase-{N}/commands.log` |
 | EVD-609 | screenshot + api | UF-608 新建人设模态、保存后选中、删除确认、校验红字、RPC 失败红字 | `evidence/UF-608/create-bot.png`、`evidence/UF-608/created-selected.png`、`evidence/UF-608/delete-confirm.png`、`evidence/UF-608/validation.png`、`evidence/UF-608/rpc-error.png`、`evidence/UF-608/createBot.json` |
 | EVD-610 | screenshot | UF-609 关系图卡、点节点后选中、新开房间后右栏、无小组空态 | `evidence/UF-609/graph.png`、`evidence/UF-609/node-select.png`、`evidence/UF-609/new-room.png`、`evidence/UF-609/no-groups.png` |
+| EVD-612 | screenshot | UF-611 面板、过滤、iframe 获焦不触发 | `evidence/UF-611/palette.png`、`evidence/UF-611/filtered.png`、`evidence/UF-611/iframe-focus-no-palette.png` |
+| EVD-613 | screenshot + log | UF-612 红「@」、处理后回数字、例程标签、seq 核对日志 | `evidence/UF-612/mention-badge.png`、`evidence/UF-612/badge-cleared.png`、`evidence/UF-612/routine-tag.png`、`evidence/UF-612/seq-check.log` |
 | EVD-611 | screenshot | UF-610 预览卡、小组预览卡、人设浮层、rail 无卡 | `evidence/UF-610/hover-bot.png`、`evidence/UF-610/hover-group.png`、`evidence/UF-610/persona-panel.png`、`evidence/UF-610/rail-no-card.png` |
 
 ### 2.6 角色与权限矩阵
@@ -518,9 +587,7 @@ confirm: closed ──删除项──▶ confirming ──确认──▶ deleti
 - 不把小组房间搬进官方中栏，不把房间做成官方 session。
 - 不改 `dsh-bot-host` RPC 契约，不新增 host 路由。
 - 不实现名册拖拽排序（右键菜单里的置顶/移组沿用 `updateBotLayout` 即可）。
-- 不做原型的「@ 提及」红色徽章：`WorkbenchBot` 没有 mention 字段，补它要改 host（违反 INV-602），留给后续包。
-- 不做原型的 ⌘K 跳转面板：官方没有 palette 座位，且 iframe 工作台已有自己的 ⌘K，两套会打架。
-- 不做原型 transcript 里的「例程触发」标签（官方对话节点不可加字）。
+- ⌘K 面板不做原型里的「分镜」项；「@」徽章只表达官方 `pendingInteraction`（审批 / 计划评审 / 提问），不做小组内成员互相 @ 的提及（host 无此数据）。
 - 不动官方 npm 包与邻仓。
 
 ---
@@ -559,6 +626,8 @@ After:
 | `packages/ui-dsh-bot/src/client/IdentityBar.tsx`（新） | 中栏身份条 | chip + 四枚 pill（记忆/例程/同事/人设）+ 对话切换 + 新开对话；非 bot 会话返回 null；chip 点击进编辑模态 |
 | `packages/ui-dsh-bot/src/client/OverlayHost.tsx` + `OverlayForms.tsx`（新） | `shell.overlay` 模态层 | 新建/编辑人设、新建小组/编辑成员、删除确认；overlayStore 驱动，空时返回 null |
 | `packages/ui-dsh-bot/src/client/RelationshipGraphOverlay.tsx`（新） | 关系图卡 | 节点/边计算沿用 workbench-ui `RelationshipGraph.tsx` 的思路，SVG 自绘，点节点 `selectBot` |
+| `packages/ui-dsh-bot/src/client/CommandPalette.tsx`（新） | ⌘K 面板（overlay 的一种 kind） | `window` keydown 监听，焦点在 iframe / 输入框时放行 |
+| `packages/ui-dsh-bot/src/client/RoutineTurnTail.tsx`（新） | `conversation.chat.turnTail` 链条目 | `select` 查 history seq 索引，命中才挂载 |
 | `packages/ui-dsh-bot/src/client/roster-rpc.ts`（新） | 数据层 | 沿用 `rpc.ts` 的 `observable` + 轮询/SSE 模式；bots/groups/sessions 三个 store |
 | `packages/ui-dsh-bot/src/client/locales.ts` | 词条 | 新增 `mode.*` / `roster.*` / `identity.*` zh/en |
 | `packages/dsh-bot-shared`（新包） | 共享逻辑 | 从 workbench-ui 迁出 `roster-sections.ts`、`avatar.ts`、`session-binding.ts` 与 `api.ts` 的类型；两侧改 import；无 React、无 CSS |
@@ -591,6 +660,9 @@ After:
 | `packages/workbench-ui/src/GroupForm.tsx` | `export function GroupForm` | `rg "export function GroupForm" packages/workbench-ui/src/GroupForm.tsx` | L28 | 成员多选参照 |
 | `packages/workbench-ui/src/RelationshipGraph.tsx` | `export function RelationshipGraph` | `rg "export function RelationshipGraph" packages/workbench-ui/src/RelationshipGraph.tsx` | L16 | 节点/边计算参照 |
 | `packages/dsh-bot-host/src/groups.ts` | `GROUP_MEMBER_MIN` | `rg "GROUP_MEMBER_MIN" packages/dsh-bot-host/src/groups.ts` | L15 | 小组成员 2–6 校验来源 |
+| `packages/workbench-ui/src/api.ts` | `origin?: 'routine'` | `rg "origin\?: 'routine'" packages/workbench-ui/src/api.ts` | L170 | history 项的例程来源标记（BR-620） |
+| `packages/workbench-ui/src/CommandPalette.tsx` | `export function CommandPalette` | `rg "export function CommandPalette" packages/workbench-ui/src/CommandPalette.tsx` | L66 | iframe 版 ⌘K 参照（不 import） |
+| `docs/prototypes/dsh-bot-left-tab.html` | `.palette {` | `rg "\.palette \{" docs/prototypes/dsh-bot-left-tab.html` | L193 | ⌘K 面板尺寸；`.wakeTag` L150 例程标签样式 |
 | `packages/dsh-bot-host/src/bots.ts` | `bot-protected` | `rg "bot-protected" packages/dsh-bot-host/src/bots.ts` | L508 | DSH Bot 不可删的错误码 |
 | `docs/prototypes/dsh-bot-left-tab.html` | `.rosterRow {` | `rg "\.rosterRow \{" docs/prototypes/dsh-bot-left-tab.html` | L61 | BR-617 视觉基准（`.seg` L34、`.face` L88、`.unreadBadge` L68、`.rosterPreviewCard` L78、`.floatPanel` L121、`.formPane` L166、`.graphCard` L176、`.confirmBox` L190） |
 | `packages/workbench-ui/src/App.tsx` | `export function App` | `rg "export function App" packages/workbench-ui/src/App.tsx` | L99 | 加 select-group 监听（文件有在飞未提交改动，开工时以 anchor 重新定位） |
@@ -606,7 +678,7 @@ After:
 | API | 否 | 只消费现有 `/dsh-bot/*` RPC 与 `/dsh-bot/events`；不新增、不改签名（INV-602） | — |
 | 数据 | 否（浏览器侧新增） | 新增 `localStorage['dsh-bot:sidebar-mode']`；沿用 `dsh-bot:last-session:*` | 缺失即缺省 `sessions` |
 | 权限 | 否 | 单用户 loopback | — |
-| 路由 | 否 | 不新增 HTTP 路由；新增 4 个 slot 注册（`sidebar.workspaces` priority -1、`sidebar.footer.action` id `dsh-bot:mode`、`conversation.session.header.actions` id `dsh-bot:identity`、`shell.overlay` id `dsh-bot:overlay`） | 全部 disposer 化（BR-611） |
+| 路由 | 否 | 不新增 HTTP 路由；新增 5 个 slot 注册（`sidebar.workspaces` priority -1、`sidebar.footer.action` id `dsh-bot:mode`、`conversation.session.header.actions` id `dsh-bot:identity`、`shell.overlay` id `dsh-bot:overlay`、`conversation.chat.turnTail` chain 条目）+ 1 个 `window` keydown 监听 | 全部 disposer 化（BR-611） |
 
 ### 3.5 官方包只读参照（人工核验）
 
@@ -621,6 +693,9 @@ After:
 | `env/profiles/gb/node_modules/@deepseek-ai/dsh-client-runtime/lib/types/client/sessions/service.d.ts` | `agentPreset?: string` | `rg "agentPreset\?: string" env/profiles/gb/node_modules/@deepseek-ai/dsh-client-runtime/lib/types/client/sessions/service.d.ts` | L42 | 身份条判定字段 |
 | `env/profiles/gb/node_modules/@deepseek-ai/dsh-client-ui-conversation/lib/types/client/contract/slots.d.ts` | `'conversation.session.header.actions'` | `rg "'conversation.session.header.actions'" env/profiles/gb/node_modules/@deepseek-ai/dsh-client-ui-conversation/lib/types/client/contract/slots.d.ts` | L96 | list / session |
 | `env/profiles/gb/node_modules/dsh-better-sidebar/lib/types/client/service.d.ts` | `activateTab(tabId` | `rg "activateTab\(tabId" env/profiles/gb/node_modules/dsh-better-sidebar/lib/types/client/service.d.ts` | L398 | 小组跳转 |
+| `env/profiles/gb/node_modules/@deepseek-ai/dsh-client-ui-conversation/lib/types/client/contract/slots.d.ts` | `'conversation.chat.turnTail'` | `rg "'conversation.chat.turnTail'" env/profiles/gb/node_modules/@deepseek-ai/dsh-client-ui-conversation/lib/types/client/contract/slots.d.ts` | L160 | chain / session；owner `{ turn, seq, openFile }`（L440） |
+| `env/profiles/gb/node_modules/@deepseek-ai/dsh-client-runtime/lib/types/client/sessions/service.d.ts` | `pendingInteraction?: PendingInteractionStatus` | `rg "pendingInteraction\?: PendingInteractionStatus" env/profiles/gb/node_modules/@deepseek-ai/dsh-client-runtime/lib/types/client/sessions/service.d.ts` | L48 | 红「@」数据源（BR-619）；取值见 `sessions/pending.d.ts` L14 |
+| `env/profiles/gb/node_modules/@deepseek-ai/dsh-client-runtime/lib/types/client/contract/conversation.d.ts` | `interface TurnLocation` | `rg "interface TurnLocation" env/profiles/gb/node_modules/@deepseek-ai/dsh-client-runtime/lib/types/client/contract/conversation.d.ts` | L67 | `turn / start / end / status` |
 | `env/profiles/gb/node_modules/@deepseek-ai/dsh-client-ui-layout/lib/types/client/index.d.ts` | `'shell.overlay'` | `rg "'shell.overlay'" env/profiles/gb/node_modules/@deepseek-ai/dsh-client-ui-layout/lib/types/client/index.d.ts` | L77 | list / root；层本身 click-through，条目自行 opt-in pointer events |
 
 ---
@@ -632,12 +707,12 @@ After:
 ```text
 P0 校准（Task 1）
  └─▶ P1 左栏模式切换骨架（Task 2-5）
-      └─▶ P2 名册内容与打开会话（Task 6-15）
-           └─▶ P3 中栏身份条（Task 16-18）
-                └─▶ P4 文档、真实场景与收尾（Task 19-21）
+      └─▶ P2 名册内容与打开会话（Task 6-16）
+           └─▶ P3 中栏身份条（Task 17-20）
+                └─▶ P4 文档、真实场景与收尾（Task 21-23）
 ```
 
-> 任务状态跟踪：实现任务 16 条 ≥ 8，使用同目录 `tasks.csv`。
+> 任务状态跟踪：实现任务 18 条 ≥ 8，使用同目录 `tasks.csv`。
 > 状态列严格枚举：待开始 / 进行中 / 已完成 / 已阻塞:{原因}；每完成一条立即更新。
 
 ### Phase 0: 校准
@@ -749,7 +824,7 @@ P0 校准（Task 1）
 
 **具体操作**：
 
-1. `ModeFooterAction({ wide, t })`：订阅 mode；wide 渲染一行按钮「Bot」（激活态 `aria-pressed`）+ 总未读徽章（来源 Task 7，先留 props）；rail 渲染 `DshBotIcon`（已有）+ 红点。onClick：`mode.set(mode === 'bot' ? 'sessions' : 'bot')`（UF-602 toggle 语义）。
+1. `ModeFooterAction({ wide, t })`：订阅 mode；wide 渲染一行按钮「Bot」（激活态 `aria-pressed`）+ 总未读徽章（来源 Task 7，先留 props；任一 bot 会话 pending 时徽章变红「@」，BR-619，Task 8 接）；rail 渲染 `DshBotIcon`（已有）+ 红点。onClick：`mode.set(mode === 'bot' ? 'sessions' : 'bot')`（UF-602 toggle 语义）。
 2. `apply`：`ctx.slots.inject('sidebar.footer.action', () => ctx.slots.register({ name: 'sidebar.footer.action', id: 'dsh-bot:mode', order: 10, locale: NS }, ModeFooterAction))`，经 `ctx.effect`。
 3. 单测 `tests/mode-footer-action.spec.tsx`：点击 toggle；rail 态只有图标。
 4. 真机：build → 重启网关 → 点「Bot」看 region 出现、再点回到会话树；F5 保持。
@@ -821,7 +896,7 @@ P0 校准（Task 1）
 
 **具体操作**：
 
-1. `createRosterRpc({ fetch, EventSource })` 返回 `bots`、`groups`、`sessionsByBot` 三个 observable store + 方法 `refresh()`、`sessionsOf(botId)`、`createBotSession(botId)`、`createGroupSession(groupId)`、`markRead(botId)`、`updateBotLayout(input)`、`createBot/updateBot/deleteBot/createGroup/updateGroup/deleteGroup`（Task 12 用）、`memoryList/routineList/peerLog(botId)`、`setActive(bool)`（Bot 模式或身份条可见时才拉）、`dispose()`。
+1. `createRosterRpc({ fetch, EventSource })` 返回 `bots`、`groups`、`sessionsByBot` 三个 observable store + 方法 `refresh()`、`sessionsOf(botId)`、`createBotSession(botId)`、`createGroupSession(groupId)`、`markRead(botId)`、`updateBotLayout(input)`、`createBot/updateBot/deleteBot/createGroup/updateGroup/deleteGroup`（Task 12 用）、`memoryList/routineList/peerLog(botId)`、`historyOf(sessionId)`（按会话懒拉 `history`，维护 `seq → item` 索引供 Task 19 的 `select` 同步查表，SSE 刷新）、`setActive(bool)`（Bot 模式或身份条可见时才拉）、`dispose()`。
 2. 请求走 `POST /dsh-bot/<method>`，body `{ args }`，与 `rpc.ts` 同 `RpcResult` 折叠；错误进 store 的 `error` 字段。
 3. `EventSource('/dsh-bot/events')`：任一事件 → 300ms 去抖 `refresh()`；`onerror` → 关闭并启动 2s 轮询；重连成功后停轮询（沿用 rpc.ts 策略）。
 4. 单测 `tests/roster-rpc.spec.ts`：mock fetch 记录 URL/body；SSE 事件触发刷新；error 回退轮询；`markRead` 后本地 unread 立即置 0（乐观更新）。
@@ -834,7 +909,7 @@ P0 校准（Task 1）
 
 ### Task 8: 名册渲染（分组 / 行 / 搜索 / 已隐藏 / rail 头像列）
 
-- **关联**：BR-604 / BR-610 / UF-601 / UF-604 / EVD-602 / EVD-604
+- **关联**：BR-604 / BR-610 / BR-619 / UF-601 / UF-604 / UF-612 / EVD-602 / EVD-604 / EVD-613
 - **前置任务**：7
 - **风险等级**：P1
 
@@ -848,7 +923,7 @@ P0 校准（Task 1）
 
 **具体操作**：
 
-1. `BotRoster`：头部「人设」+ 搜索框（按名字/预览过滤）；`groupRosterItems(bots ∪ groups)` 按 section 渲染可折叠节（折叠状态存 `localStorage['dsh-bot:roster-folded']`）；行：头像（`hashAvatarColor` + `nameInitial` 或 emoji）/ 名字 / 预览（`rowPreview`）/ 未读徽章（`muted` 时灰）/ 会话数；小组行画马赛克头像。
+1. `BotRoster`：头部「人设」+ 搜索框（按名字/预览过滤）；`groupRosterItems(bots ∪ groups)` 按 section 渲染可折叠节（折叠状态存 `localStorage['dsh-bot:roster-folded']`）；行：头像（`hashAvatarColor` + `nameInitial` 或 emoji）/ 名字 / 预览（`rowPreview`）/ 未读徽章（`muted` 时灰；该 bot 任一绑定会话 `pendingInteraction` 有值时改红色「@」，BR-619）/ 会话数；小组行画马赛克头像。pending 集合来自 `useSyncExternalStore(ctx.sessions.list)` 与 `sessionsByBot` 的交集。
 2. 底部「已隐藏 N 个」可展开，行内「取消隐藏」→ `updateBotLayout({ bots:[{id, hidden:false}] })`。
 3. `RailAvatars`：可见 bot 头像竖列 + 未读红点；onClick → `expandSidebar()` 后调 `onSelect(botId)`（Task 9）。
 4. `BotRegion` 接 rosterStore 驱动三态；`ModeFooterAction` 接总未读。
@@ -1027,10 +1102,39 @@ P0 校准（Task 1）
 
 **注意事项**：不要为预览卡发新请求（数据全部来自 rosterStore）；卡是 `position:absolute` 挂在行上，侧栏 `overflow` 需允许水平溢出或改用 portal。
 
-### Task 15: 执行 Phase 2 回归验证
+### Task 15: shell.overlay 命令面板（⌘K）
 
-- **关联**：BR-604 / BR-605 / BR-608 / BR-609 / BR-610 / BR-612 / BR-613 / BR-614 / BR-615 / BR-618 / UF-601 / UF-603 / UF-604 / UF-606 / UF-607 / UF-608 / UF-609 / UF-610 / INV-601 / INV-602 / INV-603 / INV-606
-- **前置任务**：9 / 12 / 13 / 14
+- **关联**：BR-613 / BR-617 / BR-621 / UF-611 / EVD-612
+- **前置任务**：12 / 9
+- **风险等级**：P2
+
+**为什么做**：原型的 ⌘K 跳转；官方没有 palette 座位但 `shell.overlay` 能放，`keydown` 挂 `window`，iframe 只在自己获焦时吃键，两套面板按焦点分工。
+
+**涉及文件与定位**：
+
+- `packages/ui-dsh-bot/src/client/CommandPalette.tsx`（新建，作为 `OverlayHost` 的一种 kind）
+- `packages/ui-dsh-bot/src/client/overlay-store.ts`（Task 12 产物）
+- `docs/prototypes/dsh-bot-left-tab.html`：`.palette {`，`rg "\.palette \{" docs/prototypes/dsh-bot-left-tab.html`，L193（尺寸：560px、16vh 顶距）
+- `packages/workbench-ui/src/CommandPalette.tsx`：`export function CommandPalette`，`rg "export function CommandPalette" packages/workbench-ui/src/CommandPalette.tsx`，L66（iframe 版参照，不 import）
+
+**具体操作**：
+
+1. `apply` 里 `ctx.effect` 挂 `window.addEventListener('keydown')`：`(meta||ctrl) + k` 且 `document.activeElement` 不在 iframe / 输入框内 → `openOverlay({ kind:'palette' })`；再按一次或 Esc 关闭。
+2. 面板项：可见人设（→ `selectBot`）、小组（→ `openGroup`）、当前人设的绑定会话（→ `sessions.open`）、「切到会话模式 / Bot 模式」（→ `mode.set`）。输入即过滤（名字 + 预览），↑↓ 选择，↵ 执行，Esc 关。不做原型的「分镜」项。
+3. 会话模式下也可用（打开面板时若选人设则先 `mode.set('bot')`）。
+4. 样式对照原型 `.palette` / `.palItem` / `.palFoot`（BR-617）。
+5. 单测 `tests/command-palette.spec.tsx`：⌘K 开关、焦点在 input 内不触发、过滤、键盘导航、执行回调。
+
+**验证**：`./node_modules/.bin/vitest run packages/ui-dsh-bot/tests/command-palette.spec.tsx` → 通过
+
+**Evidence**：`evidence/phase-2/commands.log`、`evidence/phase-2/palette.png`
+
+**注意事项**：监听器随 fiber 卸载（BR-611）；不要在 iframe 获焦时抢键（`document.activeElement?.tagName === 'IFRAME'` 直接放行）。
+
+### Task 16: 执行 Phase 2 回归验证
+
+- **关联**：BR-604 / BR-605 / BR-608 / BR-609 / BR-610 / BR-612 / BR-613 / BR-614 / BR-615 / BR-618 / BR-619 / BR-621 / UF-601 / UF-603 / UF-604 / UF-606 / UF-607 / UF-608 / UF-609 / UF-610 / UF-611 / UF-612 / INV-601 / INV-602 / INV-603 / INV-606
+- **前置任务**：9 / 12 / 13 / 14 / 15
 
 **验证**：`pnpm run typecheck && pnpm test && pnpm run build` → 全过；`git diff --stat packages/dsh-bot-host/src` → 空（INV-602）；真机 UF-603 步骤 1-6 与 UF-608 步骤 1-2 走通并截图
 
@@ -1041,10 +1145,10 @@ P0 校准（Task 1）
 > 你在哪里：名册可用，bot 会话在官方中栏打开，但顶栏与普通会话无异。
 > 做完之后：bot 会话顶栏有身份 chip、记忆/例程/同事浮层、对话切换、新开对话；普通会话不受影响。
 
-### Task 16: header.actions 身份 chip（仅 bot 会话）
+### Task 17: header.actions 身份 chip（仅 bot 会话）
 
 - **关联**：BR-606 / BR-607 / BR-611 / UF-605 / EVD-605
-- **前置任务**：15
+- **前置任务**：16
 - **风险等级**：P1
 
 **为什么做**：让用户在官方中栏知道「我在和谁说话」，而不重画对话面。
@@ -1068,10 +1172,10 @@ P0 校准（Task 1）
 
 **注意事项**：session 作用域条目会随会话切换重挂载，副作用要幂等；禁止在此渲染任何消息流（BR-606）。
 
-### Task 17: 记忆 / 例程 / 同事 / 人设 pill 浮层 + 对话切换 + 新开对话
+### Task 18: 记忆 / 例程 / 同事 / 人设 pill 浮层 + 对话切换 + 新开对话
 
 - **关联**：BR-605 / BR-606 / BR-609 / BR-616 / BR-617 / UF-605 / UF-610 / EVD-605 / EVD-611
-- **前置任务**：16
+- **前置任务**：17
 - **风险等级**：P1
 
 **为什么做**：原型分镜 8 的顶栏浮层与「对话」切换器。
@@ -1095,10 +1199,39 @@ P0 校准（Task 1）
 
 **注意事项**：浮层 z-index 需高于官方 header 但低于官方 `shell.overlay`；浮层内不做记忆增删（只读）。
 
-### Task 18: 执行 Phase 3 回归验证
+### Task 19: turnTail「例程触发」标签
 
-- **关联**：BR-606 / BR-607 / BR-611 / UF-605 / INV-603 / INV-606
-- **前置任务**：17
+- **关联**：BR-606 / BR-611 / BR-620 / UF-612 / EVD-613
+- **前置任务**：17 / 7
+- **风险等级**：P2
+
+**为什么做**：原型分镜 6 在例程主动发的那轮对话上打「例程触发」标签；官方 `conversation.chat.turnTail`（chain）就是给完成的 turn 挂尾巴的座位，`/dsh-bot/history` 条目已有 `origin: 'routine'`。
+
+**涉及文件与定位**：
+
+- `packages/ui-dsh-bot/src/client/RoutineTurnTail.tsx`（新建）
+- `packages/ui-dsh-bot/src/client/index.ts`：`export function apply`，L56
+- `packages/workbench-ui/src/api.ts`：`origin?: 'routine'`，`rg "origin\?: 'routine'" packages/workbench-ui/src/api.ts`，L170
+- `env/profiles/gb/node_modules/@deepseek-ai/dsh-client-ui-conversation/lib/types/client/contract/slots.d.ts`：`'conversation.chat.turnTail'`，L160；`TurnTailOwnerProps`，L440
+- `env/profiles/gb/node_modules/@deepseek-ai/dsh-client-runtime/lib/types/client/contract/conversation.d.ts`：`interface TurnLocation`，L67
+
+**具体操作**：
+
+1. `apply`：`ctx.slots.inject('conversation.chat.turnTail', () => ctx.slots.register({ name: 'conversation.chat.turnTail', select: (owner) => matchRoutineTurn(owner), inject: () => ({ roster }) }, RoutineTurnTail))`。
+2. `matchRoutineTurn({ turn, seq })`：从 roster-rpc 的 `historyOf(sessionId)`（Task 7 补一个按 session 懒拉、SSE 刷新的 history store）里找 `origin === 'routine'` 且 `seq` 落在 `[turn.start.seq, turn.end.seq]` 的项；命中返回 `{ routineName }`，否则 `null`（链条声明不匹配、不挂载）。ASM-608：history `seq` 与官方 turn 事件 `seq` 同源（都是 session 事件序号）——第一步先在一条例程会话上打印两边 seq 核对，不同源则改为按 `createdAt` 时间窗匹配。
+3. `RoutineTurnTail`：一枚小标签「例程触发 · {routineName}」，样式对照原型 `.wakeTag`（L150）；非 bot 会话永不命中（history 只对 bot 会话有）。
+4. 单测 `tests/routine-turn-tail.spec.tsx`：命中/不命中 select；标签文案。
+
+**验证**：`./node_modules/.bin/vitest run packages/ui-dsh-bot/tests/routine-turn-tail.spec.tsx` → 通过
+
+**Evidence**：`evidence/phase-3/commands.log`、`evidence/phase-3/routine-tag.png`
+
+**注意事项**：chain 槽的 `select` 会对每个 turn 调用，必须是同步、O(1) 查表（history 预建 seq 索引）；不要在 select 里发请求。
+
+### Task 20: 执行 Phase 3 回归验证
+
+- **关联**：BR-606 / BR-607 / BR-611 / BR-616 / BR-620 / UF-605 / UF-610 / UF-612 / INV-603 / INV-606
+- **前置任务**：18 / 19
 
 **验证**：`pnpm run typecheck && ./node_modules/.bin/vitest run packages/ui-dsh-bot/tests && pnpm --filter ui-dsh-bot run build` → 全过；真机 UF-605 步骤 1-5 走通并截图
 
@@ -1109,10 +1242,10 @@ P0 校准（Task 1）
 > 你在哪里：三条产品面都已实现并各自回归。
 > 做完之后：README 说清左栏 Bot 模式；5.2 执行矩阵全部行通过并有证据；全仓命令级全绿；在飞改动完好。
 
-### Task 19: 同步 README「左栏 Bot 模式」与原型文档状态
+### Task 21: 同步 README「左栏 Bot 模式」与原型文档状态
 
 - **关联**：BR-601 / BR-602 / BR-608 / BR-609 / UF-601（NA：文档任务，无新交互）
-- **前置任务**：18
+- **前置任务**：20
 - **风险等级**：P3
 
 **涉及文件与定位**：
@@ -1131,22 +1264,22 @@ P0 校准（Task 1）
 
 **注意事项**：不改 `docs/prototypes/dsh-bot-left-tab.html`。
 
-### Task 20: 执行 spec 5.2 真实场景全套测试
+### Task 22: 执行 spec 5.2 真实场景全套测试
 
-- **关联**：UF-601 ~ UF-610 / 全部 BR / INV-601 / INV-604 / INV-607 / EVD-602~EVD-607 / EVD-609~EVD-611
-- **前置任务**：19
+- **关联**：UF-601 ~ UF-612 / 全部 BR / INV-601 / INV-604 / INV-607 / EVD-602~EVD-607 / EVD-609~EVD-613
+- **前置任务**：21
 - **风险等级**：P0
 
 **具体操作**：按 5.2 环境准备启动；按执行矩阵逐行回放（浏览器工具优先，退而 Playwright，再退手动脚本 + 回填）；每行截图 + console + 必要的 RPC 样例落到矩阵写明的路径；任一行失败回到对应 Task 修复后重跑。
 
 **验证**：5.2 执行矩阵全部行通过；`python3 ~/.claude/skills/prd-workflow/scripts/validate_package.py docs/dsh-bot-left-tab` → 0 FAIL（证据审计）
 
-**Evidence**：`evidence/UF-601/` ~ `evidence/UF-610/`（见 5.2 矩阵）
+**Evidence**：`evidence/UF-601/` ~ `evidence/UF-612/`（见 5.2 矩阵）
 
-### Task 21: 执行 Phase 4 回归验证
+### Task 23: 执行 Phase 4 回归验证
 
 - **关联**：全部 BR / UF / INV
-- **前置任务**：20
+- **前置任务**：22
 
 **验证**：`pnpm run typecheck && pnpm test && pnpm run build && pnpm run standard:check` → 全过；`git status --short` 与 `evidence/phase-0/git-status-before.txt` 对比，在飞文件仍在且无被回退（INV-604）
 
@@ -1207,6 +1340,9 @@ P0 校准（Task 1）
 | UF-609 失败分支 无小组 | browser | 删光小组后点关系图 | 空态 + 新建小组按钮 | `evidence/UF-609/no-groups.png` |
 | UF-610 主路径 | browser | 2.3 UF-610 步骤 1-6 | 400ms 出卡、120ms 收、不挡 ⋯ 点击；小组卡；人设浮层 + 编辑入口进模态 | `evidence/UF-610/hover-bot.png`、`evidence/UF-610/hover-group.png`、`evidence/UF-610/persona-panel.png` |
 | UF-610 失败分支 rail 态 | browser | 收起侧栏后悬停头像 | 不出卡，只有 title | `evidence/UF-610/rail-no-card.png` |
+| UF-611 主路径 | browser | 2.3 UF-611 步骤 1-5 | 面板出现且输入框获焦；过滤；↵ 切模式并打开会话；Esc 关 | `evidence/UF-611/palette.png`、`evidence/UF-611/filtered.png` |
+| UF-611 失败分支 iframe 获焦 | browser | 点进右栏工作台后按 ⌘K | 宿主面板不出现，iframe 的 ⌘K 出现 | `evidence/UF-611/iframe-focus-no-palette.png` |
+| UF-612 主路径 | browser + RPC | 2.3 UF-612 步骤 1-4 | 审批等待时红「@」与官方琥珀点同步；处理后回数字；例程那轮尾部有标签、其他轮无 | `evidence/UF-612/mention-badge.png`、`evidence/UF-612/badge-cleared.png`、`evidence/UF-612/routine-tag.png`、`evidence/UF-612/seq-check.log` |
 | BR-617 视觉对照 | browser | 名册态与原型分镜 3 并排 | 行高 / 头像 36px 格 / 徽章 18px / 分段条一致，只允许颜色 token 差异 | `evidence/UF-601/visual-diff.png` |
 | 2.7 热重载 | browser | 重建 ui-dsh-bot 并重载 | `document.querySelectorAll('[data-slot="sidebar.workspaces"]').length === 1`，无双分段条 | `evidence/phase-0/calibration.md`（复用）+ `evidence/phase-4/hmr.png` |
 
@@ -1219,10 +1355,10 @@ evidence/
   README.md
   phase-0/  calibration.md shadow-on.png shadow-off.png git-status-before.txt
   phase-1/  commands.log toggle.png phase-summary.md
-  phase-2/  commands.log roster.png open-session.png overlay-form.png graph.png phase-summary.md
-  phase-3/  commands.log popover.png phase-summary.md
+  phase-2/  commands.log roster.png open-session.png overlay-form.png graph.png palette.png phase-summary.md
+  phase-3/  commands.log popover.png routine-tag.png phase-summary.md
   phase-4/  commands.log hmr.png final-summary.md
-  UF-601/ … UF-610/   # 5.2 矩阵所列文件名
+  UF-601/ … UF-612/   # 5.2 矩阵所列文件名
 ```
 
 ### 5.4 Review 专项检查清单
@@ -1234,6 +1370,8 @@ evidence/
 - [ ] `shell.overlay` 条目在无模态时返回 null；模态根元素 `pointer-events:auto`、`role="dialog"`、Esc 可关（BR-613）
 - [ ] 删除有确认框且 protected 的 DSH Bot 无删除项（BR-614）
 - [ ] 名册 / 分段条 / 浮层 / 表单尺寸与原型 class 一致，只有颜色 token 差异（BR-617）
+- [ ] turnTail 条目的 `select` 同步、无请求，非命中 turn 不挂载（BR-620）
+- [ ] ⌘K 监听在 iframe / 输入框获焦时放行（BR-621）
 - [ ] `git diff --stat packages/dsh-bot-host/src` 为空；`env/profiles` 未被写入（INV-602 / INV-605）
 - [ ] session-nav 在飞改动仍在工作区（INV-604）
 - [ ] 5.2 执行矩阵全部通过，evidence 齐全且与第 2.5 节 EVD 清单一致

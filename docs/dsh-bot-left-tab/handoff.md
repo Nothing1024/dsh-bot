@@ -27,9 +27,9 @@
 | 资料 | 路径 | 状态 | 用途 |
 |---|---|---|---|
 | Spec（唯一事实源） | `spec.md` | found | 业务合同、技术方案、任务详情、验收协议 |
-| Tasks CSV（状态板） | `tasks.csv` | found | 21 条任务状态跟踪 |
+| Tasks CSV（状态板） | `tasks.csv` | found | 23 条任务状态跟踪 |
 | Evidence 目录 | `evidence/` | found | 证据归档（结构见 `evidence/README.md`） |
-| 原型（只看方向，不照抄） | `../prototypes/dsh-bot-left-tab.html` | found | 10 个分镜；与落地的四条偏差见 spec §2.8 / Task 19 |
+| 原型（只看方向，不照抄） | `../prototypes/dsh-bot-left-tab.html` | found | 10 个分镜；与落地的四条偏差见 spec §2.8 / Task 21 |
 | 原型调研 | `../prototypes/left-sidebar-bot-tab.md`、`../prototypes/real-dsh-ui-survey.md` | found | 官方座位真值、真实 DOM 结构 |
 | 客户端入口 | `../../packages/ui-dsh-bot/src/client/index.ts` | found | 主要改动点 |
 | 官方 slot 契约 | `../../env/profiles/gb/node_modules/@deepseek-ai/dsh-client-ui-sidebar/lib/types/client/contract/slots.d.ts` | found | `sidebar.workspaces` owner props |
@@ -46,7 +46,8 @@
 Before: 左栏=官方会话树 | 中栏=官方对话 | 右栏 better-sidebar「DSH Bot」iframe（名册+自绘对话+小组）
 After:  左栏=[sessions] 官方树 / [bot] BotRegion(priority -1: 分段条+名册)  + 底栏「Bot」开关
         中栏=官方对话 + header.actions IdentityBar（仅 bot 会话）
-        shell.overlay：新建/编辑/删除人设与小组模态、关系图卡（dsh-bot:overlay）
+        shell.overlay：新建/编辑/删除人设与小组模态、关系图卡、⌘K 面板（dsh-bot:overlay）
+        conversation.chat.turnTail：例程触发标签（chain，select 命中才挂）
         右栏 iframe 不变（新增接收 dsh-bot:select-group）
         共享 packages/dsh-bot-shared（roster-sections/avatar/session-binding/类型）
 ```
@@ -54,10 +55,10 @@ After:  左栏=[sessions] 官方树 / [bot] BotRegion(priority -1: 分段条+名
 ### Phase 地图
 
 ```text
-P0 校准(T1) → P1 模式切换骨架(T2-5) → P2 名册与开会话(T6-15) → P3 身份条(T16-18) → P4 文档/真实场景/收尾(T19-21)
+P0 校准(T1) → P1 模式切换骨架(T2-5) → P2 名册与开会话(T6-16) → P3 身份条与例程标签(T17-20) → P4 文档/真实场景/收尾(T21-23)
 ```
 
-### 最关键规则（Top 12，全量见 spec.md 第 2 章）
+### 最关键规则（Top 13，全量见 spec.md 第 2 章）
 
 - BR-601：只向 `sidebar.workspaces` 以 `priority: -1` 注册；禁注册 `root` / `sidebar` / `conversation*` single 槽。
 - BR-602：会话模式 = 注销遮蔽，官方树原样回来；不复刻、不 CSS 隐藏。
@@ -68,6 +69,7 @@ P0 校准(T1) → P1 模式切换骨架(T2-5) → P2 名册与开会话(T6-15) �
 - BR-608：小组 → `activateTab('dsh-bot:sessions')` + postMessage，不进中栏。
 - BR-609：不拦截官方「+ 新会话」。
 - BR-613/614：人设与小组的新建/编辑/删除走 `shell.overlay` 模态 + 确认框，不占中栏；DSH Bot 不可删。
+- BR-619/620/621：红「@」读官方 pendingInteraction；例程标签走 turnTail chain；⌘K 只在焦点不在 iframe/输入框时响应。
 - BR-617：尺寸/圆角/间距以 `../prototypes/dsh-bot-left-tab.html` 对应 class 为准，只换颜色 token。
 - BR-611：所有注册 disposer 化，卸载后 `entries('sidebar.workspaces')` 只剩官方。
 - INV-604：在飞未提交改动零丢失。

@@ -23,7 +23,7 @@
 | `dsh-bot-session-nav` | InProgress | 4/14 | 页签跳转桥（已落地）、`~` 收纳、自动起题、overview 聚合 + SSE | **在飞** |
 | `dsh-bot-group-rounds` | Ready | 0/15 | 小组多轮讨论、队列、单成员重试、房间起题 | 待开工 |
 | `dsh-bot-interaction-master` | Ready | 0/5 | 母包：session-nav + group-rounds 联合回放 | 待开工 |
-| `dsh-bot-left-tab` | Ready | 0/21 | 官方左栏 Bot 模式（priority -1 遮蔽名册、overlay 管理人设/小组、关系图、悬停预览）+ 官方中栏 + 顶栏身份条 | 待开工，Task 7 依赖 session-nav Task 9/10 |
+| `dsh-bot-left-tab` | Ready | 0/23 | 官方左栏 Bot 模式（priority -1 遮蔽名册、overlay 管理人设/小组、关系图、悬停预览、⌘K、红「@」）+ 官方中栏（身份条、例程触发标签） | 待开工，Task 7 依赖 session-nav Task 9/10 |
 
 ## 已验收并归档（`archive/`）
 
