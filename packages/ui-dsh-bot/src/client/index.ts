@@ -5,6 +5,7 @@
 import { createElement } from 'react'
 import type { Context } from '@deepseek-ai/cordis'
 import { BotRegion } from './BotRegion.tsx'
+import { ModeFooterAction } from './ModeFooterAction.tsx'
 import { DshBotIcon, DshBotTab } from './DshBotTab.tsx'
 import type { SessionCwdFace, WorkspaceCwdFace } from './DshBotTab.tsx'
 import { inject as requiredInject } from './inject.ts'
@@ -85,6 +86,21 @@ export function apply(ctx: Context): void {
     client.effect(
       () => bindBotRegion(client, mode, BoundBotRegion),
       'ui-dsh-bot: bot region',
+    )
+    const BoundFooter = (props: { wide?: boolean }) => {
+      const footerProps: import('./ModeFooterAction.tsx').ModeFooterActionProps = { mode, t }
+      if (props.wide !== undefined) footerProps.wide = props.wide
+      return createElement(ModeFooterAction, footerProps)
+    }
+    const slots = client.slots
+    client.effect(
+      () => slots.inject('sidebar.footer.action', () => slots.register({
+        name: 'sidebar.footer.action',
+        id: 'dsh-bot:mode',
+        order: 10,
+        locale: NS,
+      }, BoundFooter)),
+      'ui-dsh-bot: mode footer',
     )
   }
 

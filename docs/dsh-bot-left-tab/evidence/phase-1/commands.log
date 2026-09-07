@@ -22,3 +22,19 @@ EXIT 0
 $ pnpm run typecheck
 $ tsc -p tsconfig.json
 EXIT 0
+
+## Task 4 (2026-09-08)
+
+$ ./node_modules/.bin/vitest run packages/ui-dsh-bot/tests/mode-footer-action.spec.tsx
+ Test Files  1 passed (1)
+      Tests  2 passed (2)
+EXIT 0
+
+$ pnpm run typecheck
+$ tsc -p tsconfig.json
+EXIT 0
+
+$ pnpm --filter ui-dsh-bot run build
+ tsdown ui-dsh-bot + ui-dsh-bot/client complete (purity ok)
+ lib/client.js contains sidebar.workspaces priority bind and id dsh-bot:mode
+EXIT 0
