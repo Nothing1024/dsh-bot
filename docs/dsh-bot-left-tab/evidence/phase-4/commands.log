@@ -42,3 +42,17 @@ step7（1680x1000）：POST /dsh-bot/sendToPeer {toBot: yunwei-yeban, fromBot: s
 证据审计：§5.2 矩阵 28 行 48 个文件，47 个存在；缺 UF-601/empty.png（BLOCKED.md：host 种子受保护 DSH Bot → 空名册不可达，见 spec v0.3.4 §1.5）。
 python3 ~/.claude/skills/prd-workflow/scripts/validate_package.py docs/dsh-bot-left-tab --repo . → 0 FAIL（见 Task 23 段）
 收尾：deleteBot zuolan-ceshi / zuolan-konghui-hua-2（worker 建的测试人设）→ bots.json = worker 03:34 备份减 左栏测试；groups.json 与备份 diff 为空；rm ~/lt-approval-probe.txt。
+
+===== 2026-09-07T20:55:58Z Task 23 Phase 4 回归（HEAD 14d797c 代码，协调者）=====
+pnpm run typecheck → EXIT 2（87 errors，全部 packages/dsh-bot-host/src：SessionId brand 不匹配 / Context 无 sessionTool）
+  根因：本仓 tsconfig paths 把 session-tool 映射到 ../../session-tool/plugin 源码；该邻仓 packages/session-tool/node_modules/@deepseek-ai/dsh-session 在 04:56:29（本地）被 /Users/nothing/worktrees/parity-lane-b 的 pnpm 安装（.modules.yaml 04:58:41）改链到 dsh-session@0.1.0-rc.7（本仓 0.1.2-rc.1）。
+  对照：同一代码 14d797c 提交时（20:24Z）pnpm run typecheck EXIT 0；19:43Z 全套回归 EXIT 0。
+  复核：tsc -p /tmp/lt-tsconfig.json（extends 本仓 tsconfig，仅把 @deepseek-ai/dsh-session、@deepseek-ai/cordis 钉到 packages/dsh-bot-host/node_modules 副本）→ EXIT 0。未动邻仓（§2.8）。
+pnpm test → EXIT 0；64 files / 436 tests passed
+pnpm run build → EXIT 0；workbench-ui / ui-dsh-bot / ui-dsh-bot/client / dsh-bot-host / tool-dsh-bot Build complete，purity 无报错
+pnpm run standard:check → EXIT 0；adapter 审计无未评审的新增上游触点，结论：全部通过
+git diff --stat packages/dsh-bot-host/src → 空（INV-602）
+git status --short env/profiles → 空（INV-605）
+python3 ~/.claude/skills/prd-workflow/scripts/validate_package.py docs/dsh-bot-left-tab --repo . → 0 FAIL / 1 WARN / 21 PASS；§3.3 30 anchor 命中
+git status --short → ?? .grok/  ?? .vscode/  ?? env/attachments/（与 evidence/phase-0/git-status-before.txt 一致，phase-0 目录已入库；INV-604）
+收尾：deleteBot zuolan-ceshi / zuolan-konghui-hua-2 → {"deleted":true}；bots.json = 备份减 左栏测试；groups.json diff 空；rm ~/lt-approval-probe.txt

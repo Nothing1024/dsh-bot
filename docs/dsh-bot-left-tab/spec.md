@@ -1,6 +1,6 @@
 # dsh-bot-left-tab Spec
 
-> Version: 0.3.3 | Date: 2026-09-08 | Status: InProgress 执行中（Phase 0–3 已验收，Phase 4 在执行）
+> Version: 0.3.4 | Date: 2026-09-08 | Status: Done 已验收（Phase 0–4 全部通过协调者审查；§5.2 27/28 行通过，空名册行判定不可达）
 >
 > 本文件是本需求的**唯一事实源**：事实基线、业务合同、技术方案、任务计划、验收协议全部在此。
 > 其他文件（handoff.md、tasks.csv）只引用本文件，不复制内容。
@@ -86,6 +86,10 @@
 | ASM-608 真机证实：workbench `history` 条目 `seq` 与官方 `turn/start`/`turn/end`/`assistant/message` 同源，可区间匹配；host 不给例程 assistant 打 `origin`（user `[routine]` 被丢掉） | Task 19：`POST /dsh-bot/history` + `session.history` + jsonl；`docs/dsh-bot-left-tab/evidence/UF-612/seq-check.log` | session-1923ea30 history seq=36 ∈ turn `[5,38]`；wake user/message seq=8 |
 | 官方空 hero（新会话尚未发消息）没有 `conversation.session.header.actions` 座位；身份条只能在官方对话头出现（首条消息后）才渲染 | Task 20 真机：身份条「新开对话」后中栏进 hero，DOM 无 `header.actions`；`evidence/phase-3/phase-summary.md` UF-605-4 行 | UF-605 步骤 4 文案按此修正（v0.3.3），非缺陷 |
 | host `projectWorkbenchHistory` 只在 assistant 文本以 `[routine]` 开头时写 `origin`；例程 wake 的 user/message 被 `isPlatformInjection` 过滤，线上 `origin` 为空。客户端 `ensureWakes` 改读官方 `POST /api/session.history`（信封 `{type:'client-request', rpcId, method:'session.history', payload:{sessionId, maxMessages:80}}`），取 `[routine]` user/message 的 seq 补进 `routineBySeq` | `evidence/UF-612/seq-check.log`；`rg "const ensureWakes" packages/ui-dsh-bot/src/client/roster-rpc.ts` | 本包不改 host（INV-602 成立）；此为 §3.4 登记的官方 API 新增只读消费，升级复查点 |
+| host 启动时把受保护的默认 `DSH Bot`（`id=dsh-bot`，`protected:true`）写回 `bots.json`，`listBots` 至少返回 1 个 bot；名册「0 bot 且 0 小组」空态在本部署不可达（BR-614 不可删） | Task 22 真机：清空 `bots.json` 重启后 `listBots` 仍返回 DSH Bot；`evidence/UF-601/BLOCKED.md` | §5.2 UF-601 空名册行判定 N/A（v0.3.4），空态由 `tests/bot-region.spec.tsx` 单测覆盖 |
+| better-sidebar `activateTab(id)` 对未知/已关闭页签是严格 no-op，也不展开折叠的右栏；只有带 `url` seed 的 `openTab` 会重开已关闭页签并展开面板（`dsh-better-sidebar/lib/types/client/service.d.ts` `openTab` / `activateTab`） | Task 22 真机：右栏折叠时点小组只发 postMessage、面板不动；改 `openTab` 后 53ms 内 iframe 出现（`evidence/UF-606/tab-cold.png`） | BR-608 改为 `openTab({ type: 'dsh-bot:sessions', url })` 先落地再 `activateTab`（v0.3.4） |
+| 官方 hero（未选工作区 / 无会话）状态下右栏 better-sidebar 面板不渲染，`openTab` 无处落地；hero 选工作区会切到该工作区的当前会话而不是留在当前 hero | Task 22 真机（Playwright）：hero 下点小组无 iframe；hero 选「plugin」后标题跳到 `dsh-bot-manual-…` | UF-606 前置状态补「中栏已有会话」；非缺陷 |
+| 沙箱 bash 写工作区外（如 `~`）触发官方 `approval/request`，`SessionSummary.pendingInteraction` 置位；写 `/tmp` 不触发 | Task 22 真机：`echo hi > ~/lt-approval-probe.txt` → ApprovalPanel「等待审批 / 允许一次」；`evidence/UF-612/mention-badge.png` | UF-612 步骤 1 的触发手段写进 §5.2 行（v0.3.4） |
 | `agentPreset` 取值：默认 DSH Bot 会话是 `dsh-bot`（无 `--slug`）；其他人设是 `dsh-bot--<slug>`；普通会话是 `standard` / `minimal`。BR-607 匹配须同时认 `dsh-bot` 与 `dsh-bot--` 前缀 | `dsh-rpc.sh 3084 session.list` + spike console | 身份条判定补充 |
 
 ### 1.4 假设清单
@@ -100,6 +104,7 @@
 
 | 日期 | 变更条目 ID | 原因 | 影响任务与处置 |
 |---|---|---|---|
+| 2026-09-08 | v0.3.4（第四批 §5.2 回放登记）：① §5.2 UF-601 空名册行 → N/A（不可达）；② BR-608 页签落地改 `openTab` url seed + `activateTab`；③ BR-604 会话数：B 路未选中的行按官方 `sessions.list` preset 计数；④ BR-617 四处视觉偏差修正（关系图 viewBox/描边/图例、名册头部 nowrap、行 grid 第三列、悬停卡 portal）；⑤ UF-604 失败分支 rail 警示图标补实现；⑥ UF-612 步骤 1 触发手段（沙箱外写入审批）写入矩阵；⑦ UF-606 前置状态补「中栏已有会话」 | ① host 种子受保护 DSH Bot（§1.3）；② `activateTab` 不展开/不重开（§1.3）；③ 第一轮真机名册未选中行会话数恒 0，违反 BR-604「每行 = … + 会话数」；④ 第一轮真机截图目视审查发现（`evidence/UF-609/graph.png` 旧版越界、`UF-608/delete-confirm.png`「⋯」掉行、`UF-610/hover-*.png` 无卡）；⑤ 代码里 rail 态忽略 `rosterState`；⑥⑦ 回放时才确定的事实 | ①⑥⑦ 文案；② 33f630f（Task 10）；③ e8c62a5（Task 7）；④ 19ff37b（Task 13）/ 36e003d、aaa3812（Task 8）/ 2762df2（Task 14）；⑤ 14d797c（Task 8）；全部在最终 bundle 14d797c 上重放通过 |
 | 2026-09-08 | v0.3.3（第三批审查登记四项）：① BR-604 预览跳过 JSON 转储文本；② BR-616 pill 计数首拉完成前只显示标签、chip 挂载即预取三类计数；③ UF-605 步骤 4 与 5.2 行改为「新会话 hero 无身份条，首条消息后出现」并把「三 pill」改「四 pill」；④ §3.4 登记 `ensureWakes` 对官方 `/api/session.history` 的只读消费 | ① 默认 DSH Bot 最后一条 message 是工具回执 JSON，名册行预览成了转储；② spec 原文「首次点开才请求」导致未加载与真实 0 显示相同的「记忆 0」，误导；③ 平台约束：官方 hero 没有 `header.actions` 座位；④ host 不写例程 `origin`，Task 19 用官方 API 回退，属新增数据依赖 | ①② 是规格漏洞：Task 8 / Task 18 状态板改回「进行中」，第四批开工先补（各一处小改 + 单测）；③ 文案修正，无代码；④ 无代码，升级 DSH 时用 dsh-upgrade-compat 复查 |
 | 2026-09-08 | ASM-608 证实（Task 19）：`/dsh-bot/history` 条目 `seq` 与官方 `TurnLocation.start/end` / `assistant/message` 同源，可区间匹配。host 不给例程 assistant 打 `origin`（user `[routine]` 被 `isPlatformInjection` 丢掉）。客户端 `ensureWakes` 预取官方 `session.history` 的 `[routine]` user/message seq 写入 `routineBySeq` | 真机 session-1923ea30：history seq=36，turn `[5,38]`，wake user/message seq=8；origin 为空 | Task 19 select 仍同步 O(1) 查表；Evidence `evidence/UF-612/seq-check.log` |
 | 2026-09-08 | BR-604 补预览数据源（v0.3.2）：官方 `sessions.list` 按 preset 找最新会话 → `history` 最后一条 message → 80 字符，`sessionId+updatedAt` 缓存 | 第二批审查发现名册「最后一句」恒为空：`buildRosterRows` 支持 `lastMessages` 但 ui-dsh-bot 侧无调用方喂数据；根因是 spec 只写了要预览没写数据从哪来（iframe 的预览来自 Transcript 组件回调，左栏没有该组件） | Task 8 增步骤 6（`roster-rpc.ts` 加 `lastMessages` store + `ensurePreview`；`BoundRoster` 接线），状态板 Task 8 改回「进行中」，第三批开工先补；Task 7 store 形状扩展；UF-607 步骤 1「预览更新为最后一句」的核对点由此可达 |
@@ -119,6 +124,7 @@
 | 2026-09-08 | 第二批（Task 6–16）协调者独立复跑：`pnpm run typecheck` / `pnpm test` / `pnpm --filter ui-dsh-bot run build` / `git diff --stat packages/dsh-bot-host/src` / `validate_package --repo .` | typecheck 0 错；59 文件 400 测全过；bundle 纯度通过；host 零 diff；0 FAIL / 1 WARN / 21 PASS，§3.3 30 条 anchor 命中。审查结论：接受；发现 BR-604 预览数据源缺口（见 §1.5 v0.3.2）；worker 自报「⌘K 不响应 composer 焦点」核为 BR-621 设计行为，非缺陷 |
 | 2026-09-08 | 第三批（Task 8 步骤 6 + Task 17–20）协调者独立复跑：`pnpm run typecheck` / `vitest run packages/ui-dsh-bot/tests packages/dsh-bot-shared/tests packages/workbench-ui/tests` / `pnpm --filter ui-dsh-bot run build` / `git diff --stat 049f934..HEAD -- packages/dsh-bot-host/src env/profiles` / `validate_package --repo .` | typecheck 0 错；47 文件 238 测全过；bundle 纯度通过；host 与官方包零 diff；0 FAIL / 1 WARN / 21 PASS，§3.3 30 条 anchor 命中；`matchRoutineTurn` 核为同步查表，turnTail 重挂与四条注册全部 disposer 化（BR-611）。结论：接受。五张 phase-3 截图为合法 1280×800 PNG，但协调者侧图片读取返回空，**未能目视核对**，以 Task 22 的 5.2 全套回放为最终视觉验收。登记四项见 §1.5 v0.3.3 |
 
+| 2026-09-08 | 第四批（Task 8/18 小修 + Task 21–23）协调者独立复跑：`pnpm test` / `pnpm run build` / `pnpm run standard:check` / `git diff --stat packages/dsh-bot-host/src` / `git status --short env/profiles` / `validate_package --repo .`；`pnpm run typecheck` 在 14d797c 提交时 EXIT 0（20:24Z），20:56Z 起因邻仓 `session-tool/plugin/packages/session-tool/node_modules/@deepseek-ai/dsh-session` 被 `/Users/nothing/worktrees/parity-lane-b` 的 pnpm 安装（04:56 本地）改链到 `dsh-session@0.1.0-rc.7` 而报 87 个 host 侧 brand/augmentation 错误；用 `/tmp/lt-tsconfig.json` 把邻仓源码里的 `@deepseek-ai/dsh-session`、`@deepseek-ai/cordis` 钉回本仓副本后 EXIT 0，证明与本仓改动无关 | test 64 文件 436 测全过；build 5 包全过（purity 无报错）；standard:check 全部通过；host 零 diff；env/profiles 零改动；validate 0 FAIL / 1 WARN / 21 PASS、§3.3 30 anchor 命中；§5.2 28 行 27 通过 + 1 不可达；INV-604 工作区只剩 `.grok/`、`.vscode/`、`env/attachments/`。邻仓改链属外部漂移，未动邻仓，待其恢复后需重跑一次 `pnpm run typecheck` |
 ---
 
 ## 2. 业务合同
@@ -136,7 +142,7 @@
 | BR-605 | 点人设 = 打开最近绑定会话：先读 `readLastSession(botId)` 命中且仍在列表 → `sessions.open`；否则取 `listBotSessions` 最新非隐藏行；都没有 → `createBotSession` 后 `open`。任何一步失败：行内红字错误 + 可重试，选中态不变 | 无会话的新人设点一下即建会话并打开 | 失败时静默或选中跳到别处 | `BotRoster.tsx` / `roster-rpc.ts` | 单测三分支 + UF-603 失败分支 |
 | BR-606 | 1:1 对话面全部交官方中栏：插件不在左栏区域、中栏、浮层里再画 Transcript / composer；中栏只新增 `conversation.session.header.actions` 一个条目 | 打开 bot 会话后中栏是官方对话/轨迹 + 官方 composer | 左栏或浮层里出现插件自己的消息流 | 全部客户端代码 | code review + UF-605 |
 | BR-607 | 身份条只对 bot 会话渲染：`agentPreset` 等于 `dsh-bot`（默认 DSH Bot 的 seed preset）或以 `dsh-bot--` 开头，且能在 `listBots` 里按 `presetId` 找到 bot 才显示；否则返回 `null`，不留占位 | 普通「重构 api.ts」会话顶栏没有身份条 | 普通会话顶栏出现空 chip | `IdentityBar.tsx` | 单测 + UF-605 分支 |
-| BR-608 | 小组不是官方 session：Bot 模式点小组 → `betterSidebar.activateTab('dsh-bot:sessions')` 并 postMessage `{ type: 'dsh-bot:select-group', groupId }` 给 iframe；不在中栏画房间；better-sidebar 缺席时行内提示「需要右栏 DSH Bot 页签」 | 点「编辑室」右栏页签亮起并选中编辑室 | 中栏出现房间面 | `BotRoster.tsx` / `workbench-ui/src/App.tsx` | UF-606 |
+| BR-608 | 小组不是官方 session：Bot 模式点小组 → `betterSidebar.openTab({ type: 'dsh-bot:sessions', url: '<origin>/dsh-bot/ui' })`（重开已关闭页签、展开折叠右栏，v0.3.4）再 `activateTab('dsh-bot:sessions')`，并 postMessage `{ type: 'dsh-bot:select-group', groupId }` 给 iframe；不在中栏画房间；better-sidebar 缺席时行内提示「需要右栏 DSH Bot 页签」 | 点「编辑室」右栏页签亮起并选中编辑室 | 中栏出现房间面 | `BotRoster.tsx` / `workbench-ui/src/App.tsx` | UF-606 |
 | BR-609 | 官方「+ 新会话」行为不变（平台无接口）；Bot 模式的「新开对话」入口在名册选中身份下方与身份条上，调 `createBotSession` 后 `open` | Bot 模式点官方「+」仍进官方 hero | 插件试图拦截或隐藏官方「+」 | 同上 | UF-603 步骤 6 |
 | BR-610 | rail 态（owner `wide === false`）名册退化为头像列：只画可见 bot 头像 + 未读点；点头像 → `expandSidebar()` 再执行 BR-605 | 收起侧栏后仍能一键回到审查官会话 | rail 态空白或溢出 | `BotRoster.tsx` | UF-604 |
 | BR-611 | 所有注册（region / footer.action / header.actions / 事件订阅）都走 `ctx.effect` 或 `ctx.slots.inject` 返回的 disposer，插件 fiber 卸载或热重载后 `ctx.slots.entries('sidebar.workspaces')` 只剩官方一条 | HMR 后左栏正常 | 重载后左栏空白或双份分段条 | `index.ts` | 单测 dispose 顺序 + Task 1 校准 |
@@ -1330,7 +1336,7 @@ P0 校准（Task 1）
 |---|---|---|---|---|
 | UF-601 主路径 | browser | 2.3 UF-601 步骤 1-5 | 「Bot」行激活；`[data-slot="sidebar.workspaces"]` 内为分段条 + 名册；F5 后保持；console 无新增 error | `evidence/UF-601/bot-mode.png`、`evidence/UF-601/after-reload.png`、`evidence/UF-601/console.log` |
 | UF-601 失败分支 网关拒绝 | browser | 杀网关后切 Bot | 「名册加载失败」+ 重试；重启网关后重试恢复 | `evidence/UF-601/load-error.png` |
-| UF-601 失败分支 空名册 | browser | 临时把 bots.json 备份为空数组后重启（测完还原） | 空态文案 + 新建入口 | `evidence/UF-601/empty.png` |
+| UF-601 失败分支 空名册 | N/A（v0.3.4：不可达，见 §1.3 host 种子行） | 曾按「bots.json 置空后重启」执行，`listBots` 仍返回受保护 DSH Bot | 空态文案 + 新建入口只能由单测核对（`tests/bot-region.spec.tsx`） | `evidence/UF-601/BLOCKED.md` |
 | UF-602 主路径 | browser | 2.3 UF-602 步骤 1-4 | 官方树回来；搜索可用；点会话打开；「Bot」行未激活；DOM 与 `docs/prototypes/real/pw-landing.png` 结构一致（INV-607） | `evidence/UF-602/sessions-restored.png`、`evidence/UF-602/console.log` |
 | UF-603 主路径 | browser + RPC | 2.3 UF-603 步骤 1-6 | 已有会话被打开且下挂高亮；0 会话人设创建并打开；「+ 新开对话」新建；官方「+」仍进 hero | `evidence/UF-603/open-existing.png`、`evidence/UF-603/create-new.png`、`evidence/UF-603/createBotSession.json` |
 | UF-603 失败分支 创建失败 | browser | 临时移除模型凭据或断网关后点 0 会话人设 | 行内红字 + 重试，选中保留 | `evidence/UF-603/create-failed.png` |
@@ -1339,7 +1345,7 @@ P0 校准（Task 1）
 | UF-604 失败分支 名册未加载 | browser | rail 态下网关不可达 | 警示图标 title | `evidence/UF-604/rail-error.png` |
 | UF-605 主路径 | browser | 2.3 UF-605 步骤 1-5 | chip + 四 pill（记忆/例程/同事/人设，计数在数据到后出现、未到只显标签）+ 对话切换 + 新开对话；记忆浮层；新开对话后 hero 无身份条、首条消息后回来；切普通会话消失 | `evidence/UF-605/identity-bar.png`、`evidence/UF-605/memory-popover.png`、`evidence/UF-605/plain-session.png` |
 | UF-605 失败分支 preset 无匹配 | browser | 删除一个 bot 后打开其旧会话 | 不渲染身份条 | `evidence/UF-605/orphan-preset.png` |
-| UF-606 主路径 | browser | 2.3 UF-606 步骤 1-2 | 右栏页签激活；iframe 选中该小组；中栏不变 | `evidence/UF-606/group-jump.png` |
+| UF-606 主路径 | browser | 2.3 UF-606 步骤 1-2（前置：中栏已有会话，右栏面板存在且折叠） | 右栏面板展开、页签激活；iframe 选中该小组；中栏不变 | `evidence/UF-606/group-jump.png` |
 | UF-606 失败分支 页签未就绪 | browser | 右栏页签关闭状态下点小组 | 页签打开后自动选中（≤8s）或灰字提示 | `evidence/UF-606/tab-cold.png` |
 | UF-607 主路径 | browser + RPC | 2.3 UF-607 步骤 1-2；用 `dsh-rpc.sh 3084` 或 curl 调 `routineRunNow` / `sendToPeer` | 徽章 +1 与预览更新；点开归零 | `evidence/UF-607/unread.png`、`evidence/UF-607/read.png` |
 | UF-607 失败分支 SSE 断开 | browser | DevTools 阻断 `/dsh-bot/events` | console 出现轮询回退日志；徽章仍能更新 | `evidence/UF-607/poll-fallback.log` |
@@ -1352,7 +1358,7 @@ P0 校准（Task 1）
 | UF-610 失败分支 rail 态 | browser | 收起侧栏后悬停头像 | 不出卡，只有 title | `evidence/UF-610/rail-no-card.png` |
 | UF-611 主路径 | browser | 2.3 UF-611 步骤 1-5 | 面板出现且输入框获焦；过滤；↵ 切模式并打开会话；Esc 关 | `evidence/UF-611/palette.png`、`evidence/UF-611/filtered.png` |
 | UF-611 失败分支 iframe 获焦 | browser | 点进右栏工作台后按 ⌘K | 宿主面板不出现，iframe 的 ⌘K 出现 | `evidence/UF-611/iframe-focus-no-palette.png` |
-| UF-612 主路径 | browser + RPC | 2.3 UF-612 步骤 1-4 | 审批等待时红「@」与官方琥珀点同步；处理后回数字；例程那轮尾部有标签、其他轮无 | `evidence/UF-612/mention-badge.png`、`evidence/UF-612/badge-cleared.png`、`evidence/UF-612/routine-tag.png`、`evidence/UF-612/seq-check.log` |
+| UF-612 主路径 | browser + RPC | 2.3 UF-612 步骤 1-4（步骤 1 触发：在 bot 会话让 bash 写工作区外文件如 `~/x.txt`，沙箱升权走官方审批；写 `/tmp` 不触发） | 审批等待时红「@」与官方琥珀点同步；处理后回数字；例程那轮尾部有标签、其他轮无 | `evidence/UF-612/mention-badge.png`、`evidence/UF-612/badge-cleared.png`、`evidence/UF-612/routine-tag.png`、`evidence/UF-612/seq-check.log` |
 | BR-617 视觉对照 | browser | 名册态与原型分镜 3 并排 | 行高 / 头像 36px 格 / 徽章 18px / 分段条一致，只允许颜色 token 差异 | `evidence/UF-601/visual-diff.png` |
 | 2.7 热重载 | browser | 重建 ui-dsh-bot 并重载 | `document.querySelectorAll('[data-slot="sidebar.workspaces"]').length === 1`，无双分段条 | `evidence/phase-0/calibration.md`（复用）+ `evidence/phase-4/hmr.png` |
 
