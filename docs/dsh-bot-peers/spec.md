@@ -55,7 +55,7 @@
 | 工作台 Transcript 已有 `showAuthor`；Roster 已有详情栏位 | `rg -n "showAuthor" packages/workbench-ui/src/Transcript.tsx`；`rg -n "export function Roster" packages/workbench-ui/src/Roster.tsx` | L193+；L98 |
 | RPC 分派 `dispatchWorkbenchApi`；`listBots` 在 api.ts | `rg -n "export async function dispatchWorkbenchApi" packages/dsh-bot-host/src/workbench-routes.ts`；`rg -n "export function listBots" packages/workbench-ui/src/api.ts` | L188 / L96 |
 | `env/dsh-bot/` 已 gitignore | `rg -n "env/dsh-bot/" .gitignore` | L14 |
-| 原型「同事」页签 + 关系图 SVG（实线互发、虚线同组、脉动 working） | `rg -n "openDet\('peers'\)\|关系图" docs/prototypes/dsh-bot-grok-parity.html` | L268 / L546 |
+| 原型「同事」页签 + 关系图 SVG（实线互发、虚线同组、脉动 working） | `rg -n "openDet\('peers'\)\|关系图" docs/archive/prototypes/dsh-bot-grok-parity.html` | L268 / L546 |
 | 本会话 :3084 未监听；Playwright 渠道存在 | `lsof -nP -iTCP:3084 -sTCP:LISTEN`；`ls ../../dsh-genoffice/engine/node_modules/playwright/package.json` | 空；存在 |
 | living-master 已知缺口：忘记→注入滞后；例程 ASM-903/904 未真机校准 | `rg -n "Forget\|ASM-903" docs/dsh-bot-living-master/evidence/phase-final/report.md` | 报告 L10 |
 

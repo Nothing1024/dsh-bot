@@ -1,6 +1,6 @@
 # 真实 DSH GUI 调研
 
-对照对象：`docs/prototypes/dsh-bot-complete.html`（协调者按 slot 名推想的「官方壳」）。  
+对照对象：`docs/archive/prototypes/dsh-bot-complete.html`（2026-09-08 归档，原位于 `docs/prototypes/`）（协调者按 slot 名推想的「官方壳」）。  
 方法：逐张读仓库证据 PNG（macOS Vision OCR）+ 2026-09-06 本仓网关 `127.0.0.1:3084` 一手 a11y / DOM / Playwright。  
 网关身份：`dsh-rpc-who.sh 3084` → `pid=32077`，`DSH_HOME=…/dsh-grok-bot/plugin/env`，已在跑，未改 `env/`。  
 一手产物：`docs/prototypes/real/`。

@@ -28,7 +28,7 @@
 | 项 | 结论 |
 |---|---|
 | 原始需求 | 协调者定稿：修掉工作台「1 秒整段跳变 / 工作中输入框锁死 / 工具与思考被丢弃 / 审批卡死」四个结构性问题；SSE 桥 `events.mux` + `events.host`；投递改 `sessions.prompt`；三个轮询在 SSE 连通时停 |
-| 输入类型 | description（协调者契约 + 已交付记忆/例程/母包 + 原型 `../prototypes/dsh-bot-grok-parity.html`） |
+| 输入类型 | description（协调者契约 + 已交付记忆/例程/母包 + 原型 `../archive/prototypes/dsh-bot-grok-parity.html`（2026-09-08 归档）） |
 | Mode | oneclick |
 | 置信度 | 高（apiProxy 类型、三条轮询、Composer 锁、Transcript `return null` 均已勘察） |
 | 输出目录 | `docs/dsh-bot-live-transcript/` |
@@ -65,7 +65,7 @@
 | Playwright 渠道仍在邻仓 engine | `ls ../../dsh-genoffice/engine/node_modules/playwright/package.json` | 存在 |
 | 本会话 `lsof -nP -iTCP:3084 -sTCP:LISTEN` 为空；执行时先 `sh env/boot.sh` | `lsof -nP -iTCP:3084 -sTCP:LISTEN` | 无监听 |
 | 运行数据根已 gitignore | `rg -n "env/dsh-bot/" .gitignore` | L14 |
-| 原型中栏 `data-impl` 写明 `events.mux → /dsh-bot/events`、composer `sessions.prompt{queue\|steer}` | `rg -n "dsh-bot/events\|sessions.prompt" docs/prototypes/dsh-bot-grok-parity.html` | L242 / L245 |
+| 原型中栏 `data-impl` 写明 `events.mux → /dsh-bot/events`、composer `sessions.prompt{queue\|steer}` | `rg -n "dsh-bot/events\|sessions.prompt" docs/archive/prototypes/dsh-bot-grok-parity.html` | L242 / L245 |
 
 ### 1.4 假设清单
 

@@ -199,7 +199,7 @@
 
 - 不重复子包执行矩阵；不在母包新增产品功能。
 - bot 互发消息（`[agent]` 唤醒）、广播、外部事件监听、token 流式、名册置顶 / 分组 / 隐藏、跨 bot 共享记忆分片——后续包（`dsh-bot-peers`、`dsh-bot-live-transcript`、`dsh-bot-memory-v2`）。
-- 搁置中的 `../dsh-bot-native-surface/spec.md` 不在本母包范围。
+- 搁置中的 `../archive/dsh-bot-native-surface/spec.md` 不在本母包范围。
 
 ---
 ## 3. 技术方案

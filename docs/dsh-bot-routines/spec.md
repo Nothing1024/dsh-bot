@@ -25,7 +25,7 @@
 
 | 项 | 结论 |
 |---|---|
-| 原始需求 | 用户 2026-09-06 认可 `../prototypes/dsh-bot-grok-parity.html` 后回复 oneclick；本包 = 原型「Bot 主动来消息」「主动提议例程」「例程」页签，对标 Grok Bot Wake 机制中的 routine 一路（最初调研 §4.2） |
+| 原始需求 | 用户 2026-09-06 认可 `../archive/prototypes/dsh-bot-grok-parity.html`（2026-09-08 归档） 后回复 oneclick；本包 = 原型「Bot 主动来消息」「主动提议例程」「例程」页签，对标 Grok Bot Wake 机制中的 routine 一路（最初调研 §4.2） |
 | 输入类型 | description |
 | Mode | oneclick |
 | 置信度 | 高 |

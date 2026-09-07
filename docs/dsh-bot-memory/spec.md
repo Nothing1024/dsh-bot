@@ -27,7 +27,7 @@
 
 | 项 | 结论 |
 |---|---|
-| 原始需求 | 用户 2026-09-06 认可 `../prototypes/dsh-bot-grok-parity.html` 的 Bot 中心方向后回复 oneclick；本包 = 该原型「记忆」页签 + 「📌 记住」动作 + 记忆注入，对标 Grok Bot 三层记忆中的 agent 层（`../prototypes/real-dsh-ui-survey.md` 与最初调研 §4.4） |
+| 原始需求 | 用户 2026-09-06 认可 `../archive/prototypes/dsh-bot-grok-parity.html`（2026-09-08 归档） 的 Bot 中心方向后回复 oneclick；本包 = 该原型「记忆」页签 + 「📌 记住」动作 + 记忆注入，对标 Grok Bot 三层记忆中的 agent 层（`../prototypes/real-dsh-ui-survey.md` 与最初调研 §4.4） |
 | 输入类型 | description（对话上下文 + 原型） |
 | Mode | oneclick |
 | 置信度 | 高（存储根、preset 生成器、会话链路均已勘察） |

@@ -56,7 +56,7 @@
 | `App.tsx` 每 2s `listBots` 用 unread 增量弹 `notifyRoutineSpoke` | `rg -n "notifyRoutineSpoke" packages/workbench-ui/src/App.tsx` | L140 |
 | `createBotsRuntime` / `createGroupsRuntime` 读写 json | `rg -n "export function createBotsRuntime\|export function createGroupsRuntime" packages/dsh-bot-host/src/bots.ts packages/dsh-bot-host/src/groups.ts` | L352 / L389 |
 | `env/dsh-bot/` 已 gitignore | `rg -n "env/dsh-bot/" .gitignore` | L14 |
-| 原型默认三组置顶/工作/生活；右键置顶/编辑/移组/已读/隐藏/静音/删除；悬停预览 | `rg -n "sections = \|置顶\|hiddenBots" docs/prototypes/dsh-bot-grok-parity.html` | L315 / L401 |
+| 原型默认三组置顶/工作/生活；右键置顶/编辑/移组/已读/隐藏/静音/删除；悬停预览 | `rg -n "sections = \|置顶\|hiddenBots" docs/archive/prototypes/dsh-bot-grok-parity.html` | L315 / L401 |
 | Playwright 渠道存在；本会话 :3084 未监听 | `ls ../../dsh-genoffice/engine/node_modules/playwright/package.json`；`lsof -nP -iTCP:3084 -sTCP:LISTEN` | 存在；空 |
 
 ### 1.4 假设清单

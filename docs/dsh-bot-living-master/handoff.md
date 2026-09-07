@@ -36,7 +36,7 @@
 | leftover 矩阵 | `evidence/phase-final/leftover-close-matrix.md` | found | 子包 leftover 与母包 named shot 已 PASS |
 | INV-103 快照 | `evidence/phase-final/inv-103-porcelain.md` | found | 下一次只覆盖刷新，不改结论口径 |
 | Evidence 目录 | `evidence/` | found | 母包证据；子包证据在各自 `evidence/` |
-| 已搁置包（勿执行） | `../dsh-bot-native-surface/spec.md` | Deferred | 不在范围 |
+| 已搁置包（勿执行） | `../archive/dsh-bot-native-surface/spec.md` | Deferred | 不在范围 |
 | 无关脏树（勿混提交） | `../dsh-bot-session-nav/`、`../dsh-bot-group-chat/`、`../../packages/workbench-ui/src/BotForm.tsx`、`../../packages/workbench-ui/src/GroupForm.tsx`、`../../packages/dsh-bot-host/src/group-engine.ts` | found 且脏 | 四期 / 三期 leftover，不是本母包未完成项 |
 
 缺失资料与假设：

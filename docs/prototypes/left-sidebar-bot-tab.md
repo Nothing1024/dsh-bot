@@ -28,6 +28,8 @@
 
 ## 现有原型各自错在哪
 
+> 2026-09-08：下表四份原型与 `dsh-bot-complete.html` 已移入 `../archive/prototypes/`（理由见 `../archive/README.md`）；本目录只保留 `dsh-bot-left-tab.html` 与真实 GUI 调研材料。
+
 | 文件 | 策略 | 为什么不对 |
 |---|---|---|
 | `dsh-bot-grok-parity.html` | Bot 中心整页住在右栏 overlay | 完全依赖 better-sidebar，官方左栏与中栏闲置 |
