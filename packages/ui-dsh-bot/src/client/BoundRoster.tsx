@@ -11,6 +11,7 @@ import { ModeFooterAction } from './ModeFooterAction.tsx'
 import { OverlayHost } from './OverlayHost.tsx'
 import { firstVisibleId, runMenuAction } from './menu-action.ts'
 import type { OverlayStore } from './overlay-store.ts'
+import { pickLatestBotSession } from './bot-preset.ts'
 import { readLastBot } from './roster-items.ts'
 import type { RosterRowModel } from './roster-items.ts'
 import type { RosterRpc } from './roster-rpc.ts'
@@ -26,7 +27,13 @@ export interface SessionListFace extends SessionJumpFace {
   list?: {
     getSnapshot(): {
       current?: string
-      byId?: Record<string, { agentPreset?: string; pendingInteraction?: string }>
+      byId?: Record<string, {
+        agentPreset?: string
+        pendingInteraction?: string
+        updatedAt?: number
+        running?: boolean
+        displayTitle?: string
+      }>
     }
     subscribe(fn: () => void): () => void
   }
@@ -45,7 +52,7 @@ export interface BoundRosterProps {
   onSelectedId?: (id: string | null) => void
 }
 
-function emptyList(): { current?: string; byId?: Record<string, { agentPreset?: string; pendingInteraction?: string }> } {
+function emptyList(): ReturnType<NonNullable<NonNullable<SessionListFace['list']>['getSnapshot']>> {
   return { byId: {} }
 }
 
@@ -67,6 +74,7 @@ export function BoundBotRegion(props: BoundRosterProps): ReactElement {
   const bots = useSyncExternalStore(props.roster.bots.subscribe, props.roster.bots.getSnapshot, props.roster.bots.getSnapshot)
   const groups = useSyncExternalStore(props.roster.groups.subscribe, props.roster.groups.getSnapshot, props.roster.groups.getSnapshot)
   const sessionsByBot = useSyncExternalStore(props.roster.sessionsByBot.subscribe, props.roster.sessionsByBot.getSnapshot, props.roster.sessionsByBot.getSnapshot)
+  const lastMessages = useSyncExternalStore(props.roster.lastMessages.subscribe, props.roster.lastMessages.getSnapshot, props.roster.lastMessages.getSnapshot)
   const list = props.sessions?.list
   const sessionSnap = useSyncExternalStore(
     list?.subscribe ?? ((fn: () => void) => { void fn; return () => {} }),
@@ -103,6 +111,16 @@ export function BoundBotRegion(props: BoundRosterProps): ReactElement {
     const timer = window.setTimeout(() => { setActionError(null) }, 2400)
     return () => { window.clearTimeout(timer) }
   }, [actionError])
+
+  useEffect(() => {
+    const byId = sessionSnap.byId
+    for (const bot of bots.items) {
+      if (bot.hidden === true) continue
+      const latest = pickLatestBotSession(bot.presetId, byId)
+      if (latest === undefined) continue
+      props.roster.ensurePreview(bot.id, latest.sessionId, latest.updatedAt)
+    }
+  }, [bots.items, sessionSnap.byId, props.roster])
 
   const pending = useMemo(
     () => pendingBotIds(bots.items, sessionSnap.byId),
@@ -248,6 +266,7 @@ export function BoundBotRegion(props: BoundRosterProps): ReactElement {
     bots: bots.items,
     groups: groups.items,
     pendingBotIds: pending,
+    lastMessages,
     sessionCounts,
     selectedId,
     currentSessionId: sessionSnap.current ?? null,

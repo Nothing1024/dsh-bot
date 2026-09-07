@@ -47,6 +47,7 @@ export interface RosterRpc {
   readonly groups: ObservableHandle<RosterSlice<readonly WorkbenchGroup[]>>
   readonly sessionsByBot: ObservableHandle<Readonly<Record<string, readonly WorkbenchSessionRow[]>>>
   readonly historyBySession: ObservableHandle<Readonly<Record<string, HistorySlice>>>
+  readonly lastMessages: ObservableHandle<Readonly<Record<string, string>>>
   refresh(): Promise<void>
   sessionsOf(botId: string): Promise<readonly WorkbenchSessionRow[]>
   createBotSession(botId: string, title?: string): Promise<RpcResult<CreateBotSessionValue>>
@@ -63,6 +64,7 @@ export interface RosterRpc {
   routineList(botId?: string): Promise<RpcResult<readonly RoutineRow[]>>
   peerLog(botId?: string): Promise<RpcResult<readonly PeerLogRow[]>>
   historyOf(sessionId: string): Promise<HistorySlice>
+  ensurePreview(botId: string, sessionId: string, updatedAt: number): void
   setActive(active: boolean): void
   dispose(): void
 }
@@ -74,6 +76,8 @@ export interface RosterRpcDeps {
 
 const POLL_MS = 2000
 const DEBOUNCE_MS = 300
+const PREVIEW_CONCURRENCY = 2
+const PREVIEW_CHARS = 80
 const EMPTY_BOTS: RosterSlice<readonly WorkbenchBot[]> = { status: 'loading', error: null, items: [] }
 const EMPTY_GROUPS: RosterSlice<readonly WorkbenchGroup[]> = { status: 'loading', error: null, items: [] }
 
@@ -119,6 +123,23 @@ function indexHistory(items: readonly WorkbenchHistoryItem[]): HistorySlice {
   return { status: 'idle', error: null, items, bySeq }
 }
 
+function lastMessagePreview(items: readonly WorkbenchHistoryItem[]): string {
+  for (let index = items.length - 1; index >= 0; index -= 1) {
+    const item = items[index]
+    if (item === undefined || item.kind !== 'message') continue
+    const text = item.text?.trim() ?? ''
+    if (text === '') continue
+    return text.slice(0, PREVIEW_CHARS)
+  }
+  return ''
+}
+
+interface PreviewJob {
+  readonly botId: string
+  readonly sessionId: string
+  readonly key: string
+}
+
 /**
  * Path-B roster client (listBots + listGroups; sessions/history lazy).
  * @param deps - injectable fetch / EventSource for tests.
@@ -130,6 +151,12 @@ export function createRosterRpc(deps: RosterRpcDeps = {}): RosterRpc {
   const groups = observable<RosterSlice<readonly WorkbenchGroup[]>>({ ...EMPTY_GROUPS })
   const sessionsByBot = observable<Readonly<Record<string, readonly WorkbenchSessionRow[]>>>({})
   const historyBySession = observable<Readonly<Record<string, HistorySlice>>>({})
+  const lastMessages = observable<Readonly<Record<string, string>>>({})
+  const previewCache = new Map<string, string>()
+  const previewQueued = new Set<string>()
+  const previewInflight = new Set<string>()
+  const previewQueue: PreviewJob[] = []
+  let previewRunning = 0
 
   let disposed = false
   let active = false
@@ -265,6 +292,55 @@ export function createRosterRpc(deps: RosterRpcDeps = {}): RosterRpc {
     return slice
   }
 
+  const writeLastMessage = (botId: string, text: string): void => {
+    const current = lastMessages.getSnapshot()
+    if (current[botId] === text) return
+    lastMessages.set({ ...current, [botId]: text })
+  }
+
+  const dropPreviewQueue = (): void => {
+    for (const leftover of previewQueue) previewQueued.delete(leftover.key)
+    previewQueue.length = 0
+  }
+
+  const pumpPreview = (): void => {
+    while (previewRunning < PREVIEW_CONCURRENCY && previewQueue.length > 0) {
+      if (disposed || !active) {
+        dropPreviewQueue()
+        return
+      }
+      const job = previewQueue.shift()
+      if (job === undefined) return
+      previewQueued.delete(job.key)
+      previewInflight.add(job.key)
+      previewRunning += 1
+      void historyOf(job.sessionId).then(slice => {
+        if (slice.status === 'error') return
+        const text = lastMessagePreview(slice.items)
+        previewCache.set(job.key, text)
+        writeLastMessage(job.botId, text)
+      }).finally(() => {
+        previewInflight.delete(job.key)
+        previewRunning -= 1
+        pumpPreview()
+      })
+    }
+  }
+
+  const ensurePreview = (botId: string, sessionId: string, updatedAt: number): void => {
+    const key = `${sessionId}:${updatedAt}`
+    const cached = previewCache.get(key)
+    if (cached !== undefined) {
+      writeLastMessage(botId, cached)
+      return
+    }
+    if (!active || disposed) return
+    if (previewQueued.has(key) || previewInflight.has(key)) return
+    previewQueued.add(key)
+    previewQueue.push({ botId, sessionId, key })
+    pumpPreview()
+  }
+
   const afterMutate = async (): Promise<void> => {
     await pull()
   }
@@ -274,6 +350,7 @@ export function createRosterRpc(deps: RosterRpcDeps = {}): RosterRpc {
     groups,
     sessionsByBot,
     historyBySession,
+    lastMessages,
     refresh: pull,
     sessionsOf,
     createBotSession: async (botId, title) => {
@@ -356,6 +433,7 @@ export function createRosterRpc(deps: RosterRpcDeps = {}): RosterRpc {
       fetchImpl,
     ),
     historyOf,
+    ensurePreview,
     setActive: (next) => {
       active = next
       if (next) {
@@ -364,6 +442,7 @@ export function createRosterRpc(deps: RosterRpcDeps = {}): RosterRpc {
         startPoll()
         return
       }
+      dropPreviewQueue()
       stopSse()
       sseReady = false
       stopPoll()
@@ -371,6 +450,7 @@ export function createRosterRpc(deps: RosterRpcDeps = {}): RosterRpc {
     dispose: () => {
       disposed = true
       active = false
+      dropPreviewQueue()
       if (debounceTimer !== undefined) clearTimeout(debounceTimer)
       stopSse()
       stopPoll()
