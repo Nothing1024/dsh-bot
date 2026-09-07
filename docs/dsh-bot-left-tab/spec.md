@@ -74,8 +74,8 @@
 | 启动脚本 `sh env/boot.sh`：已起且身份对本仓则直接退出 | `sed -n 1,30p env/boot.sh`；`rg -n "boot" README.md` | README L28 |
 | 工作区有未提交改动（session-nav 在飞）：`ui-dsh-bot` DshBotTab/session-jump/tab.spec、`workbench-ui` App/Persona 等 21 文件 | `git status --short`；`git diff --stat` | 21 files changed, 547 insertions |
 | 本会话可用浏览器工具：cursor-ide-browser MCP（navigate/snapshot/click/screenshot）；邻仓有 Playwright | 本会话工具目录；`ls ../../dsh-genoffice/engine/node_modules/playwright/package.json`（见 `docs/dsh-bot-roster/spec.md` §1.3） | 可做真机回放 |
-| 在飞包 `dsh-bot-session-nav` 进度 3/14；Task 4（Phase 1 回归）阻塞原因「UF-401 `~dsh-bot:` hidden `sessions.open` 不落地 `list.current`」——即用 `~` 标题收起的 bot 会话经 `sessions.open` 打不开 | `python3 ~/.claude/skills/prd-workflow/scripts/board.py docs/dsh-bot-session-nav`；`cut -d, -f1-3,7 docs/dsh-bot-session-nav/tasks.csv` | 本包 BR-605 的直接前提 |
-| session-nav BR-405/406 计划新增 `POST /dsh-bot/overview {}` 聚合接口（bot/group 会话摘要 + lastMessage + working）与 `GET /dsh-bot/events` SSE；对应 Task 9 / Task 10 均「待开始」 | `rg -n "BR-405\|BR-406" docs/dsh-bot-session-nav/spec.md` | 本包 Task 7 数据层应复用而非另写 |
+| 在飞包 `dsh-bot-session-nav` 进度 3/14；Task 4（Phase 1 回归）阻塞原因「跳转场景（其 spec §2.2 第 1 条）`~dsh-bot:` hidden `sessions.open` 不落地 `list.current`」——即用 `~` 标题收起的 bot 会话经 `sessions.open` 打不开 | `python3 ~/.claude/skills/prd-workflow/scripts/board.py docs/dsh-bot-session-nav`；`cut -d, -f1-3,7 docs/dsh-bot-session-nav/tasks.csv` | 本包 BR-605 的直接前提 |
+| session-nav 聚合与推送两条规则（其 spec §2.1「聚合 overview」「SSE 推送」）计划新增 `POST /dsh-bot/overview {}` 聚合接口（bot/group 会话摘要 + lastMessage + working）与 `GET /dsh-bot/events` SSE；对应 Task 9 / Task 10 均「待开始」 | `rg -n "聚合 overview\|SSE 推送" docs/dsh-bot-session-nav/spec.md` | 本包 Task 7 数据层应复用而非另写 |
 
 ### 1.4 假设清单
 
@@ -678,7 +678,7 @@ P0 校准（Task 1）
 - **前置任务**：6（跨包：先查 session-nav Task 9/10 是否已落地 `overview` / `events`，见 ASM-607）
 - **风险等级**：P1
 
-**为什么做**：名册、footer 徽章、身份条共用一份数据源；SSE 触发刷新避免每 2s 轮询。session-nav 正在为 iframe 工作台做同一件事（BR-405 overview + BR-406 SSE），本包不能再造一套。
+**为什么做**：名册、footer 徽章、身份条共用一份数据源；SSE 触发刷新避免每 2s 轮询。session-nav 正在为 iframe 工作台做同一件事（其 spec §2.1「聚合 overview」+「SSE 推送」，Task 9/10），本包不能再造一套。
 
 **开工前分叉（ASM-607）**：`rg -n "case 'overview'" packages/dsh-bot-host/src/workbench-routes.ts` 有命中 → 走 A：`refresh()` 只打 `POST /dsh-bot/overview`，bots/groups/sessionsByBot 三个 store 全部从它派生；无命中 → 走 B：`listBots` + `listGroups` + 选中 bot 时懒拉 `listBotSessions`，并在 §1.5 登记「overview 落地后切 A」。两条路的 store 形状相同，上层组件不感知。
 
