@@ -81,6 +81,19 @@ export const zh = {
   'palette.loading': '名册加载中…',
   'palette.toSessions': '切到会话模式',
   'palette.toBot': '切到 Bot 模式',
+  'identity.working': '工作中',
+  'identity.memory': '记忆 {n}',
+  'identity.routines': '例程 {n}',
+  'identity.peers': '同事 {n}',
+  'identity.persona': '人设',
+  'identity.chat': '对话',
+  'identity.newChat': '新开对话',
+  'identity.close': '关闭',
+  'identity.retry': '重试',
+  'identity.empty': '暂无条目',
+  'identity.preset': 'preset {id}',
+  'identity.editPersona': '编辑人设',
+  'identity.tail': '例程触发 · {name}',
 } satisfies Record<string, string>
 
 /** The dsh-bot tab namespace key union. */
@@ -165,6 +178,19 @@ export const en = {
   'palette.loading': 'Loading roster…',
   'palette.toSessions': 'Switch to Sessions',
   'palette.toBot': 'Switch to Bot mode',
+  'identity.working': 'Working',
+  'identity.memory': 'Memory {n}',
+  'identity.routines': 'Routines {n}',
+  'identity.peers': 'Peers {n}',
+  'identity.persona': 'Persona',
+  'identity.chat': 'Chat',
+  'identity.newChat': 'New chat',
+  'identity.close': 'Close',
+  'identity.retry': 'Retry',
+  'identity.empty': 'Nothing yet',
+  'identity.preset': 'preset {id}',
+  'identity.editPersona': 'Edit persona',
+  'identity.tail': 'Routine · {name}',
 } satisfies Record<DshBotLocaleKey, string>
 
 /** Dictionary namespace owned by this plugin. */

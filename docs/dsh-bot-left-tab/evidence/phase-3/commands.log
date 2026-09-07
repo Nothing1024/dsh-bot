@@ -1,3 +1,6 @@
 
 ===== 2026-09-08T02:35:02Z Task 8 步骤 6 =====
 ./node_modules/.bin/vitest run packages/ui-dsh-bot/tests/bot-roster-preview-source.spec.tsx packages/ui-dsh-bot/tests/bot-roster.spec.tsx packages/ui-dsh-bot/tests/bot-region.spec.tsx → 3 files / 14 tests passed
+
+===== 2026-09-08T02:35:58Z Task 17 =====
+./node_modules/.bin/vitest run packages/ui-dsh-bot/tests/identity-bar.spec.tsx → 6 passed

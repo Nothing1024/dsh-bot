@@ -5,6 +5,7 @@
 import { createElement, useSyncExternalStore } from 'react'
 import type { Context } from '@deepseek-ai/cordis'
 import { BoundBotRegion, BoundModeFooter, BoundOverlay } from './BoundRoster.tsx'
+import { IdentityBar } from './IdentityBar.tsx'
 import type { SessionListFace } from './BoundRoster.tsx'
 import { DshBotIcon, DshBotTab } from './DshBotTab.tsx'
 import type { SessionCwdFace, WorkspaceCwdFace } from './DshBotTab.tsx'
@@ -129,6 +130,16 @@ export function apply(ctx: Context): void {
         locale: NS,
       }, BoundFooter)),
       'ui-dsh-bot: mode footer',
+    )
+    client.effect(
+      () => slots.inject('conversation.session.header.actions', () => slots.register({
+        name: 'conversation.session.header.actions',
+        id: 'dsh-bot:identity',
+        order: 50,
+        locale: NS,
+        inject: () => ({ roster, sessions: client.sessions, overlay }),
+      }, IdentityBar)),
+      'ui-dsh-bot: identity bar',
     )
     client.effect(
       () => slots.inject('shell.overlay', () => slots.register({
