@@ -18,7 +18,7 @@
 17,P3:中栏身份条,header.actions 身份 chip（仅 bot 会话）,spec.md#task-17,16,./node_modules/.bin/vitest run packages/ui-dsh-bot/tests/identity-bar.spec.tsx → 通过,已完成,
 18,P3:中栏身份条,记忆 / 例程 / 同事 / 人设 pill 浮层 + 对话切换 + 新开对话,spec.md#task-18,17,./node_modules/.bin/vitest run packages/ui-dsh-bot/tests/identity-bar-popovers.spec.tsx → 通过,已完成,
 19,P3:中栏身份条,turnTail「例程触发」标签,spec.md#task-19,17;7,./node_modules/.bin/vitest run packages/ui-dsh-bot/tests/routine-turn-tail.spec.tsx → 通过,已完成,ASM-608 证实同源；host 不写 origin，ensureWakes 补官方 wake seq
-20,P3:中栏身份条,执行 Phase 3 回归验证,spec.md#task-20,18;19,pnpm run typecheck && ./node_modules/.bin/vitest run packages/ui-dsh-bot/tests && pnpm --filter ui-dsh-bot run build → 全过；真机 UF-605 截图,待开始,
+20,P3:中栏身份条,执行 Phase 3 回归验证,spec.md#task-20,18;19,pnpm run typecheck && ./node_modules/.bin/vitest run packages/ui-dsh-bot/tests && pnpm --filter ui-dsh-bot run build → 全过；真机 UF-605 截图,已完成,identity-bar/popover/plain-session/routine-tag/roster-preview + ASM-608 seq-check
 21,P4:文档、真实场景与收尾,同步 README「左栏 Bot 模式」与原型文档状态,spec.md#task-21,20,rg -n "左栏 Bot 模式" README.md → 命中；rg -n "落地记录" docs/prototypes/left-sidebar-bot-tab.md → 命中,待开始,
 22,P4:文档、真实场景与收尾,执行 spec 5.2 真实场景全套测试,spec.md#task-22,21,5.2 执行矩阵全部行通过；python3 ~/.claude/skills/prd-workflow/scripts/validate_package.py docs/dsh-bot-left-tab → 0 FAIL,待开始,
 23,P4:文档、真实场景与收尾,执行 Phase 4 回归验证,spec.md#task-23,22,pnpm run typecheck && pnpm test && pnpm run build && pnpm run standard:check → 全过；git status --short 与 evidence/phase-0/git-status-before.txt 对比在飞文件仍在,待开始,

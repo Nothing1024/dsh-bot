@@ -12,3 +12,13 @@
 ./node_modules/.bin/vitest run packages/ui-dsh-bot/tests/routine-turn-tail.spec.tsx → passed (with identity/roster-rpc/preview: 5 files / 28 tests)
 pnpm run typecheck → EXIT 0
 ASM-608: evidence/UF-612/seq-check.log CONFIRMED homologous seq; host origin empty; ensureWakes fallback
+
+===== 2026-09-08T02:51:10Z Task 20 =====
+pnpm run typecheck → EXIT 0
+./node_modules/.bin/vitest run packages/ui-dsh-bot/tests → 21 files / 102 tests passed (1.17s)
+pnpm --filter ui-dsh-bot run build → EXIT 0; client CJS 165.18 kB; purity OK
+git diff --stat packages/dsh-bot-host/src → empty
+python3 ~/.claude/skills/prd-workflow/scripts/validate_package.py docs/dsh-bot-left-tab --repo . → 0 FAIL / 1 WARN / 21 PASS
+live UF-605/610/612 @ 127.0.0.1:3084 pid 96178
+screenshots: roster-preview.png identity-bar.png popover.png plain-session.png routine-tag.png
+ASM-608: ../UF-612/seq-check.log CONFIRMED homologous; host origin empty
