@@ -69,6 +69,7 @@ bash scripts/manual-test.sh --no-write      # 只建会话 / 设 override / 查 
 |---|---|---|
 | 浏览器直开 | http://127.0.0.1:3084/dsh-bot/ui | host `webServer` 静态页 + 同源 `POST /dsh-bot/<method>` |
 | 右栏页签 | 官方 GUI http://127.0.0.1:3084 → 「DSH Bot」 | 页签 id 仍是 `dsh-bot:sessions`（`DSH_BOT_SESSIONS_TAB_ID`）；内容为同源 iframe `src=/dsh-bot/ui` |
+| 左栏 Bot 模式 | 官方 GUI 底栏「Bot」 | 左栏换成名册，点人设在官方中栏开会话。官方「+ 新会话」不变；小组仍走右栏页签。模式存在 `localStorage['dsh-bot:sidebar-mode']`（`'sessions'` / `'bot'`，缺省会话树） |
 
 **v1 页签行为变化**：v1 页签是会话列表（点行跳官方 conversation）。现在同一 tab id 改为 iframe 工作台；v1 HTTP `POST /dsh-bot/listSessions` 与 `POST /dsh-bot/createSession` 保留。`dsh_bot_ask`、`dsh-bot.model` override、marks CLI、默认 `dsh-bot` preset 会话链路不变。
 

@@ -97,3 +97,19 @@
 今天线上仍是第二套壳：`ui-dsh-bot` 的 `apply()` 只给 better-sidebar 注册 `dsh-bot:sessions` iframe（`/dsh-bot/ui`），`inject.ts` 只要 `sessions` + `locale`，**没有 slots / contributes**。1:1 已是官方 session（`platform.createSession` + `dsh-bot--<slug>` + `bot:<id>` marks），但画在 iframe Transcript 里，除非 `sessions.open` 跳出去。小组是插件 jsonl，`roomId ≠ sessionId`。
 
 `sidebar.workspaces` 是 ui-sidebar 声明、ui-workspace `WorkspaceBrowser` 占用的 **root-scoped single**。再 `register()` 会阴影官方树；没有 `sidebar.tab`。`sidebar.footer.action` 只适合底行按钮，不能冒充选项卡。不要占 `root` / `sidebar` / `conversation`。Variant A 落地：占 `sidebar.workspaces`，自绘「会话 | Bot」，会话态复刻或回嵌官方树，Bot 态画 grok 名册；1:1 用 `sessions.open` / `POST /dsh-bot/createBotSession`，小组仍走插件房间。
+
+## 落地记录（2026-09-08）
+
+实现合同：[`docs/dsh-bot-left-tab/spec.md`](../dsh-bot-left-tab/spec.md) v0.3.3。`docs/prototypes/dsh-bot-left-tab.html` 只作方向，本文件不再改 HTML 原型。
+
+与原型的四条偏差：
+
+- **分段条只在 Bot 态**：底栏「Bot」用 `priority: -1` 遮蔽 `sidebar.workspaces` 后，才在左栏顶画「会话 | Bot」。会话模式注销遮蔽，官方树原样回来，不在官方树上叠一层分段条。
+- **官方「+」不变**：Bot 模式不拦截、不改写官方「+ 新会话」。新开 bot 对话的入口在名册选中身份下方和身份条上。
+- **小组不进中栏**：点小组走右栏「DSH Bot」页签（`activateTab` + `dsh-bot:select-group`），中栏不画房间面。
+- **会话态不复刻官方树**：切回会话 = dispose 遮蔽注册，不自绘、不 CSS 隐藏、不回嵌一棵假树。
+
+v0.3.3 平台约束（非缺陷）：
+
+- 官方空 hero（新会话尚未发消息）没有 `conversation.session.header.actions` 座位，身份条只能在首条消息后、官方对话头出现时渲染。
+- host 不给例程 wake 写 `origin`；客户端 `ensureWakes` 只读消费官方 `POST /api/session.history`，把 `[routine]` user/message 的 seq 补进 `routineBySeq`。

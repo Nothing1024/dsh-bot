@@ -1,0 +1,17 @@
+===== 2026-09-08T03:18:59Z Task 8 BR-604 JSON skip =====
+./node_modules/.bin/vitest run packages/ui-dsh-bot/tests/bot-roster-preview-source.spec.tsx
+→ EXIT 0; 1 file / 9 tests passed (Duration 820ms)
+commit d0c5557
+
+===== 2026-09-08T03:20:44Z Task 18 BR-616 pill prefetch =====
+./node_modules/.bin/vitest run packages/ui-dsh-bot/tests/identity-bar-popovers.spec.tsx packages/ui-dsh-bot/tests/identity-bar.spec.tsx
+→ EXIT 0; 2 files / 14 tests passed (Duration 508ms)
+commit ac687ab
+
+===== 2026-09-08T03:21:09Z Task 21 README + 落地记录 =====
+rg -n "左栏 Bot 模式" README.md
+→ 72:| 左栏 Bot 模式 | 官方 GUI 底栏「Bot」 | ...
+rg -n "落地记录" docs/prototypes/left-sidebar-bot-tab.md
+→ 101:## 落地记录（2026-09-08）
+git status --short docs/prototypes/dsh-bot-left-tab.html
+→ empty (untouched)
