@@ -4,3 +4,6 @@
 
 ===== 2026-09-08T02:35:58Z Task 17 =====
 ./node_modules/.bin/vitest run packages/ui-dsh-bot/tests/identity-bar.spec.tsx → 6 passed
+
+===== 2026-09-08T02:37:08Z Task 18 =====
+./node_modules/.bin/vitest run packages/ui-dsh-bot/tests/identity-bar.spec.tsx packages/ui-dsh-bot/tests/identity-bar-popovers.spec.tsx → 2 files / 12 tests passed
