@@ -3,6 +3,7 @@
  * polling observable. SSE `/dsh-bot/events` ready stops POLL_MS; disconnect
  * falls back to 2s polling.
  */
+import { observable } from './observable.ts'
 
 export interface DshBotSessionRow {
   readonly sessionId: string
@@ -57,28 +58,6 @@ const EMPTY: DshBotListState = {
 }
 
 const POLL_MS = 2000
-
-interface ObservableHandle<T> {
-  getSnapshot(): T
-  subscribe(fn: () => void): () => void
-  set(next: T): void
-}
-
-function observable<T>(initial: T): ObservableHandle<T> {
-  let snap = initial
-  const subs = new Set<() => void>()
-  return {
-    getSnapshot: () => snap,
-    subscribe: (fn) => {
-      subs.add(fn)
-      return () => { subs.delete(fn) }
-    },
-    set: (next) => {
-      snap = next
-      for (const sub of subs) sub()
-    },
-  }
-}
 
 async function dshBotCall<T>(method: string, args: Record<string, unknown>): Promise<RpcResult<T>> {
   let response: Response

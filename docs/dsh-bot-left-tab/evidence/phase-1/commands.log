@@ -1,0 +1,13 @@
+# Phase 1 commands.log
+
+## Task 2 (2026-09-08)
+
+$ ./node_modules/.bin/vitest run packages/ui-dsh-bot/tests/sidebar-mode.spec.ts packages/ui-dsh-bot/tests/region-registration.spec.ts
+ Test Files  2 passed (2)
+      Tests  9 passed (9)
+   Duration  115ms
+EXIT 0
+
+$ pnpm run typecheck
+$ tsc -p tsconfig.json
+EXIT 0

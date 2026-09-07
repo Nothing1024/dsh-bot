@@ -8,7 +8,10 @@ import { DshBotIcon, DshBotTab } from './DshBotTab.tsx'
 import type { SessionCwdFace, WorkspaceCwdFace } from './DshBotTab.tsx'
 import { inject as requiredInject } from './inject.ts'
 import { en, NS, zh } from './locales.ts'
+import { bindBotRegion, hasSlots } from './region-registration.ts'
+import type { SlotsFace } from './region-registration.ts'
 import { createRpcDshBot } from './rpc.ts'
+import { createSidebarMode } from './sidebar-mode.ts'
 import { DSH_BOT_SESSIONS_TAB_ID } from './tab-id.ts'
 
 interface ClientLocale {
@@ -30,11 +33,12 @@ interface BetterSidebarService {
   subscribeState: (listener: () => void) => () => void
 }
 
-/** Duck-typed client ctx (locale + sessions + optional betterSidebar). */
+/** Duck-typed client ctx (locale + sessions + optional slots / betterSidebar). */
 type ClientCtx = Context & {
   locale: ClientLocale
   sessions: SessionCwdFace
   workspaces?: WorkspaceCwdFace
+  slots?: SlotsFace
   betterSidebar?: BetterSidebarService
 }
 
@@ -53,10 +57,24 @@ export const inject = [...requiredInject]
  * Register dictionaries and, when present, the better-sidebar sessions tab.
  * @param ctx - client root context.
  */
+function BotRegionPlaceholder(): null {
+  return null
+}
+
 export function apply(ctx: Context): void {
   const client = ctx as unknown as ClientCtx
   client.effect(() => client.locale.register(NS, { zh, en }), 'ui-dsh-bot: dictionaries')
   const t = client.locale.bind(NS)
+  const mode = createSidebarMode()
+
+  if (!hasSlots(client)) {
+    console.info('[ui-dsh-bot] ctx.slots missing; skip sidebar.workspaces / footer.action')
+  } else {
+    client.effect(
+      () => bindBotRegion(client, mode, BotRegionPlaceholder),
+      'ui-dsh-bot: bot region',
+    )
+  }
 
   ctx.inject(['betterSidebar'], (raw) => {
     const sidebarCtx = raw as unknown as ClientCtx
