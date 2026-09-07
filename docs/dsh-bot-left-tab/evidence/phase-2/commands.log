@@ -13,3 +13,25 @@ rg -n "case 'overview'" packages/dsh-bot-host/src/workbench-routes.ts → no hit
 
 ===== 2026-09-07T17:40:42Z Task 8 =====
 ./node_modules/.bin/vitest run packages/ui-dsh-bot/tests/bot-roster.spec.tsx packages/ui-dsh-bot/tests/bot-region.spec.tsx → 2 files / 7 passed
+
+===== 2026-09-07T17:40:42Z Task 9 =====
+./node_modules/.bin/vitest run packages/ui-dsh-bot/tests/bot-roster-select.spec.tsx → 5 passed
+
+===== 2026-09-07T17:40:42Z Task 10 =====
+./node_modules/.bin/vitest run packages/ui-dsh-bot/tests/bot-roster-menu.spec.tsx → 4 passed
+
+===== 2026-09-07T17:40:42Z Task 11 =====
+./node_modules/.bin/vitest run packages/ui-dsh-bot/tests/bot-roster-group.spec.tsx packages/workbench-ui/tests/app.spec.tsx → passed (select-group App case included)
+
+===== 2026-09-07T17:40:42Z Task 12 =====
+./node_modules/.bin/vitest run packages/ui-dsh-bot/tests/overlay-forms.spec.tsx → 6 passed
+pnpm --filter ui-dsh-bot run build → EXIT 0
+
+===== 2026-09-07T17:40:42Z Task 13 =====
+./node_modules/.bin/vitest run packages/ui-dsh-bot/tests/relationship-graph-overlay.spec.tsx packages/ui-dsh-bot/tests/bot-roster-group.spec.tsx → passed
+
+===== 2026-09-07T17:40:42Z Task 14 =====
+./node_modules/.bin/vitest run packages/ui-dsh-bot/tests/bot-roster-preview.spec.tsx → 3 passed
+
+===== 2026-09-07T17:40:42Z Task 15 =====
+./node_modules/.bin/vitest run packages/ui-dsh-bot/tests/command-palette.spec.tsx → 3 passed
