@@ -78,6 +78,26 @@ export function BotRegion(props: BotRegionProps): ReactElement {
   const wide = props.wide !== false
   const rosterState = props.rosterState ?? 'loading'
   if (!wide) {
+    // UF-604 失败分支: roster never loaded → one warning glyph in the avatar column,
+    // title「名册加载失败」; click expands the sidebar so UF-601 retry is reachable.
+    if (rosterState === 'error') {
+      return (
+        <div className={css.root} data-testid="dsh-bot-region" data-wide="0">
+          <div className={css.rail}>
+            <button
+              type="button"
+              className={css.railWarn}
+              title={t('roster.error')}
+              aria-label={t('roster.error')}
+              data-testid="dsh-bot-rail-error"
+              onClick={() => { props.expandSidebar?.(); props.onRetry?.() }}
+            >
+              !
+            </button>
+          </div>
+        </div>
+      )
+    }
     return (
       <div className={css.root} data-testid="dsh-bot-region" data-wide="0">
         {props.children ?? <RailAvatars />}

@@ -78,3 +78,17 @@
   padding: 8px 0;
   overflow: auto;
 }
+
+.railWarn {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  border: 1px solid color-mix(in srgb, #e11d48 45%, transparent);
+  background: color-mix(in srgb, #e11d48 12%, transparent);
+  color: #e11d48;
+  font: inherit;
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 34px;
+  cursor: pointer;
+}

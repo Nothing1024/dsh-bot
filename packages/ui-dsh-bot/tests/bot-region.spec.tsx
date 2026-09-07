@@ -49,6 +49,19 @@ describe('BotRegion', () => {
     expect(mode.getSnapshot()).toBe('sessions')
   })
 
+  it('rail + error shows one warning glyph titled 名册加载失败 that expands and retries (UF-604 失败分支)', () => {
+    const expandSidebar = vi.fn()
+    const onRetry = vi.fn()
+    render(<BotRegion wide={false} rosterState="error" expandSidebar={expandSidebar} onRetry={onRetry} />)
+    expect(screen.queryByTestId('dsh-bot-seg')).toBeNull()
+    expect(screen.queryByTestId('dsh-bot-rail')).toBeNull()
+    const warn = screen.getByTestId('dsh-bot-rail-error')
+    expect(warn.getAttribute('title')).toBe('名册加载失败')
+    fireEvent.click(warn)
+    expect(expandSidebar).toHaveBeenCalledTimes(1)
+    expect(onRetry).toHaveBeenCalledTimes(1)
+  })
+
   it('does not render the segment bar in rail mode', () => {
     render(<BotRegion wide={false} rosterState="loading" />)
     expect(screen.queryByTestId('dsh-bot-seg')).toBeNull()
