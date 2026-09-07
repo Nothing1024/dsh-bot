@@ -4,6 +4,10 @@
     "noEmit": true,
     "lib": ["es2023", "dom", "dom.iterable"],
     "paths": {
+      "dsh-bot-shared": ["./packages/dsh-bot-shared/src/index.ts"],
+      "dsh-bot-shared/roster-sections": ["./packages/dsh-bot-shared/src/roster-sections.ts"],
+      "dsh-bot-shared/avatar": ["./packages/dsh-bot-shared/src/avatar.ts"],
+      "dsh-bot-shared/session-binding": ["./packages/dsh-bot-shared/src/session-binding.ts"],
       "session-marks": ["../../session-tool/plugin/packages/session-marks/src/index.ts"],
       "session-tool": ["../../session-tool/plugin/packages/session-tool/src/index.ts"],
       "session-tool-local": ["../../session-tool/plugin/packages/session-tool-local/src/index.ts"]

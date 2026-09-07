@@ -4,7 +4,7 @@
 3,P1:左栏模式切换骨架,BotRegion 壳（分段条 / 三态 / wide-rail）,spec.md#task-3,2,./node_modules/.bin/vitest run packages/ui-dsh-bot/tests/bot-region.spec.tsx → 通过,已完成,
 4,P1:左栏模式切换骨架,底栏「Bot」开关行（sidebar.footer.action）,spec.md#task-4,2;3,./node_modules/.bin/vitest run packages/ui-dsh-bot/tests/mode-footer-action.spec.tsx → 通过；pnpm --filter ui-dsh-bot run build → 通过,已完成,
 5,P1:左栏模式切换骨架,执行 Phase 1 回归验证,spec.md#task-5,4,pnpm run typecheck && ./node_modules/.bin/vitest run packages/ui-dsh-bot/tests && pnpm --filter ui-dsh-bot run build → 全过；真机 UF-601/UF-602 截图,已完成,
-6,P2:名册内容与打开会话,抽共享逻辑包 dsh-bot-shared,spec.md#task-6,5,pnpm run typecheck && ./node_modules/.bin/vitest run packages/workbench-ui/tests packages/dsh-bot-shared/tests → 全过；pnpm --filter workbench-ui run build && pnpm --filter ui-dsh-bot run build → 通过,待开始,
+6,P2:名册内容与打开会话,抽共享逻辑包 dsh-bot-shared,spec.md#task-6,5,pnpm run typecheck && ./node_modules/.bin/vitest run packages/workbench-ui/tests packages/dsh-bot-shared/tests → 全过；pnpm --filter workbench-ui run build && pnpm --filter ui-dsh-bot run build → 通过,已完成,
 7,P2:名册内容与打开会话,roster-rpc 数据层（bots / groups / sessions + SSE）,spec.md#task-7,6,./node_modules/.bin/vitest run packages/ui-dsh-bot/tests/roster-rpc.spec.ts → 通过,待开始,ASM-607 开工前查 overview 是否落地（session-nav Task 9/10）决定 A/B 路
 8,P2:名册内容与打开会话,名册渲染（分组 / 行 / 搜索 / 已隐藏 / rail 头像列）,spec.md#task-8,7,./node_modules/.bin/vitest run packages/ui-dsh-bot/tests/bot-roster.spec.tsx packages/ui-dsh-bot/tests/bot-region.spec.tsx → 通过,待开始,
 9,P2:名册内容与打开会话,点人设打开绑定会话 / 下挂会话 / 新开对话 / 标已读,spec.md#task-9,8,./node_modules/.bin/vitest run packages/ui-dsh-bot/tests/bot-roster-select.spec.tsx → 通过,待开始,

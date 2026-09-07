@@ -16,6 +16,8 @@ import { createRpcDshBot } from './rpc.ts'
 import { createSidebarMode } from './sidebar-mode.ts'
 import { DSH_BOT_SESSIONS_TAB_ID } from './tab-id.ts'
 
+export { DEFAULT_ROSTER_SECTIONS } from 'dsh-bot-shared'
+
 interface ClientLocale {
   register(ns: string, dicts: { zh: Record<string, string>; en: Record<string, string> }): () => void
   bind(ns: string): (key: string, vars?: Record<string, string>) => string

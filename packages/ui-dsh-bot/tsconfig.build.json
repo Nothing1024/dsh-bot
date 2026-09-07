@@ -6,7 +6,14 @@
     "emitDeclarationOnly": true,
     "noEmit": false,
     "rootDir": "src",
-    "outDir": "lib/types"
+    "outDir": "lib/types",
+    "paths": {
+      "dsh-bot-shared": [
+        "../dsh-bot-shared/lib/index.d.ts"
+      ]
+    }
   },
-  "include": ["src"]
+  "include": [
+    "src"
+  ]
 }

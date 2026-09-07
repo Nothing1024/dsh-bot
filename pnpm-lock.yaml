@@ -141,6 +141,8 @@ importers:
         specifier: 3.18.1
         version: 3.18.1
 
+  packages/dsh-bot-shared: {}
+
   packages/tool-dsh-bot:
     dependencies:
       dsh-bot-host:
@@ -162,6 +164,9 @@ importers:
 
   packages/ui-dsh-bot:
     dependencies:
+      dsh-bot-shared:
+        specifier: workspace:*
+        version: link:../dsh-bot-shared
       react:
         specifier: ^18.3.1
         version: 18.3.1
@@ -187,6 +192,9 @@ importers:
 
   packages/workbench-ui:
     dependencies:
+      dsh-bot-shared:
+        specifier: workspace:*
+        version: link:../dsh-bot-shared
       react:
         specifier: ^18.3.1
         version: 18.3.1

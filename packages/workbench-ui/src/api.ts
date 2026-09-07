@@ -2,10 +2,51 @@
  * Browser HTTP RPC against `/dsh-bot/<method>` with `{args}` (v1 rpc.ts wire).
  */
 
-export interface WorkbenchWireError {
-  readonly code?: string
-  readonly message: string
-}
+export type {
+  CreateBotArgs,
+  CreateBotSessionValue,
+  GroupRoomRow,
+  HistoryValue,
+  ListBotSessionsValue,
+  ListBotsValue,
+  ListGroupsValue,
+  MemoryListValue,
+  MemoryLogRow,
+  MemoryProfileRow,
+  PeerLogRow,
+  RosterSection,
+  RoutineRow,
+  UpdateBotArgs,
+  UpdateBotLayoutInput,
+  WorkbenchBot,
+  WorkbenchBotAvatar,
+  WorkbenchBotModelInfo,
+  WorkbenchGroup,
+  WorkbenchHistoryAuthor,
+  WorkbenchHistoryItem,
+  WorkbenchModelOverride,
+  WorkbenchSessionRow,
+  WorkbenchWireError,
+} from 'dsh-bot-shared'
+
+import type {
+  CreateBotArgs,
+  CreateBotSessionValue,
+  GroupRoomRow,
+  HistoryValue,
+  ListBotSessionsValue,
+  ListBotsValue,
+  ListGroupsValue,
+  MemoryListValue,
+  PeerLogRow,
+  RosterSection,
+  RoutineRow,
+  UpdateBotArgs,
+  WorkbenchBot,
+  WorkbenchBotModelInfo,
+  WorkbenchGroup,
+  WorkbenchWireError,
+} from 'dsh-bot-shared'
 
 interface RpcOk<T> { ok: true; value: T }
 interface RpcFail { ok: false; error: WorkbenchWireError }
@@ -50,54 +91,6 @@ export async function workbenchCall<T>(
   return { ok: true, value: body.value as T }
 }
 
-export interface WorkbenchBotAvatar {
-  readonly color: string
-  readonly emoji?: string
-}
-
-export interface WorkbenchModelOverride {
-  readonly provider: string
-  readonly model: string
-  readonly reasoningEffort?: string
-}
-
-export interface WorkbenchBot {
-  readonly unread?: number
-  readonly declined?: readonly string[]
-  readonly id: string
-  readonly name: string
-  readonly avatar: WorkbenchBotAvatar
-  readonly presetId: string
-  readonly modelOverride?: WorkbenchModelOverride
-  readonly createdAt: number
-  readonly persona: string
-  readonly protected: boolean
-  readonly pinned?: boolean
-  readonly section?: string
-  readonly hidden?: boolean
-  readonly order?: number
-  readonly muted?: boolean
-}
-
-export interface ListBotsValue {
-  readonly bots: readonly WorkbenchBot[]
-}
-
-export interface CreateBotArgs {
-  readonly name: string
-  readonly persona: string
-  readonly avatar?: { readonly emoji?: string; readonly color?: string }
-  readonly modelOverride?: WorkbenchModelOverride
-}
-
-export interface UpdateBotArgs {
-  readonly id: string
-  readonly name?: string
-  readonly persona?: string
-  readonly avatar?: { readonly emoji?: string; readonly color?: string }
-  readonly modelOverride?: WorkbenchModelOverride | null
-}
-
 export function listBots(): Promise<RpcResult<ListBotsValue>> {
   return workbenchCall<ListBotsValue>('listBots', {})
 }
@@ -119,69 +112,8 @@ export function deleteBot(id: string): Promise<RpcResult<{ id: string; deleted: 
   return workbenchCall('deleteBot', { id })
 }
 
-export interface WorkbenchBotModelInfo {
-  readonly provider: string
-  readonly model: string
-  readonly source: 'override' | 'global-default'
-}
-
 export function listSessionsModel(): Promise<RpcResult<{ botModel: WorkbenchBotModelInfo }>> {
   return workbenchCall('listSessions', {})
-}
-
-export interface WorkbenchSessionRow {
-  readonly sessionId: string
-  readonly title?: string
-  readonly tags: readonly string[]
-  readonly status: 'live' | 'idle'
-  readonly createdAt: number
-  readonly updatedAt: number
-  readonly hidden: boolean
-  readonly working: boolean
-}
-
-export interface ListBotSessionsValue {
-  readonly sessions: readonly WorkbenchSessionRow[]
-}
-
-export interface CreateBotSessionValue {
-  readonly sessionId: string
-  readonly title: string
-  readonly botId: string
-  readonly presetId: string
-}
-
-export interface WorkbenchHistoryAuthor {
-  readonly botId: string
-  readonly name: string
-  readonly avatar: { readonly color: string; readonly emoji?: string }
-}
-
-export interface WorkbenchHistoryItem {
-  readonly id: string
-  readonly kind: 'message' | 'thinking' | 'tool' | 'propose-routine' | 'approval' | 'question'
-  readonly sessionId?: string
-  readonly rpcId?: string
-  readonly approvalId?: string
-  readonly pending?: boolean
-  readonly streaming?: boolean
-  readonly schedule?: string
-  readonly instruction?: string
-  readonly origin?: 'routine'
-  readonly seq: number
-  readonly role?: 'user' | 'assistant'
-  readonly text?: string
-  readonly name?: string
-  readonly summary?: string
-  readonly author?: WorkbenchHistoryAuthor
-  readonly error?: { readonly code: string; readonly message: string }
-}
-
-export interface HistoryValue {
-  readonly sessionId: string
-  readonly items: readonly WorkbenchHistoryItem[]
-  readonly working: boolean
-  readonly speaking?: { readonly botId: string; readonly name: string }
 }
 
 export interface PromptValue {
@@ -270,26 +202,6 @@ export function reconcile(): Promise<RpcResult<ReconcileValue>> {
   return workbenchCall<ReconcileValue>('reconcile', {})
 }
 
-export interface WorkbenchGroup {
-  readonly id: string
-  readonly name: string
-  readonly memberIds: readonly string[]
-  readonly createdAt: number
-  readonly section?: string
-  readonly order?: number
-}
-
-export interface ListGroupsValue {
-  readonly groups: readonly WorkbenchGroup[]
-}
-
-export interface GroupRoomRow {
-  readonly roomId: string
-  readonly groupId: string
-  readonly createdAt: number
-  readonly updatedAt: number
-}
-
 export function listGroups(): Promise<RpcResult<ListGroupsValue>> {
   return workbenchCall<ListGroupsValue>('listGroups', {})
 }
@@ -351,26 +263,6 @@ export function writeDraft(botId: string, text: string): void {
 }
 
 
-export interface MemoryProfileRow {
-  readonly id: string
-  readonly text: string
-  readonly ts: number
-}
-
-export interface MemoryLogRow {
-  readonly id: string
-  readonly kind: 'log' | 'note'
-  readonly text: string
-  readonly ts: number
-  readonly source: 'auto' | 'explicit'
-  readonly sessionId?: string
-}
-
-export interface MemoryListValue {
-  readonly profile: readonly MemoryProfileRow[]
-  readonly log: readonly MemoryLogRow[]
-}
-
 export function memoryList(botId: string): Promise<RpcResult<MemoryListValue>> {
   return workbenchCall<MemoryListValue>('memoryList', { botId })
 }
@@ -400,18 +292,6 @@ export function memoryCount(value: MemoryListValue | undefined): number {
   return (value.profile ?? []).length + (value.log ?? []).length
 }
 
-
-export interface RoutineRow {
-  readonly id: string
-  readonly botId: string
-  readonly name: string
-  readonly schedule: string
-  readonly instruction: string
-  readonly enabled: boolean
-  readonly notify: boolean
-  readonly lastRunAt?: number
-  readonly lastOutcome?: 'spoke' | 'silent' | 'error'
-}
 
 export function routineList(botId?: string): Promise<RpcResult<readonly RoutineRow[]>> {
   return workbenchCall('routineList', botId === undefined || botId === '' ? {} : { botId })
@@ -454,13 +334,6 @@ export function markRead(botId: string): Promise<RpcResult<{ ok: true; unread: n
   return workbenchCall('markRead', { botId })
 }
 
-export interface PeerLogRow {
-  readonly from: string
-  readonly to: string
-  readonly ts: number
-  readonly sessionId: string
-}
-
 export function peerLog(botId?: string): Promise<RpcResult<readonly PeerLogRow[]>> {
   return workbenchCall('peerLog', botId === undefined || botId === '' ? {} : { botId })
 }
@@ -472,12 +345,6 @@ export function sendToPeer(input: {
   fromSessionId?: string
 }): Promise<RpcResult<{ accepted: true; sessionId: string }>> {
   return workbenchCall('sendToPeer', { ...input })
-}
-
-export interface RosterSection {
-  readonly id: string
-  readonly name: string
-  readonly order: number
 }
 
 export function updateBotLayout(input: {

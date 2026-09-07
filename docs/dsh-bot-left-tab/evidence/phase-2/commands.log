@@ -1,0 +1,7 @@
+
+===== 2026-09-07T17:31:48Z Task 6 =====
+pnpm run typecheck → EXIT 0
+./node_modules/.bin/vitest run packages/workbench-ui/tests packages/dsh-bot-shared/tests → 26 files / 135 tests passed
+pnpm --filter workbench-ui run build → EXIT 0 (hashAvatarColor / groupRosterItems inlined in lib/workbench.js)
+pnpm --filter dsh-bot-shared run build → EXIT 0
+pnpm --filter ui-dsh-bot run build → EXIT 0 (DEFAULT_ROSTER_SECTIONS / 置顶 inlined in lib/client.js)

@@ -18,7 +18,7 @@ export default defineConfig({
     'process.env.NODE_ENV': JSON.stringify('production'),
   },
   deps: {
-    alwaysBundle: [/^react($|\/)/, /^react-dom($|\/)/],
+    alwaysBundle: [/^react($|\/)/, /^react-dom($|\/)/, /^dsh-bot-shared/],
     onlyBundle: false,
   },
   outputOptions: {
