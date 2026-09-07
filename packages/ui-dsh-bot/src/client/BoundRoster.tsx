@@ -11,7 +11,7 @@ import { ModeFooterAction } from './ModeFooterAction.tsx'
 import { OverlayHost } from './OverlayHost.tsx'
 import { firstVisibleId, runMenuAction } from './menu-action.ts'
 import type { OverlayStore } from './overlay-store.ts'
-import { pickLatestBotSession } from './bot-preset.ts'
+import { countBotSessions, pickLatestBotSession } from './bot-preset.ts'
 import { readLastBot } from './roster-items.ts'
 import type { RosterRowModel } from './roster-items.ts'
 import type { RosterRpc } from './roster-rpc.ts'
@@ -126,11 +126,14 @@ export function BoundBotRegion(props: BoundRosterProps): ReactElement {
     () => pendingBotIds(bots.items, sessionSnap.byId),
     [bots.items, sessionSnap.byId],
   )
+  // BR-604 "会话数": path B only fetches `listBotSessions` for the selected bot, so
+  // every other row counts its sessions from the official list by preset (BR-607).
   const sessionCounts = useMemo(() => {
     const counts: Record<string, number> = {}
+    for (const bot of bots.items) counts[bot.id] = countBotSessions(bot.presetId, sessionSnap.byId)
     for (const [id, rows] of Object.entries(sessionsByBot)) counts[id] = rows.length
     return counts
-  }, [sessionsByBot])
+  }, [bots.items, sessionSnap.byId, sessionsByBot])
   const rosterState = deriveRosterState(bots.status, bots.items.length, groups.items.length)
   const selectedBot = bots.items.find(row => row.id === selectedId)
   const nested = selectedBot === undefined ? [] : sliceNested(sessionsByBot[selectedBot.id] ?? [], sessionSnap.current ?? null)
