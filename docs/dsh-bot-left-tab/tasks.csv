@@ -6,7 +6,7 @@
 5,P1:左栏模式切换骨架,执行 Phase 1 回归验证,spec.md#task-5,4,pnpm run typecheck && ./node_modules/.bin/vitest run packages/ui-dsh-bot/tests && pnpm --filter ui-dsh-bot run build → 全过；真机 UF-601/UF-602 截图,已完成,
 6,P2:名册内容与打开会话,抽共享逻辑包 dsh-bot-shared,spec.md#task-6,5,pnpm run typecheck && ./node_modules/.bin/vitest run packages/workbench-ui/tests packages/dsh-bot-shared/tests → 全过；pnpm --filter workbench-ui run build && pnpm --filter ui-dsh-bot run build → 通过,已完成,
 7,P2:名册内容与打开会话,roster-rpc 数据层（bots / groups / sessions + SSE）,spec.md#task-7,6,./node_modules/.bin/vitest run packages/ui-dsh-bot/tests/roster-rpc.spec.ts → 通过,已完成,ASM-607 开工前查 overview 是否落地（session-nav Task 9/10）决定 A/B 路
-8,P2:名册内容与打开会话,名册渲染（分组 / 行 / 搜索 / 已隐藏 / rail 头像列）,spec.md#task-8,7,./node_modules/.bin/vitest run packages/ui-dsh-bot/tests/bot-roster.spec.tsx packages/ui-dsh-bot/tests/bot-region.spec.tsx packages/ui-dsh-bot/tests/bot-roster-preview-source.spec.tsx → 通过,已完成,步骤 1–5 已完成（c263b5c）；v0.3.2 步骤 6 预览数据源（BR-604）本批补齐
+8,P2:名册内容与打开会话,名册渲染（分组 / 行 / 搜索 / 已隐藏 / rail 头像列）,spec.md#task-8,7,./node_modules/.bin/vitest run packages/ui-dsh-bot/tests/bot-roster.spec.tsx packages/ui-dsh-bot/tests/bot-region.spec.tsx packages/ui-dsh-bot/tests/bot-roster-preview-source.spec.tsx → 通过,进行中,步骤 1–6 已完成（c263b5c / 6443d8f）；v0.3.3 预览跳过 JSON 转储文本（BR-604），第四批开工先补
 9,P2:名册内容与打开会话,点人设打开绑定会话 / 下挂会话 / 新开对话 / 标已读,spec.md#task-9,8,./node_modules/.bin/vitest run packages/ui-dsh-bot/tests/bot-roster-select.spec.tsx → 通过,已完成,
 10,P2:名册内容与打开会话,行菜单 ⋯（置顶 / 移组 / 标已读 / 隐藏 / 静音）,spec.md#task-10,8,./node_modules/.bin/vitest run packages/ui-dsh-bot/tests/bot-roster-menu.spec.tsx → 通过,已完成,
 11,P2:名册内容与打开会话,点小组跳右栏「DSH Bot」页签并选中,spec.md#task-11,8,./node_modules/.bin/vitest run packages/ui-dsh-bot/tests/bot-roster-group.spec.tsx packages/workbench-ui/tests/app.spec.tsx → 通过,已完成,
@@ -16,7 +16,7 @@
 15,P2:名册内容与打开会话,shell.overlay 命令面板（⌘K）,spec.md#task-15,12;9,./node_modules/.bin/vitest run packages/ui-dsh-bot/tests/command-palette.spec.tsx → 通过,已完成,
 16,P2:名册内容与打开会话,执行 Phase 2 回归验证,spec.md#task-16,9;12;13;14;15,pnpm run typecheck && pnpm test && pnpm run build → 全过；git diff --stat packages/dsh-bot-host/src → 空；真机 UF-603 截图,已完成,
 17,P3:中栏身份条,header.actions 身份 chip（仅 bot 会话）,spec.md#task-17,16,./node_modules/.bin/vitest run packages/ui-dsh-bot/tests/identity-bar.spec.tsx → 通过,已完成,
-18,P3:中栏身份条,记忆 / 例程 / 同事 / 人设 pill 浮层 + 对话切换 + 新开对话,spec.md#task-18,17,./node_modules/.bin/vitest run packages/ui-dsh-bot/tests/identity-bar-popovers.spec.tsx → 通过,已完成,
+18,P3:中栏身份条,记忆 / 例程 / 同事 / 人设 pill 浮层 + 对话切换 + 新开对话,spec.md#task-18,17,./node_modules/.bin/vitest run packages/ui-dsh-bot/tests/identity-bar-popovers.spec.tsx → 通过,进行中,步骤 1–5 已完成（7fec673）；v0.3.3 pill 计数首拉前只显标签 + chip 挂载预取（BR-616），第四批开工先补
 19,P3:中栏身份条,turnTail「例程触发」标签,spec.md#task-19,17;7,./node_modules/.bin/vitest run packages/ui-dsh-bot/tests/routine-turn-tail.spec.tsx → 通过,已完成,ASM-608 证实同源；host 不写 origin，ensureWakes 补官方 wake seq
 20,P3:中栏身份条,执行 Phase 3 回归验证,spec.md#task-20,18;19,pnpm run typecheck && ./node_modules/.bin/vitest run packages/ui-dsh-bot/tests && pnpm --filter ui-dsh-bot run build → 全过；真机 UF-605 截图,已完成,identity-bar/popover/plain-session/routine-tag/roster-preview + ASM-608 seq-check
 21,P4:文档、真实场景与收尾,同步 README「左栏 Bot 模式」与原型文档状态,spec.md#task-21,20,rg -n "左栏 Bot 模式" README.md → 命中；rg -n "落地记录" docs/prototypes/left-sidebar-bot-tab.md → 命中,待开始,

@@ -1,6 +1,6 @@
 # dsh-bot-left-tab Spec
 
-> Version: 0.3.2 | Date: 2026-09-08 | Status: InProgress 执行中（Phase 0–2 已验收，Phase 3–4 在执行）
+> Version: 0.3.3 | Date: 2026-09-08 | Status: InProgress 执行中（Phase 0–3 已验收，Phase 4 在执行）
 >
 > 本文件是本需求的**唯一事实源**：事实基线、业务合同、技术方案、任务计划、验收协议全部在此。
 > 其他文件（handoff.md、tasks.csv）只引用本文件，不复制内容。
@@ -84,6 +84,8 @@
 | session-nav 聚合与推送两条规则（其 spec §2.1「聚合 overview」「SSE 推送」）计划新增 `POST /dsh-bot/overview {}` 聚合接口（bot/group 会话摘要 + lastMessage + working）与 `GET /dsh-bot/events` SSE；对应 Task 9 / Task 10 均「待开始」 | `rg -n "聚合 overview|SSE 推送" docs/dsh-bot-session-nav/spec.md` | 本包 Task 7 数据层应复用而非另写 |
 | ASM-601~605 真机校准全部证实：`inject` 加 `slots` 后 fiber `active`、`ctx.slots.snapshot()` 可读；`priority: -1` 遮蔽 `sidebar.workspaces`；dispose 回 `'sessions'` 后官方树+搜索+打开恢复；`sidebar.footer.action` 在 wide/rail 都渲染且收到 `wide`；`header.actions` 能读 `sessionId` + `byId[id].agentPreset` | Task 1 真机 :3084；`docs/dsh-bot-left-tab/evidence/phase-0/calibration.md` | 见 EVD-601 |
 | ASM-608 真机证实：workbench `history` 条目 `seq` 与官方 `turn/start`/`turn/end`/`assistant/message` 同源，可区间匹配；host 不给例程 assistant 打 `origin`（user `[routine]` 被丢掉） | Task 19：`POST /dsh-bot/history` + `session.history` + jsonl；`docs/dsh-bot-left-tab/evidence/UF-612/seq-check.log` | session-1923ea30 history seq=36 ∈ turn `[5,38]`；wake user/message seq=8 |
+| 官方空 hero（新会话尚未发消息）没有 `conversation.session.header.actions` 座位；身份条只能在官方对话头出现（首条消息后）才渲染 | Task 20 真机：身份条「新开对话」后中栏进 hero，DOM 无 `header.actions`；`evidence/phase-3/phase-summary.md` UF-605-4 行 | UF-605 步骤 4 文案按此修正（v0.3.3），非缺陷 |
+| host `projectWorkbenchHistory` 只在 assistant 文本以 `[routine]` 开头时写 `origin`；例程 wake 的 user/message 被 `isPlatformInjection` 过滤，线上 `origin` 为空。客户端 `ensureWakes` 改读官方 `POST /api/session.history`（信封 `{type:'client-request', rpcId, method:'session.history', payload:{sessionId, maxMessages:80}}`），取 `[routine]` user/message 的 seq 补进 `routineBySeq` | `evidence/UF-612/seq-check.log`；`rg "const ensureWakes" packages/ui-dsh-bot/src/client/roster-rpc.ts` | 本包不改 host（INV-602 成立）；此为 §3.4 登记的官方 API 新增只读消费，升级复查点 |
 | `agentPreset` 取值：默认 DSH Bot 会话是 `dsh-bot`（无 `--slug`）；其他人设是 `dsh-bot--<slug>`；普通会话是 `standard` / `minimal`。BR-607 匹配须同时认 `dsh-bot` 与 `dsh-bot--` 前缀 | `dsh-rpc.sh 3084 session.list` + spike console | 身份条判定补充 |
 
 ### 1.4 假设清单
@@ -98,6 +100,7 @@
 
 | 日期 | 变更条目 ID | 原因 | 影响任务与处置 |
 |---|---|---|---|
+| 2026-09-08 | v0.3.3（第三批审查登记四项）：① BR-604 预览跳过 JSON 转储文本；② BR-616 pill 计数首拉完成前只显示标签、chip 挂载即预取三类计数；③ UF-605 步骤 4 与 5.2 行改为「新会话 hero 无身份条，首条消息后出现」并把「三 pill」改「四 pill」；④ §3.4 登记 `ensureWakes` 对官方 `/api/session.history` 的只读消费 | ① 默认 DSH Bot 最后一条 message 是工具回执 JSON，名册行预览成了转储；② spec 原文「首次点开才请求」导致未加载与真实 0 显示相同的「记忆 0」，误导；③ 平台约束：官方 hero 没有 `header.actions` 座位；④ host 不写例程 `origin`，Task 19 用官方 API 回退，属新增数据依赖 | ①② 是规格漏洞：Task 8 / Task 18 状态板改回「进行中」，第四批开工先补（各一处小改 + 单测）；③ 文案修正，无代码；④ 无代码，升级 DSH 时用 dsh-upgrade-compat 复查 |
 | 2026-09-08 | ASM-608 证实（Task 19）：`/dsh-bot/history` 条目 `seq` 与官方 `TurnLocation.start/end` / `assistant/message` 同源，可区间匹配。host 不给例程 assistant 打 `origin`（user `[routine]` 被 `isPlatformInjection` 丢掉）。客户端 `ensureWakes` 预取官方 `session.history` 的 `[routine]` user/message seq 写入 `routineBySeq` | 真机 session-1923ea30：history seq=36，turn `[5,38]`，wake user/message seq=8；origin 为空 | Task 19 select 仍同步 O(1) 查表；Evidence `evidence/UF-612/seq-check.log` |
 | 2026-09-08 | BR-604 补预览数据源（v0.3.2）：官方 `sessions.list` 按 preset 找最新会话 → `history` 最后一条 message → 80 字符，`sessionId+updatedAt` 缓存 | 第二批审查发现名册「最后一句」恒为空：`buildRosterRows` 支持 `lastMessages` 但 ui-dsh-bot 侧无调用方喂数据；根因是 spec 只写了要预览没写数据从哪来（iframe 的预览来自 Transcript 组件回调，左栏没有该组件） | Task 8 增步骤 6（`roster-rpc.ts` 加 `lastMessages` store + `ensurePreview`；`BoundRoster` 接线），状态板 Task 8 改回「进行中」，第三批开工先补；Task 7 store 形状扩展；UF-607 步骤 1「预览更新为最后一句」的核对点由此可达 |
 | 2026-09-08 | Task 7 走 B 路（`listBots` + `listGroups` + 选中 bot 懒拉 `listBotSessions`），overview 落地后切 A | ASM-607：`rg` `packages/dsh-bot-host/src/workbench-routes.ts` 无 `case 'overview'` | store 形状保持 A/B 兼容，上层不感知 |
@@ -114,6 +117,7 @@
 |---|---|---|
 | 2026-09-07 | `python3 ~/.claude/skills/prd-workflow/scripts/validate_package.py docs/dsh-bot-left-tab --repo .` | 0 FAIL / 1 WARN（P0 豁免回归留痕）/ 21 PASS；§3.3 全部 21 条 rg anchor 命中；§3.5 的 7 条官方包 anchor 已手动 `rg --count` 逐条命中（1–2 次） |
 | 2026-09-08 | 第二批（Task 6–16）协调者独立复跑：`pnpm run typecheck` / `pnpm test` / `pnpm --filter ui-dsh-bot run build` / `git diff --stat packages/dsh-bot-host/src` / `validate_package --repo .` | typecheck 0 错；59 文件 400 测全过；bundle 纯度通过；host 零 diff；0 FAIL / 1 WARN / 21 PASS，§3.3 30 条 anchor 命中。审查结论：接受；发现 BR-604 预览数据源缺口（见 §1.5 v0.3.2）；worker 自报「⌘K 不响应 composer 焦点」核为 BR-621 设计行为，非缺陷 |
+| 2026-09-08 | 第三批（Task 8 步骤 6 + Task 17–20）协调者独立复跑：`pnpm run typecheck` / `vitest run packages/ui-dsh-bot/tests packages/dsh-bot-shared/tests packages/workbench-ui/tests` / `pnpm --filter ui-dsh-bot run build` / `git diff --stat 049f934..HEAD -- packages/dsh-bot-host/src env/profiles` / `validate_package --repo .` | typecheck 0 错；47 文件 238 测全过；bundle 纯度通过；host 与官方包零 diff；0 FAIL / 1 WARN / 21 PASS，§3.3 30 条 anchor 命中；`matchRoutineTurn` 核为同步查表，turnTail 重挂与四条注册全部 disposer 化（BR-611）。结论：接受。五张 phase-3 截图为合法 1280×800 PNG，但协调者侧图片读取返回空，**未能目视核对**，以 Task 22 的 5.2 全套回放为最终视觉验收。登记四项见 §1.5 v0.3.3 |
 
 ---
 
@@ -128,7 +132,7 @@
 | BR-601 | Bot 模式只通过向 `sidebar.workspaces` 以 `priority: -1` 注册来替换官方会话树；禁止注册 `root` / `sidebar` / `conversation` / `conversation.session` 任何 single 槽 | 注册 `{ name: 'sidebar.workspaces', priority: -1 }` | 注册 `root` 让整页只剩插件 | `packages/ui-dsh-bot/src/client/` | 单测断言 register 参数；真机 DOM 只有 `sidebar.workspaces` 变化 |
 | BR-602 | 会话模式对官方零侵入：插件不注册、不复刻、不用 CSS 隐藏官方会话树；切回会话模式 = dispose 遮蔽注册，官方 `WorkspaceBrowser` 原样回来 | 切回后能搜索会话、展开工作区、打开会话 | 会话模式下左栏还残留插件分段条或空白 | 同上 | UF-602 真机回放 |
 | BR-603 | 模式持久化在 `localStorage['dsh-bot:sidebar-mode']`（`'sessions'` \| `'bot'`），刷新页面保持；缺省 `'sessions'` | 切到 Bot 后刷新仍是名册 | 刷新后回到会话树 | `sidebar-mode.ts` | 单测 + UF-601 步骤 5 |
-| BR-604 | 名册行是身份不是会话：每行 = 头像 + 名字 + 最后一句预览 + 未读徽章 + 会话数；按置顶/工作/生活分组（沿用 `groupRosterItems`，隐藏项进底部「已隐藏 N 个」）；绑定会话只在**当前选中身份**下展开。预览数据源（v0.3.2）：左栏没有 iframe 工作台的 Transcript `onPreview` 回调，改为——在 `ctx.sessions.list` 里按 BR-607 同规则（`agentPreset` 为 `dsh-bot` 或 `dsh-bot--<slug>` 且能匹配该 bot 的 `presetId`）找出该 bot 的会话，取 `updatedAt` 最新的一条，调 `/dsh-bot/history` 取最后一条 `kind:'message'` 且 `text` 非空的条目，截 80 字符做预览；以 `sessionId + updatedAt` 为缓存键，官方 `updatedAt` 变化时才重拉；无会话或无消息时预览留空不占位。小组行预览沿用 `listGroups` 已有字段，不另拉 | 选中审查官后其下挂 ≤8 段会话；例程说话后该行预览立刻变成新的最后一句 | 每个 bot 都展开会话变成第二棵会话树；预览恒为空；每 2s 轮询全部会话的 history | `BotRoster.tsx` / `roster-rpc.ts` | 单测 + UF-603 / UF-607 |
+| BR-604 | 名册行是身份不是会话：每行 = 头像 + 名字 + 最后一句预览 + 未读徽章 + 会话数；按置顶/工作/生活分组（沿用 `groupRosterItems`，隐藏项进底部「已隐藏 N 个」）；绑定会话只在**当前选中身份**下展开。预览数据源（v0.3.2）：左栏没有 iframe 工作台的 Transcript `onPreview` 回调，改为——在 `ctx.sessions.list` 里按 BR-607 同规则（`agentPreset` 为 `dsh-bot` 或 `dsh-bot--<slug>` 且能匹配该 bot 的 `presetId`）找出该 bot 的会话，取 `updatedAt` 最新的一条，调 `/dsh-bot/history` 从后往前取第一条 `kind:'message'`、`text` 非空、且不是 JSON 转储（`trim()` 后以 `{` 或 `[` 开头且 `JSON.parse` 成功的文本跳过，v0.3.3）的条目，截 80 字符做预览；以 `sessionId + updatedAt` 为缓存键，官方 `updatedAt` 变化时才重拉；无会话或无消息时预览留空不占位。小组行预览沿用 `listGroups` 已有字段，不另拉 | 选中审查官后其下挂 ≤8 段会话；例程说话后该行预览立刻变成新的最后一句 | 每个 bot 都展开会话变成第二棵会话树；预览恒为空；每 2s 轮询全部会话的 history | `BotRoster.tsx` / `roster-rpc.ts` | 单测 + UF-603 / UF-607 |
 | BR-605 | 点人设 = 打开最近绑定会话：先读 `readLastSession(botId)` 命中且仍在列表 → `sessions.open`；否则取 `listBotSessions` 最新非隐藏行；都没有 → `createBotSession` 后 `open`。任何一步失败：行内红字错误 + 可重试，选中态不变 | 无会话的新人设点一下即建会话并打开 | 失败时静默或选中跳到别处 | `BotRoster.tsx` / `roster-rpc.ts` | 单测三分支 + UF-603 失败分支 |
 | BR-606 | 1:1 对话面全部交官方中栏：插件不在左栏区域、中栏、浮层里再画 Transcript / composer；中栏只新增 `conversation.session.header.actions` 一个条目 | 打开 bot 会话后中栏是官方对话/轨迹 + 官方 composer | 左栏或浮层里出现插件自己的消息流 | 全部客户端代码 | code review + UF-605 |
 | BR-607 | 身份条只对 bot 会话渲染：`agentPreset` 等于 `dsh-bot`（默认 DSH Bot 的 seed preset）或以 `dsh-bot--` 开头，且能在 `listBots` 里按 `presetId` 找到 bot 才显示；否则返回 `null`，不留占位 | 普通「重构 api.ts」会话顶栏没有身份条 | 普通会话顶栏出现空 chip | `IdentityBar.tsx` | 单测 + UF-605 分支 |
@@ -139,7 +143,7 @@
 | BR-613 | 名册头部三个按钮「关系图」「+ 新建人设」「+ 新建小组」；新建/编辑人设、新建小组/编辑成员、删除确认全部是 `shell.overlay` 里的模态（`id: 'dsh-bot:overlay'`，自己 `pointer-events: auto`），不占中栏；表单校验沿用 iframe 工作台：名字与人设文本必填，小组 2–6 名成员；保存调 `createBot/updateBot/createGroup/updateGroup`，成功关模态并让名册刷新且选中新建项 | 点「+ 新建人设」弹表单，保存后名册出现新行并选中 | 表单画在中栏或用 `window.prompt` | `OverlayForms.tsx` | UF-608 |
 | BR-614 | 删除走确认框：文案区分人设（「会删掉这个人设和它绑定的对话」）与小组（「会删掉小组和房间记录，成员人设保留」）；`protected` 的 DSH Bot 不显示删除项；删除当前选中项后选中态转到第一可见行，中栏不动 | 删旧助手后选中跳到审查官，中栏仍是原会话 | 无确认直接删；删 DSH Bot | `OverlayForms.tsx` / `BotRoster.tsx` | UF-608 |
 | BR-615 | 悬停 400ms 出预览卡（离开 120ms 收）：人设行显示模型标签 / 例程数 / 会话数 / 最后一句；小组行显示成员数 / 轮次 / 最后一句；卡片 `pointer-events: none`，不挡点击；rail 态与触屏不出卡 | 停在审查官 0.4s 见「grok-4.6 · 例行 1 · 会话 2」 | 卡片挡住行的 ⋯ 按钮 | `BotRoster.tsx` | UF-610 |
-| BR-616 | 身份条第四枚 pill「人设」：浮层显示 persona 文本 + `preset dsh-bot--<slug>` + 「编辑人设」按钮（打开 BR-613 的编辑模态）；身份 chip 本身点击也打开编辑模态 | 点 chip 直接进编辑 | 人设文本只能去 iframe 看 | `IdentityBar.tsx` | UF-610 |
+| BR-616 | 身份条第四枚 pill「人设」：浮层显示 persona 文本 + `preset dsh-bot--<slug>` + 「编辑人设」按钮（打开 BR-613 的编辑模态）；身份 chip 本身点击也打开编辑模态。计数显示（v0.3.3）：「记忆 / 例程 / 同事」三枚 pill 在该类数据首次拉取完成前只显示标签不显示数字；chip 挂载时即预取三类计数（各一次只读调用，按 bot 缓存 30s），浮层正文仍点开才展示 | 点 chip 直接进编辑；刚打开会话时 pill 是「记忆」，数据到后变「记忆 3」 | 人设文本只能去 iframe 看；未加载时显示「记忆 0」 | `IdentityBar.tsx` | UF-605 / UF-610 |
 | BR-617 | 视觉基准：分段条 / 名册行 / 头像 / 未读徽章 / 预览卡 / 浮层 / 表单 / 确认框 / 关系图卡的尺寸、圆角、间距以 `docs/prototypes/dsh-bot-left-tab.html` 对应 class（`.seg` `.rosterRow` `.face` `.unreadBadge` `.rosterPreviewCard` `.floatPanel` `.formPane` `.confirmBox` `.graphCard`）为准，颜色 token 换成宿主 `color-scheme` 变量；实现不得自创另一套间距 | 名册行 36px 头像格 + 三列网格 | 行高、圆角随手写 | 全部 CSS modules | code review + UF-601 截图对照 |
 | BR-618 | 小组行选中后下挂「+ 新开房间」：调 `createGroupSession(groupId)` 后按 BR-608 跳右栏页签并选中该房间；「关系图」按钮打开 `shell.overlay` 关系图卡（虚线 = 同组，实线 = 有过传话），点节点 → 关闭卡并 `selectBot` | 点节点「诗人小北」名册选中小北并打开其会话 | 关系图画在中栏 | `RelationshipGraphOverlay.tsx` | UF-609 |
 | BR-619 | 「需要你决定」红徽章：某 bot 任一绑定会话在 `ctx.sessions.list.getSnapshot().byId[id].pendingInteraction` 有值（approval / plan-review / question）时，名册徽章改为红色「@」并优先于数字未读；底栏「Bot」行也带红点；pending 消失即回到数字 | 审批卡出现时审查官行变红「@」 | 用 host 新字段实现；红色永不清 | `BotRoster.tsx` / `ModeFooterAction.tsx` | UF-612 |
@@ -305,7 +309,7 @@ idle ──点击──▶ resolving ──有会话──▶ opened
 | 1 | 打开 bot 会话 | 顶栏标题右侧出现身份 chip（头像 + 名字，working 时绿点） | `header.actions` 条目读 `sessionId` → `byId[sessionId].agentPreset` → 在 `listBots` 里匹配 `presetId` | chip 右侧三枚 pill：「记忆 N」「例程 N」「同事 N」，再右「对话 ▾ {标题}」「新开对话」 |
 | 2 | 点「记忆 N」 | pill 激活；浮层从 pill 下方弹出 | `memoryList(botId)` | 浮层列出记忆条目（只读）+「关闭」 |
 | 3 | 点「对话 ▾」 | 浮层列出该 bot 全部绑定会话（当前高亮） | `listBotSessions` | 点一条 → `sessions.open` 切换，浮层关 |
-| 4 | 点「新开对话」 | 按钮禁用 | `createBotSession` → `open` | 中栏切到新会话，身份条仍在 |
+| 4 | 点「新开对话」 | 按钮禁用 | `createBotSession` → `open` | 中栏切到新会话。新会话是官方空 hero，没有 `header.actions` 座位（§1.3），此刻看不到身份条；发出首条消息、官方对话头出现后身份条回来 |
 | 5 | 切到普通会话 | 身份条消失 | 条目返回 `null` | 顶栏与官方一致 |
 
 **失败分支**：
@@ -678,7 +682,7 @@ After:
 
 | 类型 | 是否影响 | 说明 | 兼容策略 |
 |---|---|---|---|
-| API | 否 | 只消费现有 `/dsh-bot/*` RPC 与 `/dsh-bot/events`；不新增、不改签名（INV-602） | — |
+| API | host 否；官方 API 新增只读消费 | 只消费现有 `/dsh-bot/*` RPC 与 `/dsh-bot/events`；不新增、不改签名（INV-602）。v0.3.3 起 `ensureWakes` 额外只读调用官方 `POST /api/session.history`（client-request 信封，`maxMessages: 80`），作为 host 不写例程 `origin` 时 turnTail（BR-620）的唯一 wake 数据源 | 官方信封或事件形状变化时该回退 `catch` 吞错、标签不出现，不影响其他功能；升级 DSH 时用 dsh-upgrade-compat 复查 `wakesFromOfficialEvents` |
 | 数据 | 否（浏览器侧新增） | 新增 `localStorage['dsh-bot:sidebar-mode']`；沿用 `dsh-bot:last-session:*` | 缺失即缺省 `sessions` |
 | 权限 | 否 | 单用户 loopback | — |
 | 路由 | 否 | 不新增 HTTP 路由；新增 5 个 slot 注册（`sidebar.workspaces` priority -1、`sidebar.footer.action` id `dsh-bot:mode`、`conversation.session.header.actions` id `dsh-bot:identity`、`shell.overlay` id `dsh-bot:overlay`、`conversation.chat.turnTail` chain 条目）+ 1 个 `window` keydown 监听 | 全部 disposer 化（BR-611） |
@@ -933,7 +937,7 @@ P0 校准（Task 1）
 3. `RailAvatars`：可见 bot 头像竖列 + 未读红点；onClick → `expandSidebar()` 后调 `onSelect(botId)`（Task 9）。
 4. `BotRegion` 接 rosterStore 驱动三态；`ModeFooterAction` 接总未读。
 5. 单测 `tests/bot-roster.spec.tsx`：分组渲染顺序、隐藏进底部、搜索过滤、rail 只画头像。
-6. （v0.3.2 补漏，第三批开工先做）预览数据源，按 BR-604 文案：`roster-rpc.ts` 新增 `lastMessages: ObservableHandle<Readonly<Record<string, string>>>` 与 `ensurePreview(botId, sessionId, updatedAt)`——以 `${sessionId}:${updatedAt}` 为缓存键，未命中才调 `historyOf(sessionId)`，取 `items` 中最后一条 `kind === 'message' && text` 非空的条目，`text.trim().slice(0, 80)` 写入 store；并发上限 2，Bot 模式关闭（`setActive(false)`）时中止未发请求。`BoundRoster`（或等价接线处）用 `useSyncExternalStore(sessions.list)` 得到 `byId`，对每个可见非隐藏 bot 按 BR-607 规则筛出其会话、取 `updatedAt` 最大者调 `ensurePreview`，把 `lastMessages` 快照传给 `BotRoster` 的 `lastMessages` prop（`buildRosterRows` 已支持该入参）。单测 `tests/bot-roster-preview-source.spec.tsx`：同缓存键不重复拉；`updatedAt` 变化重拉；无 message 条目留空；`setActive(false)` 后不再发请求。
+6. （v0.3.2 补漏，第三批开工先做）预览数据源，按 BR-604 文案：`roster-rpc.ts` 新增 `lastMessages: ObservableHandle<Readonly<Record<string, string>>>` 与 `ensurePreview(botId, sessionId, updatedAt)`——以 `${sessionId}:${updatedAt}` 为缓存键，未命中才调 `historyOf(sessionId)`，从 `items` 末尾向前取第一条 `kind === 'message' && text` 非空且非 JSON 转储（`trim()` 以 `{`/`[` 开头且 `JSON.parse` 不抛则跳过，v0.3.3）的条目，`text.trim().slice(0, 80)` 写入 store；并发上限 2，Bot 模式关闭（`setActive(false)`）时中止未发请求。`BoundRoster`（或等价接线处）用 `useSyncExternalStore(sessions.list)` 得到 `byId`，对每个可见非隐藏 bot 按 BR-607 规则筛出其会话、取 `updatedAt` 最大者调 `ensurePreview`，把 `lastMessages` 快照传给 `BotRoster` 的 `lastMessages` prop（`buildRosterRows` 已支持该入参）。单测 `tests/bot-roster-preview-source.spec.tsx`：同缓存键不重复拉；`updatedAt` 变化重拉；无 message 条目留空；`setActive(false)` 后不再发请求。
 
 **验证**：`./node_modules/.bin/vitest run packages/ui-dsh-bot/tests/bot-roster.spec.tsx packages/ui-dsh-bot/tests/bot-region.spec.tsx packages/ui-dsh-bot/tests/bot-roster-preview-source.spec.tsx` → 通过
 
@@ -1193,7 +1197,7 @@ P0 校准（Task 1）
 
 **具体操作**：
 
-1. chip 右侧三枚 pill：「记忆 N」「例程 N」「同事 N」，N 来自各只读接口（懒加载：首次点开才请求，之后缓存 30s）；点开浮层（portal 到 `document.body`，定位到 pill 下方），只读列表 + 关闭；Esc / 点外关闭；请求失败浮层内红字 + 重试。
+1. chip 右侧三枚 pill：「记忆 N」「例程 N」「同事 N」，N 来自各只读接口。计数拉取时机（v0.3.3 修正，原「首次点开才请求」导致未加载显示「0」）：chip 挂载即预取三类（各一次调用，按 bot 缓存 30s），未返回前 pill 只显示标签不显示 N；浮层正文点开才展示；点开浮层（portal 到 `document.body`，定位到 pill 下方），只读列表 + 关闭；Esc / 点外关闭；请求失败浮层内红字 + 重试。
 2. 「对话 ▾ {displayTitle}」：浮层列出 `sessionsOf(botId)`（当前高亮），点一条 → `jumpToSession`；末行「+ 新开对话」→ `createBotSession` → open，请求期间禁用。
 3. 第四枚 pill「人设」（BR-616）：浮层显示 persona 全文 + `preset dsh-bot--<slug>` + 「编辑人设」按钮 → `openOverlay({ kind:'edit-bot', id })`（Task 12）；身份 chip 本身 onClick 同样打开编辑模态。
 4. 样式按 BR-617 对照原型 `.floatPanel`（L121）/ `.memoryPill`。
@@ -1333,7 +1337,7 @@ P0 校准（Task 1）
 | UF-603 失败分支 会话已归档 | browser | 在官方树归档 last-session 后点该人设 | 回退到最新会话，无报错 | `evidence/UF-603/archived-fallback.png` |
 | UF-604 主路径 | browser | 2.3 UF-604 步骤 1-2 | rail 头像列 + 红点；点头像展开并打开会话 | `evidence/UF-604/rail.png`、`evidence/UF-604/expanded.png` |
 | UF-604 失败分支 名册未加载 | browser | rail 态下网关不可达 | 警示图标 title | `evidence/UF-604/rail-error.png` |
-| UF-605 主路径 | browser | 2.3 UF-605 步骤 1-5 | chip + 三 pill + 对话切换 + 新开对话；记忆浮层；切普通会话消失 | `evidence/UF-605/identity-bar.png`、`evidence/UF-605/memory-popover.png`、`evidence/UF-605/plain-session.png` |
+| UF-605 主路径 | browser | 2.3 UF-605 步骤 1-5 | chip + 四 pill（记忆/例程/同事/人设，计数在数据到后出现、未到只显标签）+ 对话切换 + 新开对话；记忆浮层；新开对话后 hero 无身份条、首条消息后回来；切普通会话消失 | `evidence/UF-605/identity-bar.png`、`evidence/UF-605/memory-popover.png`、`evidence/UF-605/plain-session.png` |
 | UF-605 失败分支 preset 无匹配 | browser | 删除一个 bot 后打开其旧会话 | 不渲染身份条 | `evidence/UF-605/orphan-preset.png` |
 | UF-606 主路径 | browser | 2.3 UF-606 步骤 1-2 | 右栏页签激活；iframe 选中该小组；中栏不变 | `evidence/UF-606/group-jump.png` |
 | UF-606 失败分支 页签未就绪 | browser | 右栏页签关闭状态下点小组 | 页签打开后自动选中（≤8s）或灰字提示 | `evidence/UF-606/tab-cold.png` |
