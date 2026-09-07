@@ -1,6 +1,6 @@
 # dsh-bot-left-tab Spec
 
-> Version: 0.1.0 | Date: 2026-09-07 | Status: Ready 可执行
+> Version: 0.1.1 | Date: 2026-09-08 | Status: Ready 可执行
 >
 > 本文件是本需求的**唯一事实源**：事实基线、业务合同、技术方案、任务计划、验收协议全部在此。
 > 其他文件（handoff.md、tasks.csv）只引用本文件，不复制内容。
@@ -74,6 +74,8 @@
 | 启动脚本 `sh env/boot.sh`：已起且身份对本仓则直接退出 | `sed -n 1,30p env/boot.sh`；`rg -n "boot" README.md` | README L28 |
 | 工作区有未提交改动（session-nav 在飞）：`ui-dsh-bot` DshBotTab/session-jump/tab.spec、`workbench-ui` App/Persona 等 21 文件 | `git status --short`；`git diff --stat` | 21 files changed, 547 insertions |
 | 本会话可用浏览器工具：cursor-ide-browser MCP（navigate/snapshot/click/screenshot）；邻仓有 Playwright | 本会话工具目录；`ls ../../dsh-genoffice/engine/node_modules/playwright/package.json`（见 `docs/dsh-bot-roster/spec.md` §1.3） | 可做真机回放 |
+| 在飞包 `dsh-bot-session-nav` 进度 3/14；Task 4（Phase 1 回归）阻塞原因「UF-401 `~dsh-bot:` hidden `sessions.open` 不落地 `list.current`」——即用 `~` 标题收起的 bot 会话经 `sessions.open` 打不开 | `python3 ~/.claude/skills/prd-workflow/scripts/board.py docs/dsh-bot-session-nav`；`cut -d, -f1-3,7 docs/dsh-bot-session-nav/tasks.csv` | 本包 BR-605 的直接前提 |
+| session-nav BR-405/406 计划新增 `POST /dsh-bot/overview {}` 聚合接口（bot/group 会话摘要 + lastMessage + working）与 `GET /dsh-bot/events` SSE；对应 Task 9 / Task 10 均「待开始」 | `rg -n "BR-405\|BR-406" docs/dsh-bot-session-nav/spec.md` | 本包 Task 7 数据层应复用而非另写 |
 
 ### 1.4 假设清单
 
@@ -86,10 +88,14 @@
 | ASM-603 | dispose 遮蔽注册后官方 `WorkspaceBrowser` 立即恢复渲染且搜索/展开状态可用 | 若 store 实例被回收导致官方树空白，需改为保持注册 + CSS 隐藏 | Task 1：切回后截图 + 点开一个会话 |
 | ASM-604 | `sidebar.footer.action`（list）注册一条 `{ id: 'dsh-bot:mode' }` 后在设置行旁渲染，wide/rail 两态都收到 `wide` | 若 rail 态不渲染 footer.action，rail 入口改为 region 内头像列 | Task 1：wide/rail 各一张截图 |
 | ASM-605 | `conversation.session.header.actions` 条目通过标准 kit 拿到 `sessionId`，再用 `ctx.sessions.list.getSnapshot().byId[sessionId].agentPreset` 能读到 `dsh-bot--<slug>` | 若 agentPreset 为空，需改用 `POST /dsh-bot/listBotSessions` 反查 | Task 1：在 bot 会话与普通会话各打印一次 |
+| ASM-606 | 在本包 Task 1 开工时，session-nav 的「`~dsh-bot:` 隐藏会话 `sessions.open` 不落地 `list.current`」已解除（session-nav Task 4 不再阻塞），或已决定 bot 1:1 会话不用 `~` 标题收起；否则 BR-605「点人设打开绑定会话」对被收起的会话无效 | 证伪则 UF-603 主路径挂：要么本包等 session-nav，要么本包名册只打开未收起会话并在行内提示「该会话已从官方侧栏收起」 | Task 1：对一条 `~dsh-bot:` 标题会话调 `sessions.open` 并读 `list.getSnapshot().current` |
+| ASM-607 | 到本包 Task 7 开工时，session-nav Task 9/10（`POST /dsh-bot/overview` + `GET /dsh-bot/events` 脏通知）已落地；Task 7 直接消费 overview 而不是逐 bot `listBotSessions` | 未落地则 Task 7 先按 `listBots` + `listGroups` + 懒拉 `listBotSessions(选中 bot)` 实现，并在 §1.5 登记「待 overview 落地后切换」 | Task 7 开工前 `rg -n "case 'overview'" packages/dsh-bot-host/src/workbench-routes.ts` |
 
 ### 1.5 变更记录
 
-首次生成，暂无。
+| 日期 | 变更条目 ID | 原因 | 影响任务与处置 |
+|---|---|---|---|
+| 2026-09-08 | ASM-606 / ASM-607 新增（v0.1.1） | 用户确认本包与在飞包 `dsh-bot-session-nav` 的两处耦合：隐藏会话 open 阻塞是 BR-605 前提；overview + SSE 与 Task 7 数据层重叠 | Task 1 增加隐藏会话 open 校准步骤并点名 session-nav Task 4；Task 7 前置增加「先查 overview 是否落地」分支；状态板备注同步 |
 
 ### 1.6 质量记录
 
@@ -507,13 +513,13 @@ P0 校准（Task 1）
 > 你在哪里：方案建立在 5 个未在真机验证的假设上（ASM-601~605），其中 ASM-602/603 决定方案是否成立。
 > 做完之后：五条假设各有结论；证伪任一条即在此阻塞并改方案，不带病进 Phase 1。
 
-### Task 1: 校准 ASM-601~605（priority 遮蔽 spike）
+### Task 1: 校准 ASM-601~606（priority 遮蔽 spike + 隐藏会话 open）
 
-- **关联**：BR-601 / BR-602 / BR-611 / UF-601 / UF-602 / INV-604 / INV-605 / EVD-601（校准任务，UF 只做可达性验证）
-- **前置任务**：无
+- **关联**：BR-601 / BR-602 / BR-605 / BR-611 / UF-601 / UF-602 / UF-603 / INV-604 / INV-605 / EVD-601（校准任务，UF 只做可达性验证）
+- **前置任务**：无（跨包前提：`docs/dsh-bot-session-nav/tasks.csv` Task 4 的阻塞「`~dsh-bot:` hidden `sessions.open` 不落地」应先解除；未解除时本任务第 5b 步会把 ASM-606 判为证伪并阻塞）
 - **风险等级**：P0
 
-**为什么做**：`priority` 遮蔽只见于 SlotCore 实现文字，没有公开 d.ts；方案成立与否取决于真机行为。
+**为什么做**：`priority` 遮蔽只见于 SlotCore 实现文字，没有公开 d.ts；方案成立与否取决于真机行为。同时 BR-605 依赖「被收起的 bot 会话能被 `sessions.open` 打开」，这正是 session-nav 当前卡住的点，必须在这里一并验证。
 
 **涉及文件与定位**：
 
@@ -528,11 +534,12 @@ P0 校准（Task 1）
 3. 同一 effect 内向 `sidebar.footer.action` 注册 `{ id: 'dsh-bot:mode' }` 一行「Bot」（点击写 `'bot'` 并 reload）；向 `conversation.session.header.actions` 注册 `{ id: 'dsh-bot:identity-spike', order: 50 }` 一个组件，`console.info('[spike]', sessionId, ctx.sessions.list.getSnapshot().byId[sessionId]?.agentPreset)` 后返回 null。
 4. `pnpm --filter ui-dsh-bot run build`；`kill 60108`（先 `~/.agents/skills/dsh-plugin-debug/scripts/dsh-rpc-who.sh 3084` 核身份）；`sh env/boot.sh`；浏览器打开 http://127.0.0.1:3084。
 5. 逐条记录：ASM-601（无 PENDING、footer 行出现）、ASM-602（点「Bot」后 `[data-slot="sidebar.workspaces"]` 内是占位；截图 `shadow-on.png`）、ASM-603（点「会话」后官方树完整；搜索一次；截图 `shadow-off.png`）、ASM-604（收起侧栏看 footer 行 rail 态）、ASM-605（打开一个 bot 会话与一个普通会话，抄 console 两行）。
+5b. ASM-606：先看 `docs/dsh-bot-session-nav/tasks.csv` Task 4 状态；再在 DevTools 里对一条标题以 `~dsh-bot: ` 开头的会话（`listBotSessions(botId, true)` 里 `hidden: true` 的行）调宿主 `sessions.open(id)`，读 `ctx.sessions.list.getSnapshot().current` 是否等于该 id，中栏是否切过去。证伪 → 本任务 `已阻塞:{ASM-606 隐藏会话 open 不落地，等 session-nav Task 4}`，并在 §1.5 记录备选（名册只开未收起会话 + 行内提示）。
 6. 在 DevTools 里 `document.querySelectorAll('[data-slot="sidebar.workspaces"]').length` 与 HMR/重载后是否仍为 1，写进 calibration.md。
 7. 证实的假设：事实回写 §1.3 并从 §1.4 删行；证伪：按 shared-rules §12 变更，状态板本任务标 `已阻塞:{原因}`，停在此。
 8. 去掉 reload 式 spike 代码（Phase 1 会写成正式实现），保留 inject 变更。
 
-**验证**：`ls docs/dsh-bot-left-tab/evidence/phase-0/calibration.md docs/dsh-bot-left-tab/evidence/phase-0/shadow-on.png docs/dsh-bot-left-tab/evidence/phase-0/shadow-off.png` → 三个文件存在，calibration.md 五条 ASM 各有「证实/证伪」
+**验证**：`ls docs/dsh-bot-left-tab/evidence/phase-0/calibration.md docs/dsh-bot-left-tab/evidence/phase-0/shadow-on.png docs/dsh-bot-left-tab/evidence/phase-0/shadow-off.png` → 三个文件存在，calibration.md 六条 ASM（601~606）各有「证实/证伪」
 
 **Evidence**：`evidence/phase-0/calibration.md`、`evidence/phase-0/shadow-on.png`、`evidence/phase-0/shadow-off.png`、`evidence/phase-0/git-status-before.txt`
 
@@ -668,10 +675,12 @@ P0 校准（Task 1）
 ### Task 7: roster-rpc 数据层（bots / groups / sessions + SSE）
 
 - **关联**：BR-605 / BR-612 / UF-603 / UF-607 / INV-602 / EVD-607
-- **前置任务**：6
+- **前置任务**：6（跨包：先查 session-nav Task 9/10 是否已落地 `overview` / `events`，见 ASM-607）
 - **风险等级**：P1
 
-**为什么做**：名册、footer 徽章、身份条共用一份数据源；SSE 触发刷新避免每 2s 轮询。
+**为什么做**：名册、footer 徽章、身份条共用一份数据源；SSE 触发刷新避免每 2s 轮询。session-nav 正在为 iframe 工作台做同一件事（BR-405 overview + BR-406 SSE），本包不能再造一套。
+
+**开工前分叉（ASM-607）**：`rg -n "case 'overview'" packages/dsh-bot-host/src/workbench-routes.ts` 有命中 → 走 A：`refresh()` 只打 `POST /dsh-bot/overview`，bots/groups/sessionsByBot 三个 store 全部从它派生；无命中 → 走 B：`listBots` + `listGroups` + 选中 bot 时懒拉 `listBotSessions`，并在 §1.5 登记「overview 落地后切 A」。两条路的 store 形状相同，上层组件不感知。
 
 **涉及文件与定位**：
 
@@ -690,7 +699,7 @@ P0 校准（Task 1）
 
 **Evidence**：`evidence/phase-2/commands.log`
 
-**注意事项**：`rosterSections` 不在 host 路由（§1.3），分组名用 `DEFAULT_ROSTER_SECTIONS` + `updateBotLayout` 响应里的 `sections`；禁止新增 host 路由（INV-602）。
+**注意事项**：`rosterSections` 不在 host 路由（§1.3），分组名用 `DEFAULT_ROSTER_SECTIONS` + `updateBotLayout` 响应里的 `sections`；禁止新增 host 路由（INV-602）——`overview` 若缺失也由 session-nav 补，不在本包动 host。
 
 ### Task 8: 名册渲染（分组 / 行 / 搜索 / 已隐藏 / rail 头像列）
 
