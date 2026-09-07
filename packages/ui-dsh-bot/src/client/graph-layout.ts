@@ -14,11 +14,19 @@ export function pairKey(a: string, b: string): string {
   return a < b ? `${a}|${b}` : `${b}|${a}`
 }
 
+/** SVG viewBox shared with the prototype `.graphCard` (`docs/prototypes/dsh-bot-left-tab.html` graphHtml). */
+export const GRAPH_VIEW = { width: 420, height: 340, cx: 210, cy: 160, rx: 140, ry: 110 } as const
+
 export function layoutGraphNodes(bots: readonly Pick<WorkbenchBot, 'id' | 'name'>[]): GraphNode[] {
   const n = bots.length
   return bots.map((bot, index) => {
     const angle = n === 0 ? 0 : (index / n) * Math.PI * 2 - Math.PI / 2
-    return { id: bot.id, name: bot.name, x: 160 + Math.cos(angle) * 110, y: 140 + Math.sin(angle) * 100 }
+    return {
+      id: bot.id,
+      name: bot.name,
+      x: GRAPH_VIEW.cx + Math.cos(angle) * GRAPH_VIEW.rx,
+      y: GRAPH_VIEW.cy + Math.sin(angle) * GRAPH_VIEW.ry,
+    }
   })
 }
 

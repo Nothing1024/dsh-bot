@@ -3,7 +3,7 @@
  */
 import { useEffect, useMemo, useState, type ReactElement } from 'react'
 import type { PeerLogRow, WorkbenchBot, WorkbenchGroup } from 'dsh-bot-shared'
-import { dashedGroupEdges, layoutGraphNodes, solidPeerEdges } from './graph-layout.ts'
+import { GRAPH_VIEW, dashedGroupEdges, layoutGraphNodes, solidPeerEdges } from './graph-layout.ts'
 import { zh } from './locales.ts'
 import type { RosterRpc } from './roster-rpc.ts'
 import css from './OverlayForms.module.css'
@@ -59,7 +59,14 @@ export function RelationshipGraphOverlay(props: RelationshipGraphOverlayProps): 
             </div>
           )
         : null}
-      <svg className={css.graphSvg} viewBox="0 0 320 280" width="320" height="280">
+      <svg
+        className={css.graphSvg}
+        viewBox={`0 0 ${GRAPH_VIEW.width} ${GRAPH_VIEW.height}`}
+        width="100%"
+        height="320"
+        role="img"
+        aria-label={t('roster.graph')}
+      >
         {dashes.map(key => {
           const [a, b] = key.split('|')
           const na = byId.get(a!)
@@ -74,8 +81,9 @@ export function RelationshipGraphOverlay(props: RelationshipGraphOverlayProps): 
               x2={nb.x}
               y2={nb.y}
               stroke="currentColor"
-              strokeOpacity="0.35"
+              strokeOpacity="0.4"
               strokeDasharray="4 3"
+              vectorEffect="non-scaling-stroke"
             />
           )
         })}
@@ -93,7 +101,9 @@ export function RelationshipGraphOverlay(props: RelationshipGraphOverlayProps): 
               x2={nb.x}
               y2={nb.y}
               stroke="currentColor"
-              strokeWidth={Math.min(6, 1 + n)}
+              strokeOpacity="0.6"
+              strokeWidth={Math.min(3, 1 + n * 0.5)}
+              vectorEffect="non-scaling-stroke"
             />
           )
         })}
@@ -104,13 +114,17 @@ export function RelationshipGraphOverlay(props: RelationshipGraphOverlayProps): 
             onClick={() => { props.onSelect(node.id) }}
             style={{ cursor: 'pointer' }}
           >
-            <circle cx={node.x} cy={node.y} r={14} fill="currentColor" fillOpacity="0.35" />
-            <text x={node.x} y={node.y + 28} textAnchor="middle" fill="currentColor" fontSize="11">{node.name}</text>
+            <circle cx={node.x} cy={node.y} r={16} fill="currentColor" fillOpacity="0.35" />
+            <text x={node.x} y={node.y + 30} textAnchor="middle" fill="currentColor" fontSize="12">{node.name}</text>
           </g>
         ))}
       </svg>
       <div className={css.legend} data-testid="dsh-bot-graph-legend">
-        {props.groups.map(group => `${group.name}：${group.memberIds.map(id => visible.find(bot => bot.id === id)?.name ?? id).join(' · ')}`).join('；')}
+        {t('overlay.graphLegend')}
+        {props.groups.length > 0
+          ? ` ${props.groups.map(group => `${group.name}：${group.memberIds.map(id => visible.find(bot => bot.id === id)?.name ?? id).join(' · ')}`).join('；')}。`
+          : ''}
+        {t('overlay.graphHint')}
       </div>
     </div>
   )

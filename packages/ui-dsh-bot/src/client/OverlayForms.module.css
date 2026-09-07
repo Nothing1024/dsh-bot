@@ -30,7 +30,6 @@
 
 .graphCard {
   width: min(520px, calc(100vw - 32px));
-  max-height: 420px;
 }
 
 .palette {
@@ -185,6 +184,6 @@
 .graphSvg {
   display: block;
   width: 100%;
-  height: auto;
+  height: 320px;
   color: inherit;
 }
