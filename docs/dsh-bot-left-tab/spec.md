@@ -642,7 +642,7 @@ After:
 | `packages/ui-dsh-bot/src/client/index.ts` | `interface BetterSidebarService` | `rg "interface BetterSidebarService" packages/ui-dsh-bot/src/client/index.ts` | L19 | 补 `activateTab` 鸭子类型 |
 | `packages/ui-dsh-bot/src/client/inject.ts` | `export const inject` | `rg "export const inject" packages/ui-dsh-bot/src/client/inject.ts` | L5 | 加 `slots`、`workspaces` |
 | `packages/ui-dsh-bot/src/client/rpc.ts` | `export function createRpcDshBot` | `rg "export function createRpcDshBot" packages/ui-dsh-bot/src/client/rpc.ts` | L129 | observable / 轮询 / SSE 模式参照 |
-| `packages/ui-dsh-bot/src/client/rpc.ts` | `function observable` | `rg "function observable" packages/ui-dsh-bot/src/client/rpc.ts` | L67 | 抽为共用 |
+| `packages/ui-dsh-bot/src/client/observable.ts` | `export function observable` | `rg "export function observable" packages/ui-dsh-bot/src/client/observable.ts` | L15 | Task 2 从 rpc.ts 抽出共用 |
 | `packages/ui-dsh-bot/src/client/locales.ts` | `export const zh` | `rg "export const zh" packages/ui-dsh-bot/src/client/locales.ts` | L6 | 新词条 |
 | `packages/ui-dsh-bot/src/client/tab-id.ts` | `DSH_BOT_SESSIONS_TAB_ID` | `rg "DSH_BOT_SESSIONS_TAB_ID" packages/ui-dsh-bot/src/client/tab-id.ts` | L2 | activateTab 目标 |
 | `packages/ui-dsh-bot/src/client/session-jump.ts` | `export function handleJumpMessage` | `rg "export function handleJumpMessage" packages/ui-dsh-bot/src/client/session-jump.ts` | L117 | 反向消息 `dsh-bot:select-group` 参照 |
@@ -766,7 +766,7 @@ P0 校准（Task 1）
 
 - `packages/ui-dsh-bot/src/client/sidebar-mode.ts`（新建）
 - `packages/ui-dsh-bot/src/client/index.ts`：`export function apply`，`rg "export function apply" packages/ui-dsh-bot/src/client/index.ts`，L56
-- `packages/ui-dsh-bot/src/client/rpc.ts`：`function observable`，`rg "function observable" packages/ui-dsh-bot/src/client/rpc.ts`，L67（抽到 `observable.ts` 共用）
+- `packages/ui-dsh-bot/src/client/observable.ts`：`export function observable`，`rg "export function observable" packages/ui-dsh-bot/src/client/observable.ts`，L15（Task 2 从 rpc.ts 抽出）
 
 **具体操作**：
 

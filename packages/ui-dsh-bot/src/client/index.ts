@@ -77,10 +77,6 @@ export function apply(ctx: Context): void {
       }
       if (props.wide !== undefined) regionProps.wide = props.wide
       if (props.expandSidebar !== undefined) regionProps.expandSidebar = props.expandSidebar
-      const activate = client.betterSidebar?.activateTab
-      if (activate !== undefined) {
-        regionProps.activateTab = () => { activate(DSH_BOT_SESSIONS_TAB_ID) }
-      }
       return createElement(BotRegion, regionProps)
     }
     client.effect(
