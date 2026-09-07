@@ -2,7 +2,7 @@
 import { cleanup, render, screen, waitFor } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import type { WorkbenchBot } from 'dsh-bot-shared'
-import { IdentityBar, resolveIdentityBot } from '../src/client/IdentityBar.tsx'
+import { IdentityBar, resetIdentityPillCache, resolveIdentityBot } from '../src/client/IdentityBar.tsx'
 import { observable } from '../src/client/observable.ts'
 import type { RosterRpc } from '../src/client/roster-rpc.ts'
 
@@ -46,9 +46,9 @@ function fakeRoster(bots: readonly WorkbenchBot[], status: 'loading' | 'idle' | 
     createGroup: vi.fn(),
     updateGroup: vi.fn(),
     deleteGroup: vi.fn(),
-    memoryList: vi.fn(),
-    routineList: vi.fn(),
-    peerLog: vi.fn(),
+    memoryList: vi.fn(async () => ({ ok: true as const, value: { profile: [], log: [] } })),
+    routineList: vi.fn(async () => ({ ok: true as const, value: [] })),
+    peerLog: vi.fn(async () => ({ ok: true as const, value: [] })),
     historyOf: vi.fn(),
     ensurePreview: vi.fn(),
     setActive: vi.fn(),
@@ -68,6 +68,7 @@ function sessions(byId: Record<string, { agentPreset?: string; running?: boolean
 
 afterEach(() => {
   cleanup()
+  resetIdentityPillCache()
 })
 
 describe('resolveIdentityBot', () => {

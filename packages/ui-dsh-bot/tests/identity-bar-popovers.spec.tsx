@@ -2,7 +2,7 @@
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import type { WorkbenchBot, WorkbenchSessionRow } from 'dsh-bot-shared'
-import { IdentityBar } from '../src/client/IdentityBar.tsx'
+import { IdentityBar, resetIdentityPillCache } from '../src/client/IdentityBar.tsx'
 import { observable } from '../src/client/observable.ts'
 import { createOverlayStore } from '../src/client/overlay-store.ts'
 import type { RosterRpc } from '../src/client/roster-rpc.ts'
@@ -71,17 +71,53 @@ function sessionsFace(open = vi.fn()) {
 
 afterEach(() => {
   cleanup()
+  resetIdentityPillCache()
 })
 
 describe('IdentityBar popovers', () => {
-  it('lazy-loads memory and shows the count after the first open', async () => {
+  it('prefetches three counts on mount and hides N until they arrive', async () => {
+    let releaseMemory!: (value: unknown) => void
+    const memoryPending = new Promise(resolve => { releaseMemory = resolve })
+    const memoryList = vi.fn(() => memoryPending as Promise<{ ok: true; value: { profile: { id: string; text: string; ts: number }[]; log: never[] } }>)
+    const routineList = vi.fn(async () => ({ ok: true as const, value: [] }))
+    const peerLog = vi.fn(async () => ({ ok: true as const, value: [] }))
+    const roster = fakeRoster({ memoryList, routineList, peerLog })
+    render(<IdentityBar sessionId="s1" roster={roster} sessions={sessionsFace()} />)
+    expect(memoryList).toHaveBeenCalledWith('reviewer')
+    expect(routineList).toHaveBeenCalledWith('reviewer')
+    expect(peerLog).toHaveBeenCalledWith('reviewer')
+    expect(screen.getByTestId('dsh-bot-identity-memory').textContent).toBe('记忆')
+    expect(screen.getByTestId('dsh-bot-identity-memory').textContent).not.toMatch(/\d/)
+    expect(screen.getByTestId('dsh-bot-identity-routines').textContent).toBe('例程')
+    expect(screen.getByTestId('dsh-bot-identity-peers').textContent).toBe('同事')
+    releaseMemory({ ok: true, value: { profile: [{ id: 'p1', text: '喜欢简洁 diff', ts: 1 }], log: [] } })
+    await waitFor(() => { expect(screen.getByTestId('dsh-bot-identity-memory').textContent).toBe('记忆 1') })
+    await waitFor(() => { expect(screen.getByTestId('dsh-bot-identity-routines').textContent).toBe('例程 0') })
+    await waitFor(() => { expect(screen.getByTestId('dsh-bot-identity-peers').textContent).toBe('同事 0') })
+  })
+
+  it('reuses prefetch for the memory panel body', async () => {
     const roster = fakeRoster()
     render(<IdentityBar sessionId="s1" roster={roster} sessions={sessionsFace()} />)
-    expect(roster.memoryList).not.toHaveBeenCalled()
+    await waitFor(() => { expect(screen.getByTestId('dsh-bot-identity-memory').textContent).toBe('记忆 1') })
+    expect(roster.memoryList).toHaveBeenCalledTimes(1)
     fireEvent.click(screen.getByTestId('dsh-bot-identity-memory'))
     await waitFor(() => { expect(screen.getByTestId('dsh-bot-identity-panel').textContent).toMatch(/喜欢简洁 diff/) })
-    expect(roster.memoryList).toHaveBeenCalledWith('reviewer')
-    expect(screen.getByTestId('dsh-bot-identity-memory').textContent).toMatch(/1/)
+    expect(roster.memoryList).toHaveBeenCalledTimes(1)
+  })
+
+  it('does not refetch counts when remounting the same bot within 30s', async () => {
+    const roster = fakeRoster()
+    const first = render(<IdentityBar sessionId="s1" roster={roster} sessions={sessionsFace()} />)
+    await waitFor(() => { expect(roster.memoryList).toHaveBeenCalledTimes(1) })
+    expect(roster.routineList).toHaveBeenCalledTimes(1)
+    expect(roster.peerLog).toHaveBeenCalledTimes(1)
+    first.unmount()
+    render(<IdentityBar sessionId="s1" roster={roster} sessions={sessionsFace()} />)
+    await waitFor(() => { expect(screen.getByTestId('dsh-bot-identity-memory').textContent).toBe('记忆 1') })
+    expect(roster.memoryList).toHaveBeenCalledTimes(1)
+    expect(roster.routineList).toHaveBeenCalledTimes(1)
+    expect(roster.peerLog).toHaveBeenCalledTimes(1)
   })
 
   it('closes the panel on Escape', async () => {

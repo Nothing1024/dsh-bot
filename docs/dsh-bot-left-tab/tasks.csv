@@ -16,7 +16,7 @@
 15,P2:名册内容与打开会话,shell.overlay 命令面板（⌘K）,spec.md#task-15,12;9,./node_modules/.bin/vitest run packages/ui-dsh-bot/tests/command-palette.spec.tsx → 通过,已完成,
 16,P2:名册内容与打开会话,执行 Phase 2 回归验证,spec.md#task-16,9;12;13;14;15,pnpm run typecheck && pnpm test && pnpm run build → 全过；git diff --stat packages/dsh-bot-host/src → 空；真机 UF-603 截图,已完成,
 17,P3:中栏身份条,header.actions 身份 chip（仅 bot 会话）,spec.md#task-17,16,./node_modules/.bin/vitest run packages/ui-dsh-bot/tests/identity-bar.spec.tsx → 通过,已完成,
-18,P3:中栏身份条,记忆 / 例程 / 同事 / 人设 pill 浮层 + 对话切换 + 新开对话,spec.md#task-18,17,./node_modules/.bin/vitest run packages/ui-dsh-bot/tests/identity-bar-popovers.spec.tsx → 通过,进行中,步骤 1–5 已完成（7fec673）；v0.3.3 pill 计数首拉前只显标签 + chip 挂载预取（BR-616），第四批开工先补
+18,P3:中栏身份条,记忆 / 例程 / 同事 / 人设 pill 浮层 + 对话切换 + 新开对话,spec.md#task-18,17,./node_modules/.bin/vitest run packages/ui-dsh-bot/tests/identity-bar-popovers.spec.tsx → 通过,已完成,步骤 1–5 已完成（7fec673）；v0.3.3 pill 计数挂载预取、未到只显标签（BR-616，本 commit）
 19,P3:中栏身份条,turnTail「例程触发」标签,spec.md#task-19,17;7,./node_modules/.bin/vitest run packages/ui-dsh-bot/tests/routine-turn-tail.spec.tsx → 通过,已完成,ASM-608 证实同源；host 不写 origin，ensureWakes 补官方 wake seq
 20,P3:中栏身份条,执行 Phase 3 回归验证,spec.md#task-20,18;19,pnpm run typecheck && ./node_modules/.bin/vitest run packages/ui-dsh-bot/tests && pnpm --filter ui-dsh-bot run build → 全过；真机 UF-605 截图,已完成,identity-bar/popover/plain-session/routine-tag/roster-preview + ASM-608 seq-check
 21,P4:文档、真实场景与收尾,同步 README「左栏 Bot 模式」与原型文档状态,spec.md#task-21,20,rg -n "左栏 Bot 模式" README.md → 命中；rg -n "落地记录" docs/prototypes/left-sidebar-bot-tab.md → 命中,待开始,

@@ -23,15 +23,87 @@ export interface IdentityBarProps {
 }
 
 type PanelKind = 'memory' | 'routines' | 'peers' | 'persona' | 'chats'
+type CountKind = 'memory' | 'routines' | 'peers'
 
 interface PillCache {
-  at: number
-  count: number
-  lines: readonly string[]
-  error: string | null
+  readonly at: number
+  readonly count: number
+  readonly lines: readonly string[]
+  readonly error: string | null
 }
 
 const CACHE_MS = 30_000
+const COUNT_KINDS: readonly CountKind[] = ['memory', 'routines', 'peers']
+const pillCache = new Map<string, PillCache>()
+const pillInflight = new Map<string, Promise<PillCache>>()
+
+export function resetIdentityPillCache(): void {
+  pillCache.clear()
+  pillInflight.clear()
+}
+
+function pillKey(botId: string, kind: CountKind): string {
+  return `${botId}:${kind}`
+}
+
+function freshPill(botId: string, kind: CountKind): PillCache | undefined {
+  const hit = pillCache.get(pillKey(botId, kind))
+  if (hit === undefined || hit.error !== null) return undefined
+  if (Date.now() - hit.at >= CACHE_MS) return undefined
+  return hit
+}
+
+function memoryLines(value: MemoryListValue): string[] {
+  return [...value.profile.map(row => row.text), ...value.log.map(row => row.text)]
+}
+
+async function fetchPill(roster: RosterRpc, botId: string, kind: CountKind): Promise<PillCache> {
+  if (kind === 'memory') {
+    const outcome = await roster.memoryList(botId)
+    if (outcome == null || !outcome.ok) {
+      return { at: 0, count: 0, lines: [], error: outcome?.error.message ?? 'unavailable' }
+    }
+    const next = memoryLines(outcome.value)
+    return { at: Date.now(), count: next.length, lines: next, error: null }
+  }
+  if (kind === 'routines') {
+    const outcome = await roster.routineList(botId)
+    if (outcome == null || !outcome.ok) {
+      return { at: 0, count: 0, lines: [], error: outcome?.error.message ?? 'unavailable' }
+    }
+    const rows = outcome.value as readonly RoutineRow[]
+    return { at: Date.now(), count: rows.length, lines: rows.map(row => row.name), error: null }
+  }
+  const outcome = await roster.peerLog(botId)
+  if (outcome == null || !outcome.ok) {
+    return { at: 0, count: 0, lines: [], error: outcome?.error.message ?? 'unavailable' }
+  }
+  const rows = outcome.value as readonly PeerLogRow[]
+  return {
+    at: Date.now(),
+    count: rows.length,
+    lines: rows.map(row => `${row.from} → ${row.to}`),
+    error: null,
+  }
+}
+
+function ensurePill(roster: RosterRpc, botId: string, kind: CountKind, force = false): Promise<PillCache> {
+  const key = pillKey(botId, kind)
+  if (!force) {
+    const hit = freshPill(botId, kind)
+    if (hit !== undefined) return Promise.resolve(hit)
+    const inflight = pillInflight.get(key)
+    if (inflight !== undefined) return inflight
+  }
+  const pending = fetchPill(roster, botId, kind).then(entry => {
+    pillCache.set(key, entry)
+    return entry
+  }).finally(() => {
+    if (pillInflight.get(key) === pending) pillInflight.delete(key)
+  })
+  pillInflight.set(key, pending)
+  return pending
+}
 
 function fallbackT(key: string, vars?: Record<string, string>): string {
   let text = zh[key as keyof typeof zh] ?? key
@@ -58,12 +130,17 @@ export function resolveIdentityBot(
   return findBotByPreset(bots, preset) ?? null
 }
 
-function memoryLines(value: MemoryListValue): string[] {
-  return [...value.profile.map(row => row.text), ...value.log.map(row => row.text)]
-}
-
 function openEdit(overlay: OverlayStore | undefined, botId: string): void {
   overlay?.open({ kind: 'edit-bot', id: botId, target: 'bot' })
+}
+
+function pillLabel(
+  t: (key: string, vars?: Record<string, string>) => string,
+  kind: CountKind,
+  count: number | undefined,
+): string {
+  if (count === undefined) return t(`identity.${kind}Label`)
+  return t(`identity.${kind}`, { n: String(count) })
 }
 
 /**
@@ -80,9 +157,8 @@ export function IdentityBar(props: IdentityBarProps): ReactElement | null {
   )
   const bot = resolveIdentityBot(props.sessionId, bots.items, bots.status, sessionSnap.byId)
   const marked = useRef<string | null>(null)
-  const cache = useRef<Partial<Record<'memory' | 'routines' | 'peers', PillCache>>>({})
   const [panel, setPanel] = useState<PanelKind | null>(null)
-  const [counts, setCounts] = useState({ memory: 0, routines: 0, peers: 0 })
+  const [counts, setCounts] = useState<Partial<Record<CountKind, number>>>({})
   const [lines, setLines] = useState<readonly string[]>([])
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
@@ -105,6 +181,27 @@ export function IdentityBar(props: IdentityBarProps): ReactElement | null {
     void props.roster.historyOf(props.sessionId)
     props.roster.ensureWakes?.(props.sessionId)
   }, [bot, props.sessionId, props.roster])
+
+  useEffect(() => {
+    if (bot === null) return
+    const botId = bot.id
+    const roster = props.roster
+    let cancelled = false
+    const seeded: Partial<Record<CountKind, number>> = {}
+    for (const kind of COUNT_KINDS) {
+      const hit = freshPill(botId, kind)
+      if (hit !== undefined) seeded[kind] = hit.count
+    }
+    setCounts(seeded)
+    for (const kind of COUNT_KINDS) {
+      if (seeded[kind] !== undefined) continue
+      void ensurePill(roster, botId, kind).then(entry => {
+        if (cancelled || entry.error !== null) return
+        setCounts(current => ({ ...current, [kind]: entry.count }))
+      })
+    }
+    return () => { cancelled = true }
+  }, [bot, props.roster])
 
   useEffect(() => {
     if (panel === null) return
@@ -137,54 +234,29 @@ export function IdentityBar(props: IdentityBarProps): ReactElement | null {
     setAnchor({ top: box.bottom + 6, left: Math.max(8, box.left) })
   }
 
-  const applyCache = (kind: 'memory' | 'routines' | 'peers', entry: PillCache): void => {
-    cache.current[kind] = entry
-    setCounts(current => ({ ...current, [kind]: entry.count }))
-    setLines(entry.lines)
-    setError(entry.error)
-  }
-
-  const loadPill = async (kind: 'memory' | 'routines' | 'peers', force = false): Promise<void> => {
-    const hit = cache.current[kind]
-    if (!force && hit !== undefined && Date.now() - hit.at < CACHE_MS) {
-      applyCache(kind, hit)
-      return
+  const loadPill = async (kind: CountKind, force = false): Promise<void> => {
+    if (!force) {
+      const hit = freshPill(bot.id, kind)
+      if (hit !== undefined) {
+        setLines(hit.lines)
+        setError(null)
+        setCounts(current => ({ ...current, [kind]: hit.count }))
+        return
+      }
+      const failed = pillCache.get(pillKey(bot.id, kind))
+      if (failed?.error !== undefined && failed.error !== null) {
+        setLines([])
+        setError(failed.error)
+        return
+      }
     }
     setLoading(true)
     setError(null)
     try {
-      if (kind === 'memory') {
-        const outcome = await props.roster.memoryList(bot.id)
-        if (!outcome.ok) {
-          applyCache(kind, { at: 0, count: counts.memory, lines: [], error: outcome.error.message })
-          return
-        }
-        const next = memoryLines(outcome.value)
-        applyCache(kind, { at: Date.now(), count: next.length, lines: next, error: null })
-        return
-      }
-      if (kind === 'routines') {
-        const outcome = await props.roster.routineList(bot.id)
-        if (!outcome.ok) {
-          applyCache(kind, { at: 0, count: counts.routines, lines: [], error: outcome.error.message })
-          return
-        }
-        const rows = outcome.value as readonly RoutineRow[]
-        applyCache(kind, { at: Date.now(), count: rows.length, lines: rows.map(row => row.name), error: null })
-        return
-      }
-      const outcome = await props.roster.peerLog(bot.id)
-      if (!outcome.ok) {
-        applyCache(kind, { at: 0, count: counts.peers, lines: [], error: outcome.error.message })
-        return
-      }
-      const rows = outcome.value as readonly PeerLogRow[]
-      applyCache(kind, {
-        at: Date.now(),
-        count: rows.length,
-        lines: rows.map(row => `${row.from} → ${row.to}`),
-        error: null,
-      })
+      const entry = await ensurePill(props.roster, bot.id, kind, force)
+      setLines(entry.lines)
+      setError(entry.error)
+      if (entry.error === null) setCounts(current => ({ ...current, [kind]: entry.count }))
     } finally {
       setLoading(false)
     }
@@ -334,13 +406,13 @@ export function IdentityBar(props: IdentityBarProps): ReactElement | null {
           : null}
       </button>
       <button type="button" className={css.pill} data-testid="dsh-bot-identity-memory" onClick={() => { openPanel('memory') }}>
-        {t('identity.memory', { n: String(counts.memory) })}
+        {pillLabel(t, 'memory', counts.memory)}
       </button>
       <button type="button" className={css.pill} data-testid="dsh-bot-identity-routines" onClick={() => { openPanel('routines') }}>
-        {t('identity.routines', { n: String(counts.routines) })}
+        {pillLabel(t, 'routines', counts.routines)}
       </button>
       <button type="button" className={css.pill} data-testid="dsh-bot-identity-peers" onClick={() => { openPanel('peers') }}>
-        {t('identity.peers', { n: String(counts.peers) })}
+        {pillLabel(t, 'peers', counts.peers)}
       </button>
       <button type="button" className={css.pill} data-testid="dsh-bot-identity-persona" onClick={() => { openPanel('persona') }}>
         {t('identity.persona')}
