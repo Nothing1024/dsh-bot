@@ -95,6 +95,31 @@ export async function handleBotEventsHttp(
 
   const onClose = (): void => { ac.abort() }
   req.once('close', onClose)
+  req.once('end', onClose)
+
+  const holdOpen = (): boolean => (
+    ac.signal.aborted === false
+    && res.writableEnded === false
+    && req.destroyed !== true
+    && req.readableEnded !== true
+    && req.socket != null
+  )
+
+  const wait = (ms: number): Promise<void> => new Promise(resolve => {
+    if (ac.signal.aborted) {
+      resolve()
+      return
+    }
+    const timer = setTimeout(() => {
+      ac.signal.removeEventListener('abort', onAbort)
+      resolve()
+    }, ms)
+    const onAbort = (): void => {
+      clearTimeout(timer)
+      resolve()
+    }
+    ac.signal.addEventListener('abort', onAbort, { once: true })
+  })
 
   res.statusCode = 200
   res.setHeader('Content-Type', 'text/event-stream; charset=utf-8')
@@ -146,8 +171,18 @@ export async function handleBotEventsHttp(
       pump(muxStream, MUX_FORWARD_TYPES),
       pump(hostStream, HOST_FORWARD_TYPES),
     ])
+    while (holdOpen()) {
+      if (!res.write(': ping\n\n')) break
+      await wait(15_000)
+      if (!holdOpen()) break
+      await Promise.all([
+        pump(source.subscribeMux?.(ac.signal), MUX_FORWARD_TYPES),
+        pump(source.subscribeHost?.(ac.signal), HOST_FORWARD_TYPES),
+      ])
+    }
   } finally {
     req.off('close', onClose)
+    req.off('end', onClose)
     if (!res.writableEnded) res.end()
   }
 }

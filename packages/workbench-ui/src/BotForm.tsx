@@ -2,7 +2,8 @@
  * Create / edit bot form: name, persona, emoji/color, optional model.
  */
 import { useEffect, useRef, useState, type FormEvent } from 'react'
-import { AVATAR_COLORS, hashAvatarColor, nameInitial } from './avatar.ts'
+import { AVATAR_COLORS, hashAvatarColor } from './avatar.ts'
+import { Persona } from './Persona.tsx'
 import type { WorkbenchBot, WorkbenchBotModelInfo } from './api.ts'
 
 export interface BotFormValues {
@@ -53,7 +54,6 @@ export function BotForm(props: BotFormProps) {
   }, [props.busy])
   const previewId = props.initial?.id ?? values.name
   const previewColor = values.color !== '' ? values.color : hashAvatarColor(previewId === '' ? 'bot' : previewId)
-  const previewGlyph = values.emoji !== '' ? values.emoji : nameInitial(values.name === '' ? '人' : values.name)
   const globalLabel = props.botModel !== undefined && props.botModel !== null && props.botModel.model !== ''
     ? `${props.botModel.provider}/${props.botModel.model}`
     : '跟随全局'
@@ -125,7 +125,14 @@ export function BotForm(props: BotFormProps) {
       <div className="field">
         <span>头像</span>
         <div className="avatarPicker">
-          <span className="avatar lg" style={{ background: previewColor }}>{previewGlyph}</span>
+          <Persona
+            botId={previewId === '' ? 'bot' : previewId}
+            name={values.name === '' ? '人' : values.name}
+            size="lg"
+            mood="idle"
+            color={previewColor}
+            {...values.emoji === '' ? {} : { emoji: values.emoji }}
+          />
           <input
             data-testid="bot-form-emoji"
             placeholder="emoji（可选）"

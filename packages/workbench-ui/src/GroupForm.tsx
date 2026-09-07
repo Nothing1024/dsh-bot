@@ -3,7 +3,8 @@
  */
 import { useEffect, useRef, useState, type FormEvent } from 'react'
 import type { WorkbenchBot, WorkbenchGroup } from './api.ts'
-import { hashAvatarColor, nameInitial } from './avatar.ts'
+import { hashAvatarColor } from './avatar.ts'
+import { Persona } from './Persona.tsx'
 
 const MEMBER_MIN = 2
 const MEMBER_MAX = 6
@@ -91,9 +92,6 @@ export function GroupForm(props: GroupFormProps) {
         <legend>成员（2–6 个已有人设）</legend>
         {props.bots.map(bot => {
           const color = bot.avatar.color !== '' ? bot.avatar.color : hashAvatarColor(bot.id)
-          const glyph = bot.avatar.emoji !== undefined && bot.avatar.emoji !== ''
-            ? bot.avatar.emoji
-            : nameInitial(bot.name)
           const checked = memberIds.includes(bot.id)
           return (
             <label key={bot.id} className="memberPick">
@@ -104,7 +102,14 @@ export function GroupForm(props: GroupFormProps) {
                 disabled={locked}
                 onChange={() => toggle(bot.id)}
               />
-              <span className="avatar sm" style={{ background: color }}>{glyph}</span>
+              <Persona
+                botId={bot.id}
+                name={bot.name}
+                size="sm"
+                mood="idle"
+                color={color}
+                {...bot.avatar.emoji === undefined || bot.avatar.emoji === '' ? {} : { emoji: bot.avatar.emoji }}
+              />
               <span>{bot.name}</span>
             </label>
           )

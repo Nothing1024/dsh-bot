@@ -61,6 +61,30 @@ type FormMode =
   | { kind: 'edit-group'; group: WorkbenchGroup }
 
 const RECONCILE_MS = 30_000
+const BOT_POLL_IDLE_MS = 2000
+const BOT_POLL_SSE_MS = 15_000
+
+function sameBot(a: WorkbenchBot, b: WorkbenchBot): boolean {
+  return a.id === b.id
+    && a.name === b.name
+    && a.unread === b.unread
+    && a.persona === b.persona
+    && a.pinned === b.pinned
+    && a.section === b.section
+    && a.hidden === b.hidden
+    && a.order === b.order
+    && a.muted === b.muted
+    && a.protected === b.protected
+    && a.avatar.color === b.avatar.color
+    && a.avatar.emoji === b.avatar.emoji
+    && a.modelOverride?.provider === b.modelOverride?.provider
+    && a.modelOverride?.model === b.modelOverride?.model
+}
+
+function sameBots(a: readonly WorkbenchBot[], b: readonly WorkbenchBot[]): boolean {
+  return a.length === b.length && a.every((row, index) => sameBot(row, b[index]!))
+}
+
 
 function overrideFromForm(values: BotFormValues): WorkbenchModelOverride | undefined {
   const provider = values.provider.trim()
@@ -161,15 +185,15 @@ export function App() {
         }
         prev.set(bot.id, unread)
       }
-      setBots(rows)
+      setBots(current => sameBots(current, rows) ? current : rows)
     }
     void tick()
-    const timer = window.setInterval(() => { void tick() }, 2000)
+    const timer = window.setInterval(() => { void tick() }, sseReady ? BOT_POLL_SSE_MS : BOT_POLL_IDLE_MS)
     return () => {
       cancelled = true
       window.clearInterval(timer)
     }
-  }, [])
+  }, [sseReady])
 
 
   useEffect(() => {
@@ -206,7 +230,7 @@ export function App() {
     const run = async (): Promise<void> => {
       const outcome = await reconcile()
       if (cancelled || !outcome.ok) return
-      setRefreshEpoch(n => n + 1)
+      if (outcome.value.labeled > 0) setRefreshEpoch(n => n + 1)
     }
     void run()
     const timer = setInterval(() => { void run() }, RECONCILE_MS)
@@ -318,6 +342,35 @@ export function App() {
       document.removeEventListener('visibilitychange', onVis)
     }
   }, [bots, groups, status, sseReady])
+
+  useEffect(() => {
+    if (live.status.length === 0) return
+    setBots(current => {
+      let changed = false
+      const next = current.map(bot => {
+        const row = live.status.find(item => item.botId === bot.id)
+        if (row === undefined || (bot.unread ?? 0) === row.unread) return bot
+        changed = true
+        return { ...bot, unread: row.unread }
+      })
+      return changed ? next : current
+    })
+    setWorkingIds(current => {
+      const next = new Set(current)
+      let changed = false
+      for (const row of live.status) {
+        if (row.working && !next.has(row.botId)) {
+          next.add(row.botId)
+          changed = true
+        }
+        if (!row.working && next.has(row.botId) && workingOverlay.current.get(row.botId) !== true) {
+          next.delete(row.botId)
+          changed = true
+        }
+      }
+      return changed ? next : current
+    })
+  }, [live.status])
 
   const selected = useMemo(
     () => bots.find(bot => bot.id === selectedId) ?? null,

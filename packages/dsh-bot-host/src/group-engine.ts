@@ -1,8 +1,10 @@
 /**
  * Group round engine: mention parse + one serial turn per responder (BR-304).
- * Member replies come from a hidden per-(room, member) session. The official
- * DSH session stays a normal agent turn (archived + kind:hidden). Only
- * sanitized assistant text is copied into the DSH Bot group room jsonl.
+ *
+ * Each member turn runs in a session-tool hidden session (`kind:hidden` +
+ * `~dsh-bot-group:`). That session may hold room context so the member hears
+ * peers; session-tool drops it from default lists. Visible 1:1 sessions are
+ * never written. The DSH Bot room jsonl is the only multi-author transcript.
  * @module dsh-bot-host/group-engine
  */
 
@@ -13,7 +15,7 @@ import { extractAssistantAnswer, resolveOverride } from './ask.ts'
 import type { DshBotRuntimeConfig } from './ask.ts'
 import type { BotView, BotsRuntime } from './bots.ts'
 import { DshBotError } from './errors.ts'
-import type { GroupsRuntime, RoomMessage, RoomState } from './groups.ts'
+import type { GroupsRuntime, RoomMessage } from './groups.ts'
 import {
   DSH_BOT_GROUP_HIDDEN_TITLE_PREFIX,
   DSH_BOT_HIDDEN_KIND,
@@ -160,18 +162,34 @@ export function isSkipReply(text: string): boolean {
 }
 
 const LEAKED_BANNER = /^(?:【小组房间轮次】|\[SAND_HIDDEN_PROMPT\]|\[Group chat:[^\]]*\])\s*/i
+const OLD_TURN_CLOSE = '按你自己的身份接一句。没有要补充的可以沉默。'
 
-function formatRoomLine(message: RoomMessage, names: Map<string, string>): string {
+function formatRoomLine(message: RoomMessage, names: Map<string, string>): string | undefined {
   if (message.speaker.kind === 'user') return `用户: ${message.text}`
+  if (message.speaker.kind === 'error') return undefined
   const name = names.get(message.speaker.botId) ?? message.speaker.botId
-  if (message.speaker.kind === 'error') return `${name}（本轮失败）: ${message.text}`
   return `${name}: ${message.text}`
 }
 
 /**
- * Wake text for a member's hidden DSH session. Identity comes from that
- * session's agent preset — this is only room context plus whose turn it is.
- * No host banners / protocol tags (those leak when we copy assistant text).
+ * Room lines this member has not yet answered, oldest first.
+ */
+export function messagesSinceMemberLastSpoke(
+  messages: readonly RoomMessage[],
+  botId: string,
+): readonly RoomMessage[] {
+  for (let index = messages.length - 1; index >= 0; index -= 1) {
+    const speaker = messages[index]!.speaker
+    if (speaker.kind === 'member' && speaker.botId === botId) {
+      return messages.slice(index + 1)
+    }
+  }
+  return messages
+}
+
+/**
+ * Wake text for a member's session-tool hidden session. Identity comes from
+ * that session's agent preset. No host protocol tags — those leak if copied.
  */
 export function buildMemberTurnPrompt(input: {
   readonly groupName: string
@@ -190,12 +208,12 @@ export function buildMemberTurnPrompt(input: {
 }
 
 /**
- * What the DSH Bot group room may show. Official member sessions stay
- * untouched; we only copy sanitized assistant text into our room jsonl.
+ * What the DSH Bot group room may show. Hidden member sessions keep their
+ * own transcript; we only copy sanitized assistant text into our room jsonl.
+ * `written` is the wake we put on the hidden session.
  */
-export function toRoomSpeech(answer: string, turnPrompt: string): string | undefined {
+export function toRoomSpeech(answer: string, written = ''): string | undefined {
   let text = answer.trim()
-  const prompt = turnPrompt.trim()
   const lines = text.split('\n')
   while (lines.length > 0) {
     const trimmed = lines[0]!.trim()
@@ -210,7 +228,12 @@ export function toRoomSpeech(answer: string, turnPrompt: string): string | undef
     break
   }
   text = lines.join('\n').trim()
+  const prompt = written.trim()
   if (prompt !== '' && text.startsWith(prompt)) text = text.slice(prompt.length).trim()
+  const close = text.indexOf(OLD_TURN_CLOSE)
+  if (close >= 0 && (text.includes('现在轮到你') || text.includes('房间里刚说的'))) {
+    text = text.slice(close + OLD_TURN_CLOSE.length).trim()
+  }
   if (isSkipReply(text)) return undefined
   return text
 }
@@ -313,10 +336,10 @@ export async function runGroupRound(
             bot,
           })
           const latest = await deps.groups.peekRoom(roomId)
-          const recentSource: RoomState = latest ?? room
-          const recent = recentSource.messages
+          const recent = messagesSinceMemberLastSpoke(latest?.messages ?? [], bot.id)
             .slice(-ROOM_TRANSCRIPT_MAX)
             .map(line => formatRoomLine(line, names))
+            .filter((line): line is string => line !== undefined)
           const peers = members.filter(row => row.id !== bot.id).map(row => row.name)
           const prompt = buildMemberTurnPrompt({
             groupName: group.name,

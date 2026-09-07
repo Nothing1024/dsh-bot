@@ -103,7 +103,7 @@ function oneBlink(local: number, start: number, duration: number): number {
 }
 
 function blinkLid(t: number, seed: number, periodScale: number): number {
-  const period = (1.55 + seed * 1.35) * periodScale
+  const period = (2.6 + seed * 1.8) * periodScale
   const shift = t + seed * 9.1
   const local = ((shift % period) + period) % period
   const cycle = Math.floor(shift / period)
@@ -116,7 +116,7 @@ function blinkLid(t: number, seed: number, periodScale: number): number {
 /** Quick look-away that holds, then eases back. Visible at 24–32px. */
 function saccade(t: number, seed: number, intensity: number): HeadGaze {
   if (intensity <= 0) return { yaw: 0, pitch: 0, roll: 0 }
-  const period = 1.85 + seed * 1.25
+  const period = 3.4 + seed * 1.8
   const shift = t + seed * 4.7
   const local = ((shift % period) + period) % period
   const cycle = Math.floor(shift / period)
@@ -179,7 +179,7 @@ const MOODS: Record<PersonaMood, MoodPose> = {
     h: 0.32,
     wander: 1.25,
     saccade: 1.35,
-    blinkSlow: 0.78,
+    blinkSlow: 1.05,
   },
 }
 
@@ -232,12 +232,12 @@ export function sampleBubble(input: SampleInput): BubbleFrame {
   const dart = reduced ? { yaw: 0, pitch: 0, roll: 0 } : saccade(t, input.seed, pose.saccade)
   const gaze: HeadGaze = {
     yaw: pose.gaze.yaw
-      + loopNoise(t, 7.4, phase) * 12 * wander
-      + loopNoise(t, 2.9, phase + 1) * 4.5 * wander
+      + loopNoise(t, 9.2, phase) * 10 * wander
+      + loopNoise(t, 5.4, phase + 1) * 3.2 * wander
       + dart.yaw,
     pitch: pose.gaze.pitch
-      + loopNoise(t, 6.2, phase + 2) * 9 * wander
-      + loopNoise(t, 3.4, phase + 0.4) * 3.2 * wander
+      + loopNoise(t, 8.1, phase + 2) * 7 * wander
+      + loopNoise(t, 6.2, phase + 0.4) * 2.4 * wander
       + dart.pitch,
     roll: pose.gaze.roll
       + loopNoise(t, 9.6, phase + 3) * 5 * wander

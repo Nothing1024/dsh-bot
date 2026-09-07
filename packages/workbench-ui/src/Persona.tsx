@@ -1,8 +1,9 @@
 /**
  * Cute color-bubble face. Circle body + capsule eyes punched as mask holes.
- * Rest life is gaze drift and blinking (Bloub approach; original numbers).
+ * Rest life is gaze drift and blinking. The rAF loop writes SVG attributes
+ * directly so React does not reconcile a mask 60 times a second.
  */
-import { useEffect, useId, useRef, useState } from 'react'
+import { useEffect, useId, useLayoutEffect, useRef } from 'react'
 import { hashAvatarColor, nameInitial } from './avatar.ts'
 import { sampleBubble, seedOf, type BubbleFrame, type PersonaMood } from './bubble.ts'
 
@@ -53,47 +54,52 @@ function reducedMotion(): boolean {
   return window.matchMedia('(prefers-reduced-motion: reduce)').matches
 }
 
-function useBubbleFrame(mood: PersonaMood, seed: number): BubbleFrame {
-  const clock = useRef(0)
-  const fromMood = useRef(mood)
-  const shownMood = useRef(mood)
-  const mixAt = useRef(0)
-  const [frame, setFrame] = useState<BubbleFrame>(() => (
-    sampleBubble({ t: 0, mood, seed, reducedMotion: true })
-  ))
+function q(value: number, steps = 4): number {
+  return Math.round(value * steps) / steps
+}
 
-  useEffect(() => {
-    fromMood.current = shownMood.current
-    shownMood.current = mood
-    mixAt.current = clock.current
-  }, [mood])
+function eyeTransform(
+  eye: BubbleFrame['eyes'][number],
+  cx: number,
+  cy: number,
+  lid: number,
+): string {
+  const ex = q(cx + eye.x)
+  const ey = q(cy + eye.y)
+  const lidQ = q(lid, 20)
+  return `translate(${ex} ${ey}) scale(1 ${lidQ}) matrix(${q(eye.a)} ${q(eye.b)} ${q(eye.c)} ${q(eye.d)} 0 0)`
+}
 
-  useEffect(() => {
-    if (reducedMotion()) {
-      setFrame(sampleBubble({ t: 0, mood, seed, reducedMotion: true }))
-      return
-    }
-    let raf = 0
-    let last = 0
-    const tick = (ms: number): void => {
-      raf = requestAnimationFrame(tick)
-      const dt = last === 0 ? 0 : Math.min((ms - last) / 1000, 0.064)
-      last = ms
-      clock.current += dt
-      const t = clock.current
-      setFrame(sampleBubble({
-        t,
-        mood,
-        seed,
-        fromMood: fromMood.current,
-        mix: (t - mixAt.current) / 0.28,
-      }))
-    }
-    raf = requestAnimationFrame(tick)
-    return () => cancelAnimationFrame(raf)
-  }, [mood, seed])
+function applyEye(
+  node: SVGEllipseElement | null,
+  eye: BubbleFrame['eyes'][number],
+  frame: BubbleFrame,
+): void {
+  if (node === null) return
+  node.setAttribute('rx', String(q(eye.w * frame.r, 10)))
+  node.setAttribute('ry', String(q(eye.h * frame.r, 10)))
+  node.setAttribute('transform', eyeTransform(eye, frame.cx, frame.cy, frame.lid))
+}
 
-  return frame
+function applyBubbleFrame(
+  body: SVGGElement | null,
+  left: SVGEllipseElement | null,
+  right: SVGEllipseElement | null,
+  frame: BubbleFrame,
+  lastKey: { current: string },
+): void {
+  const breath = q(frame.breath, 80)
+  const key = `${eyeTransform(frame.eyes[0]!, frame.cx, frame.cy, frame.lid)}|${eyeTransform(frame.eyes[1]!, frame.cx, frame.cy, frame.lid)}|${breath}`
+  if (lastKey.current === key) return
+  lastKey.current = key
+  if (body !== null) {
+    body.setAttribute(
+      'transform',
+      `translate(${frame.cx} ${frame.cy}) scale(1 ${breath}) translate(${-frame.cx} ${-frame.cy})`,
+    )
+  }
+  applyEye(left, frame.eyes[0]!, frame)
+  applyEye(right, frame.eyes[1]!, frame)
 }
 
 /**
@@ -111,10 +117,68 @@ export function Persona(props: PersonaProps) {
   const testId = props.testId ?? `persona-${props.botId}`
   const seed = seedOf(props.botId)
   const uid = useId().replace(/:/g, '')
-  const frame = useBubbleFrame(mood, seed)
   const light = mixHex(color, 255, 0.22)
   const dark = mixHex(color, 12, 0.3)
-  const [left, right] = frame.eyes
+  const bodyRef = useRef<SVGGElement>(null)
+  const leftRef = useRef<SVGEllipseElement>(null)
+  const rightRef = useRef<SVGEllipseElement>(null)
+  const lastKey = useRef('')
+  const clock = useRef(0)
+  const fromMood = useRef(mood)
+  const shownMood = useRef(mood)
+  const mixAt = useRef(0)
+  const moodRef = useRef(mood)
+  moodRef.current = mood
+
+  useEffect(() => {
+    fromMood.current = shownMood.current
+    shownMood.current = mood
+    mixAt.current = clock.current
+  }, [mood])
+
+  useLayoutEffect(() => {
+    applyBubbleFrame(
+      bodyRef.current,
+      leftRef.current,
+      rightRef.current,
+      sampleBubble({ t: 0, mood, seed, reducedMotion: true }),
+      lastKey,
+    )
+  }, [mood, seed])
+
+  useEffect(() => {
+    if (reducedMotion()) return
+    let raf = 0
+    let last = 0
+    let lastApply = 0
+    const tick = (ms: number): void => {
+      raf = requestAnimationFrame(tick)
+      const dt = last === 0 ? 0 : Math.min((ms - last) / 1000, 0.064)
+      last = ms
+      clock.current += dt
+      const t = clock.current
+      const frame = sampleBubble({
+        t,
+        mood: moodRef.current,
+        seed,
+        fromMood: fromMood.current,
+        mix: (t - mixAt.current) / 0.28,
+      })
+      const blinking = frame.lid < 0.97
+      if (!blinking && ms - lastApply < 90) return
+      lastApply = ms
+      applyBubbleFrame(
+        bodyRef.current,
+        leftRef.current,
+        rightRef.current,
+        frame,
+        lastKey,
+      )
+    }
+    raf = requestAnimationFrame(tick)
+    return () => cancelAnimationFrame(raf)
+  }, [seed])
+
   return (
     <span
       className={`persona ${size}`}
@@ -130,19 +194,19 @@ export function Persona(props: PersonaProps) {
             <stop offset="1" stopColor={dark} />
           </linearGradient>
           <mask id={`pm-${uid}`} maskUnits="userSpaceOnUse">
-            <circle cx={frame.cx} cy={frame.cy} r={frame.r} fill="#fff" />
+            <circle cx="20" cy="20" r="16.6" fill="#fff" />
             <g fill="#000">
-              <EyeHole eye={left} cx={frame.cx} cy={frame.cy} r={frame.r} lid={frame.lid} />
-              <EyeHole eye={right} cx={frame.cx} cy={frame.cy} r={frame.r} lid={frame.lid} />
+              <ellipse className="personaEye" ref={leftRef} />
+              <ellipse className="personaEye" ref={rightRef} />
             </g>
           </mask>
         </defs>
-        <g transform={`translate(${frame.cx} ${frame.cy}) scale(1 ${frame.breath}) translate(${-frame.cx} ${-frame.cy})`}>
+        <g ref={bodyRef}>
           <circle
             className="personaShape"
-            cx={frame.cx}
-            cy={frame.cy}
-            r={frame.r}
+            cx="20"
+            cy="20"
+            r="16.6"
             fill={`url(#pb-${uid})`}
             mask={`url(#pm-${uid})`}
           />
@@ -150,24 +214,5 @@ export function Persona(props: PersonaProps) {
       </svg>
       <span className="visuallyHidden">{glyph}</span>
     </span>
-  )
-}
-
-function EyeHole(props: {
-  readonly eye: { readonly x: number; readonly y: number; readonly a: number; readonly b: number; readonly c: number; readonly d: number; readonly w: number; readonly h: number }
-  readonly cx: number
-  readonly cy: number
-  readonly r: number
-  readonly lid: number
-}) {
-  const ex = props.cx + props.eye.x
-  const ey = props.cy + props.eye.y
-  return (
-    <ellipse
-      className="personaEye"
-      rx={props.eye.w * props.r}
-      ry={props.eye.h * props.r}
-      transform={`translate(${ex} ${ey}) scale(1 ${props.lid}) matrix(${props.eye.a} ${props.eye.b} ${props.eye.c} ${props.eye.d} 0 0)`}
-    />
   )
 }

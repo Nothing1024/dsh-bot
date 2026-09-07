@@ -75,6 +75,8 @@ ASM-301 已消解(见 1.3 实机行与 `evidence/phase-0/calibration.md`):按 (�
 |---|---|---|---|
 | 2026-08-30 | ASM-301 消解 | Task 1 实机:默认列表 0 hidden; marks `group-room:` 可找回校准会话 | Task 1/2 完成; Task 7 按复用实现 |
 | 2026-08-31 | 轮次投递对齐 | 去掉 `【小组房间轮次】` 等 prompt 标识;房间只收净化后的成员正文;官方会话仍只跑隐藏 `~` 会话 | `group-engine.ts` `toRoomSpeech` |
+| 2026-08-31 | 官方会话保持原样 | 成员隐藏会话只写入用户原话(普通 1:1 回合);小组多作者反馈只进 DSH Bot 房间 jsonl;`listBotSessions` 即使 includeHidden 也不列出 `group-room:` | BR-305; `group-engine.ts` |
+| 2026-08-31 | 隐藏会话可写房间上下文 | session-tool `kind:hidden` + `~` 前缀把轮次会话从默认列表拿掉;隐藏会话写入同伴刚说的话(无协议标识);可见 1:1 仍不写 | BR-305 |
 
 ---
 
@@ -90,7 +92,7 @@ ASM-301 已消解(见 1.3 实机行与 `evidence/phase-0/calibration.md`):按 (�
 | BR-302 | 成员约束:2–6 个**已有 1:1 bot id**;去重;禁止成员里再放小组 id;创建/改成员时成员必须仍在 bot 注册表 | 选 DSH Bot + 诗人小北成功 | 1 人成组;小组套小组;已删 bot 仍留在成员里 | host + UI 表单 | Task 3/5/12 |
 | BR-303 | 一个小组一次只展示**一个房间 transcript**(可「新开对话」另开房间);每条房间消息 `speaker: user \| {kind:member, botId}`;用户右侧、成员左侧且**必须**显示该成员头像+名字 | 同一屏出现两个不同头像的成员回复 | 成员回复看起来都像同一个「助手」 | workbench-ui | UF-302 截图 |
 | BR-304 | 用户发送后的一轮:`@姓名`/`@all`/`@everyone` 决定回应者(无点名 = 全员);按 `memberIds` 顺序**串行**各调用该成员 preset 一次;界面显示「{名} 正在发言」;跳过空/(pass);任一轮次失败则房间留下错误条(点名成员+错误码),已成功的成员回复保留 | 「你们是谁?」两人各一句;「@小北 作一首」只有小北 | 两人并行写同一房间文件导致交错损坏;失败吞掉已成功回复 | host 轮次引擎 | UF-302/303 + 失败分支 |
-| BR-305 | 成员轮次会话:`kind:hidden` + `kind:dsh-bot` + `bot:<memberId>` + `group:<groupId>` + `group-room:<roomId>`;标题 `~dsh-bot-group:`;**默认不出现**在该成员的 1:1 `listBotSessions` | 开关「包含隐藏」才可能看见 | 诗人小北的 1:1 下拉里出现小组轮次会话 | marks + listBotSessions | Task 1/7 |
+| BR-305 | 成员轮次走 session-tool 隐藏会话:`kind:hidden` + `kind:dsh-bot` + `bot:<memberId>` + `group:<groupId>` + `group-room:<roomId>`;标题 `~dsh-bot-group:`。该隐藏会话写入房间新消息(无 `【】` / `[Group chat]` 等协议标识),让成员听见同伴;**不出现**在该成员的可见 1:1 `listBotSessions`(含 includeHidden)。房间可见回复只进 DSH Bot 房间 jsonl | 1:1 下拉只有私聊;第二名成员的隐藏 wake 含第一名刚说的话;小组气泡只在工作台房间 | 把轮次写进可见 1:1 私聊;把主持标识复制进房间 jsonl | marks + listBotSessions + 轮次引擎 | Task 1/7 |
 | BR-306 | 删小组只删 `groups.json` 行、该组房间 transcript、该组隐藏轮次会话标记目标(尽力归档/不在工作台展示);**不删**成员 bot、其 preset、其 1:1 会话 | 删组后 roster 无该组,两人设私聊仍在 | 删组把诗人小北 preset 目录删掉 | host | UF-305 |
 | BR-307 | 1:1 工作台与 v1 委托零回归:`dsh_bot_ask`、单 bot 发消息、页签 iframe、默认 preset 会话行为不变;history 对 1:1 仍可不带 author | 切回 DSH Bot 私聊只见自己的历史 | 1:1 气泡突然出现别人头像 | 全仓 | UF-306 + v1 抽验 |
 | BR-308 | 红线延续:不从 `../reference` 拷代码/文案/品牌;轮次系统提示必须**新写**;凭据与 `groups.json`/房间文件不入 git | `rg -i 'anysphere\|sand://' packages/` 空 | 把参考产品 `buildGroupMemberSystemPrompt` 贴进仓 | 全仓 | Task 17 |

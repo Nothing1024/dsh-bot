@@ -32,8 +32,13 @@ export function mergeLiveItems(
   stream: LiveStream | null,
   cards: readonly WorkbenchHistoryItem[],
 ): WorkbenchHistoryItem[] {
+  const liveStream = sessionId !== null && stream !== null && stream.sessionId === sessionId && stream.text !== ''
+  const extraCards = sessionId === null
+    ? []
+    : cards.filter(card => card.sessionId === sessionId && !items.some(item => item.id === card.id))
+  if (!liveStream && extraCards.length === 0) return items as WorkbenchHistoryItem[]
   const out = [...items]
-  if (sessionId !== null && stream !== null && stream.sessionId === sessionId && stream.text !== '') {
+  if (liveStream && stream !== null) {
     let last = -1
     for (let i = out.length - 1; i >= 0; i -= 1) {
       if (out[i]!.kind === 'message' && out[i]!.role === 'assistant') {
@@ -150,9 +155,9 @@ export function useBotEvents(): BotLiveState {
           unread: typeof frame.unread === 'number' ? frame.unread : 0,
         }
         setStatus(current => {
-          const next = current.filter(item => item.botId !== botId)
-          next.push(row)
-          return next
+          const prev = current.find(item => item.botId === botId)
+          if (prev !== undefined && prev.working === row.working && prev.unread === row.unread) return current
+          return [...current.filter(item => item.botId !== botId), row]
         })
         return
       }
@@ -203,10 +208,11 @@ export function useBotEvents(): BotLiveState {
       }
       source.onmessage = event => { handle(String(event.data)) }
       source.onerror = () => {
+        if (closed) return
+        if (source !== undefined && source.readyState === EventSource.CONNECTING) return
         setSseReady(false)
         source?.close()
         source = undefined
-        if (closed) return
         timer = setTimeout(connect, delay)
         delay = Math.min(delay * 2, RECONNECT_CAP_MS)
       }

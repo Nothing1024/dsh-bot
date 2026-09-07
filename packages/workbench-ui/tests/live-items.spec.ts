@@ -32,4 +32,10 @@ describe('mergeLiveItems', () => {
     const other = mergeLiveItems([user], 's2', null, [card])
     expect(other.some(item => item.id === 'ap-1')).toBe(false)
   })
+
+  it('returns the same array when nothing live applies', () => {
+    const items = [user, assistant]
+    expect(mergeLiveItems(items, 's1', null, [])).toBe(items)
+    expect(mergeLiveItems(items, 's1', { sessionId: 's2', text: 'leak' }, [])).toBe(items)
+  })
 })

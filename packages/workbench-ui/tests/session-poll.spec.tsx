@@ -135,5 +135,12 @@ describe('mergeHistoryItems', () => {
     const merged = mergeHistoryItems(current, incoming, true)
     expect(merged.map(item => item.id)).toEqual(['message-8-1', 'thinking-55-1', 'message-55-2'])
   })
+
+  it('keeps the current array when an incremental page is empty', () => {
+    const current: WorkbenchHistoryItem[] = [
+      { id: 'message-8-1', kind: 'message', seq: 8, role: 'user', text: '你是谁?' },
+    ]
+    expect(mergeHistoryItems(current, [], true)).toBe(current)
+  })
 })
 

@@ -35,16 +35,39 @@ function maxSeq(items: readonly WorkbenchHistoryItem[]): number | undefined {
  * sinceSeq). Replace every item whose seq appears in `incoming` so the last
  * in-flight turn updates in place instead of duplicating.
  */
+function sameHistoryItem(a: WorkbenchHistoryItem, b: WorkbenchHistoryItem): boolean {
+  return a.id === b.id
+    && a.kind === b.kind
+    && a.seq === b.seq
+    && a.role === b.role
+    && a.text === b.text
+    && a.pending === b.pending
+    && a.streaming === b.streaming
+    && a.name === b.name
+    && a.summary === b.summary
+}
+
+function sameHistoryItems(
+  current: readonly WorkbenchHistoryItem[],
+  next: readonly WorkbenchHistoryItem[],
+): boolean {
+  return current.length === next.length
+    && current.every((item, index) => sameHistoryItem(item, next[index]!))
+}
+
 export function mergeHistoryItems(
   current: readonly WorkbenchHistoryItem[],
   incoming: readonly WorkbenchHistoryItem[],
   incremental: boolean,
 ): WorkbenchHistoryItem[] {
-  if (!incremental) return [...incoming]
-  if (incoming.length === 0) return [...current]
+  if (!incremental) {
+    return sameHistoryItems(current, incoming) ? current as WorkbenchHistoryItem[] : [...incoming]
+  }
+  if (incoming.length === 0) return current as WorkbenchHistoryItem[]
   const replaced = new Set(incoming.map(item => item.seq))
   const kept = current.filter(item => !replaced.has(item.seq))
-  return [...kept, ...incoming]
+  const next = [...kept, ...incoming]
+  return sameHistoryItems(current, next) ? current as WorkbenchHistoryItem[] : next
 }
 
 /**
@@ -78,8 +101,11 @@ export function useSessionPoll(options: UseSessionPollOptions): SessionPollState
     setError(null)
     const nextWorking = outcome.value.working === true
     workingRef.current = nextWorking
-    setWorking(nextWorking)
-    setSpeaking(outcome.value.speaking ?? null)
+    setWorking(current => current === nextWorking ? current : nextWorking)
+    const speaking = outcome.value.speaking ?? null
+    setSpeaking(current => (
+      current?.botId === speaking?.botId && current?.name === speaking?.name ? current : speaking
+    ))
     const incoming = Array.isArray(outcome.value.items) ? outcome.value.items : []
     setItems(current => mergeHistoryItems(current, incoming, sinceSeq !== undefined))
     setReady(true)

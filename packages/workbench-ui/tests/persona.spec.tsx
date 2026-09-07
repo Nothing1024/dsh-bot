@@ -54,7 +54,7 @@ describe('sampleBubble', () => {
   it('blinks without floating the body', () => {
     const open = sampleBubble({ t: 0, mood: 'idle', seed: 0.1 })
     let minLid = 1
-    for (let t = 0; t < 3; t += 0.02) {
+    for (let t = 0; t < 6; t += 0.02) {
       minLid = Math.min(minLid, sampleBubble({ t, mood: 'idle', seed: 0.1 }).lid)
     }
     expect(open.lid).toBeGreaterThan(0.99)
@@ -66,7 +66,7 @@ describe('sampleBubble', () => {
   it('moves the gaze enough to read at 32px', () => {
     const a = sampleBubble({ t: 0.2, mood: 'idle', seed: 0.4 })
     let maxTravel = 0
-    for (let t = 0.2; t < 4; t += 0.05) {
+    for (let t = 0.2; t < 8; t += 0.05) {
       const b = sampleBubble({ t, mood: 'idle', seed: 0.4 })
       const travel = Math.hypot(b.eyes[0].x - a.eyes[0].x, b.eyes[0].y - a.eyes[0].y)
       if (travel > maxTravel) maxTravel = travel

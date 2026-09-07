@@ -218,6 +218,8 @@ export function Conversation(props: ConversationProps) {
     setSessionId(keep)
     return keep
   }, [bot, group, identityId, includeHidden, isGroup])
+  const loadSessionsRef = useRef(loadSessions)
+  loadSessionsRef.current = loadSessions
 
   useEffect(() => {
     let cancelled = false
@@ -285,8 +287,8 @@ export function Conversation(props: ConversationProps) {
 
   useEffect(() => {
     if (props.refreshEpoch === undefined || props.refreshEpoch === 0) return
-    void loadSessions(props.preferredSessionId ?? sessionIdRef.current)
-  }, [loadSessions, props.preferredSessionId, props.refreshEpoch])
+    void loadSessionsRef.current(props.preferredSessionId ?? sessionIdRef.current)
+  }, [props.preferredSessionId, props.refreshEpoch])
 
   const poll = useSessionPoll({
     sessionId,
@@ -303,11 +305,11 @@ export function Conversation(props: ConversationProps) {
   )
   const streaming = liveItems.some(item => item.streaming === true)
 
-  const historySeq = poll.items.reduce((max, item) => item.seq > max ? item.seq : max, 0)
+  const memoryBotId = bot?.id
   useEffect(() => {
-    if (isGroup || bot === undefined) return
+    if (isGroup || memoryBotId === undefined) return
     let cancelled = false
-    void memoryList(bot.id).then(result => {
+    void memoryList(memoryBotId).then(result => {
       if (cancelled) return
       if (!result.ok) {
         setMemoryUnavailable(true)
@@ -320,7 +322,7 @@ export function Conversation(props: ConversationProps) {
       })
     })
     return () => { cancelled = true }
-  }, [bot, isGroup, poll.ready, poll.working, historySeq])
+  }, [isGroup, memoryBotId, poll.working])
 
   const botId = bot?.id
   useEffect(() => {
