@@ -52,6 +52,7 @@ import type { RosterItem, RosterSession } from './Roster.tsx'
 import { useBotEvents } from './useBotEvents.ts'
 import { useGlobalKeyboard } from './useGlobalKeyboard.ts'
 import { groupRosterItems } from './roster-sections.ts'
+import { SELECT_GROUP_MESSAGE_TYPE } from 'dsh-bot-shared'
 
 type ShellStatus = 'loading' | 'idle' | 'error'
 type FormMode =
@@ -128,6 +129,24 @@ export function App() {
   const selectedIdRef = useRef(selectedId)
   const conversationOwned = useRef(new Set<string>())
   selectedIdRef.current = selectedId
+
+  useEffect(() => {
+    const onMessage = (event: MessageEvent): void => {
+      if (event.origin !== window.location.origin) return
+      const data = event.data
+      if (typeof data !== 'object' || data === null) return
+      const body = data as { type?: unknown; groupId?: unknown; roomId?: unknown }
+      if (body.type !== SELECT_GROUP_MESSAGE_TYPE) return
+      if (typeof body.groupId !== 'string' || body.groupId.trim() === '') return
+      setSelectedId(body.groupId)
+      if (typeof body.roomId === 'string' && body.roomId.trim() !== '') {
+        setPreferredSessionId(body.roomId)
+      }
+    }
+    window.addEventListener('message', onMessage)
+    return () => { window.removeEventListener('message', onMessage) }
+  }, [])
+
 
   const load = useCallback(async (): Promise<void> => {
     setStatus('loading')

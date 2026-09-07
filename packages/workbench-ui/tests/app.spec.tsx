@@ -280,4 +280,38 @@ describe('App roster load', () => {
     fireEvent.click(await screen.findByTestId('command-item-action:new-bot'))
     expect(screen.getByTestId('bot-form').getAttribute('data-mode')).toBe('create')
   })
+
+  it('selects a group when it receives dsh-bot:select-group', async () => {
+    const group = {
+      id: 'editors',
+      name: '编辑室',
+      memberIds: ['dsh-bot'],
+      createdAt: 3,
+    }
+    vi.stubGlobal('fetch', vi.fn(async (url: string) => {
+      const path = String(url)
+      if (path.includes('listBots')) return jsonOk({ bots: [SEED] })
+      if (path.includes('listGroups')) return jsonOk({ groups: [group] })
+      if (path.includes('listGroupSessions')) {
+        return jsonOk({
+          rooms: [{
+            roomId: 'room-9',
+            groupId: 'editors',
+            createdAt: 3,
+            updatedAt: 3,
+          }],
+        })
+      }
+      return jsonOk({ sessions: [], botModel: { provider: 'anthropic', model: 'grok-4.6', source: 'global-default' } })
+    }))
+    render(<App />)
+    expect(await screen.findByTestId('roster-row-editors')).toBeTruthy()
+    window.dispatchEvent(new MessageEvent('message', {
+      origin: window.location.origin,
+      data: { type: 'dsh-bot:select-group', groupId: 'editors', roomId: 'room-9' },
+    }))
+    await vi.waitFor(() => {
+      expect(screen.getByTestId('roster-row-editors').getAttribute('data-active')).toBe('true')
+    })
+  })
 })

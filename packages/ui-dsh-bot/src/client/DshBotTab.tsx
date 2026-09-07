@@ -7,6 +7,7 @@ import { useEffect, useRef, useState, type ReactElement, type SVGProps } from 'r
 import { zh } from './locales.ts'
 import type { IDshBotClient } from './rpc.ts'
 import { handleJumpMessage, type SessionJumpFace } from './session-jump.ts'
+import { setWorkbenchFrame } from './workbench-frame.ts'
 import css from './DshBotTab.module.css'
 
 export interface WorkspaceCwdFace {
@@ -165,6 +166,16 @@ export function DshBotTab({ ctx }: DshBotTabProps) {
     setNonce(n => n + 1)
   }
 
+  useEffect(() => {
+    return () => { setWorkbenchFrame(null) }
+  }, [nonce])
+
+  useEffect(() => {
+    if (!loaded) return
+    const win = iframeRef.current?.contentWindow ?? null
+    setWorkbenchFrame(win)
+  }, [loaded])
+
   const onFrameLoad = (): void => {
     const ac = new AbortController()
     const timer = window.setTimeout(() => { ac.abort() }, PROBE_MS)
@@ -175,6 +186,7 @@ export function DshBotTab({ ctx }: DshBotTabProps) {
         return
       }
       setLoaded(true)
+      setWorkbenchFrame(iframeRef.current?.contentWindow ?? null)
     }).catch(() => {
       window.clearTimeout(timer)
       setError(true)
