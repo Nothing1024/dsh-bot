@@ -69,6 +69,8 @@ export const zh = {
   'overlay.color': '颜色',
   'overlay.model': '模型',
   'overlay.members': '成员',
+  'overlay.rounds': '讨论轮次',
+  'overlay.roundsInfinite': '无限',
   'overlay.createBot': '新建人设',
   'overlay.editBot': '编辑人设',
   'overlay.createGroup': '新建小组',
@@ -97,7 +99,6 @@ export const zh = {
   'identity.close': '关闭',
   'identity.retry': '重试',
   'identity.empty': '暂无条目',
-  'identity.preset': 'preset {id}',
   'identity.editPersona': '编辑人设',
   'identity.tail': '例程触发 · {name}',
 } satisfies Record<string, string>
@@ -172,6 +173,8 @@ export const en = {
   'overlay.color': 'Color',
   'overlay.model': 'Model',
   'overlay.members': 'Members',
+  'overlay.rounds': 'Rounds',
+  'overlay.roundsInfinite': 'Unlimited',
   'overlay.createBot': 'New persona',
   'overlay.editBot': 'Edit persona',
   'overlay.createGroup': 'New group',
@@ -200,7 +203,6 @@ export const en = {
   'identity.close': 'Close',
   'identity.retry': 'Retry',
   'identity.empty': 'Nothing yet',
-  'identity.preset': 'preset {id}',
   'identity.editPersona': 'Edit persona',
   'identity.tail': 'Routine · {name}',
 } satisfies Record<DshBotLocaleKey, string>

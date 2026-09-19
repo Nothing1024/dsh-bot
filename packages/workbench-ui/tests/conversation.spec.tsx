@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { cleanup, fireEvent, render, screen } from '@testing-library/react'
+import { act, cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { Conversation } from '../src/Conversation.tsx'
 import type { WorkbenchBot } from '../src/api.ts'
@@ -23,10 +23,54 @@ function jsonErr(code: string, message: string): { json: () => Promise<unknown> 
 }
 
 describe('Conversation', () => {
+  it('keeps the selected session and its draft when a previous send completes', async () => {
+    let resolve!: (value: void) => void
+    const promise = new Promise<void>(done => { resolve = done })
+    vi.stubGlobal('fetch', vi.fn(async (url: string, init?: { body?: string }) => {
+      const args = JSON.parse(init?.body ?? '{}').args ?? {}
+      if (url.endsWith('/listBotSessions')) return jsonOk({ sessions: ['s1', 's2'].map((id, i) => ({
+        sessionId: id, title: id, tags: [], status: 'idle', createdAt: 2 - i, updatedAt: 2 - i, hidden: false, working: false,
+      })) })
+      if (url.endsWith('/history')) return jsonOk({ sessionId: args.sessionId, items: [], working: false })
+      if (url.endsWith('/prompt')) { await promise; return jsonOk({ sessionId: args.sessionId }) }
+      return jsonOk({})
+    }))
+    render(<Conversation bot={BOT} />)
+    const input = await screen.findByTestId('composer-input')
+    fireEvent.change(input, { target: { value: 'first' } })
+    fireEvent.keyDown(input, { key: 'Enter' })
+    fireEvent.click(screen.getByTestId('session-select'))
+    fireEvent.click(screen.getByTestId('session-option-s2'))
+    fireEvent.change(screen.getByTestId('composer-input'), { target: { value: 'other draft' } })
+    await act(async () => { resolve(); await promise })
+    expect(screen.getByTestId('session-select').getAttribute('data-session-id')).toBe('s2')
+    expect((screen.getByTestId('composer-input') as HTMLTextAreaElement).value).toBe('other draft')
+  })
+
   afterEach(() => {
     cleanup()
     vi.unstubAllGlobals()
     localStorage.clear()
+  })
+
+
+  it('initializes one group room even when mounted after an earlier refresh', async () => {
+    let creates = 0
+    vi.stubGlobal('fetch', vi.fn(async (url: string) => {
+      if (url.endsWith('/listGroupSessions')) {
+        await new Promise(resolve => setTimeout(resolve, 30))
+        return jsonOk({ rooms: [] })
+      }
+      if (url.endsWith('/createGroupSession')) {
+        creates += 1
+        return jsonOk({ roomId: 'room-one', groupId: 'g', createdAt: 1, updatedAt: 1 })
+      }
+      return jsonOk({ items: [] })
+    }))
+    render(<Conversation group={{ id: 'g', name: '小组', memberIds: [BOT.id], createdAt: 1, rounds: 3 }} members={[BOT]} refreshEpoch={3} />)
+    await screen.findByTestId('composer-input')
+    expect(creates).toBe(1)
+    expect(screen.getByTestId('session-select').getAttribute('data-session-id')).toBe('room-one')
   })
 
   it('shows header identity, placeholder, and working badge while history.working', async () => {
@@ -173,6 +217,45 @@ describe('Conversation', () => {
     expect((await screen.findByTestId('composer-input')).getAttribute('placeholder')).toBe('给 诗人小北 发消息')
   })
 
+  it('keeps a loading stage instead of the empty-chat CTA until history arrives', async () => {
+    let release!: () => void
+    const gate = new Promise<void>(resolve => { release = resolve })
+    vi.stubGlobal('fetch', vi.fn(async (url: string) => {
+      const path = String(url)
+      if (path.includes('listBotSessions')) {
+        await gate
+        return jsonOk({
+          sessions: [{
+            sessionId: 's1',
+            title: '对话 1',
+            tags: [],
+            status: 'idle',
+            createdAt: 1,
+            updatedAt: 1,
+            hidden: false,
+            working: false,
+          }],
+        })
+      }
+      if (path.includes('history')) {
+        return jsonOk({
+          sessionId: 's1',
+          working: false,
+          items: [{ id: 'm1', kind: 'message', seq: 1, role: 'user', text: 'hi' }],
+        })
+      }
+      return jsonOk({})
+    }))
+    render(<Conversation bot={BOT} />)
+    expect(screen.getByTestId('conversation-loading')).toBeTruthy()
+    expect(screen.queryByTestId('empty-chat-cta')).toBeNull()
+    expect(screen.getByTestId('session-select').textContent).toMatch(/加载中/)
+    release()
+    expect(await screen.findByTestId('transcript-msg-1')).toBeTruthy()
+    expect(screen.queryByTestId('conversation-loading')).toBeNull()
+    expect(screen.getByTestId('conversation-pane').querySelector('.isReady')).toBeTruthy()
+  })
+
   it('opens edit from the identity header', async () => {
     const onEdit = vi.fn()
     vi.stubGlobal('fetch', vi.fn(async (url: string) => {
@@ -272,8 +355,8 @@ describe('Conversation', () => {
     render(<Conversation bot={BOT} />)
     await vi.waitFor(() => {
       expect(screen.getByTestId('session-select').getAttribute('data-session-id')).toBe('s-old')
+      expect(screen.getByTestId('session-select').textContent).toMatch(/旧稿/)
     })
-    expect(screen.getByTestId('session-select').textContent).toMatch(/旧稿/)
   })
 
   it('does not label every bound session with the bot name', async () => {
@@ -301,12 +384,7 @@ describe('Conversation', () => {
     expect(screen.getByTestId('session-option-s1').textContent).toMatch(/新对话/)
   })
 
-  it('offers a current-session menu that copies the id when standalone', async () => {
-    const writeText = vi.fn(async () => undefined)
-    Object.defineProperty(navigator, 'clipboard', {
-      configurable: true,
-      value: { writeText },
-    })
+  it('offers a current-session menu that can rename the thread', async () => {
     vi.stubGlobal('fetch', vi.fn(async (url: string) => {
       if (String(url).includes('listBotSessions')) {
         return jsonOk({
@@ -329,14 +407,14 @@ describe('Conversation', () => {
     fireEvent.click(screen.getByTestId('session-current-menu'))
     const jump = await screen.findByTestId('session-current-jump')
     expect(jump.textContent).toBe('复制会话 ID')
-    expect(jump.getAttribute('title')).toBe('在右栏页签内可直接跳转')
-    fireEvent.click(jump)
-    expect(await screen.findByTestId('conversation-toast')).toHaveProperty('textContent', '已复制会话 ID')
-    expect(writeText).toHaveBeenCalledWith('s1')
+    const rename = await screen.findByTestId('session-current-rename')
+    expect(rename.textContent).toBe('重命名')
+    fireEvent.click(rename)
+    expect(screen.getByLabelText('对话或房间名称')).toBeTruthy()
   })
 
-  it('does not offer DSH jump on group rooms', async () => {
-    const group = { id: 'bianji-shi', name: '编辑室', memberIds: [BOT.id], createdAt: 1 }
+  it('offers official jump from the group room menu', async () => {
+    const group = { id: 'bianji-shi', name: '编辑室', memberIds: [BOT.id], createdAt: 1, rounds: 3 }
     vi.stubGlobal('fetch', vi.fn(async (url: string) => {
       const path = String(url)
       if (path.includes('listGroupSessions')) {
@@ -354,11 +432,14 @@ describe('Conversation', () => {
     expect(screen.queryByTestId('session-current-menu')).toBeNull()
     fireEvent.click(trigger)
     expect(screen.getByTestId('session-option-room-1')).toBeTruthy()
-    expect(screen.queryByTestId('session-menu-room-1')).toBeNull()
+    fireEvent.click(screen.getByTestId('session-menu-room-1'))
+    expect(screen.getByTestId('session-jump-room-1').textContent).toBe('复制会话 ID')
+    expect(screen.getByTestId('session-rename-room-1').textContent).toBe('重命名')
+    expect(screen.getByTestId('session-tool-browse').textContent).toMatch(/会话协作/)
   })
 
   it('sets a reply card from the group message menu and clears it after send', async () => {
-    const group = { id: 'bianji-shi', name: '编辑室', memberIds: [BOT.id], createdAt: 1 }
+    const group = { id: 'bianji-shi', name: '编辑室', memberIds: [BOT.id], createdAt: 1, rounds: 3 }
     vi.stubGlobal('fetch', vi.fn(async (url: string) => {
       const path = String(url)
       if (path.includes('listGroupSessions')) {
@@ -434,10 +515,12 @@ describe('Conversation', () => {
     await vi.waitFor(() => {
       expect(pill.textContent).toMatch(/1/)
     })
-    const head = screen.getByTestId('conversation-pane').querySelector('.headActions')
-    const children = [...(head?.children ?? [])]
-    expect(children[0]?.className).toMatch(/memorySwitch/)
-    expect(children[1]?.className).toMatch(/sessionSwitch/)
+    const head = screen.getByTestId('conversation-pane').querySelector('.conversationHead')
+    const memory = head?.querySelector('.memorySwitch')
+    const session = head?.querySelector('.sessionSwitch')
+    expect(memory).toBeTruthy()
+    expect(session).toBeTruthy()
+    expect(memory && session ? memory.compareDocumentPosition(session) & Node.DOCUMENT_POSITION_FOLLOWING : 0).toBeTruthy()
     fireEvent.click(pill)
     expect(await screen.findByTestId('memory-panel')).toBeTruthy()
     expect(screen.getByTestId('memory-profile').textContent).toMatch(/Nothing/)
@@ -454,6 +537,33 @@ describe('Conversation', () => {
     render(<Conversation bot={BOT} />)
     expect(await screen.findByTestId('routines-open')).toBeTruthy()
     expect(screen.getByTestId('memory-open')).toBeTruthy()
+  })
+
+  it('jumps to the official session through the host opener', async () => {
+    const openOfficial = vi.fn(async () => undefined)
+    vi.stubGlobal('fetch', vi.fn(async (url: string) => {
+      if (String(url).includes('listBotSessions')) {
+        return jsonOk({
+          sessions: [{
+            sessionId: 's1',
+            title: '对话 1',
+            tags: [],
+            status: 'idle',
+            createdAt: 1,
+            updatedAt: 1,
+            hidden: false,
+            working: false,
+          }],
+        })
+      }
+      return jsonOk({ sessionId: 's1', working: false, items: [] })
+    }))
+    render(<Conversation bot={BOT} onOpenOfficialSession={openOfficial} />)
+    await screen.findByTestId('session-current-menu')
+    fireEvent.click(screen.getByTestId('session-current-menu'))
+    expect(screen.getByTestId('session-current-jump').textContent).toBe('在官方会话打开')
+    fireEvent.click(screen.getByTestId('session-current-jump'))
+    await vi.waitFor(() => expect(openOfficial).toHaveBeenCalledWith('s1'))
   })
 
   it('shows the peers pill next to routines', async () => {
@@ -475,5 +585,58 @@ describe('Conversation', () => {
     })
     fireEvent.click(pill)
     expect(await screen.findByTestId('peers-panel')).toBeTruthy()
+  })
+
+  it('names the empty group CTA after 新开房间', async () => {
+    vi.stubGlobal('fetch', vi.fn(async (url: string) => {
+      if (String(url).includes('listGroupSessions')) {
+        return jsonOk({ rooms: [{ roomId: 'room-1', groupId: 'g', createdAt: 1, updatedAt: 1 }] })
+      }
+      if (String(url).includes('history')) return jsonOk({ sessionId: 'room-1', items: [], working: false })
+      return jsonOk({})
+    }))
+    render(<Conversation group={{ id: 'g', name: '编辑室', memberIds: [BOT.id], createdAt: 1, rounds: 3 }} members={[BOT]} />)
+    const cta = await screen.findByTestId('empty-chat-cta')
+    expect(cta.textContent).toMatch(/新开房间/)
+    expect(cta.textContent).not.toMatch(/新开对话/)
+  })
+
+  it('loads a preferred session that is not yet in the switcher list', async () => {
+    let listed = [{
+      sessionId: 's-old',
+      title: '旧',
+      tags: [],
+      status: 'idle' as const,
+      createdAt: 1,
+      updatedAt: 1,
+      hidden: false,
+      working: false,
+    }]
+    vi.stubGlobal('fetch', vi.fn(async (url: string) => {
+      if (String(url).includes('listBotSessions')) return jsonOk({ sessions: listed })
+      if (String(url).includes('history')) return jsonOk({ sessionId: 'x', items: [], working: false })
+      return jsonOk({})
+    }))
+    const view = render(<Conversation bot={BOT} preferredSessionId="s-old" />)
+    await vi.waitFor(() => {
+      expect(screen.getByTestId('session-select').getAttribute('data-session-id')).toBe('s-old')
+    })
+    listed = [
+      ...listed,
+      {
+        sessionId: 's-new',
+        title: '新',
+        tags: [],
+        status: 'idle',
+        createdAt: 2,
+        updatedAt: 2,
+        hidden: false,
+        working: false,
+      },
+    ]
+    view.rerender(<Conversation bot={BOT} preferredSessionId="s-new" />)
+    await vi.waitFor(() => {
+      expect(screen.getByTestId('session-select').getAttribute('data-session-id')).toBe('s-new')
+    })
   })
 })

@@ -14,7 +14,20 @@
     webUrl: 'http://127.0.0.1:3084'
     allowOthersToWrite: 'workspace'
     showDelegated: true
-    # Plugin-side list hide (session-tool-local Config). Official 0.1.1-rc.2
+    # Plugin-side list hide (session-tool-local Config). Official 0.1.5-rc.1
     # web rail does NOT honor this; see Task 4 calibration.
     hiddenPrefixes:
       - '~'
+
+# Settings.yaml is the live source. Pin composition fallback so a missing
+# settings document does not start agents on deepseek-flash.
+- id: agent-default-model
+  config:
+    provider: anthropic
+    model: deepseek-flash
+
+# Official DeepSeek chat + search are disabled so they cannot bypass deepseek-flash.
+- id: llm-deepseek
+  disabled: true
+- id: web-search-deepseek
+  disabled: true

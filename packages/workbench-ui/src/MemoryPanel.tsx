@@ -66,7 +66,7 @@ export function MemoryPanel(props: MemoryPanelProps) {
     <div className="memoryPanel" data-testid="memory-panel">
       <header className="memoryPanelHead">
         <strong>记忆 · {props.botName}</strong>
-        <button type="button" className="retry" data-testid="memory-close" onClick={props.onClose}>
+        <button type="button" className="ghostBtn isTiny" data-testid="memory-close" onClick={props.onClose}>
           关闭
         </button>
       </header>
@@ -86,17 +86,17 @@ export function MemoryPanel(props: MemoryPanelProps) {
         {confirmClear ? (
           <div className="memoryConfirm" data-testid="memory-clear-confirm">
             <span>清空全部记忆？不可恢复。</span>
-            <button type="button" className="retry" data-testid="memory-clear-yes" disabled={clearing} onClick={() => { void clear() }}>
+            <button type="button" className="dangerBtn isTiny" data-testid="memory-clear-yes" disabled={clearing} onClick={() => { void clear() }}>
               确认清空
             </button>
-            <button type="button" className="retry" data-testid="memory-clear-no" onClick={() => setConfirmClear(false)}>
+            <button type="button" className="ghostBtn isTiny" data-testid="memory-clear-no" onClick={() => setConfirmClear(false)}>
               取消
             </button>
           </div>
         ) : (
           <button
             type="button"
-            className="retry"
+            className="ghostBtn isTiny"
             data-testid="memory-clear"
             disabled={empty || props.unavailable === true}
             onClick={() => setConfirmClear(true)}
@@ -128,7 +128,7 @@ function MemorySection(props: {
               <span>{when(row.ts)}</span>
               <button
                 type="button"
-                className="retry"
+                className="ghostBtn isTiny"
                 data-testid={`memory-forget-${row.id}`}
                 onClick={() => { void props.onForget(row.id) }}
               >

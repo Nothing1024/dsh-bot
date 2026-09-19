@@ -3,95 +3,66 @@ import { cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { SessionList } from '../src/SessionList.tsx'
 import type { SessionChoice } from '../src/SessionList.tsx'
-import { JUMP_ACK_MS, resetJumpInFlight } from '../src/jump.ts'
 
-const NOW = 1_700_000_000_000
+const row: SessionChoice = { sessionId: 's-visible', title: '可见会话', updatedAt: 1, working: false, hidden: false, selected: true }
+afterEach(() => { cleanup(); vi.unstubAllGlobals() })
 
-function row(overrides: Partial<SessionChoice> = {}): SessionChoice {
-  return {
-    sessionId: 's-visible',
-    title: '可见会话',
-    updatedAt: NOW,
-    working: false,
-    hidden: false,
-    selected: true,
-    ...overrides,
-  }
-}
-
-describe('SessionList jump menu', () => {
-  afterEach(() => {
-    cleanup()
-    resetJumpInFlight()
-    vi.useRealTimers()
-    vi.unstubAllGlobals()
-    Object.defineProperty(window, 'parent', { configurable: true, value: window })
-  })
-
-  it('renders the row menu and keeps row click for select', () => {
+describe('SessionList actions', () => {
+  it('renames through the backend without navigating away from Bot', async () => {
     const onSelect = vi.fn()
-    render(
-      <SessionList
-        items={[row(), row({ sessionId: 's-hidden', title: '隐藏会话', hidden: true, selected: false })]}
-        nowMs={NOW}
-        onSelect={onSelect}
-      />,
-    )
-    expect(screen.getByTestId('session-menu-s-visible')).toBeTruthy()
-    expect(screen.getByTestId('session-menu-s-hidden')).toBeTruthy()
-    fireEvent.click(screen.getByTestId('session-menu-s-hidden'))
-    const jump = screen.getByTestId('session-jump-s-hidden')
-    expect(jump.textContent).toBe('复制会话 ID')
-    expect(jump.getAttribute('title')).toBe('在右栏页签内可直接跳转')
+    const onToast = vi.fn()
+    const fetch = vi.fn(async () => ({ json: async () => ({ ok: true, value: {} }) }))
+    vi.stubGlobal('fetch', fetch)
+    render(<SessionList items={[row]} onSelect={onSelect} onToast={onToast} />)
+    fireEvent.click(screen.getByTestId('session-menu-s-visible'))
+    expect(screen.getByTestId('session-jump-s-visible').textContent).toBe('复制会话 ID')
+    fireEvent.click(screen.getByTestId('session-rename-s-visible'))
+    const input = screen.getByLabelText('对话或房间名称')
+    expect((input as HTMLInputElement).value).toBe('可见会话')
+    fireEvent.change(input, { target: { value: '文稿校对' } })
+    fireEvent.click(screen.getByTestId('session-rename-save'))
+    await vi.waitFor(() => expect(onToast).toHaveBeenCalledWith('名称已更新'))
+    expect(fetch).toHaveBeenCalledWith('/dsh-bot/renameSession', expect.objectContaining({ body: JSON.stringify({ args: { sessionId: 's-visible', title: '文稿校对' } }) }))
     expect(onSelect).not.toHaveBeenCalled()
-    fireEvent.click(screen.getByTestId('session-option-s-hidden'))
-    expect(onSelect).toHaveBeenCalledWith('s-hidden')
+    fireEvent.click(screen.getByTestId('session-option-s-visible'))
+    expect(onSelect).toHaveBeenCalledWith('s-visible')
   })
 
-  it('copies the session id when standalone', async () => {
-    const writeText = vi.fn(async () => undefined)
-    Object.defineProperty(navigator, 'clipboard', {
-      configurable: true,
-      value: { writeText },
-    })
-    const onToast = vi.fn()
-    render(<SessionList items={[row()]} nowMs={NOW} onSelect={vi.fn()} onToast={onToast} />)
+  it('retains the name and reports a failed save', async () => {
+    vi.stubGlobal('fetch', vi.fn(async () => ({ json: async () => ({ ok: false, error: { code: 'unavailable', message: '暂不可用' } }) })))
+    render(<SessionList items={[row]} onSelect={vi.fn()} />)
     fireEvent.click(screen.getByTestId('session-menu-s-visible'))
-    fireEvent.click(screen.getByTestId('session-jump-s-visible'))
-    await vi.waitFor(() => {
-      expect(writeText).toHaveBeenCalledWith('s-visible')
-      expect(onToast).toHaveBeenCalledWith('已复制会话 ID')
-    })
+    fireEvent.click(screen.getByTestId('session-rename-s-visible'))
+    fireEvent.click(screen.getByTestId('session-rename-save'))
+    expect((await screen.findByRole('alert')).textContent).toBe('暂不可用')
+    expect((screen.getByLabelText('对话或房间名称') as HTMLInputElement).value).toBe('可见会话')
   })
 
-  it('shows 在 DSH 打开 in-tab and toasts on ack timeout', async () => {
-    vi.useFakeTimers()
-    const parent = { postMessage: vi.fn() }
-    Object.defineProperty(window, 'parent', { configurable: true, value: parent })
-    const onToast = vi.fn()
-    render(<SessionList items={[row()]} nowMs={NOW} onSelect={vi.fn()} onToast={onToast} />)
+  it('offers room actions and room creation without a DSH jump', () => {
+    render(<SessionList items={[row]} onSelect={vi.fn()} groupMode onCreate={vi.fn()} />)
     fireEvent.click(screen.getByTestId('session-menu-s-visible'))
-    expect(screen.getByTestId('session-jump-s-visible').textContent).toBe('在 DSH 打开')
-    fireEvent.click(screen.getByTestId('session-jump-s-visible'))
-    await vi.advanceTimersByTimeAsync(JUMP_ACK_MS)
-    await vi.waitFor(() => {
-      expect(onToast).toHaveBeenCalledWith('跳转超时')
-    })
-    expect(parent.postMessage).toHaveBeenCalledWith(
-      { type: 'dsh-bot:jump', sessionId: 's-visible' },
-      window.location.origin,
-    )
+    expect(screen.getByTestId('session-jump-s-visible').textContent).toBe('复制会话 ID')
+    expect(screen.getByTestId('session-rename-s-visible').textContent).toBe('重命名')
+    expect(screen.getByTestId('session-list-new').textContent).toBe('+ 新开房间')
+    expect(screen.getByTestId('session-tool-browse').textContent).toMatch(/会话协作/)
+    fireEvent.keyDown(document, { key: 'Escape' })
+    expect(screen.queryByTestId('session-menu-panel-s-visible')).toBeNull()
   })
 
-  it('hides the jump menu when enableJump is false', () => {
-    render(
-      <SessionList
-        items={[row()]}
-        nowMs={NOW}
-        onSelect={vi.fn()}
-        enableJump={false}
-      />,
-    )
-    expect(screen.queryByTestId('session-menu-s-visible')).toBeNull()
+  it('opens session-tool from the browse footer', () => {
+    const openTool = vi.fn()
+    render(<SessionList items={[row]} onSelect={vi.fn()} onOpenSessionTool={openTool} />)
+    fireEvent.click(screen.getByTestId('session-tool-browse'))
+    expect(openTool).toHaveBeenCalledTimes(1)
+  })
+
+  it('jumps through the host opener from the row menu', async () => {
+    const openOfficial = vi.fn(async () => undefined)
+    const onDoneToast = vi.fn()
+    render(<SessionList items={[row]} onSelect={vi.fn()} onToast={onDoneToast} onOpenOfficialSession={openOfficial} />)
+    fireEvent.click(screen.getByTestId('session-menu-s-visible'))
+    expect(screen.getByTestId('session-jump-s-visible').textContent).toBe('在官方会话打开')
+    fireEvent.click(screen.getByTestId('session-jump-s-visible'))
+    await vi.waitFor(() => expect(openOfficial).toHaveBeenCalledWith('s-visible'))
   })
 })

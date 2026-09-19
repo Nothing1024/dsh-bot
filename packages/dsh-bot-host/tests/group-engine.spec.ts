@@ -1,11 +1,13 @@
 /**
- * Group round engine: all-members, mention, pass skip, tool rows stay out
- * of the room, failure keeps the earlier reply (BR-304 / ASM-302 / ASM-303).
+ * Group discussion engine: mention, pass skip, tool rows stay out of the
+ * room, failure keeps the earlier reply, and a user prompt may run up to
+ * three rotated rounds (BR-304 / reference GroupChatOrchestrator).
  */
 import { mkdtempSync, rmSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { afterEach, beforeEach, describe, expect, it } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { GroupInbox } from '../src/group-inbox.ts'
 import { SessionId } from '@deepseek-ai/dsh-session'
 import type {
   SessionToolCaller,
@@ -15,15 +17,17 @@ import type {
 } from 'session-tool'
 import { DshBotError } from '../src/errors.ts'
 import { createGroupsRuntime } from '../src/groups.ts'
+import type { GroupsRuntime } from '../src/groups.ts'
 import {
   buildMemberTurnPrompt,
   createRoundTracker,
   isSkipReply,
+  orderRoundSpeakers,
   parseMentions,
   runGroupRound,
   toRoomSpeech,
 } from '../src/group-engine.ts'
-import { get } from 'session-marks'
+import { expandRemoveAliases, expandWriteAliases, get, patch } from 'session-marks'
 import type { BotView, BotsRuntime } from '../src/bots.ts'
 import type { DshBotModelRef, DshBotPlatform } from '../src/platform.ts'
 import type { DshBotRuntimeConfig } from '../src/ask.ts'
@@ -64,22 +68,45 @@ const POET: BotView = {
 }
 
 class StubSessionTool implements SessionToolService {
+  async readMarks(_caller: Parameters<SessionToolService['readMarks']>[0], sessionId: SessionId) {
+    return { sessionId, tags: [], hiddenPrefixes: ['~'] }
+  }
+
   readonly writeCalls: Array<{ sessionId: string; content: string }> = []
+  readonly createCalls: unknown[] = []
   readonly replies = new Map<string, readonly SessionToolMessageRow[]>()
+  readonly queuedReplies = new Map<string, Array<readonly SessionToolMessageRow[]>>()
   waitStatus: 'idle' | 'failed' | 'timeout' = 'idle'
   failSessionIds = new Set<string>()
   listResult: SessionToolListResult = { sessions: [] }
+  private next = 0
 
   setReply(sessionId: string, messages: readonly SessionToolMessageRow[]): void {
-    this.replies.set(sessionId, messages)
+    const queued = this.queuedReplies.get(sessionId) ?? []
+    queued.push(messages)
+    this.queuedReplies.set(sessionId, queued)
   }
 
-  async create() {
-    return { sessionId: SessionId('session-tool-created') }
+  async create(_caller: SessionToolCaller, options: Parameters<SessionToolService['create']>[1]) {
+    this.next += 1
+    const sessionId = SessionId(`session-owned-${this.next}`)
+    this.createCalls.push({ sessionId, options })
+    if (options.tags !== undefined && options.tags.length > 0) {
+      await patch(sessionId, { add: expandWriteAliases(options.tags) })
+    }
+    return { sessionId }
   }
 
   async write(_caller: SessionToolCaller, sessionId: SessionId, content: string) {
     this.writeCalls.push({ sessionId: String(sessionId), content })
+    const queued = this.queuedReplies.get(String(sessionId))
+    const next = queued?.shift()
+    if (queued !== undefined && queued.length === 0) this.queuedReplies.delete(String(sessionId))
+    if (next !== undefined) {
+      const previous = this.replies.get(String(sessionId)) ?? []
+      const lastSeq = previous.reduce((max, row) => Math.max(max, row.seq), 0)
+      this.replies.set(String(sessionId), [...previous, ...next.map((row, index) => ({ ...row, seq: lastSeq + index + 1 }))])
+    }
     return { sessionId }
   }
 
@@ -126,8 +153,16 @@ class StubSessionTool implements SessionToolService {
   async getVisibility() {
     return { hasHiddenMark: false, archived: false, isHidden: false }
   }
-  async hide() {
+  async hide(_caller: SessionToolCaller, sessionId: SessionId) {
+    await patch(sessionId, { add: expandWriteAliases(['hidden']) })
     return { hasHiddenMark: true, archived: false, isHidden: true }
+  }
+  async mark(_caller: SessionToolCaller, sessionId: SessionId, options: { add?: readonly string[]; remove?: readonly string[] }) {
+    const tags = await patch(sessionId, {
+      ...options.add !== undefined && options.add.length > 0 ? { add: expandWriteAliases(options.add) } : {},
+      ...options.remove !== undefined && options.remove.length > 0 ? { remove: expandRemoveAliases(options.remove) } : {},
+    })
+    return { sessionId, tags }
   }
   async unhide() {
     return { hasHiddenMark: false, archived: false, isHidden: false }
@@ -142,6 +177,8 @@ class StubPlatform implements DshBotPlatform {
   async archiveSession(sessionId: string) {
     this.archiveCalls.push(sessionId)
   }
+
+  async unarchiveSession() {}
 
   async selectModel() {}
 
@@ -182,7 +219,6 @@ const fakeBots: BotsRuntime = {
   async deleteBot() {
     throw new DshBotError('internal', 'unused')
   },
-  async rewritePresetPersona() {},
   async declineTopic() {
     throw new DshBotError('internal', 'unused')
   },
@@ -224,6 +260,30 @@ async function setupRoom() {
   return { groups, group, room }
 }
 
+async function voiceFor(botId: string): Promise<string> {
+  if (botId === POET.id) return POET.persona
+  if (botId === DSH.id) return DSH.persona
+  return ''
+}
+
+function engineDeps(
+  sessionTool: StubSessionTool,
+  platform: StubPlatform,
+  groups: GroupsRuntime,
+  tracker = createRoundTracker(),
+) {
+  return {
+    sessionTool,
+    platform,
+    bots: fakeBots,
+    groups,
+    config: CONFIG,
+    tracker,
+    createCwd: () => '/work',
+    voiceFor,
+  }
+}
+
 function assistantText(_sessionId: string, text: string): SessionToolMessageRow[] {
   return [
     { seq: 1, role: 'user', blocks: [{ type: 'text', text: 'prompt' }] },
@@ -256,6 +316,13 @@ describe('parseMentions', () => {
     const parsed = parseMentions('@幽灵 你好', members)
     expect(parsed.unmatched).toBe(true)
     expect(parsed.responderIds).toEqual([POET.id, DSH.id])
+  })
+})
+describe('orderRoundSpeakers', () => {
+  it('rotates the start member by round index', () => {
+    expect(orderRoundSpeakers(['a', 'b'], 0)).toEqual(['a', 'b'])
+    expect(orderRoundSpeakers(['a', 'b'], 1)).toEqual(['b', 'a'])
+    expect(orderRoundSpeakers(['a', 'b'], 2)).toEqual(['a', 'b'])
   })
 })
 
@@ -315,22 +382,107 @@ describe('toRoomSpeech', () => {
 })
 
 describe('runGroupRound', () => {
+  it('accepts and deduplicates a message before the member finishes', async () => {
+    const { groups, room } = await setupRoom()
+    const tool = new StubSessionTool()
+    let resolve!: (value: void) => void
+    const promise = new Promise<void>(done => { resolve = done })
+    tool.wait = async (_caller, sessionId) => { await promise; return { sessionId, status: 'idle' as const } }
+    const inbox = new GroupInbox(() => engineDeps(tool, new StubPlatform(), groups))
+    const input = { sessionId: room.roomId, text: '@诗人小北 hello', requestId: 'request-1' }
+    const accepted = await inbox.submit(input)
+    expect(accepted.messageId).toBeTruthy()
+    expect(await inbox.submit(input)).toEqual(accepted)
+    await vi.waitFor(() => expect(tool.writeCalls).toHaveLength(1))
+    expect((await groups.peekRoom(room.roomId))?.messages.filter(row => row.speaker.kind === 'user')).toHaveLength(1)
+    resolve()
+    await inbox.settled(room.roomId)
+  })
+
+  it('cancels the actual member session and prevents later members from starting', async () => {
+    const { groups, room } = await setupRoom()
+    const tool = new StubSessionTool()
+    let resolve!: (value: void) => void
+    const promise = new Promise<void>(done => { resolve = done })
+    tool.wait = async (_caller, sessionId) => { await promise; return { sessionId, status: 'idle' as const } }
+    const cancelSession = vi.fn(async () => { resolve(); return { accepted: true as const } })
+    const deps = engineDeps(tool, Object.assign(new StubPlatform(), { cancelSession }), groups)
+    const inbox = new GroupInbox(() => deps)
+    await inbox.submit({ sessionId: room.roomId, text: 'hello', requestId: 'cancel-me' })
+    await vi.waitFor(() => expect(tool.writeCalls).toHaveLength(1))
+    await inbox.submit({ sessionId: room.roomId, text: 'queued', requestId: 'cancel-queued' })
+    await inbox.cancel(room.roomId)
+    await inbox.settled(room.roomId)
+    expect(cancelSession).toHaveBeenCalledWith('session-owned-1')
+    expect(tool.writeCalls).toHaveLength(1)
+  })
+
+  it('keeps each accepted message in its own round when later messages arrive during a reply', async () => {
+    const { groups, room } = await setupRoom()
+    const tool = new StubSessionTool()
+    let release!: () => void
+    const waiting = new Promise<void>(resolve => { release = resolve })
+    tool.wait = async (_caller, sessionId) => { await waiting; return { sessionId, status: 'idle' as const } }
+    tool.setReply('session-owned-1', assistantText('session-owned-1', 'first answer'))
+    const inbox = new GroupInbox(() => engineDeps(tool, new StubPlatform(), groups))
+    await inbox.submit({ sessionId: room.roomId, text: '@诗人小北 first-question', requestId: 'first' })
+    await vi.waitFor(() => expect(tool.writeCalls).toHaveLength(1))
+    await inbox.submit({ sessionId: room.roomId, text: '@诗人小北 second-question', requestId: 'second' })
+    release()
+    await inbox.settled(room.roomId)
+    expect(tool.writeCalls).toHaveLength(2)
+    expect(tool.writeCalls[0]?.content).not.toContain('second-question')
+    expect(tool.writeCalls[1]?.content).toContain('second-question')
+    await expect(inbox.submit({ sessionId: room.roomId, text: 'different', requestId: 'first' })).rejects.toThrow('requestId')
+  })
+
+  it('persists the quoted message and includes it in the member prompt', async () => {
+    const { groups, room } = await setupRoom()
+    const quoted = await groups.appendRoomMessage(room.roomId, { kind: 'member', botId: POET.id }, 'original answer')
+    const tool = new StubSessionTool()
+    const inbox = new GroupInbox(() => engineDeps(tool, new StubPlatform(), groups))
+    await inbox.submit({ sessionId: room.roomId, text: '@诗人小北 revise', requestId: 'reply-1', replyToSeq: quoted.seq })
+    await inbox.settled(room.roomId)
+    const user = (await groups.peekRoom(room.roomId))?.messages.find(row => row.speaker.kind === 'user')
+    expect(user?.replyTo?.seq).toBe(quoted.seq)
+    expect(tool.writeCalls[0]?.content).toContain('original answer')
+    expect(tool.writeCalls[0]?.content).toContain('引用')
+  })
+
+  it('skips a member that is no longer in the bot registry', async () => {
+    const home = process.env.DSH_HOME!
+    const groups = createGroupsRuntime({
+      listBotIds: async () => [DSH.id, POET.id, 'gone'],
+      home: () => home,
+      now: () => 1_700_000_000_000,
+    })
+    const group = await groups.createGroup({
+      name: '残留',
+      memberIds: [POET.id, 'gone', DSH.id],
+    })
+    const room = await groups.createGroupSession({ groupId: group.id })
+    const sessionTool = new StubSessionTool()
+    const platform = new StubPlatform()
+    sessionTool.setReply('session-owned-1', assistantText('session-owned-1', '我是诗人小北。'))
+    sessionTool.setReply('session-owned-2', assistantText('session-owned-2', '我是 DSH Bot。'))
+    await runGroupRound(engineDeps(sessionTool, platform, groups), { roomId: room.roomId, text: '你们是谁?' })
+    const state = await groups.peekRoom(room.roomId)
+    const speakers = state?.messages.map(row => row.speaker) ?? []
+    expect(speakers).toEqual([
+      { kind: 'user' },
+      { kind: 'member', botId: POET.id },
+      { kind: 'member', botId: DSH.id },
+    ])
+    expect(sessionTool.createCalls).toHaveLength(2)
+  })
+
   it('appends two member replies in memberIds order', async () => {
     const { groups, room } = await setupRoom()
     const sessionTool = new StubSessionTool()
     const platform = new StubPlatform()
     sessionTool.setReply('session-owned-1', assistantText('session-owned-1', '我是诗人小北，先比喻再回答。'))
     sessionTool.setReply('session-owned-2', assistantText('session-owned-2', '我是 DSH Bot。'))
-    const tracker = createRoundTracker()
-    await runGroupRound({
-      sessionTool,
-      platform,
-      bots: fakeBots,
-      groups,
-      config: CONFIG,
-      tracker,
-      createCwd: () => '/work',
-    }, { roomId: room.roomId, text: '你们是谁?' })
+    await runGroupRound(engineDeps(sessionTool, platform, groups), { roomId: room.roomId, text: '你们是谁?' })
     const state = await groups.peekRoom(room.roomId)
     const speakers = state?.messages.map(row => row.speaker) ?? []
     expect(speakers[0]).toEqual({ kind: 'user' })
@@ -338,11 +490,12 @@ describe('runGroupRound', () => {
     expect(speakers[2]).toEqual({ kind: 'member', botId: DSH.id })
     expect(state?.messages[1]?.text).toMatch(/诗人小北/)
     expect(state?.messages[2]?.text).toMatch(/DSH Bot/)
-    expect(platform.createCalls.map(call => call.agentPreset)).toEqual([
-      'dsh-bot--shiren-xiaobei',
-      'dsh-bot',
-    ])
+    expect(sessionTool.createCalls).toHaveLength(2)
     expect(await get('session-owned-1')).toEqual(expect.arrayContaining([
+      'app:dsh-bot',
+      'kind:dsh-bot',
+      'form:plugin',
+      'hidden',
       'kind:hidden',
       'bot:shiren-xiaobei',
       `group:${(await groups.listGroups()).groups[0]!.id}`,
@@ -355,20 +508,12 @@ describe('runGroupRound', () => {
     const sessionTool = new StubSessionTool()
     const platform = new StubPlatform()
     sessionTool.setReply('session-owned-1', assistantText('session-owned-1', '窗含西岭千秋雪'))
-    await runGroupRound({
-      sessionTool,
-      platform,
-      bots: fakeBots,
-      groups,
-      config: CONFIG,
-      tracker: createRoundTracker(),
-      createCwd: () => '/work',
-    }, { roomId: room.roomId, text: '@诗人小北 作一句诗' })
+    await runGroupRound(engineDeps(sessionTool, platform, groups), { roomId: room.roomId, text: '@诗人小北 作一句诗' })
     const state = await groups.peekRoom(room.roomId)
     const members = state?.messages.filter(row => row.speaker.kind === 'member') ?? []
     expect(members).toHaveLength(1)
     expect(members[0]?.speaker).toEqual({ kind: 'member', botId: POET.id })
-    expect(platform.createCalls).toHaveLength(1)
+    expect(sessionTool.createCalls).toHaveLength(1)
   })
 
   it('does not copy an echoed turn prompt into the room', async () => {
@@ -384,15 +529,7 @@ describe('runGroupRound', () => {
     const leaked = `【小组房间轮次】\n${wake}\n\n我才是房间里该看见的那句。`
     sessionTool.setReply('session-owned-1', assistantText('session-owned-1', leaked))
     sessionTool.setReply('session-owned-2', assistantText('session-owned-2', '我是 DSH Bot。'))
-    await runGroupRound({
-      sessionTool,
-      platform,
-      bots: fakeBots,
-      groups,
-      config: CONFIG,
-      tracker: createRoundTracker(),
-      createCwd: () => '/work',
-    }, { roomId: room.roomId, text: '你们是谁?' })
+    await runGroupRound(engineDeps(sessionTool, platform, groups), { roomId: room.roomId, text: '你们是谁?' })
     const state = await groups.peekRoom(room.roomId)
     const blob = JSON.stringify(state?.messages)
     expect(blob).not.toMatch(/小组房间轮次/)
@@ -405,15 +542,7 @@ describe('runGroupRound', () => {
     const platform = new StubPlatform()
     sessionTool.setReply('session-owned-1', assistantText('session-owned-1', '(pass)'))
     sessionTool.setReply('session-owned-2', assistantText('session-owned-2', '我是 DSH Bot。'))
-    await runGroupRound({
-      sessionTool,
-      platform,
-      bots: fakeBots,
-      groups,
-      config: CONFIG,
-      tracker: createRoundTracker(),
-      createCwd: () => '/work',
-    }, { roomId: room.roomId, text: '你们是谁?' })
+    await runGroupRound(engineDeps(sessionTool, platform, groups), { roomId: room.roomId, text: '你们是谁?' })
     const state = await groups.peekRoom(room.roomId)
     const members = state?.messages.filter(row => row.speaker.kind === 'member') ?? []
     expect(members).toHaveLength(1)
@@ -432,15 +561,7 @@ describe('runGroupRound', () => {
       },
     ] as unknown as SessionToolMessageRow[])
     sessionTool.setReply('session-owned-2', assistantText('session-owned-2', '我是 DSH Bot。'))
-    await runGroupRound({
-      sessionTool,
-      platform,
-      bots: fakeBots,
-      groups,
-      config: CONFIG,
-      tracker: createRoundTracker(),
-      createCwd: () => '/work',
-    }, { roomId: room.roomId, text: '你们是谁?' })
+    await runGroupRound(engineDeps(sessionTool, platform, groups), { roomId: room.roomId, text: '你们是谁?' })
     const state = await groups.peekRoom(room.roomId)
     const blob = JSON.stringify(state?.messages)
     expect(blob).not.toMatch(/secret/)
@@ -455,15 +576,7 @@ describe('runGroupRound', () => {
     const platform = new StubPlatform()
     sessionTool.setReply('session-owned-1', assistantText('session-owned-1', '我是诗人小北'))
     sessionTool.failSessionIds.add('session-owned-2')
-    await runGroupRound({
-      sessionTool,
-      platform,
-      bots: fakeBots,
-      groups,
-      config: CONFIG,
-      tracker: createRoundTracker(),
-      createCwd: () => '/work',
-    }, { roomId: room.roomId, text: '你们是谁?' })
+    await runGroupRound(engineDeps(sessionTool, platform, groups), { roomId: room.roomId, text: '你们是谁?' })
     const state = await groups.peekRoom(room.roomId)
     expect(state?.messages.some(row => row.speaker.kind === 'member' && row.speaker.botId === POET.id)).toBe(true)
     expect(state?.messages.some(row => row.speaker.kind === 'error' && row.speaker.botId === DSH.id)).toBe(true)
@@ -475,22 +588,79 @@ describe('runGroupRound', () => {
     const platform = new StubPlatform()
     sessionTool.setReply('session-owned-1', assistantText('session-owned-1', '第一轮小北'))
     sessionTool.setReply('session-owned-2', assistantText('session-owned-2', '第一轮 DSH'))
-    const deps = {
-      sessionTool,
-      platform,
-      bots: fakeBots,
-      groups,
-      config: CONFIG,
-      tracker: createRoundTracker(),
-      createCwd: () => '/work',
-    }
+    const deps = engineDeps(sessionTool, platform, groups)
     await runGroupRound(deps, { roomId: room.roomId, text: '你们是谁?' })
     sessionTool.setReply('session-owned-1', assistantText('session-owned-1', '第二轮小北'))
     sessionTool.setReply('session-owned-2', assistantText('session-owned-2', '第二轮 DSH'))
     await runGroupRound(deps, { roomId: room.roomId, text: '再介绍一次' })
-    expect(platform.createCalls).toHaveLength(2)
+    expect(sessionTool.createCalls).toHaveLength(2)
     const state = await groups.peekRoom(room.roomId)
     const memberTexts = state?.messages.filter(row => row.speaker.kind === 'member').map(row => row.text) ?? []
     expect(memberTexts).toEqual(['第一轮小北', '第一轮 DSH', '第二轮小北', '第二轮 DSH'])
+  })
+
+  it('does not reuse an earlier answer when the next turn produces no text', async () => {
+    const { groups, room } = await setupRoom()
+    const sessionTool = new StubSessionTool()
+    const deps = engineDeps(sessionTool, new StubPlatform(), groups)
+    sessionTool.setReply('session-owned-1', assistantText('session-owned-1', '上一轮回答'))
+    await runGroupRound(deps, { roomId: room.roomId, text: '@诗人小北 第一问' })
+    await runGroupRound(deps, { roomId: room.roomId, text: '@诗人小北 第二问' })
+    const state = await groups.peekRoom(room.roomId)
+    expect(state?.messages.filter(row => row.speaker.kind === 'member').map(row => row.text)).toEqual(['上一轮回答'])
+  })
+
+  it('lets the first speaker answer a peer on a second rotated round', async () => {
+    const { groups, room } = await setupRoom()
+    const sessionTool = new StubSessionTool()
+    sessionTool.setReply('session-owned-1', assistantText('session-owned-1', '小北第一轮'))
+    sessionTool.setReply('session-owned-1', assistantText('session-owned-1', '小北接着 DSH 说'))
+    sessionTool.setReply('session-owned-2', assistantText('session-owned-2', 'DSH 第一轮'))
+    await runGroupRound(engineDeps(sessionTool, new StubPlatform(), groups), { roomId: room.roomId, text: '你们讨论下' })
+    const state = await groups.peekRoom(room.roomId)
+    const members = state?.messages.filter(row => row.speaker.kind === 'member') ?? []
+    expect(members.map(row => row.text)).toEqual(['小北第一轮', 'DSH 第一轮', '小北接着 DSH 说'])
+    expect(members.map(row => row.speaker)).toEqual([
+      { kind: 'member', botId: POET.id },
+      { kind: 'member', botId: DSH.id },
+      { kind: 'member', botId: POET.id },
+    ])
+    expect(sessionTool.writeCalls[2]?.content).toContain('DSH 第一轮')
+    expect(sessionTool.createCalls).toHaveLength(2)
+  })
+
+  it('keeps discussing past three rounds when the group is unlimited', async () => {
+    const home = process.env.DSH_HOME!
+    const groups = createGroupsRuntime({
+      listBotIds: async () => [DSH.id, POET.id],
+      home: () => home,
+      now: () => 1_700_000_000_000,
+    })
+    const group = await groups.createGroup({
+      name: '无限室',
+      memberIds: [POET.id, DSH.id],
+      rounds: 0,
+    })
+    const room = await groups.createGroupSession({ groupId: group.id })
+    const sessionTool = new StubSessionTool()
+    for (let index = 1; index <= 5; index += 1) {
+      sessionTool.setReply('session-owned-1', assistantText('session-owned-1', `小北第 ${index} 说`))
+      sessionTool.setReply('session-owned-2', assistantText('session-owned-2', `DSH 第 ${index} 说`))
+    }
+    await runGroupRound(engineDeps(sessionTool, new StubPlatform(), groups), { roomId: room.roomId, text: '一直聊' })
+    const members = (await groups.peekRoom(room.roomId))?.messages.filter(row => row.speaker.kind === 'member') ?? []
+    expect(members.length).toBeGreaterThan(6)
+    expect(members.every(row => row.speaker.kind === 'member')).toBe(true)
+  })
+
+  it('ends the discussion when the first round has no visible member lines', async () => {
+    const { groups, room } = await setupRoom()
+    const sessionTool = new StubSessionTool()
+    sessionTool.setReply('session-owned-1', assistantText('session-owned-1', '(pass)'))
+    sessionTool.setReply('session-owned-2', assistantText('session-owned-2', '(pass)'))
+    await runGroupRound(engineDeps(sessionTool, new StubPlatform(), groups), { roomId: room.roomId, text: '你们是谁?' })
+    const members = (await groups.peekRoom(room.roomId))?.messages.filter(row => row.speaker.kind === 'member') ?? []
+    expect(members).toHaveLength(0)
+    expect(sessionTool.writeCalls).toHaveLength(2)
   })
 })

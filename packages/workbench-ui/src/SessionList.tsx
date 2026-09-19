@@ -1,12 +1,15 @@
+import { SessionRename, useEscapeDismiss } from './interactions.tsx';
 /**
- * Bound-session rows: one bot/group owns many threads. Used nested under a
- * roster identity and in the conversation header switcher.
+ * Bound-session rows: one bot/group owns many threads. Used in the
+ * conversation header switcher. Official / leftover sessions jump via
+ * session-tool (`在官方会话打开` / `在会话协作中查看全部`).
  */
 import { useEffect, useRef, useState, type MouseEvent } from 'react'
 import { relativeTime } from './avatar.ts'
 import {
-  isStandaloneWorkbench,
+  browseSessionTool,
   performWorkbenchJump,
+  SESSION_TOOL_BROWSE_LABEL,
   sessionJumpLabel,
   sessionJumpTitle,
 } from './jump.ts'
@@ -29,7 +32,9 @@ export interface SessionListProps {
   readonly includeHidden?: boolean
   readonly onIncludeHidden?: (next: boolean) => void
   readonly onToast?: (text: string) => void
-  readonly enableJump?: boolean
+  readonly groupMode?: boolean
+  readonly onOpenOfficialSession?: (sessionId: string) => Promise<void> | void
+  readonly onOpenSessionTool?: () => void
 }
 
 export interface SessionJumpMenuItemProps {
@@ -37,30 +42,24 @@ export interface SessionJumpMenuItemProps {
   readonly testId: string
   readonly onToast: (text: string) => void
   readonly onDone: () => void
+  readonly onOpenOfficialSession?: (sessionId: string) => Promise<void> | void
 }
 
 /**
- * First row-menu action: jump in-tab, or copy id when standalone.
+ * Jump to the official conversation (session-tool openSession), or copy the id.
  */
 export function SessionJumpMenuItem(props: SessionJumpMenuItemProps) {
-  const [busy, setBusy] = useState(false)
-  const standalone = isStandaloneWorkbench()
+  const hosted = props.onOpenOfficialSession !== undefined
   return (
     <button
       type="button"
       data-testid={props.testId}
-      title={sessionJumpTitle(standalone)}
-      disabled={busy}
-      onClick={(event: MouseEvent) => {
-        event.stopPropagation()
-        setBusy(true)
-        void performWorkbenchJump(props.sessionId, props.onToast).finally(() => {
-          setBusy(false)
-          props.onDone()
-        })
+      title={hosted ? sessionJumpTitle(false) : sessionJumpTitle()}
+      onClick={() => {
+        void performWorkbenchJump(props.sessionId, props.onToast, props.onOpenOfficialSession).then(props.onDone)
       }}
     >
-      {busy ? '打开中…' : sessionJumpLabel(standalone)}
+      {hosted ? '在官方会话打开' : sessionJumpLabel()}
     </button>
   )
 }
@@ -72,7 +71,7 @@ export function SessionList(props: SessionListProps) {
   const [menuId, setMenuId] = useState<string | null>(null)
   const menuRef = useRef<HTMLLIElement>(null)
   const toast = props.onToast ?? ((text: string) => { void text })
-  const jumpOn = props.enableJump !== false
+  useEscapeDismiss(() => setMenuId(null))
 
   useEffect(() => {
     if (menuId === null) return
@@ -114,7 +113,6 @@ export function SessionList(props: SessionListProps) {
                     {relativeTime(item.updatedAt, props.nowMs)}
                   </span>
                 </button>
-                {jumpOn ? (
                   <button
                     type="button"
                     className="rowMenuBtn sessionRowMenuBtn"
@@ -127,13 +125,20 @@ export function SessionList(props: SessionListProps) {
                   >
                     ⋯
                   </button>
-                ) : null}
               </div>
-              {jumpOn && menuId === item.sessionId ? (
+              {menuId === item.sessionId ? (
                 <div className="rowMenu sessionRowMenu" data-testid={`session-menu-panel-${item.sessionId}`}>
                   <SessionJumpMenuItem
                     sessionId={item.sessionId}
                     testId={`session-jump-${item.sessionId}`}
+                    onToast={toast}
+                    onDone={() => setMenuId(null)}
+                    {...props.onOpenOfficialSession === undefined ? {} : { onOpenOfficialSession: props.onOpenOfficialSession }}
+                  />
+                  <SessionRename
+                    sessionId={item.sessionId}
+                    title={item.title}
+                    testId={`session-rename-${item.sessionId}`}
                     onToast={toast}
                     onDone={() => setMenuId(null)}
                   />
@@ -150,7 +155,7 @@ export function SessionList(props: SessionListProps) {
           data-testid="session-list-new"
           onClick={props.onCreate}
         >
-          + 新开对话
+          {props.groupMode === true ? "+ 新开房间" : "+ 新开对话"}
         </button>
       ) : null}
       {props.onIncludeHidden !== undefined ? (
@@ -164,6 +169,14 @@ export function SessionList(props: SessionListProps) {
           包含隐藏
         </label>
       ) : null}
+      <button
+        type="button"
+        className="sessionListTool"
+        data-testid="session-tool-browse"
+        onClick={() => browseSessionTool(toast, props.onOpenSessionTool)}
+      >
+        {SESSION_TOOL_BROWSE_LABEL}
+      </button>
     </div>
   )
 }

@@ -18,8 +18,8 @@
   2. **右侧独立对话面**:头部显示当前 bot 头像与名字,消息按角色分侧,思考/工具调用折叠展示,生成中有"工作中"指示;每个 bot 的草稿互相隔离;
   3. 人设 1 和人设 2 **各自的对话完全隔离**(不同人设、不同历史、互不串);
   4. 工作台既嵌在右侧栏页签里(iframe),也能**直接开浏览器标签独立使用**。
-- **改哪里**:只在本仓——扩展 `dsh-bot-host`(人设注册表 + 工作台 API + 静态页服务)、新增 `workbench-ui` 网页包、`ui-dsh-bot` 页签改为 iframe 嵌入。每个人设落地为一个自动管理的 agent preset。
-- **怎么算做完**:页签或浏览器打开工作台 → 新建"人设2"并对话,与默认 DSH Bot 的对话身份、历史、草稿互不串;编辑人设后新对话生效;在官方 GUI 直建的 bot 会话也会出现在对应人设的对话列表(v1 验收缺口修复);5.2 真实场景矩阵全过且 v1 功能零回归。
+- **改哪里**:只在本仓——扩展 `dsh-bot-host`(人设注册表 + 工作台 API + 静态页服务)、新增 `workbench-ui` 网页包、`ui-dsh-bot` 页签改为 iframe 嵌入。人设是插件内部配置(`bots.json`),会话走 session-tool,不冒充 DSH agentPreset。
+- **怎么算做完**:页签或浏览器打开工作台 → 新建"人设2"并对话,与默认 DSH Bot 的对话身份、历史、草稿互不串;编辑人设后**新对话**用新人设、旧会话保持原口吻;官方 GUI「+ 新会话」不再列出 DSH Bot preset;5.2 真实场景矩阵全过且 v1 功能零回归。
 - **不做什么**:token 级流式(MVP 为消息级刷新 + 工作中指示)、头像图片上传(emoji/色块)、reactions/群聊/频道/Computer 面(参考产品桌面能力)、官方会话栏行为改动。
 
 ---
@@ -81,6 +81,7 @@
 | 日期 | 变更 | 原因 |
 |---|---|---|
 | 2026-08-30 | Task 1 校准回写 **1.3 事实 + 1.4 ASM 消解/改写**:BR-203 反查点名为 `session.list.items[].agentPreset`;working = `running` 或未闭合 `turn/start`;iframe 同源 fetch 成立。ASM-201/203 从 1.4 移除,ASM-202 改写为 Task 5 实现风险。**第 2 章合同未改**(ASM-201 证实而非证伪,不走变更协议;BR-203 仍写「ASM-201 通道」,UF-205 仍保留「未归属」失败分支) | P0 勘察;证据 `evidence/phase-0/calibration.md` |
+| 2026-09-12 | 用户覆盖:人设不再落地为 DSH agentPreset。BR-201/202/203/208、UF-202/204/205/206 改写为内部 `bots.json` + session-tool 口吻包装/注入;旧会话人设快照;官方 GUI 不再列出 bundled `dsh-bot` preset | 人设是内部配置,特异化走 session-tool,不要冒充 DSH preset |
 
 ---
 
@@ -92,25 +93,25 @@
 
 | 规则 ID | 规则 | 正例 | 反例 | 影响范围 | 验证方式 |
 |---|---|---|---|---|---|
-| BR-201 | 人设注册表单一事实源:bot 清单存 `$DSH_HOME/dsh-bot/bots.json`(host 独有读写),行形状 `{id, name, avatar:{emoji?,color}, presetId, modelOverride?, createdAt}`;**人设文本不入注册表**,唯一事实源是该 bot 的 preset 文件 persona 行;首次启动种子默认 bot(id `dsh-bot`,绑既有 `dsh-bot` preset) | 重启后 roster 不变;删注册表文件后重启只剩种子 bot | 人设文本在 registry 和 preset 两处各存一份 | dsh-bot-host | Task 5 单测 + 重启验证 |
-| BR-202 | 一人设一 preset:新建人设 → 以 `dsh-bot` preset 为模板生成 `env/.agent-presets/dsh-bot--<slug>/`(id 前缀 `dsh-bot--` 标识自动管理)并写 persona;写后立即 `agentPreset.list` 校验非 broken,失败回滚;编辑人设 = 重写该文件(平台代际规则:只影响其后新会话);删除人设 = 注册表移除 + preset 目录删除 | 新建后 `agentPreset.list` 出现 `dsh-bot--<slug>` 非 broken | 手改官方随附 preset;编辑后声称对进行中会话生效 | dsh-bot-host + env | Task 5 + UF-202/204 矩阵 |
-| BR-203 | 会话归属双通道:工作台创建的会话经网关 `session.create {agentPreset, cwd}` + marks `[kind:dsh-bot, bot:<id>]`;**GUI 直建**的 bot preset 会话由 host 对账补标(按 ASM-201 通道反查 preset → 补 marks;打开工作台与定时触发);对账幂等 | GUI 新建 dsh-bot 会话后打开工作台,出现在默认 bot 对话列表 | 重复补标产生重复行;把非 bot preset 会话误标 | dsh-bot-host | Task 8/12 + UF-205 矩阵 |
+| BR-201 | 人设注册表单一事实源:bot 清单存 `$DSH_HOME/dsh-bot/bots.json`(host 独有读写),行形状 `{id, name, avatar:{emoji?,color}, presetId, persona, modelOverride?, createdAt}`。**人设文本只在注册表**;`presetId` 是 GUI 对账别名(种子 `dsh-bot`,自定义 `dsh-bot--<id>`),不再对应 `.agent-presets/` 目录。首次启动种子默认 bot(id `dsh-bot`) | 重启后 roster 不变;删注册表文件后重启只剩种子 bot | 人设再写一份 DSH preset 目录 | dsh-bot-host | Task 5 单测 + 重启验证 |
+| BR-202 | 人设 CRUD 只动注册表:新建人设 → 写 `bots.json` 一行,不生成 `env/.agent-presets/dsh-bot--<slug>/`;编辑人设 = 重写该行的 persona/名字/头像;创建会话时把当时的基础人设快照到 `$DSH_HOME/dsh-bot/session-voice/<sessionId>.txt`(只钉 base,memory/behavior 仍 live)。删除人设 = 注册表移除 + 记忆目录,不删历史会话 | 新建后磁盘无新 `.agent-presets` 目录;旧会话口吻不随编辑变 | 手改官方随附 preset;编辑后声称对已有会话生效 | dsh-bot-host + env | Task 5 + UF-202/204 矩阵 |
+| BR-203 | 会话归属:工作台创建的会话经 `sessionTool.create` + marks `[kind:dsh-bot, bot:<id>]`,不带 `agentPreset`。遗留 GUI 直建的 `dsh-bot` / `dsh-bot--*` preset 会话仍可由 host 对账补标(按 `session.list.items[].agentPreset`);新会话归属只靠 marks | GUI 遗留 dsh-bot 会话打开工作台后出现在对应 bot 列表;新工作台会话 `agentPreset` 不是 `dsh-bot--*` | 重复补标产生重复行;把非 bot 会话误标 | dsh-bot-host | Task 8/12 + UF-205 矩阵 |
 | BR-204 | 独立面等价性:工作台页面由 host `webServer` 服务于 `GET /dsh-bot/ui`(loopback-only);右栏页签 = iframe 嵌同一 URL;**两个入口功能等价**(roster/对话/人设 CRUD 全可用) | 浏览器直开与页签内操作产生同样的会话与标记 | 页签里可用、直开缺功能(或反之) | workbench-ui + ui-dsh-bot | UF-201 矩阵双入口行 |
 | BR-205 | 对话呈现契约(按 `reference-ui-notes.md` §D 裁剪):Header = 当前 bot 头像+名字+working 态;消息按角色分侧,assistant 侧不重复大头像;thinking 与工具调用折叠为一行摘要;生成中显示三点/工作中;composer 占位「给 `{name}` 发消息」、按 bot 隔离草稿、running 时禁发;**消息级刷新(轮询 ≤2s)**,token 级流式为非目标 | 发消息后 ≤2s 内看到用户气泡,回复落地后 ≤2s 上屏 | 工具调用原文全量刷屏;A bot 的草稿出现在 B bot | workbench-ui | UF-202/203 矩阵 |
 | BR-206 | 身份视觉:头像 = emoji(可选)或「首字 + 确定性色块」(botId 哈希→8 色板);名字出现在 roster 行/Header/composer 占位符;roster 行含最后消息预览与相对时间、working 点 | 两个 bot 在 roster/Header 一眼可分 | 所有 bot 同一头像;头像需上传图片才可用 | workbench-ui | UF-203 矩阵 + 截图 |
 | BR-207 | 红线延续(v1 的凭据纪律与参考只读红线,原文见 `../archive/dsh-bot-mvp/spec.md` 第 2.1 节):不拷参考树代码/品牌;凭据不入 git;不改官方 DSH 包与邻仓;工作台新增面全部 loopback | `rg -i 'anysphere\|sand://' packages/` 为空 | — | 全仓 | Task 19 终检 |
-| BR-208 | v1 兼容:`dsh_bot_ask`、`dsh-bot.model` override、marks CLI、默认 preset 会话链路零回归;v1 页签的「会话列表」职能由工作台取代,页签 id 保留、内容换 iframe;委托隐藏会话(kind:hidden)在工作台默认不显示(开关可见) | v1 spec 5.2 矩阵主路径复跑全过 | 改坏 askBot/override | 全仓 | Task 19 回归 |
+| BR-208 | v1 兼容:`dsh_bot_ask`、`dsh-bot.model` override、marks CLI 零回归;`dsh_bot_ask` 用种子 bot 的**当前** `bots.json` 人设(经会话快照);官方 GUI「+ 新会话」跟随平台默认 preset,**不再** stamp `agent-presets.default: dsh-bot`,也不再随仓附带可列的 `dsh-bot` preset。v1 页签的「会话列表」职能由工作台取代,页签 id 保留、内容换 iframe;委托隐藏会话(kind:hidden)在工作台默认不显示(开关可见) | v1 spec 5.2 矩阵主路径复跑全过,官方选择器无 DSH Bot 项 | 改坏 askBot/override;官方新会话默认变成 DSH Bot | 全仓 | Task 19 回归 |
 
 ### 2.2 UF 用户验收场景(索引)
 
 | 场景 ID | Given | When | Then | 角色 | 验证方式 | Evidence |
 |---|---|---|---|---|---|---|
 | UF-201 | 网关已起,工作台已挂载 | 经右栏页签与浏览器直开两个入口打开工作台 | 双入口均见 roster(含默认 DSH Bot)与对话面,功能等价 | 本机用户 | browser | EVD-201 |
-| UF-202 | 工作台已打开 | 点「新建人设」填名字/人设/头像 → 立即对话 | roster 出现新 bot 并自动进入其空会话;发消息后以新人设口吻回复,Header/占位符显示新 bot 身份 | 本机用户 | browser + RPC 取证 | EVD-202 |
+| UF-202 | 工作台已打开 | 点「新建人设」填名字/人设/头像 → 立即对话 | roster 出现新 bot 并自动进入其空会话;发消息后以新人设口吻回复,Header/占位符显示新 bot 身份;磁盘无新 `.agent-presets` 目录 | 本机用户 | browser + RPC 取证 | EVD-202 |
 | UF-203 | 存在人设 A(默认)与人设 B | 在 A、B 之间切换并各自对话 | 两侧历史/人设口吻/草稿完全隔离;roster 预览与时间各自更新;working 点只亮在生成中的 bot | 本机用户 | browser + `session.export` 对比 | EVD-203 |
-| UF-204 | 人设 B 已有会话 | 编辑 B 的人设文本与名字/头像 | 名字/头像即时反映;人设文本对**其后新会话**生效(旧会话保持原口吻),UI 有此提示 | 本机用户 | browser + RPC 取证 | EVD-204 |
-| UF-205 | 官方 GUI 直建了一个 dsh-bot preset 会话 | 打开工作台(触发对账) | 该会话出现在默认 bot 的对话列表;同一 bot 可「新开对话」并在历史对话间切换 | 本机用户 | browser + marks CLI | EVD-205 |
-| UF-206 | 人设 B 存在且有会话 | 删除人设 B(确认对话框) | roster 移除 B,其 preset 目录删除;B 的历史会话保留(官方 GUI 仍可见),工作台不再显示 | 本机用户 | browser + `agentPreset.list` | EVD-206 |
+| UF-204 | 人设 B 已有会话 | 编辑 B 的人设文本与名字/头像 | 名字/头像即时反映;人设文本对**其后新会话**生效(旧会话保持原口吻),UI 提示「新对话用新人设；已有对话保持原口吻」 | 本机用户 | browser + RPC 取证 | EVD-204 |
+| UF-205 | 遗留 GUI 直建了一个 `dsh-bot` preset 会话 | 打开工作台(触发对账) | 该会话出现在默认 bot 的对话列表;同一 bot 可「新开对话」并在历史对话间切换。新工作台会话不再靠 `agentPreset` 归属 | 本机用户 | browser + marks CLI | EVD-205 |
+| UF-206 | 人设 B 存在且有会话 | 删除人设 B(确认对话框) | roster 移除 B,注册表与记忆目录删除;B 的历史会话保留(官方 GUI 仍可见),工作台不再显示;无 preset 目录可删 | 本机用户 | browser + `bots.json` | EVD-206 |
 
 ### 2.3 核心业务流程(步骤级交互脚本)
 
@@ -157,15 +158,15 @@ loading → roster+对话(idle) ⇄ 轮询刷新
 | 步骤 | 用户动作 | 界面即时反馈 | 系统行为 | 用户看到的结果 |
 |---|---|---|---|---|
 | 1 | 点 roster 顶部「+ 新建人设」 | 弹出表单(名字、人设文本多行、头像选择、可选模型) | — | 表单就绪,头像默认按名字首字+色块预览 |
-| 2 | 填「诗人小北 / 你是一位…(人设)」点「创建」 | 按钮 loading 防重 | `createBot`:生成 preset(BR-202)→ 校验非 broken → 注册表落盘 | roster 出现「诗人小北」行并自动选中,进入空会话 |
-| 3 | 在 composer 输入「你是谁?」回车 | 用户气泡上屏,出现三点工作中 | `createBotSession {botId}`(带 preset+marks)→ `prompt` | ≤2s 轮询内出现回复,口吻为新人设;Header 显示「诗人小北」 |
+| 2 | 填「诗人小北 / 你是一位…(人设)」点「创建」 | 按钮 loading 防重 | `createBot`:只写 `bots.json`,不生成 `.agent-presets` | roster 出现「诗人小北」行并自动选中,进入空会话 |
+| 3 | 在 composer 输入「你是谁?」回车 | 用户气泡上屏,出现三点工作中 | `createBotSession {botId}`(session-tool + marks + 人设快照)→ `prompt`(插件 source 注入或回退包装) | ≤2s 轮询内出现回复,口吻为新人设;Header 显示「诗人小北」 |
 
 **失败分支**:
 
 | 分支 | 触发条件 | 界面表现 | 系统行为 | 恢复路径 |
 |---|---|---|---|---|
 | 名字/人设为空 | 提交空必填 | 表单行内校验提示,不发请求 | — | 补填 |
-| preset 生成失败 | 写盘/校验 broken | 表单错误条:点名原因;roster 不出现残行 | host 回滚删除 preset 目录与注册表行(BR-202) | 改名/重试 |
+| 注册表写盘失败 | 磁盘/权限异常 | 表单错误条:点名原因;roster 不出现残行 | host 不落半行 | 改名/重试 |
 | 模型失败 | 上游 4xx/超时 | 对话面错误卡片,可重发 | turn 失败,错误码呈现 | 重试或换模型 |
 
 **界面状态机**:
@@ -220,16 +221,15 @@ bot A(idle/working) ⇄ 切换 ⇄ bot B(idle/working)   // 状态互不影响
 
 | 步骤 | 用户动作 | 界面即时反馈 | 系统行为 | 用户看到的结果 |
 |---|---|---|---|---|
-| 1 | roster 行菜单/Header →「编辑人设」 | 侧滑面板:名字/人设文本(从 preset 读回显)/头像/模型 | `GET`(listBots + persona 读取) | 表单带当前值 |
-| 2 | 改名字与人设文本,保存 | 保存 loading;成功后面板收起 | `updateBot`:重写 preset persona + 注册表(名字/头像) | roster 与 Header 即时显示新名;提示条「人设对之后的新对话生效」 |
-| 3 | 「新开对话」发一句 | 新会话 | 新会话按新代际组装 | 回复呈现新人设口吻;旧会话继续旧口吻(BR-202) |
+| 1 | roster 行菜单/Header →「编辑人设」 | 侧滑面板:名字/人设文本(从 `bots.json` 读回显)/头像/模型 | `GET`(listBots) | 表单带当前值 |
+| 2 | 改名字与人设文本,保存 | 保存 loading;成功后面板收起 | `updateBot`:重写注册表(名字/头像/persona) | roster 与 Header 即时显示新名;提示条「新对话用新人设；已有对话保持原口吻」 |
+| 3 | 「新开对话」发一句 | 新会话 | 新会话按创建时快照组装 | 回复呈现新人设口吻;旧会话继续旧口吻(BR-202) |
 
 **失败分支**:
 
 | 分支 | 触发条件 | 界面表现 | 系统行为 | 恢复路径 |
 |---|---|---|---|---|
-| 写盘失败 | 磁盘/权限异常 | 面板错误条,原值不变 | preset 文件回滚(临时文件替换法) | 重试 |
-| 校验 broken | 生成文件不可加载 | 错误条点名原因 | 回滚旧文件(BR-202) | 修正人设文本重试 |
+| 写盘失败 | 磁盘/权限异常 | 面板错误条,原值不变 | 注册表原子写回滚 | 重试 |
 
 **界面状态机**:
 
@@ -281,15 +281,15 @@ bot A(idle/working) ⇄ 切换 ⇄ bot B(idle/working)   // 状态互不影响
 
 | 步骤 | 用户动作 | 界面即时反馈 | 系统行为 | 用户看到的结果 |
 |---|---|---|---|---|
-| 1 | 行菜单「删除人设」 | 确认对话框:写明「历史对话保留,仅移除人设与其 preset」 | — | 二次确认 |
-| 2 | 确认 | 行消失;若正选中则切回默认 bot | 注册表移除 + preset 目录删除(`agentPreset.remove` 或等价文件删除);marks 保留 | roster 无小北;`agentPreset.list` 无 `dsh-bot--xiaobei` |
+| 1 | 行菜单「删除人设」 | 确认对话框:写明「历史对话保留,仅移除人设」 | — | 二次确认 |
+| 2 | 确认 | 行消失;若正选中则切回默认 bot | 注册表移除 + 记忆目录删除;marks 保留 | roster 无小北;`bots.json` 无该 id |
 
 **失败分支**:
 
 | 分支 | 触发条件 | 界面表现 | 系统行为 | 恢复路径 |
 |---|---|---|---|---|
 | 删默认 bot | 对默认 bot 触发删除 | 菜单置灰/提示不可删 | 默认 bot 受保护(种子) | — |
-| preset 删除失败 | 文件系统异常 | 错误条;注册表不变 | 先删 preset 成功再落注册表(顺序保证零半删) | 重试 |
+| 注册表删除失败 | 文件系统异常 | 错误条;注册表不变 | 不落半删 | 重试 |
 
 **界面状态机**:
 

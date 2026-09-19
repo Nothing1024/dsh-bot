@@ -1,5 +1,6 @@
 /**
- * BR-607 preset matching: seed `dsh-bot` or `dsh-bot--<slug>`.
+ * Leftover GUI sessions still store `agentPreset: dsh-bot` / `dsh-bot--<slug>`.
+ * New workbench sessions are matched by marks (`listBotSessions`), not this.
  */
 
 export function isBotPreset(preset: string | undefined): boolean {
@@ -21,23 +22,7 @@ export interface SessionPresetRow {
 }
 
 /**
- * Number of official sessions bound to one bot (BR-604 row "会话数" before the
- * lazy `listBotSessions` of path B has run for that bot).
- */
-export function countBotSessions(
-  botPresetId: string,
-  byId: Readonly<Record<string, SessionPresetRow>> | undefined,
-): number {
-  if (byId === undefined || !isBotPreset(botPresetId)) return 0
-  let count = 0
-  for (const session of Object.values(byId)) {
-    if (session.agentPreset === botPresetId) count += 1
-  }
-  return count
-}
-
-/**
- * Newest official session for one bot (BR-604 preview / BR-607 match).
+ * Newest leftover official session for one bot (preview before listBotSessions).
  */
 export function pickLatestBotSession(
   botPresetId: string,
@@ -54,3 +39,4 @@ export function pickLatestBotSession(
   }
   return best
 }
+

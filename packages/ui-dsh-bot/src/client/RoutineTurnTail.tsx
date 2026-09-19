@@ -89,13 +89,14 @@ function pickRoutineItem(
  */
 export function matchRoutineTurn(
   owner: unknown,
-  roster: Pick<RosterRpc, 'historyBySession'>,
+  roster: Pick<RosterRpc, 'historyBySession' | 'sessionsByBot'>,
   sessions: SessionListFace | undefined,
 ): RoutineMatch | null {
   const list = sessions?.list?.getSnapshot()
   const sessionId = list?.current
   if (sessionId === undefined || sessionId === '') return null
-  if (!isBotPreset(list?.byId?.[sessionId]?.agentPreset)) return null
+  const owned = Object.values(roster.sessionsByBot.getSnapshot()).some(rows => rows.some(row => row.sessionId === sessionId))
+  if (!owned && !isBotPreset(list?.byId?.[sessionId]?.agentPreset)) return null
   const item = pickRoutineItem(asOwner(owner), roster.historyBySession.getSnapshot()[sessionId])
   if (item === undefined) return null
   return { routineName: routineNameOf(item) }

@@ -1,3 +1,8 @@
+/* Overlay surfaces (create/edit bot, group, confirm, palette, graph).
+   Geometry and type follow the workbench form language: one card, muted
+   12px labels, 10px fields, one right-aligned action row. Colors stay on
+   Canvas/CanvasText so the harness theme keeps driving them. */
+
 .mask {
   position: fixed;
   inset: 0;
@@ -6,22 +11,25 @@
   align-items: flex-start;
   justify-content: center;
   padding-top: 10vh;
-  background: color-mix(in srgb, CanvasText 28%, transparent);
+  background: color-mix(in srgb, CanvasText 32%, transparent);
   pointer-events: auto;
   color: CanvasText;
   color-scheme: inherit;
 }
 
 .card {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
   width: min(560px, calc(100vw - 32px));
   max-height: min(80vh, 640px);
   overflow: auto;
-  padding: 16px 18px;
-  border-radius: 12px;
-  border: 1px solid color-mix(in srgb, currentColor 16%, transparent);
+  padding: 18px 20px;
+  border-radius: 14px;
+  border: 1px solid color-mix(in srgb, currentColor 14%, transparent);
   background: Canvas;
   color: CanvasText;
-  box-shadow: 0 16px 48px color-mix(in srgb, currentColor 18%, transparent);
+  box-shadow: 0 18px 52px color-mix(in srgb, currentColor 22%, transparent);
 }
 
 .confirm {
@@ -41,22 +49,27 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  margin-bottom: 12px;
 }
 
 .head h2 {
   margin: 0;
-  font-size: 15px;
-  font-weight: 600;
   margin-right: auto;
+  font-size: 16px;
+  font-weight: 600;
 }
 
 .field {
   display: flex;
   flex-direction: column;
-  gap: 4px;
-  margin-bottom: 10px;
-  font-size: 13px;
+  gap: 6px;
+  margin: 0;
+  min-width: 0;
+  font-size: 12px;
+}
+
+.field > span {
+  font-weight: 500;
+  color: color-mix(in srgb, currentColor 68%, transparent);
 }
 
 .field input,
@@ -65,32 +78,56 @@
   color: inherit;
   background: transparent;
   border: 1px solid color-mix(in srgb, currentColor 16%, transparent);
-  border-radius: 8px;
-  padding: 6px 8px;
+  border-radius: 10px;
+  padding: 9px 11px;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.field input::placeholder,
+.field textarea::placeholder {
+  color: color-mix(in srgb, currentColor 42%, transparent);
+}
+
+.field input:focus,
+.field textarea:focus {
+  outline: none;
+  border-color: color-mix(in srgb, currentColor 48%, transparent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, currentColor 14%, transparent);
+}
+
+.field input:disabled,
+.field textarea:disabled {
+  opacity: 0.55;
 }
 
 .field textarea {
-  min-height: 72px;
+  min-height: 88px;
   resize: vertical;
+  line-height: 1.55;
 }
 
 .colors {
   display: flex;
   flex-wrap: wrap;
-  gap: 6px;
+  gap: 8px;
 }
 
 .swatch {
-  width: 22px;
-  height: 22px;
+  width: 24px;
+  height: 24px;
   border-radius: 50%;
-  border: 2px solid transparent;
+  border: 0;
   padding: 0;
   cursor: pointer;
+  transition: transform 0.12s ease;
+}
+
+.swatch:hover {
+  transform: scale(1.08);
 }
 
 .swatch[data-on='1'] {
-  border-color: currentColor;
+  box-shadow: 0 0 0 2px Canvas, 0 0 0 4px color-mix(in srgb, currentColor 65%, transparent);
 }
 
 .checks {
@@ -105,16 +142,29 @@
   display: flex;
   align-items: center;
   gap: 8px;
+  padding: 7px 10px;
+  border: 1px solid color-mix(in srgb, currentColor 14%, transparent);
+  border-radius: 8px;
   font-size: 13px;
 }
 
 .error {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin: 0;
+  padding: 9px 11px;
+  border: 1px solid color-mix(in srgb, currentColor 26%, transparent);
+  border-radius: 10px;
+  background: color-mix(in srgb, currentColor 8%, transparent);
   color: #e11d48;
   font-size: 12px;
-  margin-bottom: 8px;
+  line-height: 1.45;
+  word-break: break-word;
 }
 
 .hint {
+  margin: 0;
   color: color-mix(in srgb, currentColor 55%, transparent);
   font-size: 12px;
 }
@@ -123,21 +173,36 @@
   display: flex;
   justify-content: flex-end;
   gap: 8px;
-  margin-top: 12px;
+  margin-top: 2px;
+  padding-top: 12px;
+  border-top: 1px solid color-mix(in srgb, currentColor 12%, transparent);
 }
 
 .actions button {
   font: inherit;
+  font-size: 12.5px;
+  line-height: 30px;
+  padding: 0 14px;
   border-radius: 8px;
   border: 1px solid color-mix(in srgb, currentColor 16%, transparent);
-  background: color-mix(in srgb, currentColor 6%, transparent);
+  background: transparent;
   color: inherit;
-  padding: 6px 12px;
   cursor: pointer;
 }
 
+.actions button:hover {
+  background: color-mix(in srgb, currentColor 8%, transparent);
+}
+
+.actions button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 .actions button[data-primary='1'] {
-  background: color-mix(in srgb, currentColor 12%, transparent);
+  border-color: transparent;
+  background: color-mix(in srgb, currentColor 16%, transparent);
+  font-weight: 500;
 }
 
 .legend {
@@ -153,9 +218,15 @@
   color: inherit;
   background: transparent;
   border: 1px solid color-mix(in srgb, currentColor 16%, transparent);
-  border-radius: 8px;
-  padding: 8px 10px;
+  border-radius: 10px;
+  padding: 9px 11px;
   margin-bottom: 8px;
+}
+
+.palInput:focus {
+  outline: none;
+  border-color: color-mix(in srgb, currentColor 48%, transparent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, currentColor 14%, transparent);
 }
 
 .palItem {

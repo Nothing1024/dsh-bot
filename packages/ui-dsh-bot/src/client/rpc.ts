@@ -58,17 +58,43 @@ const EMPTY: DshBotListState = {
 }
 
 const POLL_MS = 2000
+/** Upper bound for one `/dsh-bot/*` call; host handlers answer in milliseconds. */
+const DSH_BOT_CALL_TIMEOUT_MS = 20_000
 
+/**
+ * Bounded like the workbench wrapper: a queued request behind the per-origin
+ * connection cap never rejects by itself, and the sidebar would keep reporting
+ * "loading" instead of a cause. A stale page after a gateway restart answers
+ * 401, which names itself here rather than surfacing as a parse failure.
+ */
 async function dshBotCall<T>(method: string, args: Record<string, unknown>): Promise<RpcResult<T>> {
+  const controller = new AbortController()
+  let timedOut = false
+  const timer = setTimeout(() => {
+    timedOut = true
+    controller.abort()
+  }, DSH_BOT_CALL_TIMEOUT_MS)
   let response: Response
   try {
     response = await fetch(`/dsh-bot/${method}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ args }),
+      signal: controller.signal,
     })
   } catch (error) {
-    return { ok: false, error: { code: 'unavailable', message: error instanceof Error ? error.message : String(error) } }
+    return {
+      ok: false,
+      error: {
+        code: timedOut ? 'timeout' : 'unavailable',
+        message: error instanceof Error ? error.message : String(error),
+      },
+    }
+  } finally {
+    clearTimeout(timer)
+  }
+  if (response.status === 401 || response.status === 403) {
+    return { ok: false, error: { code: 'unauthorized', message: `HTTP ${response.status}` } }
   }
   let json: unknown
   try {

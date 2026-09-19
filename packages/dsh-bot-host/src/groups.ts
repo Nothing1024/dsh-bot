@@ -14,7 +14,10 @@ import { groupLayoutFrom } from './roster-layout.ts'
 
 export const GROUP_MEMBER_MIN = 2
 export const GROUP_MEMBER_MAX = 6
-
+/** 0 = keep going until a round has no visible member line. */
+export const GROUP_ROUNDS_INFINITE = 0
+export const GROUP_ROUNDS_DEFAULT = 3
+export const GROUP_ROUNDS_MAX = 99
 const NAME_MAX = 64
 const REGISTRY_FILE = 'groups.json'
 const ROOMS_INDEX_FILE = 'rooms.json'
@@ -27,6 +30,7 @@ export interface GroupRegistryRow {
   readonly createdAt: number
   readonly section: string
   readonly order: number
+  readonly rounds: number
 }
 
 export interface GroupView extends GroupRegistryRow {}
@@ -34,12 +38,14 @@ export interface GroupView extends GroupRegistryRow {}
 export interface CreateGroupInput {
   readonly name: string
   readonly memberIds: readonly string[]
+  readonly rounds?: number
 }
 
 export interface UpdateGroupInput {
   readonly id: string
   readonly name?: string
   readonly memberIds?: readonly string[]
+  readonly rounds?: number
 }
 
 export interface ListGroupsResult {
@@ -52,6 +58,7 @@ export interface DeleteGroupResult {
 }
 
 export interface GroupRoomRow {
+  readonly title?: string
   readonly roomId: string
   readonly groupId: string
   readonly createdAt: number
@@ -68,6 +75,8 @@ export type RoomSpeaker =
   | { readonly kind: 'error'; readonly botId: string; readonly code: string }
 
 export interface RoomMessage {
+  readonly requestId?: string
+  readonly replyTo?: { readonly seq: number; readonly speaker: string; readonly text: string }
   readonly type: 'message'
   readonly id: string
   readonly seq: number
@@ -94,13 +103,16 @@ export interface GroupsRuntime {
   createGroup(input: CreateGroupInput): Promise<GroupView>
   updateGroup(input: UpdateGroupInput): Promise<GroupView>
   deleteGroup(input: { id: string }): Promise<DeleteGroupResult>
+  removeBotFromGroups(botId: string): Promise<{ updated: readonly string[]; deleted: readonly string[] }>
   createGroupSession(input: { groupId: string }): Promise<GroupRoomRow>
   listGroupSessions(input: { groupId: string }): Promise<ListGroupRoomsResult>
+  renameGroupSession(input: { sessionId: string; title: string }): Promise<GroupRoomRow>
   peekRoom(roomId: string): Promise<RoomState | undefined>
   appendRoomMessage(
     roomId: string,
     speaker: RoomSpeaker,
     text: string,
+    metadata?: Pick<RoomMessage, 'requestId' | 'replyTo'>,
   ): Promise<RoomMessage>
   updateLayout(updates: readonly GroupLayoutUpdate[]): Promise<{ ok: true; skipped: string[] }>
 }
@@ -159,13 +171,22 @@ function assertNoControls(value: string, field: string): void {
 
 function normalizeName(raw: string): string {
   const name = raw.trim()
-  if (name === '') throw new DshBotError('invalid-input', 'name is required')
-  if ([...name].length > NAME_MAX) throw new DshBotError('invalid-input', `name must be at most ${NAME_MAX} characters`)
-  if (name.includes('/') || name.includes('\\') || name.includes('\0')) {
-    throw new DshBotError('invalid-input', 'name contains an illegal character')
-  }
   assertNoControls(name, 'name')
+  if (name === '') throw new DshBotError('invalid-input', 'name is required')
+  if (name.length > NAME_MAX) throw new DshBotError('invalid-input', `name must be at most ${NAME_MAX} characters`)
   return name
+}
+
+export function normalizeRounds(raw: unknown): number {
+  if (raw === undefined || raw === null) return GROUP_ROUNDS_DEFAULT
+  if (typeof raw !== 'number' || !Number.isInteger(raw)) {
+    throw new DshBotError('invalid-input', 'rounds must be an integer')
+  }
+  if (raw === GROUP_ROUNDS_INFINITE) return GROUP_ROUNDS_INFINITE
+  if (raw < 1 || raw > GROUP_ROUNDS_MAX) {
+    throw new DshBotError('invalid-input', `rounds must be 0 (unlimited) or 1–${GROUP_ROUNDS_MAX}`)
+  }
+  return raw
 }
 
 function normalizeMemberIds(
@@ -243,6 +264,7 @@ function parseGroupRow(value: unknown, index: number): GroupRegistryRow {
     memberIds: rec.memberIds as string[],
     createdAt,
     ...groupLayoutFrom(rec, createdAt),
+    rounds: rec.rounds === undefined || rec.rounds === null ? GROUP_ROUNDS_DEFAULT : normalizeRounds(rec.rounds),
   }
 }
 
@@ -289,7 +311,7 @@ function parseRoomsIndex(value: unknown): GroupRoomRow[] {
     const createdAt = typeof row.createdAt === 'number' && Number.isFinite(row.createdAt) ? row.createdAt : Number.NaN
     const updatedAt = typeof row.updatedAt === 'number' && Number.isFinite(row.updatedAt) ? row.updatedAt : createdAt
     if (roomId === '' || groupId === '' || Number.isNaN(createdAt)) continue
-    rooms.push({ roomId, groupId, createdAt, updatedAt })
+    rooms.push({ roomId, groupId, createdAt, updatedAt, ...(typeof row.title === 'string' ? { title: row.title } : {}) })
   }
   return rooms
 }
@@ -349,7 +371,12 @@ function parseRoomFile(raw: string, roomId: string): RoomState | undefined {
       const createdAt = typeof rec.createdAt === 'number' && Number.isFinite(rec.createdAt) ? rec.createdAt : 0
       const speaker = parseSpeaker(rec.speaker)
       if (id === '' || Number.isNaN(seq) || speaker === undefined) continue
-      messages.push({ type: 'message', id, seq, speaker, text, createdAt })
+      const reply = rec.replyTo as RoomMessage['replyTo']
+      messages.push({ type: 'message', id, seq, speaker, text, createdAt,
+        ...typeof rec.requestId === 'string' ? { requestId: rec.requestId } : {},
+        ...reply !== undefined && reply !== null && Number.isSafeInteger(reply.seq)
+          && typeof reply.text === 'string' && typeof reply.speaker === 'string' ? { replyTo: reply } : {},
+      })
     }
   }
   if (header === undefined) return undefined
@@ -437,6 +464,7 @@ export function createGroupsRuntime(options: GroupsRuntimeOptions): GroupsRuntim
       createdAt: nowOf(),
       section: 'work',
       order: nowOf(),
+      rounds: normalizeRounds(input.rounds),
     }
     groups.push(row)
     await saveRegistry(home, groups)
@@ -463,10 +491,25 @@ export function createGroupsRuntime(options: GroupsRuntimeOptions): GroupsRuntim
       createdAt: current.createdAt,
       section: current.section,
       order: current.order,
+      rounds: input.rounds === undefined ? current.rounds : normalizeRounds(input.rounds),
     }
     groups[index] = next
     await saveRegistry(home, groups)
     return next
+  }
+
+  const purgeRooms = async (home: string, groupIds: ReadonlySet<string>): Promise<void> => {
+    if (groupIds.size === 0) return
+    const rooms = await loadRoomsIndex(home)
+    const kept: GroupRoomRow[] = []
+    for (const room of rooms) {
+      if (groupIds.has(room.groupId)) {
+        await rm(roomFilePath(home, room.roomId), { force: true })
+        continue
+      }
+      kept.push(room)
+    }
+    await saveRoomsIndex(home, kept)
   }
 
   const deleteGroup = async (input: { id: string }): Promise<DeleteGroupResult> => {
@@ -478,17 +521,48 @@ export function createGroupsRuntime(options: GroupsRuntimeOptions): GroupsRuntim
       throw new DshBotError('group-not-found', `group ${JSON.stringify(id)} is not in the registry`)
     }
     await saveRegistry(home, groups.filter(row => row.id !== id))
-    const rooms = await loadRoomsIndex(home)
-    const kept: GroupRoomRow[] = []
-    for (const room of rooms) {
-      if (room.groupId !== id) {
-        kept.push(room)
+    await purgeRooms(home, new Set([id]))
+    return { id, deleted: true }
+  }
+
+  const removeBotFromGroups = async (botId: string): Promise<{ updated: string[]; deleted: string[] }> => {
+    const home = homeOf()
+    const trimmed = botId.trim()
+    if (trimmed === '') throw new DshBotError('invalid-input', 'bot id is required')
+    const groups = await loadRegistry(home)
+    const updated: string[] = []
+    const deleted: string[] = []
+    const kept: GroupRegistryRow[] = []
+    for (const group of groups) {
+      if (!group.memberIds.includes(trimmed)) {
+        kept.push(group)
         continue
       }
-      await rm(roomFilePath(home, room.roomId), { force: true })
+      const memberIds = group.memberIds.filter(id => id !== trimmed)
+      if (memberIds.length < GROUP_MEMBER_MIN) {
+        deleted.push(group.id)
+        continue
+      }
+      kept.push({ ...group, memberIds })
+      updated.push(group.id)
     }
-    await saveRoomsIndex(home, kept)
-    return { id, deleted: true }
+    if (updated.length === 0 && deleted.length === 0) return { updated, deleted }
+    await saveRegistry(home, kept)
+    await purgeRooms(home, new Set(deleted))
+    return { updated, deleted }
+  }
+
+  const renameGroupSession = async (input: { sessionId: string; title: string }): Promise<GroupRoomRow> => {
+    const home = homeOf()
+    const title = input.title.trim()
+    if (title === '' || title.length > 60) throw new DshBotError('invalid-input', '名称须为 1–60 个字符')
+    const rooms = await loadRoomsIndex(home)
+    const index = rooms.findIndex(row => row.roomId === input.sessionId)
+    if (index < 0) throw new DshBotError('group-not-found', '房间不存在')
+    const row: GroupRoomRow = { ...rooms[index]!, title }
+    rooms[index] = row
+    await saveRoomsIndex(home, rooms)
+    return row
   }
 
   const createGroupSession = async (input: { groupId: string }): Promise<GroupRoomRow> => {
@@ -539,6 +613,7 @@ export function createGroupsRuntime(options: GroupsRuntimeOptions): GroupsRuntim
     roomId: string,
     speaker: RoomSpeaker,
     text: string,
+    metadata: Pick<RoomMessage, 'requestId' | 'replyTo'> = {},
   ): Promise<RoomMessage> => {
     const home = homeOf()
     const id = roomId.trim()
@@ -553,6 +628,7 @@ export function createGroupsRuntime(options: GroupsRuntimeOptions): GroupsRuntim
       speaker,
       text,
       createdAt: nowOf(),
+      ...metadata,
     }
     const next: RoomState = { header: state.header, messages: [...state.messages, message] }
     await atomicWriteText(roomFilePath(home, id), encodeRoom(next))
@@ -594,10 +670,12 @@ export function createGroupsRuntime(options: GroupsRuntimeOptions): GroupsRuntim
     createGroup: input => withLock(() => createGroup(input)),
     updateGroup: input => withLock(() => updateGroup(input)),
     deleteGroup: input => withLock(() => deleteGroup(input)),
+    removeBotFromGroups: botId => withLock(() => removeBotFromGroups(botId)),
     createGroupSession: input => withLock(() => createGroupSession(input)),
     listGroupSessions: input => withLock(() => listGroupSessions(input)),
+    renameGroupSession: input => withLock(() => renameGroupSession(input)),
     peekRoom: roomId => withLock(() => peekRoom(roomId)),
-    appendRoomMessage: (roomId, speaker, text) => withLock(() => appendRoomMessage(roomId, speaker, text)),
+    appendRoomMessage: (roomId, speaker, text, metadata) => withLock(() => appendRoomMessage(roomId, speaker, text, metadata)),
     updateLayout: updates => withLock(() => updateLayout(updates)),
   }
 }

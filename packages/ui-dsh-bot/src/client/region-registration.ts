@@ -9,6 +9,8 @@ export interface SlotsFace {
   inject(name: string, factory: () => (() => void) | void): () => void
   register(descriptor: {
     name: string
+    key?: string
+    label?: string
     priority?: number
     locale?: string
     id?: string

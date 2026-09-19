@@ -3,7 +3,7 @@
  */
 import { useEffect, useRef, useState, useSyncExternalStore, type ReactElement } from 'react'
 import { createPortal } from 'react-dom'
-import { nameInitial, sessionDisplayTitle } from 'dsh-bot-shared'
+import { formatWireError, nameInitial, sessionDisplayTitle } from 'dsh-bot-shared'
 import type { MemoryListValue, PeerLogRow, RoutineRow, WorkbenchBot, WorkbenchSessionRow } from 'dsh-bot-shared'
 import type { SessionListFace } from './BoundRoster.tsx'
 import { findBotByPreset } from './bot-preset.ts'
@@ -61,7 +61,7 @@ async function fetchPill(roster: RosterRpc, botId: string, kind: CountKind): Pro
   if (kind === 'memory') {
     const outcome = await roster.memoryList(botId)
     if (outcome == null || !outcome.ok) {
-      return { at: 0, count: 0, lines: [], error: outcome?.error.message ?? 'unavailable' }
+      return { at: 0, count: 0, lines: [], error: outcome === undefined ? 'unavailable' : formatWireError(outcome.error) }
     }
     const next = memoryLines(outcome.value)
     return { at: Date.now(), count: next.length, lines: next, error: null }
@@ -69,14 +69,14 @@ async function fetchPill(roster: RosterRpc, botId: string, kind: CountKind): Pro
   if (kind === 'routines') {
     const outcome = await roster.routineList(botId)
     if (outcome == null || !outcome.ok) {
-      return { at: 0, count: 0, lines: [], error: outcome?.error.message ?? 'unavailable' }
+      return { at: 0, count: 0, lines: [], error: outcome === undefined ? 'unavailable' : formatWireError(outcome.error) }
     }
     const rows = outcome.value as readonly RoutineRow[]
     return { at: Date.now(), count: rows.length, lines: rows.map(row => row.name), error: null }
   }
   const outcome = await roster.peerLog(botId)
   if (outcome == null || !outcome.ok) {
-    return { at: 0, count: 0, lines: [], error: outcome?.error.message ?? 'unavailable' }
+    return { at: 0, count: 0, lines: [], error: outcome === undefined ? 'unavailable' : formatWireError(outcome.error) }
   }
   const rows = outcome.value as readonly PeerLogRow[]
   return {
@@ -123,9 +123,15 @@ export function resolveIdentityBot(
   bots: readonly WorkbenchBot[],
   botsStatus: 'loading' | 'idle' | 'error',
   byId: Record<string, { agentPreset?: string }> | undefined,
+  sessionsByBot?: Readonly<Record<string, readonly { readonly sessionId: string }[]>>,
 ): WorkbenchBot | null {
   if (sessionId === undefined || sessionId === '') return null
   if (botsStatus === 'loading' && bots.length === 0) return null
+  for (const [botId, rows] of Object.entries(sessionsByBot ?? {})) {
+    if (rows.some(row => row.sessionId === sessionId)) {
+      return bots.find(bot => bot.id === botId) ?? null
+    }
+  }
   const preset = byId?.[sessionId]?.agentPreset
   return findBotByPreset(bots, preset) ?? null
 }
@@ -149,13 +155,14 @@ function pillLabel(
 export function IdentityBar(props: IdentityBarProps): ReactElement | null {
   const t = props.t ?? fallbackT
   const bots = useSyncExternalStore(props.roster.bots.subscribe, props.roster.bots.getSnapshot, props.roster.bots.getSnapshot)
+  const sessionsByBot = useSyncExternalStore(props.roster.sessionsByBot.subscribe, props.roster.sessionsByBot.getSnapshot, props.roster.sessionsByBot.getSnapshot)
   const list = props.sessions?.list
   const sessionSnap = useSyncExternalStore(
     list?.subscribe ?? ((fn: () => void) => { void fn; return () => {} }),
     list?.getSnapshot ?? emptyList,
     list?.getSnapshot ?? emptyList,
   )
-  const bot = resolveIdentityBot(props.sessionId, bots.items, bots.status, sessionSnap.byId)
+  const bot = resolveIdentityBot(props.sessionId, bots.items, bots.status, sessionSnap.byId, sessionsByBot)
   const marked = useRef<string | null>(null)
   const [panel, setPanel] = useState<PanelKind | null>(null)
   const [counts, setCounts] = useState<Partial<Record<CountKind, number>>>({})
@@ -288,7 +295,7 @@ export function IdentityBar(props: IdentityBarProps): ReactElement | null {
     setCreating(true)
     void props.roster.createBotSession(bot.id).then(outcome => {
       if (!outcome.ok) {
-        setError(outcome.error.message)
+        setError(formatWireError(outcome.error))
         setCreating(false)
         return
       }
@@ -328,7 +335,6 @@ export function IdentityBar(props: IdentityBarProps): ReactElement | null {
             ? (
                 <>
                   <p className={css.persona} data-testid="dsh-bot-identity-persona-text">{bot.persona}</p>
-                  <p className={css.hint}>{t('identity.preset', { id: bot.presetId })}</p>
                   <button
                     type="button"
                     data-testid="dsh-bot-identity-edit"

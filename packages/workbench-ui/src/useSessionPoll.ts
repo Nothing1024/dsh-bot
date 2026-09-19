@@ -13,6 +13,8 @@ export interface SessionPollState {
   readonly error: WorkbenchWireError | null
   readonly ready: boolean
   readonly speaking: { readonly botId: string; readonly name: string } | null
+  readonly round: number | null
+  readonly rounds: number | null
 }
 
 export interface UseSessionPollOptions {
@@ -79,6 +81,8 @@ export function useSessionPoll(options: UseSessionPollOptions): SessionPollState
   const [working, setWorking] = useState(false)
   const [error, setError] = useState<WorkbenchWireError | null>(null)
   const [speaking, setSpeaking] = useState<{ readonly botId: string; readonly name: string } | null>(null)
+  const [round, setRound] = useState<number | null>(null)
+  const [rounds, setRounds] = useState<number | null>(null)
   const [ready, setReady] = useState(sessionId === null || !enabled)
   const itemsRef = useRef(items)
   itemsRef.current = items
@@ -95,6 +99,12 @@ export function useSessionPoll(options: UseSessionPollOptions): SessionPollState
     const outcome = await loadRef.current(id, sinceSeq)
     if (!outcome.ok) {
       setError(outcome.error)
+      // A failing poll is not evidence a turn is still running: the last
+      // snapshot may be much older than the failure. Keeping the busy flag
+      // here is what freezes the composer on "停止" forever once a session is
+      // gone (or the gateway restarted under an open page).
+      workingRef.current = false
+      setWorking(false)
       setReady(true)
       return
     }
@@ -106,6 +116,10 @@ export function useSessionPoll(options: UseSessionPollOptions): SessionPollState
     setSpeaking(current => (
       current?.botId === speaking?.botId && current?.name === speaking?.name ? current : speaking
     ))
+    const nextRound = typeof outcome.value.round === 'number' ? outcome.value.round : null
+    const nextRounds = typeof outcome.value.rounds === 'number' ? outcome.value.rounds : null
+    setRound(current => current === nextRound ? current : nextRound)
+    setRounds(current => current === nextRounds ? current : nextRounds)
     const incoming = Array.isArray(outcome.value.items) ? outcome.value.items : []
     setItems(current => mergeHistoryItems(current, incoming, sinceSeq !== undefined))
     setReady(true)
@@ -122,6 +136,8 @@ export function useSessionPoll(options: UseSessionPollOptions): SessionPollState
     setItems([])
     setWorking(false)
     setSpeaking(null)
+    setRound(null)
+    setRounds(null)
     setError(null)
     setReady(sessionId === null || !enabled)
     if (sessionId === null || !enabled) return
@@ -158,7 +174,7 @@ export function useSessionPoll(options: UseSessionPollOptions): SessionPollState
     }
   }, [enabled, pull, sessionId, sseReady])
 
-  return { items, working, error, ready, speaking, refresh }
+  return { items, working, error, ready, speaking, round, rounds, refresh }
 }
 
 export const POLL_IDLE_MS = IDLE_MS

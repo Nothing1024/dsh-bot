@@ -1,38 +1,24 @@
-# Committed settings template for dsh-bot (profile gb / :3084).
-# Copy to env/settings.yaml (gitignored). Never put literal API keys here —
-# only apiKeyEnv references (BR-005).
-#
-# Live routing follows the user's existing DSH model config (copied from
-# session-tool env/settings.yaml by setup.sh). setup.sh then stamps
-# agent-presets.default: dsh-bot (BR-002) even when the neighbor copy
-# has no such key. xAI direct is a commented optional example, not an
-# acceptance prerequisite (BR-001).
+# Template only. Live routing is applied from
+# ~/workspace/dsh/plugin/.shared/settings.yaml (not this file).
+# Never put literal API keys or machine-local baseURL here.
 
 ui-onboarding:
   welcomeNoticeVersion: 2026-08-13.1
-llm-deepseek:
-  reasoningEffort: max
-  retryPolicy:
-    mode: normal
-    maxRetries: 5
-  baseURL: https://panpanpan.59188888.xyz/v1
-web-search-deepseek:
-  baseURL: https://panpanpan.59188888.xyz/v1
-  model: deepseek-v4-flash
 agent-default-model:
   provider: anthropic
   model: grok-4.6
   reasoningEffort: xhigh
-agent-presets:
-  default: dsh-bot
 llm-pi-ai:
   providers:
     anthropic:
       displayName: Anthropic
       apiKeyEnv: ANTHROPIC_API_KEY
-      api: anthropic-messages
-      baseURL: https://panpanpan.59188888.xyz
+      api: openai-completions
+      # baseURL: https://<openai-compatible-endpoint>/v1
       reasoning: xhigh
+      compat:
+        thinkingFormat: openai
+        supportsReasoningEffort: true
       models:
         - id: grok-4.6
           name: grok-4.6
@@ -47,18 +33,3 @@ llm-pi-ai:
             medium: medium
             high: high
             xhigh: xhigh
-    # Optional xAI direct example (disabled). Uncomment to enable a native
-    # xAI route. Requires XAI_API_KEY in env/.env. Not an acceptance
-    # prerequisite (BR-001). Catalog: grok-4.5 / grok-4.3 at https://api.x.ai/v1.
-    # xai:
-    #   displayName: xAI
-    #   apiKeyEnv: XAI_API_KEY
-    #   api: openai-completions
-    #   baseURL: https://api.x.ai/v1
-
-# Optional plugin section (hot). Memory extract is on by default.
-# dsh-bot:
-#   memory:
-#     enabled: true
-#   routines:
-#     enabled: true

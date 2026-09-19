@@ -58,8 +58,8 @@ export interface RosterRpc {
   createBot(args: CreateBotArgs): Promise<RpcResult<WorkbenchBot>>
   updateBot(args: UpdateBotArgs): Promise<RpcResult<WorkbenchBot>>
   deleteBot(id: string): Promise<RpcResult<{ id: string; deleted: true }>>
-  createGroup(args: { name: string; memberIds: readonly string[] }): Promise<RpcResult<WorkbenchGroup>>
-  updateGroup(args: { id: string; name?: string; memberIds?: readonly string[] }): Promise<RpcResult<WorkbenchGroup>>
+  createGroup(args: { name: string; memberIds: readonly string[]; rounds?: number }): Promise<RpcResult<WorkbenchGroup>>
+  updateGroup(args: { id: string; name?: string; memberIds?: readonly string[]; rounds?: number }): Promise<RpcResult<WorkbenchGroup>>
   deleteGroup(id: string): Promise<RpcResult<{ id: string; deleted: true }>>
   memoryList(botId: string): Promise<RpcResult<MemoryListValue>>
   routineList(botId?: string): Promise<RpcResult<readonly RoutineRow[]>>
@@ -435,24 +435,42 @@ export function createRosterRpc(deps: RosterRpcDeps = {}): RosterRpc {
     wakeInflight.add(sessionId)
     void (async () => {
       try {
-        const response = await fetchImpl('/api/session.history', {
+        const current = historyBySession.getSnapshot()[sessionId]
+        let throughSeq = -1
+        for (const item of current?.items ?? []) {
+          if (item.seq > throughSeq) throughSeq = item.seq
+        }
+        if (throughSeq < 0) return
+        const response = await fetchImpl('/api/session/page', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             type: 'client-request',
             rpcId: 'dsh-bot-wake',
-            method: 'session.history',
-            payload: { sessionId, maxMessages: 80 },
+            method: 'session/page',
+            payload: {
+              args: {
+                request: {
+                  address: { kind: 'session', sessionId },
+                  throughSeq,
+                  maxMessages: 80,
+                },
+              },
+            },
           }),
         })
         const json = await response.json() as {
-          result?: { value?: { events?: unknown[] } }
-          value?: { events?: unknown[] }
+          result?: { value?: { records?: unknown[]; events?: unknown[] } }
+          value?: { records?: unknown[]; events?: unknown[] }
         }
-        const events = json.result?.value?.events ?? json.value?.events ?? []
+        const events = json.result?.value?.records
+          ?? json.value?.records
+          ?? json.result?.value?.events
+          ?? json.value?.events
+          ?? []
         mergeWakes(sessionId, wakesFromOfficialEvents(events))
       } catch {
-        // official history is a fallback when host omits origin; ignore transport misses
+        // official page is a fallback when host omits origin; ignore transport misses
       } finally {
         wakeInflight.delete(sessionId)
       }
@@ -530,6 +548,7 @@ export function createRosterRpc(deps: RosterRpcDeps = {}): RosterRpc {
       const body: Record<string, unknown> = { id: args.id }
       if (args.name !== undefined) body.name = args.name
       if (args.memberIds !== undefined) body.memberIds = args.memberIds
+      if (args.rounds !== undefined) body.rounds = args.rounds
       const outcome = await rosterCall<WorkbenchGroup>('updateGroup', body, fetchImpl)
       if (outcome.ok) await afterMutate()
       return outcome

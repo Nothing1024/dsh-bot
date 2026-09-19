@@ -4,6 +4,7 @@
 import type { UpdateBotLayoutInput, WorkbenchBot, WorkbenchGroup } from 'dsh-bot-shared'
 import type { RosterMenuAction } from './BotRoster.tsx'
 import type { RosterRpc } from './roster-rpc.ts'
+import { formatWireError } from 'dsh-bot-shared'
 
 export function firstVisibleId(
   bots: readonly WorkbenchBot[],
@@ -70,7 +71,7 @@ export async function runMenuAction(input: {
   input.roster.bots.set({ ...current, items: patchBots(current.items, input.action, input.id) })
   if (input.action === 'mark-read') {
     const outcome = await input.roster.markRead(input.id)
-    if (!outcome.ok) return { ok: false, error: outcome.error.message }
+    if (!outcome.ok) return { ok: false, error: formatWireError(outcome.error) }
     return { ok: true }
   }
   const body = layoutInputForAction(input.action, input.id)
@@ -78,7 +79,7 @@ export async function runMenuAction(input: {
   const outcome = await input.roster.updateBotLayout(body)
   if (!outcome.ok) {
     await input.roster.refresh()
-    return { ok: false, error: outcome.error.message }
+    return { ok: false, error: formatWireError(outcome.error) }
   }
   return { ok: true }
 }

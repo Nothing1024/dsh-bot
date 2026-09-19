@@ -5,7 +5,6 @@ import { useEffect, useMemo, useRef, useState, type ReactElement } from 'react'
 import { createPortal } from 'react-dom'
 import { nameInitial } from 'dsh-bot-shared'
 import type { WorkbenchBot, WorkbenchGroup, WorkbenchSessionRow } from 'dsh-bot-shared'
-import { sessionDisplayTitle } from 'dsh-bot-shared'
 import {
   buildRosterRows,
   filterRosterRows,
@@ -334,7 +333,12 @@ export function BotRoster(props: BotRosterProps): ReactElement {
               />
             )
           : null}
-        {selected && row.kind === 'bot' ? (
+        {selected && row.kind === 'bot' && (
+          props.nestedStatus === 'loading'
+          || props.nestedStatus === 'resolving'
+          || props.nestedStatus === 'creating'
+          || (props.nestedError !== undefined && props.nestedError !== null)
+        ) ? (
           <div className={css.nested} data-testid={`dsh-bot-nested-${row.id}`}>
             {props.nestedStatus === 'loading' || props.nestedStatus === 'resolving' ? <div>{t('roster.loadingSessions')}</div> : null}
             {props.nestedStatus === 'creating' ? <div>{t('roster.creating')}</div> : null}
@@ -346,27 +350,6 @@ export function BotRoster(props: BotRosterProps): ReactElement {
                   </div>
                 )
               : null}
-            {(props.nestedSessions ?? []).map(session => (
-              <button
-                key={session.sessionId}
-                type="button"
-                className={css.nestedBtn}
-                data-testid={`dsh-bot-session-${session.sessionId}`}
-                data-current={props.currentSessionId === session.sessionId ? '1' : '0'}
-                onClick={() => { props.onSelectSession?.(session.sessionId) }}
-              >
-                {sessionDisplayTitle(session.title, row.name, { hidden: session.hidden })}
-              </button>
-            ))}
-            <button
-              type="button"
-              className={css.newChat}
-              data-testid="dsh-bot-new-chat"
-              disabled={props.nestedStatus === 'creating'}
-              onClick={() => { props.onNewChat?.(row.id) }}
-            >
-              {t('roster.newChat')}
-            </button>
           </div>
         ) : null}
         {selected && row.kind === 'group' ? (

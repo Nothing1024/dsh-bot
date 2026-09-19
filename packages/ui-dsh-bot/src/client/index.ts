@@ -1,266 +1,62 @@
-/**
- * ui-dsh-bot plugin, browser half. Optionally registers a better-sidebar
- * "DSH Bot" tab. betterSidebar is never a hard inject (BR-008).
- */
-import { createElement, useSyncExternalStore } from 'react'
+import { createElement } from 'react'
 import type { Context } from '@deepseek-ai/cordis'
-import { BoundBotRegion, BoundModeFooter, BoundOverlay } from './BoundRoster.tsx'
-import { IdentityBar } from './IdentityBar.tsx'
-import { matchRoutineTurn, RoutineTurnTail } from './RoutineTurnTail.tsx'
-import type { SessionListFace } from './BoundRoster.tsx'
-import { DshBotIcon, DshBotTab } from './DshBotTab.tsx'
-import type { SessionCwdFace, WorkspaceCwdFace } from './DshBotTab.tsx'
-import { inject as requiredInject } from './inject.ts'
+import { DshBotIcon } from './DshBotTab.tsx'
 import { en, NS, zh } from './locales.ts'
-import { observable } from './observable.ts'
-import { createOverlayStore } from './overlay-store.ts'
-import { bindPaletteHotkey } from './palette-hotkey.ts'
 import { bindBotRegion, hasSlots } from './region-registration.ts'
 import type { SlotsFace } from './region-registration.ts'
-import { readLastBot } from './roster-items.ts'
-import { createRosterRpc } from './roster-rpc.ts'
-import { createRpcDshBot } from './rpc.ts'
-import { selectBot } from './select-bot.ts'
 import { createSidebarMode } from './sidebar-mode.ts'
-import { DSH_BOT_SESSIONS_TAB_ID } from './tab-id.ts'
-import { setSidebarOpener } from './workbench-frame.ts'
+import { createWorkbenchSeat, WorkbenchPanel, WorkbenchRoster } from './WorkbenchPanel.tsx'
+import { openOfficialSession, openSessionToolPanel } from './session-tool-jump.ts'
 
 export { DEFAULT_ROSTER_SECTIONS } from 'dsh-bot-shared'
-
-interface ClientLocale {
-  register(ns: string, dicts: { zh: Record<string, string>; en: Record<string, string> }): () => void
-  bind(ns: string): (key: string, vars?: Record<string, string>) => string
-}
-
-interface BetterSidebarService {
-  registerTab: (descriptor: {
-    id: string
-    title: string | (() => string)
-    icon?: unknown
-    order?: number
-    single?: boolean
-    badge?: (ctx: unknown, scope: unknown, state: { panelOpen?: boolean }) => string | number | null | undefined
-    component: (props: { ctx: Context; visible?: boolean }) => unknown
-  }) => () => void
-  getSnapshot: () => { state?: { panelOpen?: boolean } }
-  subscribeState: (listener: () => void) => () => void
-  activateTab?: (id: string) => void
-  openTab?: (seed: { type: string; url?: string; title?: string; id?: string }) => void
-}
-
-/** Duck-typed client ctx (locale + sessions + optional slots / betterSidebar). */
-type ClientCtx = Context & {
-  locale: ClientLocale
-  sessions: SessionCwdFace
-  workspaces?: WorkspaceCwdFace
-  slots?: SlotsFace
-  betterSidebar?: BetterSidebarService
-}
-
-export type { DshBotTabProps } from './DshBotTab.tsx'
-export type { IDshBotClient, DshBotListState, DshBotSessionRow } from './rpc.ts'
 export { DSH_BOT_SESSIONS_TAB_ID } from './tab-id.ts'
 export { jumpToSession } from './session-jump.ts'
+export type { DshBotTabProps } from './DshBotTab.tsx'
+export type { IDshBotClient, DshBotListState, DshBotSessionRow } from './rpc.ts'
 
-export const inject = [...requiredInject]
+export const BOT_PANEL_ID = 'dsh-bot'
+export const inject = ['sessions', 'locale', 'slots', 'layout', 'workspaces']
 
-/**
- * Register dictionaries, Bot-mode region, overlay, and the optional tab.
- * @param ctx - client root context.
- */
-export function apply(ctx: Context): void {
-  const client = ctx as unknown as ClientCtx
-  client.effect(() => client.locale.register(NS, { zh, en }), 'ui-dsh-bot: dictionaries')
-  const t = client.locale.bind(NS)
-  const mode = createSidebarMode()
-  const roster = createRosterRpc()
-  const overlay = createOverlayStore()
-  const selected = observable<string | null>(readLastBot())
-  const sidebarFace = observable<{ activateTab?: (id: string) => void }>({})
-
-  client.effect(() => {
-    const sync = (): void => { roster.setActive(mode.getSnapshot() === 'bot') }
-    const unsub = mode.subscribe(sync)
-    sync()
-    return () => {
-      unsub()
-      roster.dispose()
+interface WorkbenchClient extends Pick<Context, 'effect'> {
+  slots: SlotsFace
+  locale: { register(ns: string, dicts: { zh: Record<string, string>; en: Record<string, string> }): () => void }
+  layout: { selectPanel(id: string | null): void; beginNavigation(): AbortSignal }
+  sessions: { open?(id: string): void; refresh?(): Promise<unknown> | unknown }
+  workspaces?: {
+    list?: {
+      getSnapshot(): { archivedSessionIds?: readonly string[] }
+      subscribe?(listener: () => void): () => void
     }
-  }, 'ui-dsh-bot: roster active')
-
-  client.effect(() => bindPaletteHotkey(window, overlay), 'ui-dsh-bot: palette hotkey')
-
-  if (!hasSlots(client)) {
-    console.info('[ui-dsh-bot] ctx.slots missing; skip sidebar.workspaces / footer.action')
-  } else {
-    const BoundRegion = (props: { wide?: boolean; expandSidebar?: () => void }) => {
-      const activate = useSyncExternalStore(sidebarFace.subscribe, sidebarFace.getSnapshot, sidebarFace.getSnapshot)
-      const selectedId = useSyncExternalStore(selected.subscribe, selected.getSnapshot, selected.getSnapshot)
-      const regionProps: import('./BoundRoster.tsx').BoundRosterProps = {
-        t,
-        mode,
-        roster,
-        overlay,
-        sessions: client.sessions as unknown as SessionListFace,
-        selectedId,
-        onSelectedId: (id) => { selected.set(id) },
-      }
-      if (props.wide !== undefined) regionProps.wide = props.wide
-      if (props.expandSidebar !== undefined) regionProps.expandSidebar = props.expandSidebar
-      if (activate.activateTab !== undefined) regionProps.activateTab = activate.activateTab
-      return createElement(BoundBotRegion, regionProps)
-    }
-    client.effect(
-      () => bindBotRegion(client, mode, BoundRegion),
-      'ui-dsh-bot: bot region',
-    )
-    const BoundFooter = (props: { wide?: boolean }) => {
-      const footerProps: import('./BoundRoster.tsx').BoundFooterProps = {
-        t,
-        mode,
-        roster,
-        sessions: client.sessions as unknown as SessionListFace,
-      }
-      if (props.wide !== undefined) footerProps.wide = props.wide
-      return createElement(BoundModeFooter, footerProps)
-    }
-    const slots = client.slots
-    client.effect(
-      () => slots.inject('sidebar.footer.action', () => slots.register({
-        name: 'sidebar.footer.action',
-        id: 'dsh-bot:mode',
-        order: 10,
-        locale: NS,
-      }, BoundFooter)),
-      'ui-dsh-bot: mode footer',
-    )
-    client.effect(
-      () => slots.inject('conversation.session.header.actions', () => slots.register({
-        name: 'conversation.session.header.actions',
-        id: 'dsh-bot:identity',
-        order: 50,
-        locale: NS,
-        inject: () => ({ roster, sessions: client.sessions, overlay }),
-      }, IdentityBar)),
-      'ui-dsh-bot: identity bar',
-    )
-    client.effect(() => {
-      const sessions = client.sessions as unknown as SessionListFace
-      let live: (() => void) | undefined
-      const occupy = (): void => {
-        live?.()
-        live = slots.inject('conversation.chat.turnTail', () => slots.register({
-          name: 'conversation.chat.turnTail',
-          select: (owner) => matchRoutineTurn(owner, roster, sessions),
-          inject: () => ({ roster, sessions }),
-        }, RoutineTurnTail))
-      }
-      occupy()
-      const keyOf = (): string => {
-        const list = sessions.list?.getSnapshot()
-        const current = list?.current ?? ''
-        const slice = current === '' ? undefined : roster.historyBySession.getSnapshot()[current]
-        const routines = slice === undefined ? 0 : Object.keys(slice.routineBySeq).length
-        return `${current}:${slice?.status ?? ''}:${slice?.items.length ?? 0}:${routines}`
-      }
-      let last = keyOf()
-      const sync = (): void => {
-        const next = keyOf()
-        if (next === last) return
-        last = next
-        occupy()
-      }
-      const unsubHistory = roster.historyBySession.subscribe(sync)
-      const unsubSessions = sessions.list?.subscribe(sync)
-      return () => {
-        unsubHistory()
-        unsubSessions?.()
-        live?.()
-      }
-    }, 'ui-dsh-bot: turn tail')
-    client.effect(
-      () => slots.inject('shell.overlay', () => slots.register({
-        name: 'shell.overlay',
-        id: 'dsh-bot:overlay',
-        order: 50,
-        locale: NS,
-      }, () => {
-        const activate = useSyncExternalStore(sidebarFace.subscribe, sidebarFace.getSnapshot, sidebarFace.getSnapshot)
-        const selectedId = useSyncExternalStore(selected.subscribe, selected.getSnapshot, selected.getSnapshot)
-        const overlayProps: Parameters<typeof BoundOverlay>[0] = {
-          overlay,
-          roster,
-          t,
-          mode,
-          sessions: client.sessions as unknown as SessionListFace,
-          selectedId,
-          onSelectedId: (id) => { selected.set(id) },
-          onSelectBot: (botId) => {
-            selected.set(botId)
-            mode.set('bot')
-            void selectBot(botId, {
-              sessionsOf: id => roster.sessionsOf(id),
-              createBotSession: id => roster.createBotSession(id),
-              markRead: id => roster.markRead(id),
-              sessions: client.sessions,
-            })
-          },
-        }
-        if (activate.activateTab !== undefined) overlayProps.activateTab = activate.activateTab
-        return createElement(BoundOverlay, overlayProps)
-      })),
-      'ui-dsh-bot: overlay',
-    )
   }
+}
 
-  ctx.inject(['betterSidebar'], (raw) => {
-    const sidebarCtx = raw as unknown as ClientCtx
-    if (sidebarCtx.betterSidebar === undefined) return
-    const sidebar = sidebarCtx.betterSidebar
-    sidebarFace.set({
-      ...sidebar.activateTab === undefined ? {} : { activateTab: (id: string) => { sidebar.activateTab?.(id) } },
-    })
-    // BR-608: group jumps must land the tab in sight (closed tab / collapsed panel).
-    setSidebarOpener(sidebar.openTab === undefined ? null : seed => { sidebar.openTab?.(seed) })
-    sidebarCtx.effect(() => () => { setSidebarOpener(null) }, 'ui-dsh-bot: sidebar opener')
-    const dshBot = createRpcDshBot()
-    sidebarCtx.effect(
-      () => {
-        const unsub = sidebar.subscribeState(() => {
-          dshBot.setPanelOpen(sidebar.getSnapshot().state?.panelOpen === true)
-        })
-        dshBot.setPanelOpen(sidebar.getSnapshot().state?.panelOpen === true)
-        return () => {
-          unsub()
-          dshBot.dispose()
-        }
+export function apply(ctx: Context): void {
+  const client = ctx as unknown as WorkbenchClient
+  client.effect(() => client.locale.register(NS, { zh, en }), 'ui-dsh-bot: dictionaries')
+  if (!hasSlots(client)) return
+  const host = { sessions: client.sessions, layout: client.layout, workspaces: client.workspaces }
+  const mode = createSidebarMode()
+  const restoreBot = mode.getSnapshot() === 'bot'
+  mode.set('sessions')
+  const seat = createWorkbenchSeat()
+  client.effect(() => bindBotRegion({ slots: client.slots }, mode, (props: { wide?: boolean; expandSidebar?: () => void }) =>
+    createElement(WorkbenchRoster, { ...props, seat })), 'ui-dsh-bot: roster seat')
+  client.effect(() => client.slots.inject('main', () => {
+    const dispose = client.slots.register({ name: 'main', key: BOT_PANEL_ID }, () => createElement(WorkbenchPanel, {
+      seat,
+      mode,
+      onOpenOfficialSession: (id: string) => openOfficialSession(host, id),
+      onOpenSessionTool: () => {
+        try { openSessionToolPanel(host) }
+        catch { /* session-tool panel not registered */ }
       },
-      'ui-dsh-bot: poll',
-    )
-    sidebarCtx.effect(
-      () => sidebar.registerTab({
-        id: DSH_BOT_SESSIONS_TAB_ID,
-        title: () => t('tab.title'),
-        icon: (size: number) => createElement(DshBotIcon, { size }),
-        order: 25,
-        single: true,
-        badge: () => {
-          const n = dshBot.list.getSnapshot().items.length
-          return n > 0 ? n : null
-        },
-        component: () => {
-          const workspaces = ctx.get('workspaces') as WorkspaceCwdFace | undefined
-          return createElement(DshBotTab, {
-            ctx: {
-              dshBot,
-              locale: client.locale,
-              sessions: client.sessions,
-              ...workspaces === undefined ? {} : { workspaces },
-            },
-          })
-        },
-      }),
-      'ui-dsh-bot: registerTab',
-    )
-  })
+    }))
+    if (restoreBot) client.layout.selectPanel(BOT_PANEL_ID)
+    return dispose
+  }), 'ui-dsh-bot: main panel')
+  client.effect(() => client.slots.inject('sidebar.panellist', () => {
+    const conversation = client.slots.register({ name: 'sidebar.panellist', id: 'conversation', label: '会话', order: -20 }, () => createElement('span', { 'aria-hidden': true, 'data-dsh-bot-nav': 'sessions' }, '↩'))
+    const bot = client.slots.register({ name: 'sidebar.panellist', id: BOT_PANEL_ID, label: 'Bot', order: -19 }, () => createElement('span', { 'data-dsh-bot-nav': 'bot' }, createElement(DshBotIcon)))
+    return () => { bot(); conversation() }
+  }), 'ui-dsh-bot: top navigation')
 }

@@ -112,11 +112,17 @@ const clientConfig: UserConfig = {
     {
       name: 'dsh-css-modules-inline',
       resolveId(source: string, importer: string | undefined) {
+        if (source === 'workbench-ui/styles.css') return '\0workbench-styles'
         if (!source.endsWith('.module.css')) return null
         const abs = importer !== undefined ? sourceAssetPath(source, importer) : source
         return CSS_VIRTUAL_PREFIX + abs + CSS_VIRTUAL_SUFFIX
       },
       async load(virtualId: string) {
+        if (virtualId === '\0workbench-styles') {
+          const file = resolvePath(REPOSITORY_ROOT, 'packages/workbench-ui/src/styles.css')
+          this.addWatchFile(file)
+          return 'export default ' + JSON.stringify(await readFile(file, 'utf8'))
+        }
         if (!virtualId.startsWith(CSS_VIRTUAL_PREFIX)) return null
         const fileId = virtualId.slice(CSS_VIRTUAL_PREFIX.length, -CSS_VIRTUAL_SUFFIX.length)
         this.addWatchFile(fileId)

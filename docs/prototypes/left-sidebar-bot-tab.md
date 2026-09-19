@@ -100,7 +100,7 @@
 
 ## 落地记录（2026-09-08）
 
-实现合同：[`docs/dsh-bot-left-tab/spec.md`](../dsh-bot-left-tab/spec.md) v0.3.3。`docs/prototypes/dsh-bot-left-tab.html` 只作方向，本文件不再改 HTML 原型。
+实现合同：[`docs/archive/dsh-bot-left-tab/spec.md`](../archive/dsh-bot-left-tab/spec.md) v0.3.4。`docs/prototypes/dsh-bot-left-tab.html` 只作方向，本文件不再改 HTML 原型。
 
 与原型的四条偏差：
 

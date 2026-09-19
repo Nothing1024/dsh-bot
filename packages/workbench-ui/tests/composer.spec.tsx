@@ -1,10 +1,67 @@
 // @vitest-environment jsdom
-import { cleanup, fireEvent, render, screen } from '@testing-library/react'
+import { act, cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { draftStorageKey } from '../src/api.ts'
 import { Composer } from '../src/Composer.tsx'
 
 describe('Composer', () => {
+  it.each([true, false])('tracks the first draft into a newly created session (accepted=%s)', async accepted => {
+    let resolve!: (value: boolean) => void
+    const promise = new Promise<boolean>(done => { resolve = done })
+    const props = { botId: 'a', botName: 'A', disabled: false, sending: false, error: null, onSend: () => promise }
+    const rootKey = draftStorageKey('a')
+    const { rerender } = render(<Composer {...props} storageKey={rootKey} />)
+    fireEvent.change(screen.getByTestId('composer-input'), { target: { value: 'first' } })
+    fireEvent.keyDown(screen.getByTestId('composer-input'), { key: 'Enter' })
+    rerender(<Composer {...props} storageKey={`${rootKey}:s1`} />)
+    await act(async () => { resolve(accepted); await promise })
+    expect((screen.getByTestId('composer-input') as HTMLTextAreaElement).value).toBe(accepted ? '' : 'first')
+    expect(localStorage.getItem(`${rootKey}:s1`)).toBe(accepted ? null : 'first')
+    expect(localStorage.getItem(rootKey)).toBeNull()
+  })
+
+  it('preserves a reopened composer draft when an unmounted send finishes', async () => {
+    let resolve!: (value: boolean) => void
+    const promise = new Promise<boolean>(done => { resolve = done })
+    const props = { botId: 'a', botName: 'A', disabled: false, sending: false, error: null, onSend: () => promise }
+    const first = render(<Composer {...props} />)
+    fireEvent.change(screen.getByTestId('composer-input'), { target: { value: 'first' } })
+    fireEvent.keyDown(screen.getByTestId('composer-input'), { key: 'Enter' })
+    first.unmount()
+    render(<Composer {...props} />)
+    fireEvent.change(screen.getByTestId('composer-input'), { target: { value: 'reopened draft' } })
+    await act(async () => { resolve(true); await promise })
+    expect(localStorage.getItem(draftStorageKey('a'))).toBe('reopened draft')
+  })
+
+  it('preserves edits made while an earlier send is completing', async () => {
+    let resolve!: (value: boolean) => void
+    const promise = new Promise<boolean>(done => { resolve = done })
+    render(<Composer botId="a" botName="A" disabled={false} sending={false} error={null} onSend={() => promise} />)
+    const input = screen.getByTestId('composer-input') as HTMLTextAreaElement
+    fireEvent.change(input, { target: { value: 'first' } })
+    fireEvent.keyDown(input, { key: 'Enter' })
+    fireEvent.change(input, { target: { value: 'next draft' } })
+    await act(async () => { resolve(true); await promise })
+    expect(input.value).toBe('next draft')
+    expect(localStorage.getItem(draftStorageKey('a'))).toBe('next draft')
+  })
+
+  it('does not clear another session draft when a send completes', async () => {
+    let resolve!: (value: boolean) => void
+    const promise = new Promise<boolean>(done => { resolve = done })
+    const props = { botId: 'a', botName: 'A', disabled: false, sending: false, error: null, onSend: () => promise }
+    const { rerender } = render(<Composer {...props} storageKey="a:s1" />)
+    fireEvent.change(screen.getByTestId('composer-input'), { target: { value: 'first' } })
+    fireEvent.keyDown(screen.getByTestId('composer-input'), { key: 'Enter' })
+    rerender(<Composer {...props} storageKey="a:s2" />)
+    fireEvent.change(screen.getByTestId('composer-input'), { target: { value: 'other draft' } })
+    await act(async () => { resolve(true); await promise })
+    expect((screen.getByTestId('composer-input') as HTMLTextAreaElement).value).toBe('other draft')
+    expect(localStorage.getItem('a:s2')).toBe('other draft')
+    expect(localStorage.getItem('a:s1')).toBeNull()
+  })
+
   afterEach(() => {
     cleanup()
     localStorage.clear()
@@ -137,7 +194,10 @@ describe('Composer', () => {
     )
     const input = screen.getByTestId('composer-input') as HTMLTextAreaElement
     fireEvent.change(input, { target: { value: '你是谁?' } })
-    expect(screen.getByTestId('composer-error').textContent).toMatch(/web-unreachable/)
+    const bar = screen.getByTestId('composer-error').textContent ?? ''
+    expect(bar).toMatch(/web-unreachable/)
+    expect(bar).toMatch(/连不上 DSH 网关/)
+    expect(bar).toMatch(/gateway down/)
     fireEvent.click(screen.getByTestId('composer-retry'))
     await vi.waitFor(() => { expect(onSend).toHaveBeenCalledTimes(1) })
     expect(input.value).toBe('你是谁?')
@@ -145,6 +205,45 @@ describe('Composer', () => {
     fireEvent.click(screen.getByTestId('composer-send'))
     await vi.waitFor(() => { expect(onSend).toHaveBeenCalledTimes(2) })
     await vi.waitFor(() => { expect(input.value).toBe('') })
+  })
+
+  it('keeps the draft, closes the popup and refocuses the input after a failed send', async () => {
+    const onSend = vi.fn(async () => false)
+    render(
+      <Composer
+        botId="bot-a"
+        botName="甲"
+        disabled={false}
+        sending={false}
+        error={null}
+        onSend={onSend}
+      />,
+    )
+    const input = screen.getByTestId('composer-input') as HTMLTextAreaElement
+    fireEvent.change(input, { target: { value: '重试我' } })
+    input.focus()
+    fireEvent.keyDown(input, { key: 'Enter' })
+    await vi.waitFor(() => { expect(onSend).toHaveBeenCalledTimes(1) })
+    expect(input.value).toBe('重试我')
+    expect(document.activeElement).toBe(input)
+    expect(screen.queryByTestId('mention-menu')).toBeNull()
+  })
+
+  it('reports draft edits so the owner can drop a stale send error', () => {
+    const onDraftEdit = vi.fn()
+    render(
+      <Composer
+        botId="bot-a"
+        botName="甲"
+        disabled={false}
+        sending={false}
+        error={null}
+        onSend={async () => true}
+        onDraftEdit={onDraftEdit}
+      />,
+    )
+    fireEvent.change(screen.getByTestId('composer-input'), { target: { value: '改了' } })
+    expect(onDraftEdit).toHaveBeenCalledTimes(1)
   })
 
   it('sends on Enter and inserts a newline on Shift+Enter', async () => {

@@ -7,6 +7,7 @@ env/profiles/*/pnpm-lock.yaml
 env/sessions/
 env/storages/
 env/settings.yaml
+env/AGENTS.md
 env/.env
 env/.credentials.yaml
 env/.anonymous-user-id
@@ -17,6 +18,7 @@ bots.json
 env/manual-test-last.txt
 env/manual-test-*.txt
 pnpm-debug.log
+.scratch/
 
 # tsdown/tsc emit belongs in lib/; keep src/ as TypeScript only
 packages/*/src/*.js

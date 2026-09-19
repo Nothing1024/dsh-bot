@@ -1,6 +1,6 @@
 /**
- * Conversation transcript: user right / assistant left. Thinking and tool
- * process render as fold cards; approval/question are actionable.
+ * Conversation transcript: user right / assistant left. Pending actions stay
+ * outside the text-only message history.
  * Assistant markdown is DSH-shaped GFM. No large avatar beside 1:1 assistant (BR-205).
  */
 import { useEffect, useRef, useState, type Ref, type UIEvent } from 'react'
@@ -89,107 +89,132 @@ export function Transcript(props: TranscriptProps) {
   const canReply = props.onReplyTo !== undefined
   const canRemember = props.onRemember !== undefined
   const canMenu = canReply || canRemember
+  const messages = props.items.filter(item => item.kind === 'message'
+    && (item.role === 'user' || item.role === 'assistant')
+    && ((item.text ?? '').trim() !== '' || item.error !== undefined))
 
   return (
-    <div
-      className="transcript"
-      data-testid="transcript"
-      ref={scroller}
-      onScroll={onScroll}
-    >
-      {props.items.map(item => {
-          if (item.kind === 'propose-routine') {
-            return (
-              <div key={item.id} className="proposeCard" data-testid={`propose-${item.id}`}>
-                <div>设成例程：{item.name} · {item.schedule}</div>
-                <div className="hint">{item.instruction}</div>
-                <button
-                  type="button"
-                  className="retry"
-                  data-testid={`propose-accept-${item.id}`}
-                  onClick={() => {
-                    if (props.botId === undefined || item.name === undefined || item.schedule === undefined || item.instruction === undefined) return
-                    void routineCreate({
-                      botId: props.botId,
-                      name: item.name,
-                      schedule: item.schedule,
-                      instruction: item.instruction,
-                    })
-                  }}
-                >
-                  设成例程
-                </button>
-                <button
-                  type="button"
-                  className="retry"
-                  data-testid={`propose-decline-${item.id}`}
-                  onClick={() => {
-                    if (props.botId === undefined || item.name === undefined) return
-                    void routineDecline(props.botId, item.name)
-                  }}
-                >
-                  不用
-                </button>
-              </div>
-            )
-          }
-
-        const mark = item.role === 'user' ? markFor(item.text, props.replyMarks) : undefined
-        return (
-          <TranscriptRow
-            key={item.id}
-            item={item}
-            menuOpen={canMenu && menuSeq === item.seq}
-            {...menuSeq === item.seq ? { menuRef } : {}}
-            {...mark === undefined ? {} : { replyTo: mark, sourceGone: sourceMissing(props.items, mark.seq) }}
-            {...canMenu ? {
-              onOpenMenu: () => setMenuSeq(current => current === item.seq ? null : item.seq),
-            } : {}}
-            {...props.onReplyTo === undefined ? {} : {
-              onReply: () => {
-                setMenuSeq(null)
-                props.onReplyTo?.(item)
-              },
-            }}
-            {...props.onRemember === undefined || item.role !== 'assistant' ? {} : {
-              onRemember: () => {
-                props.onRemember?.(item)
-                if (props.groupMode !== true) setMenuSeq(null)
-              },
-              pinPick: props.pinPick === item.id,
-              members: props.members,
-              onPickMember: (botId: string) => {
-                setMenuSeq(null)
-                props.onPickMember?.(botId, item)
-              },
-            }}
-            {...props.onApproval === undefined ? {} : { onApproval: props.onApproval }}
-            {...props.onQuestion === undefined ? {} : { onQuestion: props.onQuestion }}
-          />
-        )
-      })}
-      {props.pending !== undefined && props.pending !== null ? (
-        <div
-          className={`bubbleWrap user${props.pending.failed === true ? ' isFailed' : ' isPending'}`}
-          data-testid="transcript-pending"
-          data-role="user"
-        >
-          <div className="bubbleCol">
-            {props.pendingReply !== undefined && props.pendingReply !== null ? (
-              <ReplyCite
-                seq={-1}
-                speaker={props.pendingReply.speaker}
-                missing={sourceMissing(props.items, props.pendingReply.seq)}
-              />
-            ) : null}
-            <div className="bubble user">{props.pending.text}</div>
+    <>
+      <PendingActions {...props} />
+      <div
+        className="transcript"
+        data-testid="transcript"
+        ref={scroller}
+        onScroll={onScroll}
+      >
+        {messages.map(item => {
+          const mark = item.role === 'user' ? item.replyTo ?? markFor(item.text, props.replyMarks) : undefined
+          return (
+            <TranscriptRow
+              key={item.id}
+              item={item}
+              menuOpen={canMenu && menuSeq === item.seq}
+              {...menuSeq === item.seq ? { menuRef } : {}}
+              {...mark === undefined ? {} : { replyTo: mark, sourceGone: sourceMissing(props.items, mark.seq) }}
+              {...canMenu ? {
+                onOpenMenu: () => setMenuSeq(current => current === item.seq ? null : item.seq),
+              } : {}}
+              {...props.onReplyTo === undefined ? {} : {
+                onReply: () => {
+                  setMenuSeq(null)
+                  props.onReplyTo?.(item)
+                },
+              }}
+              {...props.onRemember === undefined || item.role !== 'assistant' ? {} : {
+                onRemember: () => {
+                  props.onRemember?.(item)
+                  if (props.groupMode !== true) setMenuSeq(null)
+                },
+                pinPick: props.pinPick === item.id,
+                members: props.members,
+                onPickMember: (botId: string) => {
+                  setMenuSeq(null)
+                  props.onPickMember?.(botId, item)
+                },
+              }}
+              {...props.onApproval === undefined ? {} : { onApproval: props.onApproval }}
+              {...props.onQuestion === undefined ? {} : { onQuestion: props.onQuestion }}
+            />
+          )
+        })}
+        {props.pending !== undefined && props.pending !== null ? (
+          <div
+            className={`bubbleWrap user${props.pending.failed === true ? ' isFailed' : ' isPending'}`}
+            data-testid="transcript-pending"
+            data-role="user"
+          >
+            <div className="bubbleCol">
+              {props.pendingReply !== undefined && props.pendingReply !== null ? (
+                <ReplyCite
+                  seq={-1}
+                  speaker={props.pendingReply.speaker}
+                  text={props.pendingReply.text}
+                  missing={sourceMissing(props.items, props.pendingReply.seq)}
+                />
+              ) : null}
+              <div className="bubble user">{props.pending.text}</div>
+              <span className="deliveryStatus" role="status">
+                {props.pending.failed === true ? '未确认送达 · 草稿已保留，可重试' : '正在发送…'}
+              </span>
+            </div>
           </div>
-        </div>
-      ) : null}
-      {props.working ? (
-        <TypingIndicator {...props.speaking === undefined ? {} : { speaking: props.speaking }} />
-      ) : null}
-    </div>
+        ) : null}
+        {props.working ? (
+          <TypingIndicator {...props.speaking === undefined ? {} : { speaking: props.speaking }} />
+        ) : null}
+      </div>
+    </>
+  )
+}
+
+function PendingActions(props: TranscriptProps) {
+  const actions = props.items.filter(item => item.kind === 'propose-routine'
+    || ((item.kind === 'approval' || item.kind === 'question') && item.pending !== false))
+  if (actions.length === 0) return null
+  return (
+    <section className="conversationActions" aria-label="待处理操作" data-testid="conversation-actions">
+      {actions.map(item => {
+        if (item.kind === 'propose-routine') {
+          return (
+            <div key={item.id} className="proposeCard" data-testid={`propose-${item.id}`}>
+              <div>设成例程：{item.name} · {item.schedule}</div>
+              <div className="hint">{item.instruction}</div>
+              <button
+                type="button"
+                className="retry"
+                data-testid={`propose-accept-${item.id}`}
+                onClick={() => {
+                  if (props.botId === undefined || item.name === undefined || item.schedule === undefined || item.instruction === undefined) return
+                  void routineCreate({
+                    botId: props.botId,
+                    name: item.name,
+                    schedule: item.schedule,
+                    instruction: item.instruction,
+                  })
+                }}
+              >
+                设成例程
+              </button>
+              <button
+                type="button"
+                className="retry"
+                data-testid={`propose-decline-${item.id}`}
+                onClick={() => {
+                  if (props.botId === undefined || item.name === undefined) return
+                  void routineDecline(props.botId, item.name)
+                }}
+              >
+                不用
+              </button>
+            </div>
+          )
+        }
+
+        return <ActionCard key={item.id} item={item}
+          {...props.onApproval === undefined ? {} : { onApproval: props.onApproval }}
+          {...props.onQuestion === undefined ? {} : { onQuestion: props.onQuestion }} />
+      })}
+    </section>
   )
 }
 
@@ -239,11 +264,12 @@ function TypingIndicator(props: { speaking?: TranscriptSpeaker | null }) {
   )
 }
 
-function ReplyCite(props: { seq: number; speaker: string; missing: boolean }) {
+function ReplyCite(props: { seq: number; speaker: string; missing: boolean; text?: string }) {
   const testId = props.seq < 0 ? 'transcript-reply-cite-pending' : `transcript-reply-cite-${props.seq}`
   return (
     <div className="replyCite" data-testid={testId}>
-      {props.missing ? '原消息已删除' : `→ ${props.speaker}`}
+      <span>{props.missing && !props.text ? '原消息已删除' : `→ ${props.speaker}`}</span>
+      {props.text ? <span className="replyExcerpt">{props.text}</span> : null}
     </div>
   )
 }
@@ -264,18 +290,6 @@ function TranscriptRow(props: {
   onQuestion?: (item: WorkbenchHistoryItem, answer: string) => void
 }) {
   const item = props.item
-  if (item.kind === 'thinking' || item.kind === 'tool') {
-    return <FoldCard item={item} />
-  }
-  if (item.kind === 'approval' || item.kind === 'question') {
-    return (
-      <ActionCard
-        item={item}
-        {...props.onApproval === undefined ? {} : { onApproval: props.onApproval }}
-        {...props.onQuestion === undefined ? {} : { onQuestion: props.onQuestion }}
-      />
-    )
-  }
   const role = item.role === 'user' ? 'user' : 'assistant'
   const author = item.author
   const showAuthor = author !== undefined && role === 'assistant'
@@ -331,6 +345,7 @@ function TranscriptRow(props: {
           <ReplyCite
             seq={item.seq}
             speaker={props.replyTo.speaker}
+            text={props.replyTo.text}
             missing={props.sourceGone === true}
           />
         ) : null}
@@ -406,32 +421,6 @@ function TranscriptRow(props: {
               ) : null}
             </div>
           ) : null}
-        </div>
-      ) : null}
-    </div>
-  )
-}
-
-function FoldCard(props: { item: WorkbenchHistoryItem }) {
-  const item = props.item
-  const thinking = item.kind === 'thinking'
-  const [open, setOpen] = useState(!thinking)
-  const testId = thinking ? `transcript-thinking-${item.seq}` : `transcript-tool-${item.seq}`
-  const title = thinking ? '思考' : (item.name ?? item.summary ?? '工具')
-  return (
-    <div className="foldCard" data-testid={testId} data-kind={item.kind}>
-      <button
-        type="button"
-        className="foldCardHead"
-        data-testid={`${testId}-toggle`}
-        onClick={() => { setOpen(current => !current) }}
-      >
-        {open ? '▾' : '▸'} {title}
-        {!thinking && item.summary !== undefined && item.summary !== title ? ` · ${item.summary}` : ''}
-      </button>
-      {open ? (
-        <div className="foldCardBody" data-testid={`${testId}-body`}>
-          {item.text ?? item.summary ?? ''}
         </div>
       ) : null}
     </div>

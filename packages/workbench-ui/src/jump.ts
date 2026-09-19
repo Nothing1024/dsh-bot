@@ -18,12 +18,16 @@ export function isStandaloneWorkbench(): boolean {
 }
 
 export function sessionJumpLabel(standalone = isStandaloneWorkbench()): string {
-  return standalone ? '复制会话 ID' : '在 DSH 打开'
+  return standalone ? '复制会话 ID' : '在官方会话打开'
 }
 
 export function sessionJumpTitle(standalone = isStandaloneWorkbench()): string {
-  return standalone ? '在右栏页签内可直接跳转' : '在官方 conversation 视图打开此会话'
+  return standalone ? '复制后可到会话协作打开原来的会话' : '通过会话协作跳到官方对话'
 }
+
+export const SESSION_TOOL_BROWSE_LABEL = '在会话协作中查看全部'
+export const SESSION_TOOL_BROWSE_HINT = '请在 DSH 侧栏打开「会话协作」查看原来的会话'
+export const SESSION_TOOL_COPY_TOAST = '已复制会话 ID，可到会话协作打开'
 
 export function formatJumpReason(reason: string | undefined): string {
   if (reason === undefined || reason === '') return '跳转失败'
@@ -80,18 +84,29 @@ export async function requestJump(sessionId: string): Promise<JumpOutcome> {
 }
 
 /**
- * Tab: requestJump. Standalone: copy session id. Failure toasts the reason.
+ * Host opener (embedded Bot panel) first; else iframe postMessage;
+ * standalone copies the id so session-tool can open it.
  */
 export async function performWorkbenchJump(
   sessionId: string,
   onToast: (text: string) => void,
+  openOfficial?: (sessionId: string) => Promise<void> | void,
 ): Promise<void> {
   if (jumpInFlight) return
   jumpInFlight = true
   try {
+    if (openOfficial !== undefined) {
+      try {
+        await openOfficial(sessionId)
+      } catch (error) {
+        const message = error instanceof Error ? error.message : ''
+        onToast(message !== '' ? message : '跳转失败')
+      }
+      return
+    }
     if (isStandaloneWorkbench()) {
       const copied = await copySessionId(sessionId)
-      onToast(copied ? '已复制会话 ID' : '复制失败')
+      onToast(copied ? SESSION_TOOL_COPY_TOAST : '复制失败')
       return
     }
     const result = await requestJump(sessionId)
@@ -99,6 +114,17 @@ export async function performWorkbenchJump(
   } finally {
     jumpInFlight = false
   }
+}
+
+export function browseSessionTool(
+  onToast: (text: string) => void,
+  openSessionTool?: () => void,
+): void {
+  if (openSessionTool !== undefined) {
+    openSessionTool()
+    return
+  }
+  onToast(SESSION_TOOL_BROWSE_HINT)
 }
 
 /** Test-only: drop the in-flight lock between cases. */

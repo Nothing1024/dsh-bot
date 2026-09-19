@@ -3,6 +3,7 @@
  * Mention `@` and emoji `:` share one popup + keyboard pattern.
  */
 import { useEffect, useRef, useState, type KeyboardEvent } from 'react'
+import { describeWireError } from 'dsh-bot-shared'
 import { readDraft, writeDraft, draftStorageKey } from './api.ts'
 import { emojiQuery, filterEmoji } from './emoji.ts'
 import { mentionQuery } from './mentions.ts'
@@ -34,6 +35,8 @@ export interface ComposerProps {
   readonly onSend: (text: string) => Promise<boolean>
   readonly onStop?: () => void
   readonly onDraft?: (botId: string, text: string) => void
+  /** Fired on every edit so the owner can drop a stale send error. */
+  readonly onDraftEdit?: () => void
   readonly onClearReply?: () => void
 }
 
@@ -87,6 +90,10 @@ export function Composer(props: ComposerProps) {
   const textRef = useRef(text)
   const onDraftRef = useRef(props.onDraft)
   const inputRef = useRef<HTMLTextAreaElement>(null)
+  const editVersion = useRef(0)
+  const sendLock = useRef(false)
+  const submission = useRef<{ key: string } | null>(null)
+  const mounted = useRef(true)
   textRef.current = text
   onDraftRef.current = props.onDraft
 
@@ -100,7 +107,13 @@ export function Composer(props: ComposerProps) {
       onDraftRef.current?.(previousId, textRef.current)
       botRef.current = props.botId
       keyRef.current = nextKey
-      const next = readAt(nextKey)
+      const migrate = previousId === props.botId && (previousKey.endsWith(':pending') || nextKey.startsWith(`${previousKey}:`))
+      const next = migrate && textRef.current.trim() !== '' ? textRef.current : readAt(nextKey)
+      if (migrate) {
+        if (submission.current?.key === previousKey) submission.current.key = nextKey
+        writeAt(nextKey, next)
+        writeAt(previousKey, '')
+      }
       setText(next)
       setPopup(null)
       onDraftRef.current?.(props.botId, next)
@@ -110,7 +123,9 @@ export function Composer(props: ComposerProps) {
   }, [props.botId, props.storageKey])
 
   useEffect(() => {
+    mounted.current = true
     return () => {
+      mounted.current = false
       writeAt(keyRef.current, textRef.current)
       if (keyRef.current === draftStorageKey(botRef.current)) writeDraft(botRef.current, textRef.current)
       onDraftRef.current?.(botRef.current, textRef.current)
@@ -141,24 +156,46 @@ export function Composer(props: ComposerProps) {
   }
 
   const change = (value: string): void => {
+    editVersion.current += 1
     setText(value)
     writeAt(storageOf(props), value)
     if (props.storageKey === undefined) writeDraft(props.botId, value)
     onDraftRef.current?.(props.botId, value)
+    props.onDraftEdit?.()
     const caret = inputRef.current?.selectionStart ?? value.length
     syncPopup(value, caret)
   }
 
   const send = async (): Promise<void> => {
     const next = text.trim()
-    if (next === '' || props.sending) return
-    const ok = await props.onSend(next)
-    if (ok) {
+    if (next === '' || props.sending || sendLock.current) return
+    const sent = { key: keyRef.current }
+    submission.current = sent
+    const version = editVersion.current
+    const submitted = text
+    sendLock.current = true
+    let ok: boolean
+    try {
+      ok = await props.onSend(next)
+    } finally {
+      sendLock.current = false
+      submission.current = null
+    }
+    const key = sent.key
+    if (!mounted.current || keyRef.current !== key) {
+      if (ok && readAt(key) === submitted) writeAt(key, '')
+      return
+    }
+    setPopup(null)
+    const node = inputRef.current
+    node?.focus()
+    if (ok && editVersion.current === version && textRef.current === submitted) {
       setText('')
-      writeAt(storageOf(props), '')
+      textRef.current = ''
+      writeAt(key, '')
       if (props.storageKey === undefined) writeDraft(props.botId, '')
-      setPopup(null)
       onDraftRef.current?.(props.botId, '')
+      node?.setSelectionRange(0, 0)
     }
   }
 
@@ -253,6 +290,14 @@ export function Composer(props: ComposerProps) {
   const working = props.working === true
   const placeholder = `给 ${props.botName} 发消息`
   const replyTo = props.replyTo
+  const wireError = props.error === null || props.error === ''
+    ? null
+    : describeWireError({
+      ...props.errorCode === undefined || props.errorCode === null || props.errorCode === ''
+        ? {}
+        : { code: props.errorCode },
+      message: props.error,
+    })
 
   const toggleEmojiButton = (): void => {
     if (locked) return
@@ -285,11 +330,17 @@ export function Composer(props: ComposerProps) {
       {props.toast !== undefined && props.toast !== null && props.toast !== '' ? (
         <p className="formHint" data-testid="composer-toast">{props.toast}</p>
       ) : null}
-      {props.error !== null && props.error !== '' ? (
+      {wireError !== null ? (
         <div className="composerError" data-testid="composer-error" role="alert">
-          <span>{props.errorCode !== undefined && props.errorCode !== null && props.errorCode !== ''
-            ? `${props.errorCode}: ${props.error}`
-            : props.error}</span>
+          <div className="composerErrorText">
+            <strong className="composerErrorTitle">{wireError.title}</strong>
+            {wireError.hint !== undefined ? (
+              <span className="composerErrorHint">{wireError.hint}</span>
+            ) : null}
+            <span className="composerErrorDetail" title={wireError.detail}>
+              {wireError.detail}（{wireError.code}）
+            </span>
+          </div>
           <button
             type="button"
             className="retry"
@@ -385,6 +436,9 @@ export function Composer(props: ComposerProps) {
           {working ? '停止' : props.sending ? '发送中…' : '发送'}
         </button>
       </div>
+      <p className="composerHint" data-testid="composer-hint">
+        Enter 发送 · Shift+Enter 换行{working ? ' · 回复中仍可继续输入' : ''}
+      </p>
     </div>
   )
 }

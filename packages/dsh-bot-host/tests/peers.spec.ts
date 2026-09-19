@@ -2,7 +2,7 @@ import { existsSync, mkdirSync, readFileSync } from 'node:fs'
 import { mkdtempSync, rmSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import {
   acceptPeerSend,
   appendPeerLog,
@@ -12,6 +12,7 @@ import {
   parseAgentLine,
   readPeerLog,
   type PeerSendIO,
+  PeerInbox,
 } from '../src/peers.ts'
 
 function io(overrides: Partial<PeerSendIO> & { writes?: string[]; waits?: string[] } = {}) {
@@ -87,6 +88,28 @@ describe('peer rate limit + jsonl', () => {
 })
 
 describe('accept + finish', () => {
+  it('queues concurrent deliveries and returns each answer to its original session', async () => {
+    let release!: () => void
+    const blocked = new Promise<void>(resolve => { release = resolve })
+    const stub = io()
+    const waitRead = vi.fn(async () => {
+      const count = waitRead.mock.calls.length
+      if (count === 1) await blocked
+      return `answer-${count}`
+    })
+    stub.waitRead = waitRead
+    const inbox = new PeerInbox(error => { throw error })
+    const first = await inbox.send(stub, { fromBot: 'xiaodui-aning', toBot: 'shiren-xiaobei', text: 'one', fromSessionId: 'origin-1' })
+    const second = await inbox.send(stub, { fromBot: 'xiaodui-aning', toBot: 'shiren-xiaobei', text: 'two', fromSessionId: 'origin-2' })
+    expect(first.ok && second.ok).toBe(true)
+    await vi.waitFor(() => expect(waitRead).toHaveBeenCalledTimes(1))
+    expect(stub.writes.filter(row => row.startsWith('peer-s:'))).toHaveLength(1)
+    release()
+    await inbox.settled('shiren-xiaobei')
+    expect(stub.writes).toContain('origin-1:[agent] 来自 诗人小北：answer-1')
+    expect(stub.writes).toContain('origin-2:[agent] 来自 诗人小北：answer-2')
+  })
+
   it('rejects self send and does not write', async () => {
     const stub = io()
     const result = await acceptPeerSend(stub, {

@@ -1,36 +1,37 @@
 /**
- * Group round engine: mention parse + one serial turn per responder (BR-304).
- *
- * Each member turn runs in a session-tool hidden session (`kind:hidden` +
- * `~dsh-bot-group:`). That session may hold room context so the member hears
- * peers; session-tool drops it from default lists. Visible 1:1 sessions are
- * never written. The DSH Bot room jsonl is the only multi-author transcript.
+ * Group discussion engine: mention parse + serial member turns, then up to
+ * two more rotated rounds so peers can answer each other (reference
+ * GroupChatOrchestrator). Visible 1:1 sessions are never written.
  * @module dsh-bot-host/group-engine
  */
 
 import { SessionId } from '@deepseek-ai/dsh-session'
-import { listByKind } from 'session-marks'
+import { hasHiddenMark, listByMark } from 'session-marks'
 import type { SessionToolCaller, SessionToolService } from 'session-tool'
 import { extractAssistantAnswer, resolveOverride } from './ask.ts'
 import type { DshBotRuntimeConfig } from './ask.ts'
 import type { BotView, BotsRuntime } from './bots.ts'
 import { DshBotError } from './errors.ts'
 import type { GroupsRuntime, RoomMessage } from './groups.ts'
+import { GROUP_ROUNDS_DEFAULT, GROUP_ROUNDS_INFINITE } from './groups.ts'
+import { hideBotSession } from './session-visibility.ts'
 import {
   DSH_BOT_GROUP_HIDDEN_TITLE_PREFIX,
-  DSH_BOT_HIDDEN_KIND,
   botMark,
+  botOwnershipTags,
   groupMark,
   groupRoomMark,
-  mergeBotMarks,
   parseBotMark,
 } from './marks.ts'
 import { applyModelOverride } from './platform.ts'
 import type { DshBotPlatform } from './platform.ts'
+import { unwrapPrompt, wrapPrompt } from './session-voice.ts'
 
 const CLI_CALLER: SessionToolCaller = { kind: 'cli' }
 const ROOM_TRANSCRIPT_MAX = 24
 const ALL_HANDLES = new Set(['all', 'everyone'])
+export const GROUP_MAX_ROUNDS = 3
+export const GROUP_MAX_MEMBER_TURNS = 10
 
 export interface MentionMember {
   readonly id: string
@@ -44,6 +45,7 @@ export interface MentionParse {
 }
 
 export interface RoundSpeaking {
+  readonly sessionId?: string
   readonly botId: string
   readonly name: string
 }
@@ -51,16 +53,21 @@ export interface RoundSpeaking {
 export interface RoundStatus {
   readonly working: boolean
   readonly speaking?: RoundSpeaking
+  readonly round?: number
+  readonly rounds?: number
 }
 
 export interface RoundTracker {
-  begin(roomId: string): void
+  begin(roomId: string, rounds?: number): void
   speak(roomId: string, speaking: RoundSpeaking): void
+  setRound(roomId: string, round: number, rounds?: number): void
   end(roomId: string): void
   get(roomId: string): RoundStatus | undefined
 }
 
 export interface RunGroupRoundRequest {
+  readonly message?: RoomMessage
+  readonly signal?: AbortSignal
   readonly roomId: string
   readonly text: string
 }
@@ -71,6 +78,7 @@ export interface RunGroupRoundResult {
 }
 
 export interface GroupEngineDeps {
+  readonly voiceInjected?: () => boolean
   readonly sessionTool: SessionToolService
   readonly platform: DshBotPlatform
   readonly bots: BotsRuntime
@@ -78,6 +86,9 @@ export interface GroupEngineDeps {
   readonly config: DshBotRuntimeConfig
   readonly tracker: RoundTracker
   readonly createCwd: () => string
+  readonly voiceFor: (botId: string) => Promise<string>
+  readonly sessionVoice?: (sessionId: string) => Promise<string | undefined>
+  readonly freezeVoice?: (sessionId: string, botId: string) => Promise<void>
 }
 
 /**
@@ -86,11 +97,26 @@ export interface GroupEngineDeps {
 export function createRoundTracker(): RoundTracker {
   const map = new Map<string, RoundStatus>()
   return {
-    begin(roomId) {
-      map.set(roomId, { working: true })
+    begin(roomId, rounds = GROUP_ROUNDS_DEFAULT) {
+      map.set(roomId, { working: true, round: 1, rounds })
     },
     speak(roomId, speaking) {
-      map.set(roomId, { working: true, speaking })
+      const prev = map.get(roomId)
+      map.set(roomId, {
+        working: true,
+        speaking,
+        rounds: prev?.rounds ?? GROUP_ROUNDS_DEFAULT,
+        ...prev?.round === undefined ? {} : { round: prev.round },
+      })
+    },
+    setRound(roomId, round, rounds) {
+      const prev = map.get(roomId)
+      map.set(roomId, {
+        working: true,
+        rounds: rounds ?? prev?.rounds ?? GROUP_ROUNDS_DEFAULT,
+        round,
+        ...prev?.speaking === undefined ? {} : { speaking: prev.speaking },
+      })
     },
     end(roomId) {
       map.delete(roomId)
@@ -99,6 +125,13 @@ export function createRoundTracker(): RoundTracker {
       return map.get(roomId)
     },
   }
+}
+
+export function orderRoundSpeakers<T>(memberIds: readonly T[], round: number): T[] {
+  if (memberIds.length === 0) return []
+  const n = memberIds.length
+  const offset = ((round % n) + n) % n
+  return [...memberIds.slice(offset), ...memberIds.slice(0, offset)]
 }
 
 function matchMember(token: string, members: readonly MentionMember[]): MentionMember | undefined {
@@ -188,8 +221,8 @@ export function messagesSinceMemberLastSpoke(
 }
 
 /**
- * Wake text for a member's session-tool hidden session. Identity comes from
- * that session's agent preset. No host protocol tags — those leak if copied.
+ * Wake text for a member's session-tool hidden session. Identity is wrapped
+ * onto this prompt at write time. No host protocol tags — those leak if copied.
  */
 export function buildMemberTurnPrompt(input: {
   readonly groupName: string
@@ -213,7 +246,7 @@ export function buildMemberTurnPrompt(input: {
  * `written` is the wake we put on the hidden session.
  */
 export function toRoomSpeech(answer: string, written = ''): string | undefined {
-  let text = answer.trim()
+  let text = unwrapPrompt(answer.trim())
   const lines = text.split('\n')
   while (lines.length > 0) {
     const trimmed = lines[0]!.trim()
@@ -228,7 +261,7 @@ export function toRoomSpeech(answer: string, written = ''): string | undefined {
     break
   }
   text = lines.join('\n').trim()
-  const prompt = written.trim()
+  const prompt = unwrapPrompt(written.trim())
   if (prompt !== '' && text.startsWith(prompt)) text = text.slice(prompt.length).trim()
   const close = text.indexOf(OLD_TURN_CLOSE)
   if (close >= 0 && (text.includes('现在轮到你') || text.includes('房间里刚说的'))) {
@@ -256,52 +289,52 @@ async function ensureMemberTurnSession(
     readonly bot: BotView
   },
 ): Promise<string> {
-  const marked = await listByKind(groupRoomMark(input.roomId))
+  const marked = await listByMark(groupRoomMark(input.roomId))
   for (const row of marked) {
-    if (parseBotMark(row.tags) === input.bot.id && row.tags.includes(DSH_BOT_HIDDEN_KIND)) {
+    if (parseBotMark(row.tags) === input.bot.id && hasHiddenMark(row.tags)) {
       return row.id
     }
   }
-  const created = await deps.platform.createSession({
-    agentPreset: input.bot.presetId,
+  const title = `${DSH_BOT_GROUP_HIDDEN_TITLE_PREFIX}${input.groupName}/${input.bot.name}`
+  const created = await deps.sessionTool.create(CLI_CALLER, {
+    title,
+    tags: botOwnershipTags(
+      botMark(input.bot.id),
+      groupMark(input.groupId),
+      groupRoomMark(input.roomId),
+    ),
     cwd: deps.createCwd(),
   })
   const sessionId = created.sessionId
-  await mergeBotMarks(sessionId, [
-    DSH_BOT_HIDDEN_KIND,
-    botMark(input.bot.id),
-    groupMark(input.groupId),
-    groupRoomMark(input.roomId),
-  ])
+  await hideBotSession(deps.sessionTool, deps.platform, sessionId, CLI_CALLER, { syncToArchived: true })
   const override = input.bot.modelOverride ?? resolveOverride(deps.config)
   if (override !== undefined) {
     await applyModelOverride(deps.platform, sessionId, override)
   }
-  const title = `${DSH_BOT_GROUP_HIDDEN_TITLE_PREFIX}${input.groupName}/${input.bot.name}`
   try {
     await deps.platform.renameSession(sessionId, title)
   } catch {
     // title is best-effort; marks already isolate the session
   }
-  try {
-    await deps.platform.archiveSession(sessionId)
-  } catch {
-    // BR-305: 尽力归档; hidden marks already keep it out of the default 1:1 list
-  }
+  await deps.freezeVoice?.(sessionId, input.bot.id)
   return sessionId
 }
 
 async function lastAssistantText(
   sessionTool: SessionToolService,
   sessionId: string,
+  afterSeq: number,
 ): Promise<string | undefined> {
   const read = await sessionTool.read(CLI_CALLER, SessionId(sessionId), { maxBlocks: 500 })
-  return extractAssistantAnswer(read.messages)
+  return extractAssistantAnswer(read.messages.filter(row => row.seq > afterSeq))
 }
 
 /**
- * Append the user line, then serially ask each responder. Failures record an
- * error line and leave earlier member replies in the room.
+ * Append the user line, then run up to {@link GROUP_MAX_ROUNDS} serial
+ * rounds. Round 0 uses roster order; later rounds rotate the start member
+ * and skip anyone with no new room content since they last spoke. A round
+ * with no visible member line ends the discussion. Failures record an error
+ * line and leave earlier replies in the room.
  */
 export async function runGroupRound(
   deps: GroupEngineDeps,
@@ -317,72 +350,150 @@ export async function runGroupRound(
     const group = await deps.groups.getGroup(room.header.groupId)
     const members: BotView[] = []
     for (const id of group.memberIds) {
-      members.push(await deps.bots.getBot(id))
+      try {
+        members.push(await deps.bots.getBot(id))
+      } catch (error) {
+        if (error instanceof DshBotError && error.code === 'bot-not-found') continue
+        throw error
+      }
+    }
+    if (members.length === 0) {
+      throw new DshBotError('invalid-input', `group ${JSON.stringify(group.id)} has no live members`)
     }
     const mention = parseMentions(text, members.map(row => ({ id: row.id, name: row.name })))
-    const responders = members.filter(row => mention.responderIds.includes(row.id))
-    const snapshot = responders
-    deps.tracker.begin(roomId)
+    const snapshot = members.filter(row => mention.responderIds.includes(row.id))
+    const responderIds = snapshot.map(row => row.id)
+    const memberById = new Map(snapshot.map(row => [row.id, row]))
+    const configured = group.rounds
+    const unlimited = configured === GROUP_ROUNDS_INFINITE
+    const maxRounds = unlimited ? Number.POSITIVE_INFINITY : configured
+    deps.tracker.begin(roomId, configured)
     try {
-      await deps.groups.appendRoomMessage(roomId, { kind: 'user' }, text)
+      const message = request.message ?? await deps.groups.appendRoomMessage(roomId, { kind: 'user' }, text)
       const names = new Map(members.map(row => [row.id, row.name]))
-      for (const bot of snapshot) {
-        deps.tracker.speak(roomId, { botId: bot.id, name: bot.name })
-        try {
-          const sessionId = await ensureMemberTurnSession(deps, {
-            roomId,
-            groupId: group.id,
-            groupName: group.name,
-            bot,
-          })
+      let totalMessages = 0
+      for (let round = 0; round < maxRounds; round += 1) {
+        if (request.signal?.aborted) break
+        if (!unlimited && totalMessages >= GROUP_MAX_MEMBER_TURNS) break
+        deps.tracker.setRound(roomId, round + 1, configured)
+        let messagesThisRound = 0
+        for (const botId of orderRoundSpeakers(responderIds, round)) {
+          if (request.signal?.aborted) break
+          if (!unlimited && totalMessages >= GROUP_MAX_MEMBER_TURNS) break
+          const bot = memberById.get(botId)
+          if (bot === undefined) continue
           const latest = await deps.groups.peekRoom(roomId)
-          const recent = messagesSinceMemberLastSpoke(latest?.messages ?? [], bot.id)
-            .slice(-ROOM_TRANSCRIPT_MAX)
-            .map(line => formatRoomLine(line, names))
-            .filter((line): line is string => line !== undefined)
-          const peers = members.filter(row => row.id !== bot.id).map(row => row.name)
-          const prompt = buildMemberTurnPrompt({
-            groupName: group.name,
-            memberName: bot.name,
-            peerNames: peers,
-            recent,
-          })
-          await deps.sessionTool.write(CLI_CALLER, SessionId(sessionId), prompt)
-          const waited = await deps.sessionTool.wait(CLI_CALLER, SessionId(sessionId), {
-            until: 'idle',
-            timeoutMs: deps.config.askTimeoutMs,
-          })
-          if (waited.status === 'timeout') {
-            throw new DshBotError(
-              'wait-timeout',
-              `${bot.name} timed out waiting for a reply`,
-              { sessionId },
-            )
-          }
-          if (waited.status === 'failed' || waited.status === 'aborted') {
-            throw new DshBotError(
-              'session-failed',
-              `${bot.name} failed to reply (status ${waited.status})`,
-              { sessionId },
-            )
-          }
-          const raw = await lastAssistantText(deps.sessionTool, sessionId)
-          const answer = raw === undefined ? undefined : toRoomSpeech(raw, prompt)
-          if (answer === undefined) continue
-          await deps.groups.appendRoomMessage(roomId, { kind: 'member', botId: bot.id }, answer)
-        } catch (error) {
-          const code = error instanceof DshBotError ? error.code : 'internal'
-          const message = error instanceof Error ? error.message : String(error)
-          await deps.groups.appendRoomMessage(
+          const eligible = (latest?.messages ?? []).filter(row => row.speaker.kind !== 'user' || row.seq <= message.seq)
+          const unread = messagesSinceMemberLastSpoke(eligible, bot.id).slice(-ROOM_TRANSCRIPT_MAX)
+          const hasNew = unread.some(row => row.speaker.kind === 'user' || row.speaker.kind === 'member')
+          if (round > 0 && !hasNew) continue
+          const posted = await askMemberTurn(deps, {
             roomId,
-            { kind: 'error', botId: bot.id, code },
-            `${code}: ${message}`,
-          )
+            group,
+            bot,
+            members,
+            names,
+            message,
+            ...request.signal === undefined ? {} : { signal: request.signal },
+          })
+          if (posted) {
+            totalMessages += 1
+            messagesThisRound += 1
+          }
         }
+        if (request.signal?.aborted) break
+        if (messagesThisRound === 0) break
       }
       return { roomId, unmatchedMentions: mention.unmatched }
     } finally {
       deps.tracker.end(roomId)
     }
   })
+}
+
+async function askMemberTurn(
+  deps: GroupEngineDeps,
+  input: {
+    readonly roomId: string
+    readonly group: { readonly id: string; readonly name: string }
+    readonly bot: BotView
+    readonly members: readonly BotView[]
+    readonly names: Map<string, string>
+    readonly message: RoomMessage
+    readonly signal?: AbortSignal
+  },
+): Promise<boolean> {
+  const { roomId, group, bot, members, names, message } = input
+  if (input.signal?.aborted) return false
+  deps.tracker.speak(roomId, { botId: bot.id, name: bot.name })
+  try {
+    const sessionId = await ensureMemberTurnSession(deps, {
+      roomId,
+      groupId: group.id,
+      groupName: group.name,
+      bot,
+    })
+    if (input.signal?.aborted) return false
+    deps.tracker.speak(roomId, { botId: bot.id, name: bot.name, sessionId })
+    const latest = await deps.groups.peekRoom(roomId)
+    const eligible = (latest?.messages ?? []).filter(row => row.speaker.kind !== 'user' || row.seq <= message.seq)
+    const unread = messagesSinceMemberLastSpoke(eligible, bot.id).slice(-ROOM_TRANSCRIPT_MAX)
+    const current = unread.some(row => row.id === message.id) ? unread : [message, ...unread]
+    const recent = current
+      .map(line => formatRoomLine(line, names))
+      .filter((line): line is string => line !== undefined)
+    if (message.replyTo !== undefined) {
+      recent.push(`用户引用 ${message.replyTo.speaker} 的消息：${message.replyTo.text}`)
+    }
+    const peers = members.filter(row => row.id !== bot.id).map(row => row.name)
+    const prompt = buildMemberTurnPrompt({
+      groupName: group.name,
+      memberName: bot.name,
+      peerNames: peers,
+      recent,
+    })
+    const voice = await deps.sessionVoice?.(sessionId) ?? await deps.voiceFor(bot.id)
+    const before = await deps.sessionTool.read(CLI_CALLER, SessionId(sessionId), { maxBlocks: 500 })
+    const afterSeq = before.messages.reduce((max, row) => Math.max(max, row.seq), -1)
+    if (input.signal?.aborted) return false
+    await deps.sessionTool.write(CLI_CALLER, SessionId(sessionId), deps.voiceInjected?.() === true ? prompt : wrapPrompt(voice, prompt))
+    if (input.signal?.aborted) {
+      await deps.platform.cancelSession?.(sessionId)
+      return false
+    }
+    const waited = await deps.sessionTool.wait(CLI_CALLER, SessionId(sessionId), {
+      until: 'idle',
+      timeoutMs: deps.config.askTimeoutMs,
+    })
+    if (input.signal?.aborted) return false
+    if (waited.status === 'timeout') {
+      throw new DshBotError(
+        'wait-timeout',
+        `${bot.name} timed out waiting for a reply`,
+        { sessionId },
+      )
+    }
+    if (waited.status === 'failed' || waited.status === 'aborted') {
+      throw new DshBotError(
+        'session-failed',
+        `${bot.name} failed to reply (status ${waited.status})`,
+        { sessionId },
+      )
+    }
+    const raw = await lastAssistantText(deps.sessionTool, sessionId, afterSeq)
+    const answer = raw === undefined ? undefined : toRoomSpeech(raw, prompt)
+    if (answer === undefined) return false
+    await deps.groups.appendRoomMessage(roomId, { kind: 'member', botId: bot.id }, answer)
+    return true
+  } catch (error) {
+    if (input.signal?.aborted) return false
+    const code = error instanceof DshBotError ? error.code : 'internal'
+    const detail = error instanceof Error ? error.message : String(error)
+    await deps.groups.appendRoomMessage(
+      roomId,
+      { kind: 'error', botId: bot.id, code },
+      `${code}: ${detail}`,
+    )
+    return false
+  }
 }

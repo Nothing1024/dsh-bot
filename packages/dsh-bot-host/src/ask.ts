@@ -1,14 +1,12 @@
 /**
- * Delegation chain for DSH Bot: create → marks merge → archive (hidden)
- * → ASM-007 override → write → wait(idle) → read. Never returns an empty
- * answer string (BR-007).
+ * Delegation chain for DSH Bot: create (ownership tags) → hide → override
+ * → write → wait(idle) → read. Never returns an empty answer string (BR-007).
  * @module dsh-bot-host/ask
  */
 
 import type { Context } from '@deepseek-ai/cordis'
 import { SessionId } from '@deepseek-ai/dsh-session'
-import { isTitleHidden } from 'session-marks'
-import { listByKind } from 'session-marks'
+import { hideBotSession } from './session-visibility.ts'
 import {
   SessionToolError,
   SessionWebUnreachableError,
@@ -22,13 +20,17 @@ import type {
 import { DshBotError } from './errors.ts'
 import type { DshBotErrorCode } from './errors.ts'
 import {
-  DSH_BOT_HIDDEN_KIND,
+  DSH_BOT_CHAT_KIND,
+  isAuxiliaryBotSession,
   DSH_BOT_HIDDEN_TITLE_PREFIX,
-  DSH_BOT_KIND,
-  mergeBotMarks,
+  botMark,
+  botOwnershipTags,
+  listBotInventory,
 } from './marks.ts'
 import { applyModelOverride } from './platform.ts'
 import type { DshBotModelRef, DshBotPlatform } from './platform.ts'
+import { SEED_BOT_ID } from './bots.ts'
+import { wrapPrompt } from './session-voice.ts'
 
 /** Max graphemes kept after the `~dsh-bot: ` title prefix. */
 const TITLE_SUMMARY_MAX = 48
@@ -42,10 +44,13 @@ export interface DshBotRuntimeConfig {
   readonly routinesEnabled?: boolean
 }
 
-/** Options for {@link askBot}. */
 export interface AskBotRequest {
   readonly prompt: string
   readonly title?: string
+  /** Create-time voice (live seed persona). Empty/omitted → wrap nothing extra. */
+  readonly voice?: string
+  /** Freeze snapshot / marks after create, before write. */
+  readonly onCreated?: (sessionId: SessionId) => Promise<void>
 }
 
 /** Result of {@link askBot}. `answer` is always non-empty. */
@@ -254,20 +259,21 @@ export async function askBot(
     throw new DshBotError('empty-prompt', 'dsh_bot_ask requires a non-empty prompt')
   }
   const title = hiddenBotTitle(request.title ?? prompt)
-  let sessionId: SessionId | undefined
+  let createdId: string | undefined
   try {
     const cwd = resolveCallerCwd(ctx, caller)
     const created = await sessionTool.create(caller, {
       title,
-      tags: [DSH_BOT_KIND, DSH_BOT_HIDDEN_KIND],
+      tags: botOwnershipTags(botMark(SEED_BOT_ID)),
       ...caller.kind === 'agent' ? { parentSessionId: caller.sessionId } : {},
       ...cwd === undefined ? {} : { cwd },
     })
-    sessionId = created.sessionId
-    await mergeBotMarks(sessionId, [DSH_BOT_HIDDEN_KIND])
-    await platform.archiveSession(sessionId)
+    const sessionId = created.sessionId
+    createdId = sessionId
+    await request.onCreated?.(sessionId)
+    await hideBotSession(sessionTool, platform, sessionId, caller)
     await runOverride(platform, sessionId, config)
-    await sessionTool.write(caller, sessionId, prompt)
+    await sessionTool.write(caller, sessionId, wrapPrompt(request.voice ?? '', prompt))
     const waited = await sessionTool.wait(caller, sessionId, {
       until: 'idle',
       timeoutMs: config.askTimeoutMs,
@@ -289,13 +295,13 @@ export async function askBot(
     }
     return { sessionId, answer }
   } catch (error) {
-    rethrow(error, sessionId)
+    rethrow(error, createdId)
   }
 }
 
 /**
- * Visible bot session for the sidebar "新建" path. No `~` prefix, tags only
- * `kind:dsh-bot`, inherit caller cwd, apply override. Not archived.
+ * Visible bot session for the sidebar "新建" path. Hidden from the official
+ * rail via `hide({ syncToArchived: false })`, so `sessions.open` still lands.
  */
 export async function createBotSession(
   ctx: Context,
@@ -306,7 +312,7 @@ export async function createBotSession(
   request: CreateBotSessionRequest = {},
 ): Promise<CreateBotSessionResult> {
   const title = visibleBotTitle(request.title)
-  let sessionId: SessionId | undefined
+  let createdId: string | undefined
   try {
     const cwd = resolveCallerCwd(ctx, caller, request.cwd)
     const workspacePath = request.workspacePath !== undefined && request.workspacePath.trim() !== ''
@@ -314,23 +320,24 @@ export async function createBotSession(
       : undefined
     const created = await sessionTool.create(caller, {
       title,
-      tags: [DSH_BOT_KIND],
+      tags: botOwnershipTags(DSH_BOT_CHAT_KIND, botMark(SEED_BOT_ID)),
       ...cwd === undefined ? {} : { cwd },
       ...workspacePath === undefined ? {} : { workspacePath },
     })
-    sessionId = created.sessionId
-    await mergeBotMarks(sessionId)
+    const sessionId = created.sessionId
+    createdId = sessionId
+    await hideBotSession(sessionTool, platform, sessionId, caller, { syncToArchived: false })
     await runOverride(platform, sessionId, config)
     return { sessionId, title }
   } catch (error) {
-    rethrow(error, sessionId)
+    rethrow(error, createdId)
   }
 }
 
 /**
- * Intersection of marks `listByKind(kind:dsh-bot)` and sessionTool.list
- * metadata. Marks whose session is gone are dropped. Hidden rows are
- * omitted unless `includeHidden`.
+ * Intersection of inventory marks (`app:dsh-bot` ∪ `kind:dsh-bot`) and
+ * sessionTool.list metadata. Marks whose session is gone are dropped.
+ * Auxiliary rows are omitted unless `includeHidden`.
  */
 function isWebUnreachable(error: unknown): boolean {
   return error instanceof SessionWebUnreachableError
@@ -371,7 +378,7 @@ export async function listBotSessions(
 ): Promise<readonly DshBotSessionRow[]> {
   const includeHidden = request.includeHidden === true
   const caller = request.caller ?? CLI_CALLER
-  const marked = await listByKind(DSH_BOT_KIND)
+  const marked = await listBotInventory()
   let listed
   try {
     listed = await sessionTool.list(caller, {
@@ -387,7 +394,7 @@ export async function listBotSessions(
   for (const mark of marked) {
     const meta = byId.get(mark.id)
     if (meta === undefined) continue
-    const hidden = meta.tags.includes(DSH_BOT_HIDDEN_KIND) || isTitleHidden(meta.title, ['~'])
+    const hidden = isAuxiliaryBotSession(meta.tags, meta.title)
     if (!includeHidden && hidden) continue
     rows.push({
       sessionId: String(meta.sessionId),
@@ -400,3 +407,5 @@ export async function listBotSessions(
   }
   return rows
 }
+
+

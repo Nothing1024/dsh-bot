@@ -1,0 +1,167 @@
+<div id="bot-content-prototype" aria-label="DSH Bot 中间内容区交互原型">
+  <style>
+    #bot-content-prototype { --bc-bg:light-dark(#ffffff,#202123);--bc-side:light-dark(#f5f5f5,#191a1c);--bc-line:light-dark(#e5e5e5,#353638);--bc-ink:light-dark(#25282c,#e9eaec);--bc-muted:light-dark(#676d75,#a8adb5);--bc-active:light-dark(#e7edf5,#303b4e);--bc-blue:light-dark(#28568f,#a9c9ff);--bc-bubble:light-dark(#eef2f6,#2d323a);color:var(--bc-ink);font:14px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC",sans-serif;width:100%; }
+    #bot-content-prototype * {box-sizing:border-box}
+    #bot-content-prototype button,#bot-content-prototype textarea {font:inherit;color:inherit}
+    #bot-content-prototype button {cursor:pointer;border:0;background:transparent;padding:7px 10px;border-radius:7px;text-align:left}
+    #bot-content-prototype button:hover {background:var(--bc-bubble)}
+    #bot-content-prototype button:focus-visible,#bot-content-prototype textarea:focus-visible {outline:2px solid var(--bc-blue);outline-offset:2px}
+    #bot-content-prototype .bc-window {border:1px solid var(--bc-line);border-radius:10px;overflow:hidden;background:var(--bc-bg)}
+    #bot-content-prototype .bc-chrome {display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 17px;border-bottom:1px solid var(--bc-line);background:var(--bc-side)}
+    #bot-content-prototype .bc-chrome span:last-child {color:var(--bc-muted);font-size:12px}
+    #bot-content-prototype .bc-layout {display:grid;grid-template-columns:214px minmax(0,1fr);min-height:540px}
+    #bot-content-prototype .bc-sidebar {display:flex;flex-direction:column;background:var(--bc-side);border-right:1px solid var(--bc-line);padding:18px 10px 10px;gap:7px;min-width:0}
+    #bot-content-prototype .bc-side-title {display:flex;justify-content:space-between;align-items:center;padding:0 8px 10px;font-weight:500}
+    #bot-content-prototype .bc-section {font-size:12px;color:var(--bc-muted);padding:10px 10px 4px}
+    #bot-content-prototype .bc-roster {display:flex;flex-direction:column;gap:4px}
+    #bot-content-prototype .bc-person {display:flex;align-items:center;gap:10px;width:100%;padding:10px 9px}
+    #bot-content-prototype .bc-person[aria-pressed="true"] {background:var(--bc-active)}
+    #bot-content-prototype .bc-avatar {width:34px;height:34px;flex:none;border-radius:10px;background:light-dark(#e4e8ef,#394252);color:var(--bc-blue);display:grid;place-items:center;font-weight:500}
+    #bot-content-prototype .bc-person strong {display:block;font-weight:500;font-size:13px}
+    #bot-content-prototype .bc-person small {display:block;color:var(--bc-muted);font-size:11px}
+    #bot-content-prototype .bc-modes {margin-top:auto;display:flex;gap:4px;border-top:1px solid var(--bc-line);padding-top:12px}
+    #bot-content-prototype .bc-modes button {flex:1;text-align:center}
+    #bot-content-prototype .bc-modes button[aria-pressed="true"] {background:var(--bc-active);color:var(--bc-blue)}
+    #bot-content-prototype .bc-stage {min-width:0;display:flex;flex-direction:column}
+    #bot-content-prototype .bc-head {display:flex;align-items:center;gap:12px;padding:22px 25px 14px}
+    #bot-content-prototype .bc-head h2 {margin:0;font-size:19px;font-weight:500;color:var(--bc-ink);line-height:1.5}
+    #bot-content-prototype .bc-head p {margin:2px 0 0;font-size:12px;color:var(--bc-muted)}
+    #bot-content-prototype .bc-head .bc-avatar {width:44px;height:44px;font-size:17px}
+    #bot-content-prototype .bc-new {margin-left:auto;white-space:nowrap;border:1px solid var(--bc-line)}
+    #bot-content-prototype .bc-subnav {display:flex;flex-wrap:wrap;gap:5px;padding:0 25px 13px;border-bottom:1px solid var(--bc-line)}
+    #bot-content-prototype .bc-subnav button {font-size:12px;color:var(--bc-muted)}
+    #bot-content-prototype .bc-subnav button[aria-pressed="true"] {background:var(--bc-active);color:var(--bc-blue)}
+    #bot-content-prototype .bc-content {display:flex;flex-direction:column;flex:1;min-width:0}
+    #bot-content-prototype .bc-thread {padding:24px 30px;display:flex;flex-direction:column;gap:20px;flex:1;min-width:0;overflow-wrap:anywhere}
+    #bot-content-prototype .bc-time {font-size:11px;text-align:center;color:var(--bc-muted)}
+    #bot-content-prototype .bc-message {max-width:91%;font-size:14px}
+    #bot-content-prototype .bc-message .bc-by {display:block;font-size:11px;color:var(--bc-muted);margin-bottom:6px}
+    #bot-content-prototype .bc-message p {margin:0;white-space:pre-wrap}
+    #bot-content-prototype .bc-message.user {align-self:flex-end;background:var(--bc-bubble);padding:10px 14px;border-radius:12px 12px 3px 12px}
+    #bot-content-prototype .bc-compose {margin:0 24px 22px;border:1px solid var(--bc-line);border-radius:12px;background:var(--bc-bg);padding:12px}
+    #bot-content-prototype textarea {display:block;width:100%;min-height:56px;resize:vertical;background:transparent;border:0;font-size:14px;padding:2px 4px}
+    #bot-content-prototype textarea::placeholder {color:var(--bc-muted)}
+    #bot-content-prototype .bc-compose-footer {display:flex;align-items:center;justify-content:space-between;gap:8px}
+    #bot-content-prototype .bc-compose-footer span {font-size:11px;color:var(--bc-muted)}
+    #bot-content-prototype .bc-send {background:var(--bc-ink);color:var(--bc-bg);padding:5px 15px;text-align:center}
+    #bot-content-prototype .bc-send:hover {background:var(--bc-blue);color:var(--bc-bg)}
+    #bot-content-prototype .bc-panel {padding:22px 26px;flex:1}
+    #bot-content-prototype .bc-panel h3 {margin:0 0 7px;font-weight:500;font-size:16px}
+    #bot-content-prototype .bc-panel p {color:var(--bc-muted);font-size:13px;margin:5px 0 15px}
+    #bot-content-prototype .bc-row {border-bottom:1px solid var(--bc-line);padding:15px 0}
+    #bot-content-prototype .bc-row strong {font-weight:500;display:block}
+    #bot-content-prototype .bc-row small {font-size:12px;color:var(--bc-muted)}
+    #bot-content-prototype .bc-home {padding:26px;display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    #bot-content-prototype .bc-home button {border:1px solid var(--bc-line);padding:19px}
+    #bot-content-prototype .bc-home strong {display:block;font-weight:500}
+    #bot-content-prototype .bc-home small {display:block;color:var(--bc-muted);font-size:12px;margin-top:5px}
+    #bot-content-prototype .bc-home .bc-continue {grid-column:1/-1;background:var(--bc-active)}
+    #bot-content-prototype .bc-detail {display:none;padding:20px 18px;border-left:1px solid var(--bc-line);background:var(--bc-side);font-size:12px}
+    #bot-content-prototype .bc-detail h3 {font-weight:500;font-size:14px;margin:0 0 12px}
+    #bot-content-prototype .bc-detail p {color:var(--bc-muted);margin:0 0 20px}
+    #bot-content-prototype .bc-content.with-detail {display:grid;grid-template-columns:minmax(0,1fr) 175px}
+    #bot-content-prototype .with-detail .bc-detail {display:block}
+    #bot-content-prototype .bc-chat-wrap {display:flex;flex-direction:column;min-width:0;flex:1}
+    #bot-content-prototype .bc-state {padding:7px 15px;border-top:1px solid var(--bc-line);font-size:11px;color:var(--bc-muted);display:flex;gap:12px;justify-content:space-between;background:var(--bc-side)}
+    #bot-content-prototype .bc-empty {text-align:center;padding:38px 10px;color:var(--bc-muted)}
+    #bot-content-prototype .bc-workspace {font-size:12px;color:var(--bc-muted);border-bottom:1px solid var(--bc-line);padding:9px 25px}
+    @media(max-width:740px){#bot-content-prototype .bc-layout{grid-template-columns:175px minmax(0,1fr)}#bot-content-prototype .bc-head{padding:18px 16px 12px;flex-wrap:wrap}#bot-content-prototype .bc-subnav{padding-left:12px;padding-right:12px}#bot-content-prototype .bc-thread{padding:20px 17px}#bot-content-prototype .bc-compose{margin:0 14px 16px}#bot-content-prototype .bc-content.with-detail{display:flex}#bot-content-prototype .with-detail .bc-detail{border-left:0;border-top:1px solid var(--bc-line)}}
+    @media(max-width:500px){#bot-content-prototype .bc-layout{display:flex;flex-direction:column}#bot-content-prototype .bc-sidebar{border-right:0;border-bottom:1px solid var(--bc-line);padding:10px}#bot-content-prototype .bc-side-title,#bot-content-prototype .bc-section{display:none}#bot-content-prototype .bc-roster{flex-direction:row;flex-wrap:wrap}#bot-content-prototype .bc-person{width:auto;flex:1 1 125px;padding:7px}#bot-content-prototype .bc-person small{display:none}#bot-content-prototype .bc-modes{padding-top:6px;margin-top:0}#bot-content-prototype .bc-state{flex-wrap:wrap;gap:0}#bot-content-prototype .bc-chrome{padding:9px 12px}#bot-content-prototype .bc-home{padding:18px}#bot-content-prototype .bc-head h2{font-size:17px}#bot-content-prototype textarea{font-size:16px}}
+  </style>
+  <div class="bc-window">
+    <div class="bc-chrome"><span>DeepSeek Harness</span><span>交互原型 · 示例数据</span></div>
+    <div class="bc-layout">
+      <aside class="bc-sidebar" aria-label="左侧导航">
+        <div class="bc-side-title"><span id="bc-nav-title">我的 Bot</span><span aria-hidden="true">⌘ K</span></div>
+        <div id="bc-roster" class="bc-roster"></div>
+        <div class="bc-modes" aria-label="内容模式">
+          <button type="button" data-mode="session" aria-pressed="false">会话</button>
+          <button type="button" data-mode="bot" aria-pressed="true">Bot</button>
+        </div>
+      </aside>
+      <main id="bc-stage" class="bc-stage" aria-label="选中对象的内容"></main>
+    </div>
+    <div class="bc-state" aria-live="polite"><span id="bc-state-left">Bot · 校对阿宁</span><span id="bc-state-right">中间：Bot 对话</span></div>
+  </div>
+  <script>
+    (() => {
+      const root = document.getElementById('bot-content-prototype');
+      const stage = root.querySelector('#bc-stage');
+      const roster = root.querySelector('#bc-roster');
+      const settings = { layout: 'chat' };
+      const state = { mode: 'bot', selected: 'aning', tab: '对话', threads: {}, drafts: {} };
+      const people = {
+        aning: {name:'校对阿宁',initial:'宁',role:'你的文字校对伙伴',preview:'这段话还可以再简洁一点',persona:'先指出问题，再给修改建议；保留你的原意。',messages:[['user','帮我把这句话写得更清楚：我们将持续推进相关工作的开展。'],['bot','可以改成：“我们会继续推进这项工作。”\n\n删掉“相关”和“的开展”，意思更直接，也没有改变原意。']],memory:['偏好直接、简洁的中文表达','校对时保留原文的意思'],routines:['工作日 09:30 · 写作提醒','周五 17:00 · 本周文稿回顾']},
+        xiaobei: {name:'诗人小北',initial:'北',role:'陪你找灵感的写作伙伴',preview:'把秋天写进一句话里',persona:'用具体的画面表达感受，喜欢轻盈、有留白的文字。',messages:[['user','给秋天写一句开场白。'],['bot','风把树叶翻到金黄的那一页，秋天就到了。']],memory:['喜欢有画面感的短句','不喜欢堆砌形容词'],routines:['每天 20:00 · 一句诗的时间']},
+        group: {name:'编辑室',initial:'编',role:'小组 · 校对阿宁、诗人小北',preview:'两个人，一起把文字改好',persona:'阿宁负责表达准确，小北负责文字的节奏与画面。',messages:[['user','“我们在秋天重新出发”，你们觉得怎样？'],['aning','意思清楚，可以保留；如果用于通知，最好补上具体行动。'],['xiaobei','如果是文章开头，我想写：“趁秋风刚起，我们再走一程。”']],memory:[],routines:[]},
+        session: {name:'修复登录校验',initial:'项',role:'plugin / 当前工作区',preview:'检查登录接口的参数验证',messages:[['user','检查登录接口的参数验证。'],['bot','我会先查看路由和现有校验逻辑，再补充缺失的边界处理。']]}
+      };
+      const esc = value => String(value).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+      const currentId = () => state.mode === 'session' ? 'session' : state.selected;
+      const messagesOf = id => state.threads[id] ?? people[id].messages;
+      function renderRoster() {
+        root.querySelector('#bc-nav-title').textContent = state.mode === 'bot' ? '我的 Bot' : '工作区';
+        const ids = state.mode === 'bot' ? ['aning','xiaobei','group'] : ['session'];
+        roster.innerHTML = ids.map(id => `<button type="button" class="bc-person" data-person="${id}" aria-pressed="${id === currentId()}"><span class="bc-avatar" aria-hidden="true">${people[id].initial}</span><span><strong>${people[id].name}</strong><small>${people[id].preview}</small></span></button>`).join('');
+        root.querySelectorAll('[data-mode]').forEach(button => button.setAttribute('aria-pressed', String(button.dataset.mode === state.mode)));
+      }
+      function threadHTML(id) {
+        const messages = messagesOf(id);
+        if (!messages.length) return `<div class="bc-empty">${id === 'group' ? '开始编辑室的新一轮讨论' : `和${people[id].name}开始新对话`}</div>`;
+        return `<div class="bc-time">今天</div>` + messages.map(([who,text]) => {
+          const by = who === 'user' ? '你' : who === 'bot' ? (id === 'session' ? '助手' : people[id].name) : people[who].name;
+          return `<div class="bc-message ${who === 'user' ? 'user' : ''}"><span class="bc-by">${by}</span><p>${esc(text)}</p></div>`;
+        }).join('');
+      }
+      function chatHTML(id) {
+        const p = people[id];
+        const placeholder = id === 'session' ? '发消息或创建任务…' : id === 'group' ? '发到编辑室，输入 @ 点名成员…' : `发消息给${p.name}…`;
+        return `<div class="bc-chat-wrap"><div class="bc-thread">${threadHTML(id)}</div><form class="bc-compose"><textarea aria-label="${placeholder}" placeholder="${placeholder}" rows="2">${esc(state.drafts[id] ?? '')}</textarea><div class="bc-compose-footer"><span>${id === 'session' ? 'grok-4.6 · Xhigh' : id === 'group' ? '每位成员回复一次' : '当前模型 · 跟随默认配置'}</span><button type="submit" class="bc-send">发送</button></div></form></div>`;
+      }
+      function panelHTML(id) {
+        const p=people[id];
+        const heading=state.tab;
+        let rows=[];
+        if(heading==='记忆') rows=p.memory;
+        if(heading==='例程') rows=p.routines;
+        if(heading==='同事') rows=[id==='aning'?'诗人小北 · 一起打磨文字':'校对阿宁 · 一起检查表达'];
+        if(heading==='成员') rows=['校对阿宁 · 文字校对','诗人小北 · 创作灵感'];
+        if(heading==='历史') return `<div class="bc-panel"><h3>${id==='group'?'讨论记录':'历史对话'}</h3><button type="button" class="bc-row" data-tab="对话">${id==='group'?'秋天的开场白':'最近一次对话'}<small>　今天</small></button></div>`;
+        return `<div class="bc-panel"><h3>${p.name}的${heading}</h3><p>${heading==='记忆'?'跨对话保留的偏好与事实':heading==='例程'?'这个 Bot 的主动提醒':heading==='成员'?'参加当前讨论的人设':'可以协作的 Bot'}</p>${rows.map((text,i)=>`<div class="bc-row"><strong>${esc(text)}</strong><small>${heading==='例程'?'已开启':heading==='记忆'?'你可以随时调整':'已加入'}</small></div>`).join('')}</div>`;
+      }
+      function render() {
+        renderRoster();
+        const id=currentId(), p=people[id], session=id==='session', group=id==='group';
+        const home = !session && !group && settings.layout==='home' && state.tab==='主页';
+        const tabs=session?['对话','轨迹']:group?['对话','成员','历史']:(settings.layout==='home'?['主页','对话','记忆','例程','同事','历史']:['对话','记忆','例程','同事','历史']);
+        const count = name => name==='记忆' ? ` ${p.memory?.length ?? ''}` : name==='例程' ? ` ${p.routines?.length ?? ''}` : '';
+        stage.innerHTML=`${session?'<div class="bc-workspace">工作区　plugin　/　会话</div>':''}<header class="bc-head"><span class="bc-avatar" aria-hidden="true">${p.initial}</span><div><h2>${p.name}</h2><p>${p.role}</p></div><button type="button" class="bc-new" data-new>${group?'新开房间':'新对话'}</button></header><nav class="bc-subnav" aria-label="${p.name}的内容">${tabs.map(tab=>`<button type="button" data-tab="${tab}" aria-pressed="${state.tab===tab}">${tab}${count(tab)}</button>`).join('')}</nav><div class="bc-content ${settings.layout==='detail'&&!session&&!group&&state.tab==='对话'?'with-detail':''}">${home?`<div class="bc-home"><button type="button" class="bc-continue" data-tab="对话"><strong>继续与${p.name}对话</strong><small>${p.preview}</small></button><button type="button" data-tab="记忆"><strong>记忆 · ${p.memory.length}</strong><small>${p.memory[0]}</small></button><button type="button" data-tab="例程"><strong>例程 · ${p.routines.length}</strong><small>${p.routines[0]}</small></button></div>`:state.tab==='对话'?chatHTML(id):state.tab==='轨迹'?'<div class="bc-panel"><h3>会话轨迹</h3><div class="bc-row">已收到请求</div><div class="bc-row">准备查看登录路由</div></div>':panelHTML(id)}${settings.layout==='detail'&&!session&&!group&&state.tab==='对话'?`<aside class="bc-detail"><h3>关于${p.name}</h3><p>${p.persona}</p><h3>记住的偏好</h3><p>${p.memory[0]}</p><h3>下一条例程</h3><p>${p.routines[0]}</p></aside>`:''}</div>`;
+        root.querySelector('#bc-state-left').textContent=`${session?'会话':group?'小组':'Bot'} · ${p.name}`;
+        root.querySelector('#bc-state-right').textContent=`中间：${session?'Harness 会话':group?'小组界面':'Bot 界面'} · ${state.tab}`;
+      }
+      function initialTab(){return state.mode==='bot'&&state.selected!=='group'&&settings.layout==='home'?'主页':'对话'}
+      root.addEventListener('click', event => {
+        const button=event.target.closest('button');
+        if(!button || !root.contains(button)) return;
+        if(button.dataset.mode){state.mode=button.dataset.mode;state.tab=initialTab();render()}
+        else if(button.dataset.person){if(button.dataset.person==='session')state.mode='session';else state.selected=button.dataset.person;state.tab=initialTab();render()}
+        else if(button.dataset.tab){state.tab=button.dataset.tab;render()}
+        else if(button.hasAttribute('data-new')){state.threads[currentId()]=[];state.drafts[currentId()]='';state.tab='对话';render();stage.querySelector('textarea').focus()}
+      });
+      root.addEventListener('input', event=>{if(event.target.matches('textarea'))state.drafts[currentId()]=event.target.value});
+      root.addEventListener('submit', event=>{
+        event.preventDefault();
+        const id=currentId(), text=state.drafts[id]?.trim();
+        if(!text)return;
+        state.threads[id]=[...messagesOf(id),['user',text],['bot',id==='group'?'（原型示例）成员会在这里依次回复。':'（原型示例）这个 Bot 的回复会出现在这里。']];
+        state.drafts[id]='';render();
+      });
+      root.addEventListener('keydown',event=>{if(event.key==='Escape'&&state.tab!=='对话'){state.tab='对话';render()}});
+      render();
+      if(globalThis.Tweak){
+        const tweak=new Tweak({container:root,onChange:()=>{state.tab=initialTab();render()}});
+        tweak.addSelect(settings,'layout',{label:'Bot 内容布局',options:[{label:'直接进入聊天（推荐）',value:'chat'},{label:'先进入人设主页',value:'home'},{label:'聊天 + 常驻资料栏',value:'detail'}]});
+      }
+    })();
+  </script>
+</div>

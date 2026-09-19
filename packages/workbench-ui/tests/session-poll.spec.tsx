@@ -27,6 +27,21 @@ describe('useSessionPoll', () => {
     Object.defineProperty(document, 'hidden', { configurable: true, value: false })
   })
 
+  it('drops the busy flag when a poll fails, so a gone session cannot freeze the composer', async () => {
+    vi.useFakeTimers()
+    let failing = false
+    const load = vi.fn(async (): Promise<RpcResult<HistoryValue>> => {
+      if (failing) return { ok: false, error: { code: 'not-found', message: 'session missing' } }
+      return { ok: true, value: { sessionId: 's1', working: true, items: [] } }
+    })
+    render(<Probe sessionId="s1" enabled sseReady={false} load={load} />)
+    await act(async () => { await Promise.resolve() })
+    expect(screen.getByTestId('poll-working').textContent).toBe('true')
+    failing = true
+    await act(async () => { await vi.advanceTimersByTimeAsync(POLL_IDLE_MS) })
+    expect(screen.getByTestId('poll-working').textContent).toBe('false')
+  })
+
   it('polls every 2s idle and 1s while working, and pauses when hidden', async () => {
     vi.useFakeTimers()
     let working = false

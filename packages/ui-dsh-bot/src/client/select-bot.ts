@@ -6,6 +6,7 @@ import {
   pickBoundSession,
   readLastSession,
   writeLastSession,
+  formatWireError,
 } from 'dsh-bot-shared'
 import type { CreateBotSessionValue, WorkbenchSessionRow } from 'dsh-bot-shared'
 import type { RpcResult } from './roster-rpc.ts'
@@ -39,8 +40,7 @@ function visibleIds(rows: readonly WorkbenchSessionRow[]): string[] {
 
 export function errorMessage(error: { code?: string; message: string } | undefined, fallback: string): string {
   if (error === undefined) return fallback
-  if (error.code === 'unavailable') return '网关不可达'
-  return error.message || fallback
+  return formatWireError(error)
 }
 
 /**
@@ -102,14 +102,20 @@ export function sliceNested(
 export function pendingBotIds(
   bots: readonly { id: string; presetId: string }[],
   byId: Record<string, { agentPreset?: string; pendingInteraction?: string }> | undefined,
+  sessionsByBot?: Readonly<Record<string, readonly { readonly sessionId: string }[]>>,
 ): Set<string> {
   const pending = new Set<string>()
   if (byId === undefined) return pending
-  const sessions = Object.values(byId)
+  const sessions = Object.entries(byId)
   for (const bot of bots) {
-    if (sessions.some(session => session.agentPreset === bot.presetId && session.pendingInteraction !== undefined && session.pendingInteraction !== '')) {
-      pending.add(bot.id)
-    }
+    const owned = sessionsByBot?.[bot.id]
+    const ownedIds = owned === undefined ? undefined : new Set(owned.map(row => row.sessionId))
+    const hit = sessions.some(([id, session]) => {
+      if (session.pendingInteraction === undefined || session.pendingInteraction === '') return false
+      if (ownedIds !== undefined) return ownedIds.has(id)
+      return session.agentPreset === bot.presetId
+    })
+    if (hit) pending.add(bot.id)
   }
   return pending
 }

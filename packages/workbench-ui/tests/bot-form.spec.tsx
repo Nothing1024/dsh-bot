@@ -25,13 +25,13 @@ describe('BotForm', () => {
     expect(onSubmit).not.toHaveBeenCalled()
   })
 
-  it('locks submit while busy and shows the error bar', () => {
+  it('locks submit while busy and names the host failure in the error bar', () => {
     const onSubmit = vi.fn()
     render(
       <BotForm
         mode="create"
         busy
-        error="preset dsh-bot--x is broken"
+        error={{ code: 'preset-broken', message: 'preset dsh-bot--x is broken' }}
         onCancel={vi.fn()}
         onSubmit={onSubmit}
       />,
@@ -39,8 +39,29 @@ describe('BotForm', () => {
     const submit = screen.getByTestId('bot-form-submit') as HTMLButtonElement
     expect(submit.disabled).toBe(true)
     expect(submit.textContent).toMatch(/创建中/)
-    expect(screen.getByTestId('bot-form-error').textContent).toMatch(/broken/)
+    const bar = screen.getByTestId('bot-form-error').textContent ?? ''
+    expect(bar).toMatch(/人设预设文件损坏/)
+    expect(bar).toMatch(/preset dsh-bot--x is broken/)
     fireEvent.click(submit)
+    expect(onSubmit).not.toHaveBeenCalled()
+  })
+
+  it('refuses half a model override before the host has to reject it', () => {
+    const onSubmit = vi.fn()
+    render(
+      <BotForm
+        mode="create"
+        busy={false}
+        error={null}
+        onCancel={vi.fn()}
+        onSubmit={onSubmit}
+      />,
+    )
+    fireEvent.change(screen.getByTestId('bot-form-name'), { target: { value: '甲' } })
+    fireEvent.change(screen.getByTestId('bot-form-persona'), { target: { value: '人设' } })
+    fireEvent.change(screen.getByTestId('bot-form-provider'), { target: { value: 'anthropic' } })
+    fireEvent.click(screen.getByTestId('bot-form-submit'))
+    expect(screen.getByTestId('bot-form-model-error').textContent).toMatch(/provider 和 model/)
     expect(onSubmit).not.toHaveBeenCalled()
   })
 
@@ -69,7 +90,7 @@ describe('BotForm', () => {
         mode="edit"
         busy={false}
         error={null}
-        hint="人设对之后的新对话生效"
+        hint="新对话用新人设；已有对话保持原口吻"
         initial={{
           id: 'shiren-xiaobei',
           name: '诗人小北',
@@ -83,7 +104,7 @@ describe('BotForm', () => {
         onSubmit={onSubmit}
       />,
     )
-    expect(screen.getByTestId('bot-form-hint').textContent).toMatch(/新对话生效/)
+    expect(screen.getByTestId('bot-form-hint').textContent).toMatch(/已有对话保持原口吻/)
     fireEvent.click(screen.getByTestId('bot-form-submit'))
     expect(onSubmit).toHaveBeenCalledTimes(1)
     expect(onSubmit.mock.calls[0]?.[0]).toMatchObject({
@@ -91,5 +112,22 @@ describe('BotForm', () => {
       persona: '你是一位诗人',
       emoji: '📜',
     })
+  })
+
+  it('renders as a modal and cancels on a mask click', () => {
+    const onCancel = vi.fn()
+    render(
+      <BotForm
+        mode="create"
+        busy={false}
+        error={null}
+        onCancel={onCancel}
+        onSubmit={vi.fn()}
+      />,
+    )
+    fireEvent.mouseDown(screen.getByTestId('bot-form-mask'))
+    expect(onCancel).toHaveBeenCalledTimes(1)
+    fireEvent.mouseDown(screen.getByTestId('bot-form'))
+    expect(onCancel).toHaveBeenCalledTimes(1)
   })
 })

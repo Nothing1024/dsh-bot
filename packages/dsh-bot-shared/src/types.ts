@@ -91,6 +91,8 @@ export interface WorkbenchHistoryAuthor {
 }
 
 export interface WorkbenchHistoryItem {
+  readonly roomId?: string
+  readonly replyTo?: { readonly seq: number; readonly speaker: string; readonly text: string }
   readonly id: string
   readonly kind: 'message' | 'thinking' | 'tool' | 'propose-routine' | 'approval' | 'question'
   readonly sessionId?: string
@@ -115,6 +117,8 @@ export interface HistoryValue {
   readonly items: readonly WorkbenchHistoryItem[]
   readonly working: boolean
   readonly speaking?: { readonly botId: string; readonly name: string }
+  readonly round?: number
+  readonly rounds?: number
 }
 export interface WorkbenchGroup {
   readonly id: string
@@ -123,6 +127,7 @@ export interface WorkbenchGroup {
   readonly createdAt: number
   readonly section?: string
   readonly order?: number
+  readonly rounds: number
 }
 
 export interface ListGroupsValue {
@@ -130,6 +135,7 @@ export interface ListGroupsValue {
 }
 
 export interface GroupRoomRow {
+  readonly title?: string
   readonly roomId: string
   readonly groupId: string
   readonly createdAt: number

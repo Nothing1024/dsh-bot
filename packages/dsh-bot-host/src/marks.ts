@@ -1,16 +1,27 @@
 /**
- * Last-wins merge of `kind:dsh-bot` (and optional `kind:hidden`) into the
- * plugin mark table. session-tool create already puts the create-time set;
- * this get+put pair is the兜底 merge so a concurrent writer cannot drop
- * kind:delegated / parent tags (vibee markVibeeSession shape).
+ * Bot session marks. Inventory is `app:dsh-bot` (plus transitional
+ * `kind:dsh-bot`); instance keys stay `bot:` / `group:` / `peer:` / `routine:`.
+ * Hide/child writes go through sessionTool.hide / parentSessionId — this
+ * module does not get+put the mark table.
  * @module dsh-bot-host/marks
  */
 
-import { get, put } from 'session-marks'
+import { hasHiddenMark, isTitleHidden, listByMark } from 'session-marks'
+import type { SessionMarksRow } from 'session-marks'
 
-/** Plugin mark for every bot-owned session. */
+/** Product inventory axis. New writes always include this. */
+export const DSH_BOT_APP = 'app:dsh-bot'
+/** Transitional inventory alias so old `listByKind('kind:dsh-bot')` still hits. */
 export const DSH_BOT_KIND = 'kind:dsh-bot'
-/** Plugin mark for delegated auxiliary (hidden) sessions. */
+/** Plugin-created sessions. Not a product instance key. */
+export const DSH_BOT_FORM = 'form:plugin'
+/**
+ * Product chat token (1:1 workbench rows). Not a platform `form:` value;
+ * keep as an exact mark.
+ */
+export const DSH_BOT_CHAT_KIND = 'kind:dsh-bot-chat'
+
+/** Historical hidden spelling. Prefer `hasHiddenMark` / `hide()`. */
 export const DSH_BOT_HIDDEN_KIND = 'kind:hidden'
 /** Title prefix for delegated auxiliary sessions (session-tool hiddenPrefixes). */
 export const DSH_BOT_HIDDEN_TITLE_PREFIX = '~dsh-bot: '
@@ -18,6 +29,40 @@ export const DSH_BOT_HIDDEN_TITLE_PREFIX = '~dsh-bot: '
 export const DSH_BOT_GROUP_HIDDEN_TITLE_PREFIX = '~dsh-bot-group: '
 /** Title prefix for memory-extract hidden sessions (INV-802). */
 export const DSH_BOT_MEMORY_HIDDEN_TITLE_PREFIX = '~dsh-bot-memory: '
+
+/**
+ * Create-time ownership set. Extra tokens are instance keys (`bot:`, `group:`)
+ * or the product chat token — never `hidden` / `delegated` (platform writes those).
+ */
+export function botOwnershipTags(...extra: readonly string[]): string[] {
+  return [DSH_BOT_APP, DSH_BOT_KIND, DSH_BOT_FORM, ...extra]
+}
+
+export function hasBotInventoryMark(tags: readonly string[] | undefined): boolean {
+  return tags?.includes(DSH_BOT_APP) === true || tags?.includes(DSH_BOT_KIND) === true
+}
+
+/**
+ * Transition inventory: union of `app:dsh-bot` and `kind:dsh-bot`.
+ * Do not pass both tokens to `sessionTool.list({ tags })` — that is an intersection.
+ */
+export async function listBotInventory(): Promise<SessionMarksRow[]> {
+  const [byApp, byKind] = await Promise.all([
+    listByMark(DSH_BOT_APP),
+    listByMark(DSH_BOT_KIND),
+  ])
+  const byId = new Map<string, SessionMarksRow>()
+  for (const row of byApp) byId.set(row.id, row)
+  for (const row of byKind) {
+    if (!byId.has(row.id)) byId.set(row.id, row)
+  }
+  return [...byId.values()]
+}
+
+export function isAuxiliaryBotSession(tags: readonly string[], title?: string): boolean {
+  return isTitleHidden(title, ['~'])
+    || (hasHiddenMark(tags) && !tags.includes(DSH_BOT_CHAT_KIND))
+}
 
 /**
  * Workbench ownership token `bot:<id>` (BR-203). Ordinary marks token; not a
@@ -130,26 +175,4 @@ export function parseGroupRoomMark(tags: readonly string[]): string | undefined 
     if (id !== '') return id
   }
   return undefined
-}
-
-const sessionLocks = new Map<string, Promise<void>>()
-
-function withSessionLock<T>(sessionId: string, fn: () => Promise<T>): Promise<T> {
-  const previous = sessionLocks.get(sessionId) ?? Promise.resolve()
-  const next = previous.then(fn, fn)
-  sessionLocks.set(sessionId, next.then(() => undefined, () => undefined))
-  return next
-}
-
-/**
- * Merge reserved bot marks into the session's current set.
- * @param sessionId - the created session.
- * @param extra - additional tokens to merge (typically `kind:hidden` for askBot).
- */
-export async function mergeBotMarks(sessionId: string, extra: readonly string[] = []): Promise<string[]> {
-  return await withSessionLock(sessionId, async () => {
-    const existing = await get(sessionId)
-    const merged = [...(existing ?? []), DSH_BOT_KIND, ...extra]
-    return await put(sessionId, merged)
-  })
 }

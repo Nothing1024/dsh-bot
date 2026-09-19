@@ -2,9 +2,11 @@
  * Conversation stage: identity header, session switcher, transcript, composer.
  */
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { formatWireError } from 'dsh-bot-shared'
 import {
   createBotSession,
   createGroupSession,
+  draftStorageKey,
   groupDraftStorageKey,
   history,
   listBotSessions,
@@ -31,7 +33,6 @@ import type {
   WorkbenchGroup,
   WorkbenchHistoryItem,
   WorkbenchSessionRow,
-  WorkbenchWireError,
 } from './api.ts'
 import { parseMentions } from './mentions.ts'
 import { hashAvatarColor } from './avatar.ts'
@@ -44,11 +45,7 @@ import { RoutinesPanel } from './RoutinesPanel.tsx'
 import { Transcript } from './Transcript.tsx'
 import type { TranscriptSpeaker } from './Transcript.tsx'
 
-type ReplyMark = {
-  readonly sessionId: string
-  readonly text: string
-  readonly replyTo: ComposerReplyTo
-}
+import { SessionRename } from './interactions.tsx'
 import { SessionJumpMenuItem, SessionList } from './SessionList.tsx'
 import type { SessionChoice } from './SessionList.tsx'
 import {
@@ -78,13 +75,9 @@ export interface ConversationProps {
   readonly onDraft?: (botId: string, text: string) => void
   readonly onActiveSession?: (sessionId: string | null) => void
   readonly onSessions?: (sessions: readonly WorkbenchSessionRow[]) => void
+  readonly onOpenOfficialSession?: (sessionId: string) => Promise<void> | void
   readonly sseReady?: boolean
   readonly live?: Pick<BotLiveState, 'stream' | 'cards' | 'epoch'>
-}
-
-function formatError(error: WorkbenchWireError): string {
-  const code = error.code !== undefined && error.code !== '' ? error.code : 'internal'
-  return `${code}: ${error.message}`
 }
 
 function resolveSpeaking(
@@ -112,17 +105,21 @@ function lastPreview(items: readonly WorkbenchHistoryItem[]): string {
 /**
  * Header + transcript + composer for one selected bot.
  */
-function roomsToSessions(rooms: readonly { roomId: string; createdAt: number; updatedAt: number }[]): WorkbenchSessionRow[] {
-  return rooms.map(row => ({
-    sessionId: row.roomId,
-    title: `房间 ${row.roomId.slice(0, 8)}`,
-    tags: [],
-    status: 'idle' as const,
-    createdAt: row.createdAt,
-    updatedAt: row.updatedAt,
-    hidden: false,
-    working: false,
-  }))
+function roomsToSessions(rooms: readonly { roomId?: string; createdAt?: number; updatedAt?: number }[]): WorkbenchSessionRow[] {
+  return rooms.flatMap(row => {
+    const roomId = row.roomId
+    if (typeof roomId !== 'string' || roomId === '') return []
+    return [{
+      sessionId: roomId,
+      title: `房间 ${roomId.slice(0, 8)}`,
+      tags: [],
+      status: 'idle' as const,
+      createdAt: row.createdAt ?? 0,
+      updatedAt: row.updatedAt ?? 0,
+      hidden: false,
+      working: false,
+    }]
+  })
 }
 
 function toChoices(
@@ -147,9 +144,10 @@ export function Conversation(props: ConversationProps) {
   const identityId = isGroup ? group.id : bot?.id ?? ''
   const identityName = isGroup ? group.name : bot?.name ?? ''
   const members = props.members ?? []
+  const [sessionsLoaded, setSessionsLoaded] = useState(false)
   const [sessions, setSessions] = useState<readonly WorkbenchSessionRow[]>([])
   const [sessionId, setSessionId] = useState<string | null>(null)
-  const [pending, setPending] = useState<{ text: string; failed?: boolean } | null>(null)
+  const [pending, setPending] = useState<{ text: string; sinceSeq: number; messageId?: string; replyTo?: ComposerReplyTo; failed?: boolean } | null>(null)
   const [sending, setSending] = useState(false)
   const [sendError, setSendError] = useState<string | null>(null)
   const [sendCode, setSendCode] = useState<string | null>(null)
@@ -168,11 +166,18 @@ export function Conversation(props: ConversationProps) {
   const [switcherOpen, setSwitcherOpen] = useState(false)
   const [currentMenuOpen, setCurrentMenuOpen] = useState(false)
   const [replyTo, setReplyTo] = useState<ComposerReplyTo | null>(null)
-  const [replyMarks, setReplyMarks] = useState<readonly ReplyMark[]>([])
+  const retryRequest = useRef<{ sessionId: string; text: string; replyToSeq?: number; requestId: string } | null>(null)
   const switcherRef = useRef<HTMLDivElement>(null)
   const sawWorkingRef = useRef(false)
   const sendSeqRef = useRef(-1)
+  const groupCreateRef = useRef<ReturnType<typeof createGroupSession> | null>(null)
   const sessionIdRef = useRef(sessionId)
+  const loadGeneration = useRef(0)
+  const mounted = useRef(true)
+  useEffect(() => {
+    mounted.current = true
+    return () => { mounted.current = false }
+  }, [])
   const includeHiddenRef = useRef(includeHidden)
   const onSessionsRef = useRef(props.onSessions)
   const onActiveSessionRef = useRef(props.onActiveSession)
@@ -181,20 +186,32 @@ export function Conversation(props: ConversationProps) {
   sessionIdRef.current = sessionId
 
   const loadSessions = useCallback(async (prefer: string | null): Promise<string | null> => {
+    const generation = ++loadGeneration.current
+    const selectedAtStart = sessionIdRef.current
+    const current = (): boolean => mounted.current && generation === loadGeneration.current
+      && sessionIdRef.current === selectedAtStart
     if (isGroup) {
       const listed = await listGroupSessions(group.id)
+      if (!current()) return sessionIdRef.current
       if (!listed.ok) {
-        setListError(formatError(listed.error))
+        setListError(formatWireError(listed.error))
         return prefer
       }
       let rooms = listed.value.rooms ?? []
       if (rooms.length === 0) {
-        const created = await createGroupSession(group.id)
+        if (groupCreateRef.current === null) {
+          groupCreateRef.current = createGroupSession(group.id)
+        }
+        const created = await groupCreateRef.current
+        if (!current()) return sessionIdRef.current
         if (!created.ok) {
-          setListError(formatError(created.error))
+          groupCreateRef.current = null
+          setListError(formatWireError(created.error))
           return prefer
         }
         rooms = [created.value]
+      } else {
+        groupCreateRef.current = null
       }
       setListError(null)
       const rows = roomsToSessions(rooms)
@@ -206,8 +223,9 @@ export function Conversation(props: ConversationProps) {
     }
     if (bot === undefined) return prefer
     const outcome = await listBotSessions(bot.id, includeHidden)
+    if (!current()) return sessionIdRef.current
     if (!outcome.ok) {
-      setListError(formatError(outcome.error))
+      setListError(formatWireError(outcome.error))
       return prefer
     }
     setListError(null)
@@ -233,10 +251,12 @@ export function Conversation(props: ConversationProps) {
     setReplyTo(null)
     sawWorkingRef.current = false
     setSessionId(null)
+    setSessionsLoaded(false)
     const prefer = props.preferredSessionId ?? readLastSession(identityId)
     void loadSessions(prefer).then(id => {
       if (cancelled) return
       if (id !== null) setSessionId(id)
+      setSessionsLoaded(true)
     })
     return () => {
       cancelled = true
@@ -248,11 +268,14 @@ export function Conversation(props: ConversationProps) {
     const id = props.preferredSessionId
     if (id === undefined || id === null) return
     if (id === sessionIdRef.current) return
-    if (!sessions.some(row => row.sessionId === id)) return
-    setSessionId(id)
-    setPending(null)
-    setSwitcherOpen(false)
-    setCurrentMenuOpen(false)
+    if (sessions.some(row => row.sessionId === id)) {
+      setSessionId(id)
+      setPending(null)
+      setSwitcherOpen(false)
+      setCurrentMenuOpen(false)
+      return
+    }
+    void loadSessionsRef.current(id)
   }, [props.preferredSessionId, sessions])
 
   useEffect(() => {
@@ -293,7 +316,7 @@ export function Conversation(props: ConversationProps) {
   const poll = useSessionPoll({
     sessionId,
     enabled: sessionId !== null,
-    sseReady: props.sseReady === true,
+    sseReady: !isGroup && props.sseReady === true,
     load: (id, sinceSeq) => history(id, sinceSeq),
   })
 
@@ -367,6 +390,12 @@ export function Conversation(props: ConversationProps) {
 
   useEffect(() => {
     if (!awaitingTurn) return
+    // A poll that cannot read the session can never report the turn's end, so
+    // the wait must end here or the composer stays on "停止" forever.
+    if (poll.error !== null) {
+      setAwaitingTurn(false)
+      return
+    }
     if (poll.working) sawWorkingRef.current = true
     const hasReply = poll.items.some(item => (
       item.kind === 'message'
@@ -376,12 +405,13 @@ export function Conversation(props: ConversationProps) {
     if ((sawWorkingRef.current && !poll.working) || hasReply) {
       setAwaitingTurn(false)
     }
-  }, [awaitingTurn, poll.items, poll.working])
+  }, [awaitingTurn, poll.error, poll.items, poll.working])
 
   useEffect(() => {
     if (pending === null || pending.failed === true) return
     const hasUser = poll.items.some(item => (
-      item.kind === 'message' && item.role === 'user' && item.text === pending.text
+      item.kind === 'message' && item.role === 'user' && (pending.messageId !== undefined
+        ? item.id === pending.messageId : item.text === pending.text && item.seq > pending.sinceSeq)
     ))
     if (hasUser) setPending(null)
   }, [pending, poll.items])
@@ -390,7 +420,7 @@ export function Conversation(props: ConversationProps) {
     if (isGroup) {
       const outcome = await createGroupSession(group.id)
       if (!outcome.ok) {
-        setListError(formatError(outcome.error))
+        setListError(formatWireError(outcome.error))
         return
       }
       setPending(null)
@@ -403,7 +433,7 @@ export function Conversation(props: ConversationProps) {
     if (bot === undefined) return
     const outcome = await createBotSession(bot.id)
     if (!outcome.ok) {
-      setListError(formatError(outcome.error))
+      setListError(formatWireError(outcome.error))
       return
     }
     setPending(null)
@@ -414,20 +444,22 @@ export function Conversation(props: ConversationProps) {
   }
 
   const send = async (text: string): Promise<boolean> => {
+    const sinceSeq = poll.items.reduce((max, item) => Math.max(max, item.seq), -1)
+    let id = sessionId
+    const current = (): boolean => mounted.current && sessionIdRef.current === id
     setSending(true)
     setSendError(null)
     setSendCode(null)
     setToast(null)
-    setPending({ text })
+    setPending({ text, sinceSeq, ...replyTo === null ? {} : { replyTo } })
     try {
-      let id = sessionId
       if (id === null) {
         if (isGroup) {
           const created = await createGroupSession(group.id)
           if (!created.ok) {
             setSendError(created.error.message)
             setSendCode(created.error.code ?? 'internal')
-            setPending({ text, failed: true })
+            setPending({ text, sinceSeq, failed: true })
             return false
           }
           id = created.value.roomId
@@ -437,7 +469,7 @@ export function Conversation(props: ConversationProps) {
           if (!created.ok) {
             setSendError(created.error.message)
             setSendCode(created.error.code ?? 'internal')
-            setPending({ text, failed: true })
+            setPending({ text, sinceSeq, failed: true })
             return false
           }
           id = created.value.sessionId
@@ -448,24 +480,31 @@ export function Conversation(props: ConversationProps) {
       if (isGroup && parseMentions(text, members.map(row => ({ id: row.id, name: row.name }))).unmatched) {
         setToast('未匹配成员,已发给全员')
       }
-      const outcome = await prompt(id, text, 'queue')
+      const previous = retryRequest.current
+      const request = previous?.sessionId === id && previous.text === text && previous.replyToSeq === replyTo?.seq
+        ? previous : { sessionId: id, text, requestId: crypto.randomUUID(), ...replyTo === null ? {} : { replyToSeq: replyTo.seq } }
+      retryRequest.current = request
+      const outcome = await prompt(id, text, 'queue', isGroup ? {
+        requestId: request.requestId,
+        ...request.replyToSeq === undefined ? {} : { replyToSeq: request.replyToSeq },
+      } : {})
+      if (!current()) return outcome.ok
       if (!outcome.ok) {
         setSendError(outcome.error.message)
         setSendCode(outcome.error.code ?? 'internal')
-        setPending({ text, failed: true })
+        setPending({ text, sinceSeq, failed: true })
         setAwaitingTurn(false)
         return false
       }
-      if (replyTo !== null) {
-        const cited = replyTo
-        setReplyMarks(current => [...current, { sessionId: id, text, replyTo: cited }])
-        setReplyTo(null)
-      }
-      sendSeqRef.current = poll.items.reduce((max, item) => item.seq > max ? item.seq : max, -1)
+      retryRequest.current = null
+      setReplyTo(null)
+      const messageId = outcome.value.messageId
+      if (messageId !== undefined) setPending(current => current === null ? null : { ...current, messageId })
+      sendSeqRef.current = sinceSeq
       sawWorkingRef.current = false
-      setAwaitingTurn(true)
+      setAwaitingTurn(!isGroup)
       poll.refresh()
-      void loadSessions(id)
+      void loadSessions(sessionIdRef.current)
       return true
     } finally {
       setSending(false)
@@ -475,9 +514,13 @@ export function Conversation(props: ConversationProps) {
   const color = !isGroup && bot !== undefined
     ? (bot.avatar.color !== '' ? bot.avatar.color : hashAvatarColor(bot.id))
     : '#5b8def'
-  const empty = poll.ready && poll.items.length === 0 && pending === null && !working && poll.error === null && listError === null
+  const empty = sessionsLoaded && poll.ready && poll.items.length === 0 && pending === null && !working && poll.error === null && listError === null
+  const transcriptLoading = !sessionsLoaded || (sessionId !== null && !poll.ready)
   const composerWorking = poll.working || awaitingTurn
   const speaking = resolveSpeaking(poll.speaking, members)
+  const currentTitle = sessionId === null
+    ? undefined
+    : sessions.find(row => row.sessionId === sessionId)?.title
 
   const stopGeneration = async (): Promise<void> => {
     if (sessionId === null) return
@@ -499,7 +542,13 @@ export function Conversation(props: ConversationProps) {
             <span data-testid="conversation-name">{identityName}</span>
             {working ? (
               <span className="workingBadge" data-testid="conversation-working">
-                {poll.speaking !== null ? `${poll.speaking.name} 正在发言` : '工作中'}
+                {poll.round !== null && poll.rounds !== null
+                  ? poll.rounds === 0
+                    ? `第 ${poll.round} 轮${poll.speaking !== null ? ` · ${poll.speaking.name} 正在发言` : ''}`
+                    : (poll.rounds > 1
+                      ? `第 ${poll.round}/${poll.rounds} 轮${poll.speaking !== null ? ` · ${poll.speaking.name} 正在发言` : ''}`
+                      : (poll.speaking !== null ? `${poll.speaking.name} 正在发言` : '工作中'))
+                  : (poll.speaking !== null ? `${poll.speaking.name} 正在发言` : '工作中')}
               </span>
             ) : null}
           </div>
@@ -638,9 +687,11 @@ export function Conversation(props: ConversationProps) {
                 setSwitcherOpen(open => !open)
               }}
             >
-              <span className="sessionSwitchLabel">对话</span>
+              <span className="sessionSwitchLabel">{isGroup ? '房间' : '对话'}</span>
               <span className="sessionSwitchTitle">
-                {sessionId === null
+                {!sessionsLoaded
+                  ? '加载中…'
+                  : sessionId === null
                   ? '新对话'
                   : sessionDisplayTitle(
                     sessions.find(row => row.sessionId === sessionId)?.title,
@@ -657,16 +708,22 @@ export function Conversation(props: ConversationProps) {
                   onSelect={id => {
                     setSessionId(id)
                     setPending(null)
+                    setReplyTo(null)
+                    setSendError(null)
+                    setSendCode(null)
+                    setAwaitingTurn(false)
                     setSwitcherOpen(false)
                   }}
                   onCreate={() => {
                     setSwitcherOpen(false)
                     void openNew()
                   }}
-                  {...isGroup ? { enableJump: false } : {
+                  groupMode={isGroup}
+                  onToast={setToast}
+                  {...props.onOpenOfficialSession === undefined ? {} : { onOpenOfficialSession: props.onOpenOfficialSession }}
+                  {...isGroup ? {} : {
                     includeHidden,
                     onIncludeHidden: (next: boolean) => setIncludeHidden(next),
-                    onToast: setToast,
                   }}
                 />
               </div>
@@ -695,6 +752,14 @@ export function Conversation(props: ConversationProps) {
                   testId="session-current-jump"
                   onToast={setToast}
                   onDone={() => setCurrentMenuOpen(false)}
+                  {...props.onOpenOfficialSession === undefined ? {} : { onOpenOfficialSession: props.onOpenOfficialSession }}
+                />
+                <SessionRename
+                  sessionId={sessionId}
+                  {...currentTitle === undefined ? {} : { title: currentTitle }}
+                  testId="session-current-rename"
+                  onToast={setToast}
+                  onDone={() => setCurrentMenuOpen(false)}
                 />
               </div>
             ) : null}
@@ -705,7 +770,7 @@ export function Conversation(props: ConversationProps) {
             data-testid="session-new"
             onClick={() => { void openNew() }}
           >
-            新开对话
+            {isGroup ? '新开房间' : '新开对话'}
           </button>
         </span>
       </header>
@@ -746,14 +811,26 @@ export function Conversation(props: ConversationProps) {
         <p className="formHint" data-testid="take-effect-hint">{props.hint}</p>
       ) : null}
       {poll.error !== null ? (
-        <p className="formError" data-testid="transcript-error">{formatError(poll.error)}</p>
+        <p className="formError" data-testid="transcript-error">{formatWireError(poll.error)}</p>
       ) : null}
-      {empty ? (
-        <div className="emptyChat" data-testid="empty-chat-cta">
-          <p>还没有对话</p>
-          <p className="hint">给 {identityName} 发一条消息开始，或点「新开对话」</p>
+      {transcriptLoading ? (
+        <div className="conversationStage isLoading" data-testid="conversation-loading" role="status">
+          <div className="conversationSkeleton" aria-hidden="true">
+            <span className="skeletonBubble assistant" />
+            <span className="skeletonBubble user" />
+            <span className="skeletonBubble assistant" />
+          </div>
+          <p className="hint">加载对话…</p>
+        </div>
+      ) : empty ? (
+        <div className="emptyChat isReady" data-testid="empty-chat-cta">
+          <p>{isGroup ? '还没有发言' : '还没有对话'}</p>
+          <p className="hint">
+            给 {identityName} 发一条消息开始，或点「{isGroup ? '新开房间' : '新开对话'}」
+          </p>
         </div>
       ) : (
+        <div className="conversationStage isReady">
         <Transcript
           {...bot?.id === undefined ? {} : { botId: bot.id }}
           items={liveItems}
@@ -779,7 +856,7 @@ export function Conversation(props: ConversationProps) {
             if (item.rpcId === undefined || item.approvalId === undefined || sessionId === null) return
             const result = await approvalRespond({
               rpcId: item.rpcId,
-              sessionId,
+              sessionId: item.sessionId ?? sessionId,
               approvalId: item.approvalId,
               outcome,
             })
@@ -788,7 +865,7 @@ export function Conversation(props: ConversationProps) {
           }}
           onQuestion={async (item, answer) => {
             if (item.rpcId === undefined || sessionId === null) return
-            const result = await questionRespond({ rpcId: item.rpcId, sessionId, answer })
+            const result = await questionRespond({ rpcId: item.rpcId, sessionId: item.sessionId ?? sessionId, answer })
             setToast(result.ok ? '已提交回答' : '提问提交失败')
             poll.refresh()
           }}
@@ -802,12 +879,7 @@ export function Conversation(props: ConversationProps) {
               setPinPick(null)
               setToast(result.ok ? '已记住' : '记住失败')
             },
-            replyMarks: replyMarks
-              .filter(row => row.sessionId === sessionId)
-              .map(row => ({ text: row.text, replyTo: row.replyTo })),
-            pendingReply: pending === null
-              ? null
-              : (replyMarks.find(row => row.sessionId === sessionId && row.text === pending.text)?.replyTo ?? null),
+            pendingReply: pending?.replyTo ?? null,
             onReplyTo: (item: WorkbenchHistoryItem) => {
               setReplyTo({
                 seq: item.seq,
@@ -817,7 +889,9 @@ export function Conversation(props: ConversationProps) {
             },
           } : {}}
         />
+        </div>
       )}
+      {sessionsLoaded ? (
       <Composer
         botId={identityId}
         botName={identityName}
@@ -830,11 +904,19 @@ export function Conversation(props: ConversationProps) {
         paletteOpen={props.paletteOpen === true}
         {...replyTo === null ? {} : { replyTo }}
         onClearReply={() => setReplyTo(null)}
-        {...isGroup ? { storageKey: groupDraftStorageKey(group.id), members } : {}}
+        storageKey={`${isGroup ? groupDraftStorageKey(group.id) : draftStorageKey(identityId)}${sessionId === null ? '' : `:${sessionId}`}`}
+        {...isGroup ? { members } : {}}
         onSend={send}
         onStop={() => { void stopGeneration() }}
+        onDraftEdit={() => {
+          if (sendError !== null || sendCode !== null) {
+            setSendError(null)
+            setSendCode(null)
+          }
+        }}
         {...props.onDraft === undefined ? {} : { onDraft: props.onDraft }}
       />
+      ) : null}
     </div>
   )
 }

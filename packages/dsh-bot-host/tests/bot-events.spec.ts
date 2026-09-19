@@ -7,12 +7,14 @@ import { mkdirSync, mkdtempSync, rmSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import type { IncomingMessage, ServerResponse } from 'node:http'
+import { Context } from '@deepseek-ai/cordis'
 import { afterEach, describe, expect, it } from 'vitest'
 import { put } from 'session-marks'
 import {
   encodeSse,
   handleBotEventsHttp,
   marksAllowForward,
+  muxFrameFromSessionEvent,
   unwrapFrame,
 } from '../src/bot-events.ts'
 
@@ -91,7 +93,55 @@ describe('unwrapFrame', () => {
   })
 })
 
+describe('muxFrameFromSessionEvent', () => {
+  it('maps approval/asked onto a workbench card with rpcId', () => {
+    expect(muxFrameFromSessionEvent({ id: 's1' }, {
+      type: 'approval/asked',
+      seq: 12,
+      data: { id: 'ap-9', reason: 'bash' },
+    })).toEqual({
+      type: 'approval/requested',
+      sessionId: 's1',
+      seq: 12,
+      approvalId: 'ap-9',
+      rpcId: 'ap-9',
+      message: 'bash',
+      event: {
+        type: 'approval/asked',
+        seq: 12,
+        data: { id: 'ap-9', reason: 'bash' },
+      },
+    })
+  })
+
+  it('keeps assistant chunks as session/event', () => {
+    expect(muxFrameFromSessionEvent({ id: 's1' }, {
+      type: 'assistant/chunk',
+      seq: 3,
+      data: { chunk: { type: 'text-delta', text: 'hi' } },
+    })).toMatchObject({
+      type: 'session/event',
+      sessionId: 's1',
+      event: { type: 'assistant/chunk' },
+    })
+  })
+})
+
 describe('handleBotEventsHttp', () => {
+  it('routes a hidden member approval to its room without replacing its execution session', async () => {
+    home()
+    await put('member-session', ['bot:member', 'group-room:room-1', 'hidden'])
+    const { res, chunks } = mockRes()
+    await handleBotEventsHttp({
+      subscribeMux: () => ofItems([{
+        rpcId: 'approval-rpc',
+        payload: { type: 'approval/requested', sessionId: 'member-session', approvalId: 'approval-1' },
+      }]),
+    }, mockReq(), res)
+    const frames = chunks.join('').split('\n').filter(row => row.startsWith('data: ')).map(row => JSON.parse(row.slice(6)))
+    expect(frames).toContainEqual({ type: 'approval/requested', sessionId: 'member-session', roomId: 'room-1', approvalId: 'approval-1', rpcId: 'approval-rpc' })
+  })
+
   it('returns 503 when mux and host ducks are missing', async () => {
     const { res, chunks } = mockRes()
     await handleBotEventsHttp({}, mockReq(), res)
@@ -135,5 +185,38 @@ describe('handleBotEventsHttp', () => {
 describe('encodeSse', () => {
   it('writes a data line', () => {
     expect(encodeSse({ type: 'ready' })).toBe('data: {"type":"ready"}\n\n')
+  })
+})
+
+describe('createPlatform approval waterfall', () => {
+  it('unblocks approval/request when the workbench responds', async () => {
+    const { createPlatform } = await import('../src/platform.ts')
+    const ctx = new Context()
+    const platform = createPlatform(ctx)
+    const ac = new AbortController()
+    const mux = platform.subscribeMux?.(ac.signal)
+    if (mux === undefined) throw new Error('mux missing')
+    const frames: unknown[] = []
+    const pump = (async () => {
+      for await (const item of mux) {
+        frames.push(item)
+        if (frames.length >= 1) break
+      }
+    })()
+    const decided = (ctx.waterfall as (...args: unknown[]) => Promise<unknown>)({ agent: { id: 's1' }, reason: 'bash' } as never, 'approval/request' as never, {
+      agent: { id: 's1' },
+      reason: 'bash',
+    }, async () => 'unavailable')
+    await new Promise(resolve => setTimeout(resolve, 0))
+    const frame = frames[0] as { rpcId?: string; type?: string; sessionId?: string }
+    expect(frame).toMatchObject({ type: 'approval/requested', sessionId: 's1' })
+    expect(typeof frame.rpcId).toBe('string')
+    await expect(platform.respond?.({
+      rpcId: frame.rpcId ?? '',
+      value: { sessionId: 's1', outcome: 'allowed-once' },
+    })).resolves.toEqual({ ok: true })
+    await expect(decided).resolves.toBe('allowed-once')
+    ac.abort()
+    await pump
   })
 })

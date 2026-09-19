@@ -2,6 +2,7 @@
  * Workbench shell: 280px roster + conversation stage (reference-ui-notes §A).
  */
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { notifyRoutineSpoke, shouldNotifyRoutine } from './notify.ts'
 import {
   createBot,
@@ -52,7 +53,8 @@ import type { RosterItem, RosterSession } from './Roster.tsx'
 import { useBotEvents } from './useBotEvents.ts'
 import { useGlobalKeyboard } from './useGlobalKeyboard.ts'
 import { groupRosterItems } from './roster-sections.ts'
-import { SELECT_GROUP_MESSAGE_TYPE } from 'dsh-bot-shared'
+import { formatWireError, SELECT_GROUP_MESSAGE_TYPE } from 'dsh-bot-shared'
+import type { WorkbenchWireError } from 'dsh-bot-shared'
 
 type ShellStatus = 'loading' | 'idle' | 'error'
 type FormMode =
@@ -86,6 +88,20 @@ function sameBots(a: readonly WorkbenchBot[], b: readonly WorkbenchBot[]): boole
   return a.length === b.length && a.every((row, index) => sameBot(row, b[index]!))
 }
 
+const GROUP_MEMBER_MIN = 2
+
+function groupsAfterBotRemoved(
+  rows: readonly WorkbenchGroup[],
+  botId: string,
+): WorkbenchGroup[] {
+  return rows.flatMap(group => {
+    if (!group.memberIds.includes(botId)) return [group]
+    const memberIds = group.memberIds.filter(id => id !== botId)
+    if (memberIds.length < GROUP_MEMBER_MIN) return []
+    return [{ ...group, memberIds }]
+  })
+}
+
 
 function overrideFromForm(values: BotFormValues): WorkbenchModelOverride | undefined {
   const provider = values.provider.trim()
@@ -97,7 +113,11 @@ function overrideFromForm(values: BotFormValues): WorkbenchModelOverride | undef
 /**
  * Root layout. Loads listBots; conversation identity follows the selected row.
  */
-export function App() {
+export interface AppProps {
+  readonly rosterTarget?: HTMLElement | null
+}
+
+export function App(props: AppProps = {}) {
   const live = useBotEvents()
   const sseReady = live.sseReady
   const [status, setStatus] = useState<ShellStatus>('loading')
@@ -110,7 +130,7 @@ export function App() {
   const [workingIds, setWorkingIds] = useState<ReadonlySet<string>>(() => new Set())
   const [form, setForm] = useState<FormMode | null>(null)
   const [formBusy, setFormBusy] = useState(false)
-  const [formError, setFormError] = useState<string | null>(null)
+  const [formError, setFormError] = useState<WorkbenchWireError | null>(null)
   const [actionError, setActionError] = useState<string | null>(null)
   const [effectHint, setEffectHint] = useState<string | null>(null)
   const [botModel, setBotModel] = useState<WorkbenchBotModelInfo | null>(null)
@@ -500,7 +520,7 @@ export function App() {
           ...modelOverride === undefined ? {} : { modelOverride },
         })
         if (!outcome.ok) {
-          setFormError(outcome.error.message)
+          setFormError(outcome.error)
           return
         }
         setBots(current => {
@@ -520,7 +540,7 @@ export function App() {
         modelOverride: modelOverride ?? null,
       })
       if (!outcome.ok) {
-        setFormError(outcome.error.message)
+        setFormError(outcome.error)
         return
       }
       setBots(current => current.map(row => row.id === outcome.value.id ? outcome.value : row))
@@ -540,9 +560,9 @@ export function App() {
     setFormError(null)
     try {
       if (form.kind === 'create-group') {
-        const outcome = await createGroup({ name: values.name, memberIds: values.memberIds })
+        const outcome = await createGroup({ name: values.name, memberIds: values.memberIds, rounds: values.rounds })
         if (!outcome.ok) {
-          setFormError(outcome.error.message)
+          setFormError(outcome.error)
           return
         }
         setGroups(current => [...current.filter(row => row.id !== outcome.value.id), outcome.value])
@@ -555,9 +575,10 @@ export function App() {
         id: form.group.id,
         name: values.name,
         memberIds: values.memberIds,
+        rounds: values.rounds,
       })
       if (!outcome.ok) {
-        setFormError(outcome.error.message)
+        setFormError(outcome.error)
         return
       }
       setGroups(current => current.map(row => row.id === outcome.value.id ? outcome.value : row))
@@ -572,7 +593,7 @@ export function App() {
     if (groups.some(row => row.id === id)) {
       const outcome = await updateGroup({ id, name })
       if (!outcome.ok) {
-        setActionError(outcome.error.message)
+        setActionError(formatWireError(outcome.error))
         return
       }
       setActionError(null)
@@ -581,7 +602,7 @@ export function App() {
     }
     const outcome = await updateBot({ id, name })
     if (!outcome.ok) {
-      setActionError(outcome.error.message)
+      setActionError(formatWireError(outcome.error))
       return
     }
     setActionError(null)
@@ -591,7 +612,7 @@ export function App() {
   const removeGroup = async (id: string): Promise<void> => {
     const outcome = await deleteGroup(id)
     if (!outcome.ok) {
-      setActionError(outcome.error.message)
+      setActionError(formatWireError(outcome.error))
       return
     }
     setActionError(null)
@@ -608,19 +629,48 @@ export function App() {
   const removeBot = async (id: string): Promise<void> => {
     const outcome = await deleteBot(id)
     if (!outcome.ok) {
-      setActionError(outcome.error.message)
+      setActionError(formatWireError(outcome.error))
       return
     }
     setActionError(null)
-    setBots(current => current.filter(row => row.id !== id))
-    setSelectedId(current => current === id ? (bots.find(row => row.id !== id)?.id ?? null) : current)
+    const remainingBots = bots.filter(row => row.id !== id)
+    setBots(remainingBots)
+    let nextGroups = groupsAfterBotRemoved(groups, id)
+    const listed = await listGroups()
+    if (listed.ok && Array.isArray(listed.value.groups)) {
+      nextGroups = groupsAfterBotRemoved(listed.value.groups, id)
+    }
+    setGroups(nextGroups)
+    setSelectedId(current => {
+      if (current !== null && (
+        remainingBots.some(row => row.id === current)
+        || nextGroups.some(row => row.id === current)
+      )) {
+        return current
+      }
+      return remainingBots[0]?.id ?? nextGroups[0]?.id ?? null
+    })
     setEffectHint(null)
+    const dropped = new Set([
+      id,
+      ...groups.filter(group => !nextGroups.some(row => row.id === group.id)).map(group => group.id),
+    ])
     setDrafts(current => {
       const next = { ...current }
-      delete next[id]
+      for (const key of dropped) delete next[key]
+      return next
+    })
+    setSessionsByOwner(current => {
+      const next = { ...current }
+      for (const key of dropped) delete next[key]
       return next
     })
     if (form?.kind === 'edit' && form.bot.id === id) setForm(null)
+    if (form?.kind === 'edit-group') {
+      const updated = nextGroups.find(row => row.id === form.group.id)
+      if (updated === undefined) setForm(null)
+      else if (updated !== form.group) setForm({ kind: 'edit-group', group: updated })
+    }
   }
 
   const rememberSessions = (ownerId: string, rows: readonly WorkbenchSessionRow[]): void => {
@@ -693,7 +743,7 @@ export function App() {
     if (group !== undefined) {
       const outcome = await createGroupSession(ownerId)
       if (!outcome.ok) {
-        setActionError(outcome.error.message)
+        setActionError(formatWireError(outcome.error))
         return
       }
       setActionError(null)
@@ -704,7 +754,7 @@ export function App() {
     }
     const outcome = await createBotSession(ownerId)
     if (!outcome.ok) {
-      setActionError(outcome.error.message)
+      setActionError(formatWireError(outcome.error))
       return
     }
     setActionError(null)
@@ -797,6 +847,8 @@ export function App() {
         </>
       ) : (
         <>
+          {props.rosterTarget != null
+            ? createPortal(
           <Roster
             items={items}
             error={actionError}
@@ -875,38 +927,89 @@ export function App() {
             onDeleteGroup={id => { void removeGroup(id) }}
             onRename={(id, name) => { void renameBot(id, name) }}
           />
+            , props.rosterTarget)
+            : (
+          <Roster
+            items={items}
+            error={actionError}
+            onSelect={id => {
+              setSelectedId(id)
+              setPreferredSessionId(null)
+              setForm(null)
+              setEffectHint(null)
+              setActionError(null)
+              if (!groups.some(row => row.id === id)) clearUnread(id)
+            }}
+            onSelectSession={(ownerId, sessionId) => {
+              setSelectedId(ownerId)
+              setPreferredSessionId(sessionId)
+              setForm(null)
+              setEffectHint(null)
+              setActionError(null)
+              if (!groups.some(row => row.id === ownerId)) clearUnread(ownerId)
+            }}
+            onNewSession={id => { void openOwnedSession(id) }}
+            onOpenGraph={() => setGraphOpen(true)}
+            collapsed={rosterCollapsed}
+            folded={foldedSections}
+            onToggleSection={id => setFoldedSections(current => {
+              const next = new Set(current)
+              if (next.has(id)) next.delete(id)
+              else next.add(id)
+              return next
+            })}
+            onLayout={input => {
+              void (async () => {
+                const outcome = await updateBotLayout(input)
+                if (!outcome.ok) {
+                  setActionError('没保住')
+                  return
+                }
+                setActionError(null)
+                await load()
+              })()
+            }}
+            onMarkRead={id => {
+              void (async () => {
+                await markRead(id)
+                await load()
+              })()
+            }}
+            onCreate={() => {
+              setFormError(null)
+              setActionError(null)
+              setEffectHint(null)
+              setForm({ kind: 'create' })
+            }}
+            onCreateGroup={() => {
+              setFormError(null)
+              setActionError(null)
+              setEffectHint(null)
+              setForm({ kind: 'create-group' })
+            }}
+            onEdit={id => {
+              const bot = bots.find(row => row.id === id)
+              if (bot === undefined) return
+              setFormError(null)
+              setEffectHint(null)
+              setForm({ kind: 'edit', bot })
+              setSelectedId(id)
+            }}
+            onEditMembers={id => {
+              const group = groups.find(row => row.id === id)
+              if (group === undefined) return
+              setFormError(null)
+              setEffectHint(null)
+              setForm({ kind: 'edit-group', group })
+              setSelectedId(id)
+            }}
+            onDelete={id => { void removeBot(id) }}
+            onDeleteGroup={id => { void removeGroup(id) }}
+            onRename={(id, name) => { void renameBot(id, name) }}
+          />
+            )}
           <main className="conversation" data-testid="workbench-conversation">
-            {form !== null && (form.kind === 'create-group' || form.kind === 'edit-group') ? (
-              <GroupForm
-                key={form.kind === 'create-group' ? 'create-group' : form.group.id}
-                mode={form.kind === 'create-group' ? 'create' : 'edit'}
-                bots={bots}
-                {...form.kind === 'edit-group' ? { initial: form.group } : {}}
-                busy={formBusy}
-                error={formError}
-                roundLocked={form.kind === 'edit-group' && workingIds.has(form.group.id)}
-                onCancel={() => {
-                  if (formBusy) return
-                  setForm(null)
-                }}
-                onSubmit={values => { void submitGroupForm(values) }}
-              />
-            ) : form !== null && (form.kind === 'create' || form.kind === 'edit') ? (
-              <BotForm
-                key={form.kind === 'create' ? 'create' : form.bot.id}
-                mode={form.kind}
-                {...form.kind === 'edit' ? { initial: form.bot } : {}}
-                botModel={botModel}
-                busy={formBusy}
-                error={formError}
-                hint={form.kind === 'edit' ? '人设对之后的新对话生效；记忆会随新会话一起注入' : null}
-                onCancel={() => {
-                  if (formBusy) return
-                  setForm(null)
-                }}
-                onSubmit={values => { void submitForm(values) }}
-              />
-            ) : selectedGroup !== null ? (
+            {selectedGroup !== null ? (
               <Conversation
                 key={`group:${selectedGroup.id}`}
                 group={selectedGroup}
@@ -989,6 +1092,38 @@ export function App() {
                 }}
               />
             )}
+            {form !== null && (form.kind === 'create-group' || form.kind === 'edit-group') ? (
+              <GroupForm
+                key={form.kind === 'create-group' ? 'create-group' : form.group.id}
+                mode={form.kind === 'create-group' ? 'create' : 'edit'}
+                bots={bots}
+                {...form.kind === 'edit-group' ? { initial: form.group } : {}}
+                busy={formBusy}
+                error={formError}
+                roundLocked={form.kind === 'edit-group' && workingIds.has(form.group.id)}
+                onCancel={() => {
+                  if (formBusy) return
+                  setForm(null)
+                }}
+                onSubmit={values => { void submitGroupForm(values) }}
+              />
+            ) : null}
+            {form !== null && (form.kind === 'create' || form.kind === 'edit') ? (
+              <BotForm
+                key={form.kind === 'create' ? 'create' : form.bot.id}
+                mode={form.kind}
+                {...form.kind === 'edit' ? { initial: form.bot } : {}}
+                botModel={botModel}
+                busy={formBusy}
+                error={formError}
+                hint={form.kind === 'edit' ? '人设对之后的新对话生效；记忆会随新会话一起注入' : null}
+                onCancel={() => {
+                  if (formBusy) return
+                  setForm(null)
+                }}
+                onSubmit={values => { void submitForm(values) }}
+              />
+            ) : null}
           </main>
         </>
       )}

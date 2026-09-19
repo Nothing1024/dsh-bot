@@ -6,14 +6,20 @@
   "type": "module",
   "exports": {
     ".": "./lib/index.html",
-    "./package.json": "./package.json"
+    "./package.json": "./package.json",
+    "./embedded": {
+      "types": "./lib/types/App.d.ts",
+      "default": "./src/App.tsx"
+    },
+    "./styles.css": "./src/styles.css"
   },
   "files": [
-    "lib"
+    "lib",
+    "src"
   ],
   "scripts": {
     "typecheck": "tsc -p tsconfig.json --noEmit",
-    "build": "tsdown && cp index.html lib/index.html && cp src/styles.css lib/workbench.css",
+    "build": "tsdown && cp index.html lib/index.html && cp src/styles.css lib/workbench.css && tsc -p tsconfig.build.json",
     "test": "vitest run --config ../../vitest.config.ts packages/workbench-ui/tests"
   },
   "dependencies": {

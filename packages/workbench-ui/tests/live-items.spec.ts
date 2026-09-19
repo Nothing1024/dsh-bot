@@ -6,6 +6,19 @@ const user: WorkbenchHistoryItem = { id: 'u1', kind: 'message', seq: 1, role: 'u
 const assistant: WorkbenchHistoryItem = { id: 'a1', kind: 'message', seq: 2, role: 'assistant', text: 'old' }
 
 describe('mergeLiveItems', () => {
+  it('shows a member approval in its room while preserving the execution target', () => {
+    const card: WorkbenchHistoryItem = { id: 'member-approval', kind: 'approval', seq: 3, sessionId: 'member-s', roomId: 'room', pending: true }
+    expect(mergeLiveItems([], 'room', null, [card])).toEqual([card])
+    expect(mergeLiveItems([], 'other-room', null, [card])).toEqual([])
+  })
+
+  it('does not overwrite an earlier answer when a new turn starts streaming', () => {
+    const followup: WorkbenchHistoryItem = { ...user, id: 'u2', seq: 3, text: 'next' }
+    const items = mergeLiveItems([user, assistant, followup], 's1', { sessionId: 's1', text: 'new answer' }, [])
+    expect(items[1]?.text).toBe('old')
+    expect(items.at(-1)?.text).toBe('new answer')
+  })
+
   it('appends a streaming assistant bubble when none exists', () => {
     const next = mergeLiveItems([user], 's1', { sessionId: 's1', text: 'hello' }, [])
     expect(next.at(-1)).toMatchObject({ role: 'assistant', text: 'hello', streaming: true })

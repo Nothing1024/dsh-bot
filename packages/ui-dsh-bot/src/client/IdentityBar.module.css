@@ -1,10 +1,12 @@
 .bar {
-  display: inline-flex;
+  display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: 6px;
   color: inherit;
   color-scheme: inherit;
   min-width: 0;
+  max-width: 100%;
 }
 
 .chip {
@@ -19,7 +21,8 @@
   font: inherit;
   font-size: 13px;
   cursor: pointer;
-  max-width: 220px;
+  max-width: min(220px, 100%);
+  min-width: 0;
 }
 
 .chip:hover {
@@ -37,6 +40,7 @@
 }
 
 .name {
+  min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -59,10 +63,12 @@
   font: inherit;
   font-size: 12px;
   cursor: pointer;
-  max-width: 220px;
+  max-width: min(220px, 100%);
+  min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  flex: 0 1 auto;
 }
 
 .pill:hover {

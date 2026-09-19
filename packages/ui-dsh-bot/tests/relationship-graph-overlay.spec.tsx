@@ -11,7 +11,7 @@ const bots: WorkbenchBot[] = [
 ]
 
 const groups: WorkbenchGroup[] = [
-  { id: 'editors', name: '编辑室', memberIds: ['poet', 'reviewer'], createdAt: 3 },
+  { id: 'editors', name: '编辑室', memberIds: ['poet', 'reviewer'], createdAt: 3, rounds: 3 },
 ]
 
 afterEach(() => {

@@ -69,6 +69,8 @@ export interface WorkbenchBotsFace {
   deleteBot(input: { id: string }): Promise<DeleteBotResult>
   createBotSession(input: CreateOwnedSessionRequest): Promise<CreateOwnedSessionResult>
   listBotSessions(input: ListOwnedSessionsRequest): Promise<ListOwnedSessionsResult>
+  renameSession(input: { sessionId: string; title: string }): Promise<{ sessionId: string; title: string }>
+  prepareOfficialJump(input: { sessionId: string }): Promise<{ sessionId: string }>
   history(input: HistoryRequest): Promise<HistoryResult>
   prompt(input: PromptRequest): Promise<PromptResult>
   reconcile(): Promise<ReconcileResult>
@@ -245,6 +247,17 @@ export async function dispatchWorkbenchApi(
       if (groupId === '') throw new DshBotError('invalid-input', 'groupId is required')
       return await bot.createGroupSession({ groupId })
     }
+    case 'renameSession': {
+      const sessionId = asString(args.sessionId).trim()
+      const title = asString(args.title).trim()
+      if (!sessionId || !title || title.length > 60) throw new DshBotError('invalid-input', '名称须为 1–60 个字符')
+      return await bot.renameSession({ sessionId, title })
+    }
+    case 'prepareOfficialJump': {
+      const sessionId = asString(args.sessionId).trim()
+      if (sessionId === '') throw new DshBotError('invalid-input', 'sessionId is required')
+      return await bot.prepareOfficialJump({ sessionId })
+    }
     case 'listGroupSessions': {
       const groupId = asString(args.groupId).trim()
       if (groupId === '') throw new DshBotError('invalid-input', 'groupId is required')
@@ -416,10 +429,20 @@ function asStringList(value: unknown): string[] {
   return value.filter((item): item is string => typeof item === 'string')
 }
 
+function parseRoundsArg(value: unknown): number | undefined {
+  if (value === undefined) return undefined
+  if (typeof value !== 'number' || !Number.isInteger(value)) {
+    throw new DshBotError('invalid-input', 'rounds must be an integer')
+  }
+  return value
+}
+
 function parseCreateGroup(args: Record<string, unknown>): CreateGroupInput {
+  const rounds = parseRoundsArg(args.rounds)
   return {
     name: asString(args.name),
     memberIds: asStringList(args.memberIds),
+    ...rounds === undefined ? {} : { rounds },
   }
 }
 
@@ -428,10 +451,12 @@ function parseUpdateGroup(args: Record<string, unknown>): UpdateGroupInput {
   if (id === '') throw new DshBotError('invalid-input', 'group id is required')
   const name = args.name === undefined ? undefined : asString(args.name)
   const memberIds = args.memberIds === undefined ? undefined : asStringList(args.memberIds)
+  const rounds = parseRoundsArg(args.rounds)
   return {
     id,
     ...name === undefined ? {} : { name },
     ...memberIds === undefined ? {} : { memberIds },
+    ...rounds === undefined ? {} : { rounds },
   }
 }
 
@@ -538,9 +563,17 @@ function parseHistory(args: Record<string, unknown>): HistoryRequest {
 function parsePrompt(args: Record<string, unknown>): PromptRequest {
   const sessionId = asString(args.sessionId).trim()
   if (sessionId === '') throw new DshBotError('invalid-input', 'sessionId is required')
+  if (args.requestId !== undefined && (typeof args.requestId !== 'string' || args.requestId.trim() === '' || args.requestId.length > 128)) {
+    throw new DshBotError('invalid-input', 'requestId must be a non-empty string up to 128 characters')
+  }
+  if (args.replyToSeq !== undefined && (!Number.isSafeInteger(args.replyToSeq) || Number(args.replyToSeq) < 0)) {
+    throw new DshBotError('invalid-input', 'replyToSeq must be a non-negative integer')
+  }
   return {
     sessionId,
     text: asString(args.text),
+    ...typeof args.requestId === 'string' ? { requestId: args.requestId } : {},
+    ...typeof args.replyToSeq === 'number' ? { replyToSeq: args.replyToSeq } : {},
     ...args.mode === 'steer' ? { mode: 'steer' as const } : args.mode === 'queue' ? { mode: 'queue' as const } : {},
   }
 }

@@ -1,13 +1,14 @@
 /**
- * Workbench session chain: gateway session.create {agentPreset,cwd} +
- * marks [kind:dsh-bot, bot:<id>] + v1 model override; history/prompt stay
- * on sessionTool (BR-203 / Task 8).
+ * Workbench session chain: sessionTool.create + ownership marks
+ * (`app:dsh-bot` / `kind:dsh-bot` / `form:plugin` / `bot:<id>`) + v1 model
+ * override. Persona is wrapped at write time, not a DSH preset.
  * @module dsh-bot-host/workbench-sessions
  */
 
+import { hideBotSession } from './session-visibility.ts'
 import { dirname } from 'node:path'
 import { SessionId } from '@deepseek-ai/dsh-session'
-import { isTitleHidden, listByKind } from 'session-marks'
+import { listByMark } from 'session-marks'
 import {
   SessionToolError,
   SessionWebUnreachableError,
@@ -23,15 +24,16 @@ import type { DshBotRuntimeConfig } from './ask.ts'
 import type { BotsRuntime } from './bots.ts'
 import { DshBotError } from './errors.ts'
 import {
-  DSH_BOT_HIDDEN_KIND,
-  DSH_BOT_MEMORY_HIDDEN_TITLE_PREFIX,
+  DSH_BOT_CHAT_KIND,
+  isAuxiliaryBotSession,
   botMark,
-  mergeBotMarks,
+  botOwnershipTags,
   parseRoutineMark,
 } from './marks.ts'
 import type { RoomState } from './groups.ts'
 import { applyModelOverride } from './platform.ts'
 import { isRoutineInjection } from './routine-wake.ts'
+import { isVoiceInjection, unwrapPrompt } from './session-voice.ts'
 import { parseProposeRoutine } from './routine-behavior.ts'
 import type { DshBotPlatform } from './platform.ts'
 
@@ -57,6 +59,8 @@ export interface CreateOwnedSessionRequest {
   readonly botId: string
   readonly title?: string
   readonly cwd?: string
+  /** Instance keys written at create (`routine:`, `peer:`). Not a second merge. */
+  readonly extraTags?: readonly string[]
 }
 
 /** Create-owned-session result. */
@@ -101,6 +105,7 @@ export interface WorkbenchHistoryAuthor {
 }
 
 export interface WorkbenchHistoryItem {
+  readonly replyTo?: { readonly seq: number; readonly speaker: string; readonly text: string }
   readonly id: string
   readonly kind: 'message' | 'thinking' | 'tool' | 'propose-routine'
   readonly seq: number
@@ -120,15 +125,20 @@ export interface HistoryResult {
   readonly items: readonly WorkbenchHistoryItem[]
   readonly working: boolean
   readonly speaking?: { readonly botId: string; readonly name: string }
+  readonly round?: number
+  readonly rounds?: number
 }
 
 export interface PromptRequest {
+  readonly requestId?: string
+  readonly replyToSeq?: number
   readonly sessionId: string
   readonly text: string
   readonly mode?: 'queue' | 'steer'
 }
 
 export interface PromptResult {
+  readonly messageId?: string
   readonly sessionId: string
   readonly unmatchedMentions?: boolean
 }
@@ -194,11 +204,13 @@ function blockText(block: Record<string, unknown>): string {
 
 /** Drop platform-injected user context (runtime snapshot / skill catalog). */
 export function isPlatformInjection(text: string): boolean {
-  const t = text.trim()
+  const raw = text.trim()
+  const unwrapped = unwrapPrompt(raw).trim()
+  const t = unwrapped === '' ? raw : unwrapped
   if (t.startsWith('Current runtime context')) return true
-  if (t.includes('<system-reminder>')) return true
   if (t.includes('<available_skills>')) return true
   if (isRoutineInjection(t)) return true
+  if (unwrapped === '' && (isVoiceInjection(raw) || raw.includes('<system-reminder>'))) return true
   return false
 }
 
@@ -265,7 +277,7 @@ export function projectWorkbenchHistory(
         summary: tool.summary,
       })
     }
-    const text = texts.join('\n').trim()
+    const text = unwrapPrompt(texts.join('\n').trim())
     if (text !== '' && (row.role === 'user' || row.role === 'assistant')) {
       if (row.role === 'user' && isPlatformInjection(text)) continue
       const parsed = row.role === 'assistant' ? parseProposeRoutine(text) : { text, proposals: [] as const }
@@ -277,7 +289,7 @@ export function projectWorkbenchHistory(
           seq,
           role: row.role,
           text: parsed.text,
-          ...row.role === 'assistant' && isRoutineInjection(text) ? { origin: 'routine' as const } : {},
+          ...row.role === 'assistant' && isRoutineInjection(texts.join('\n')) ? { origin: 'routine' as const } : {},
         })
       }
       parsed.proposals.forEach((proposal, index) => {
@@ -309,6 +321,7 @@ export function projectRoomHistory(
     if (sinceSeq !== undefined && line.seq < sinceSeq) continue
     if (line.speaker.kind === 'user') {
       items.push({
+        ...line.replyTo === undefined ? {} : { replyTo: line.replyTo },
         id: line.id,
         kind: 'message',
         seq: line.seq,
@@ -389,7 +402,7 @@ async function resolveWorking(
 }
 
 /**
- * Create a workbench-owned session bound to one bot preset + `bot:<id>` mark.
+ * Create a workbench-owned session bound to one bot via session-tool + `bot:<id>` mark.
  */
 export async function createOwnedSession(
   sessionTool: SessionToolService,
@@ -397,6 +410,7 @@ export async function createOwnedSession(
   bots: BotsRuntime,
   config: DshBotRuntimeConfig,
   request: CreateOwnedSessionRequest,
+  onCreated?: (sessionId: string, botId: string) => Promise<void>,
 ): Promise<CreateOwnedSessionResult> {
   const botId = request.botId.trim()
   if (botId === '') throw new DshBotError('invalid-input', 'botId is required')
@@ -404,15 +418,17 @@ export async function createOwnedSession(
   const cwd = request.cwd !== undefined && request.cwd.trim() !== '' ? request.cwd.trim() : defaultCreateCwd()
   const title = request.title !== undefined && request.title.trim() !== ''
     ? visibleBotTitle(request.title)
-    : visibleBotTitle(bot.name)
+    : visibleBotTitle(`${bot.name} · ${new Date().toLocaleString('zh-CN', { hour12: false })}`)
   let sessionId: string | undefined
   try {
-    const created = await platform.createSession({
-      agentPreset: bot.presetId,
+    const created = await sessionTool.create(CLI_CALLER, {
+      title,
+      tags: botOwnershipTags(DSH_BOT_CHAT_KIND, botMark(bot.id), ...(request.extraTags ?? [])),
       cwd,
     })
     sessionId = created.sessionId
-    await mergeBotMarks(sessionId, [botMark(botId)])
+    await hideBotSession(sessionTool, platform, sessionId, CLI_CALLER, { syncToArchived: false })
+    await onCreated?.(sessionId, bot.id)
     await applyModelOverride(platform, sessionId, bot.modelOverride ?? resolveOverride(config))
     try {
       await platform.renameSession(sessionId, title)
@@ -435,8 +451,8 @@ export async function createOwnedSession(
 }
 
 /**
- * Marks `bot:<id>` ∩ sessionTool.list, newest first; `kind:hidden` omitted
- * unless includeHidden.
+ * Bot-owned chats, newest first. Auxiliary sessions require includeHidden;
+ * hiding a chat from Harness does not remove it from the Bot list.
  */
 export async function listOwnedSessions(
   sessionTool: SessionToolService,
@@ -448,7 +464,7 @@ export async function listOwnedSessions(
   if (botId === '') throw new DshBotError('invalid-input', 'botId is required')
   await bots.getBot(botId)
   const includeHidden = request.includeHidden === true
-  const marked = await listByKind(botMark(botId))
+  const marked = await listByMark(botMark(botId))
   let listed
   try {
     listed = await sessionTool.list(CLI_CALLER, {
@@ -471,10 +487,8 @@ export async function listOwnedSessions(
   for (const mark of marked) {
     const meta = byId.get(mark.id)
     if (meta === undefined) continue
-    const tags = [...meta.tags]
-    const hidden = tags.includes(DSH_BOT_HIDDEN_KIND)
-      || isTitleHidden(meta.title, ['~'])
-      || (meta.title ?? '').startsWith(DSH_BOT_MEMORY_HIDDEN_TITLE_PREFIX)
+    const tags = [...new Set([...meta.tags, ...mark.tags])]
+    const hidden = isAuxiliaryBotSession(tags, meta.title)
     if (!includeHidden && hidden) continue
     const gate = runningById.get(mark.id)
     const routineId = parseRoutineMark(tags) ?? parseRoutineMark(mark.tags)
@@ -496,6 +510,34 @@ export async function listOwnedSessions(
     return a.sessionId < b.sessionId ? 1 : a.sessionId > b.sessionId ? -1 : 0
   })
   return { sessions }
+}
+
+/**
+ * Hide + archive every session marked `bot:<id>`, including hidden group-member
+ * turns. Best-effort per row: a leftover session is inert after the bot is gone.
+ */
+export async function archiveOwnedSessions(
+  sessionTool: SessionToolService,
+  platform: Pick<DshBotPlatform, 'archiveSession'>,
+  botId: string,
+): Promise<{ archived: number }> {
+  const trimmed = botId.trim()
+  if (trimmed === '') throw new DshBotError('invalid-input', 'botId is required')
+  const marked = await listByMark(botMark(trimmed))
+  const results = await Promise.all(marked.map(async row => {
+    try {
+      await hideBotSession(sessionTool, platform, row.id, CLI_CALLER, { syncToArchived: true })
+      return true
+    } catch {
+      try {
+        await platform.archiveSession(row.id)
+        return true
+      } catch {
+        return false
+      }
+    }
+  }))
+  return { archived: results.filter(Boolean).length }
 }
 
 /**
@@ -524,6 +566,7 @@ export async function readOwnedHistory(
 
 /**
  * sessionTool.write of one user prompt (CLI caller, same as v1 HTTP face).
+ * `text` is already voice-wrapped by the service when the session is a bot.
  */
 export async function promptOwnedSession(
   sessionTool: SessionToolService,

@@ -3,21 +3,19 @@
  */
 
 import type { Context } from '@deepseek-ai/cordis'
-import { SessionId } from '@deepseek-ai/dsh-session'
 import type { SessionToolCaller, SessionToolService } from 'session-tool'
 import { extractAssistantAnswer, resolveOverride } from './ask.ts'
 import type { DshBotRuntimeConfig } from './ask.ts'
 import {
-  DSH_BOT_HIDDEN_KIND,
-  DSH_BOT_KIND,
   DSH_BOT_MEMORY_HIDDEN_TITLE_PREFIX,
   botMark,
-  mergeBotMarks,
+  botOwnershipTags,
 } from './marks.ts'
 import type { MemoryStore } from './memory.ts'
 import { shouldExtract } from './memory.ts'
 import { applyModelOverride } from './platform.ts'
 import type { DshBotPlatform } from './platform.ts'
+import { hideBotSession } from './session-visibility.ts'
 
 export interface ExtractPayload {
   readonly profile: readonly string[]
@@ -164,15 +162,13 @@ export function createExtractAsk(deps: {
   return async (prompt, botId) => {
     const config = deps.config()
     const title = `${DSH_BOT_MEMORY_HIDDEN_TITLE_PREFIX}${botId}`
-    let sessionId: SessionId | undefined
     try {
       const created = await deps.sessionTool.create(CLI_CALLER, {
         title,
-        tags: [DSH_BOT_KIND, DSH_BOT_HIDDEN_KIND, botMark(botId)],
+        tags: botOwnershipTags(botMark(botId)),
       })
-      sessionId = created.sessionId
-      await mergeBotMarks(sessionId, [DSH_BOT_HIDDEN_KIND, botMark(botId)])
-      await deps.platform.archiveSession(sessionId)
+      const sessionId = created.sessionId
+      await hideBotSession(deps.sessionTool, deps.platform, sessionId, CLI_CALLER, { syncToArchived: true })
       await applyModelOverride(deps.platform, sessionId, resolveOverride(config))
       await deps.sessionTool.write(CLI_CALLER, sessionId, prompt)
       const waited = await deps.sessionTool.wait(CLI_CALLER, sessionId, {

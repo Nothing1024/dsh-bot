@@ -4,8 +4,6 @@
 import { useEffect, useId, useRef, useState, type KeyboardEvent, type MouseEvent } from 'react'
 import { hashAvatarColor, nameInitial, relativeTime } from './avatar.ts'
 import { Persona } from './Persona.tsx'
-import { nestedSessionSlice } from './session-binding.ts'
-import { SessionJumpMenuItem } from './SessionList.tsx'
 import { DEFAULT_ROSTER_SECTIONS, groupRosterItems } from './roster-sections.ts'
 import type { RosterSection } from './roster-sections.ts'
 
@@ -120,7 +118,6 @@ export function Roster(props: RosterProps) {
   const [confirmId, setConfirmId] = useState<string | null>(null)
   const [renameId, setRenameId] = useState<string | null>(null)
   const [renameValue, setRenameValue] = useState('')
-  const [jumpToast, setJumpToast] = useState<string | null>(null)
   const [localFolded, setLocalFolded] = useState<ReadonlySet<string>>(() => new Set())
   const folded = props.folded ?? localFolded
   const toggleSection = (id: string): void => {
@@ -170,12 +167,6 @@ export function Roster(props: RosterProps) {
     return () => document.removeEventListener('mousedown', onDoc)
   }, [menuId])
 
-  useEffect(() => {
-    if (jumpToast === null) return
-    const timer = window.setTimeout(() => setJumpToast(null), 4000)
-    return () => window.clearTimeout(timer)
-  }, [jumpToast])
-
   const commitRename = (id: string): void => {
     const next = renameValue.trim()
     setRenameId(null)
@@ -214,9 +205,6 @@ export function Roster(props: RosterProps) {
       <div className="rosterBody">
         {props.error !== null && props.error !== undefined && props.error !== '' ? (
           <p className="formError" data-testid="workbench-action-error">{props.error}</p>
-        ) : null}
-        {jumpToast !== null ? (
-          <p className="formHint" data-testid="roster-toast">{jumpToast}</p>
         ) : null}
         {props.items.length === 0 ? (
           <p className="hint" data-testid="workbench-empty">还没有人设</p>
@@ -378,10 +366,11 @@ export function Roster(props: RosterProps) {
                         data-testid={`roster-pin-${item.id}`}
                         onClick={() => {
                           setMenuId(null)
-                          applyLayout({ bots: [{ id: item.id, pinned: item.pinned !== true, section: item.pinned === true ? 'work' : 'pinned' }] })
+                          if (item.kind === 'group') applyLayout({ groups: [{ id: item.id, section: item.section === 'pinned' ? 'work' : 'pinned' }] })
+                          else applyLayout({ bots: [{ id: item.id, pinned: item.pinned !== true, section: item.pinned === true ? 'work' : 'pinned' }] })
                         }}
                       >
-                        {item.pinned === true ? '取消置顶' : '置顶'}
+                        {(item.kind === 'group' ? item.section === 'pinned' : item.pinned === true) ? '取消置顶' : '置顶'}
                       </button>
                       <button
                         type="button"
@@ -481,17 +470,6 @@ export function Roster(props: RosterProps) {
                       )}
                     </div>
                   ) : null}
-                  {selected ? (
-                    <BoundSessions
-                      ownerId={item.id}
-                      jumpable={item.kind !== 'group'}
-                      sessions={item.sessions ?? []}
-                      onToast={setJumpToast}
-                      {...props.nowMs === undefined ? {} : { nowMs: props.nowMs }}
-                      {...props.onSelectSession === undefined ? {} : { onSelectSession: props.onSelectSession }}
-                      {...props.onNewSession === undefined ? {} : { onNewSession: props.onNewSession }}
-                    />
-                  ) : null}
                 </li>
               )
             })}
@@ -555,106 +533,6 @@ export function Roster(props: RosterProps) {
         />
       ) : null}
     </aside>
-  )
-}
-
-function BoundSessions(props: {
-  ownerId: string
-  jumpable: boolean
-  sessions: readonly RosterSession[]
-  nowMs?: number
-  onToast: (text: string) => void
-  onSelectSession?: (ownerId: string, sessionId: string) => void
-  onNewSession?: (ownerId: string) => void
-}) {
-  const [menuId, setMenuId] = useState<string | null>(null)
-  const menuRef = useRef<HTMLLIElement>(null)
-  const sliced = nestedSessionSlice(props.sessions)
-
-  useEffect(() => {
-    if (menuId === null) return
-    const onDoc = (event: Event): void => {
-      const target = event.target as Node | null
-      if (target !== null && menuRef.current?.contains(target) === true) return
-      setMenuId(null)
-    }
-    document.addEventListener('mousedown', onDoc)
-    return () => document.removeEventListener('mousedown', onDoc)
-  }, [menuId])
-
-  return (
-    <div className="rosterSessions" data-testid={`roster-sessions-${props.ownerId}`}>
-      {props.sessions.length === 0 ? (
-        <p className="hint rosterSessionsEmpty">还没有对话</p>
-      ) : (
-        <ul className="rosterSessionList">
-          {sliced.visible.map(session => (
-            <li key={session.sessionId} ref={menuId === session.sessionId ? menuRef : undefined}>
-              <div className="rosterSessionRow">
-                <button
-                  type="button"
-                  className={`rosterSession${session.selected ? ' isSelected' : ''}`}
-                  data-testid={`roster-session-${session.sessionId}`}
-                  data-selected={session.selected ? 'true' : 'false'}
-                  onClick={event => {
-                    event.stopPropagation()
-                    props.onSelectSession?.(props.ownerId, session.sessionId)
-                  }}
-                >
-                  <span className="rosterSessionTitle">{session.title}</span>
-                  <span className="rosterSessionMeta">
-                    {session.working ? <span className="sessionOptionWorking">工作中</span> : null}
-                    <span className="rosterTime">{relativeTime(session.updatedAt, props.nowMs)}</span>
-                  </span>
-                </button>
-                {props.jumpable ? (
-                  <button
-                    type="button"
-                    className="rowMenuBtn"
-                    data-testid={`roster-session-menu-${session.sessionId}`}
-                    aria-label="会话操作"
-                    onClick={event => {
-                      event.stopPropagation()
-                      setMenuId(current => current === session.sessionId ? null : session.sessionId)
-                    }}
-                  >
-                    ⋯
-                  </button>
-                ) : null}
-              </div>
-              {props.jumpable && menuId === session.sessionId ? (
-                <div className="rowMenu" data-testid={`roster-session-menu-panel-${session.sessionId}`}>
-                  <SessionJumpMenuItem
-                    sessionId={session.sessionId}
-                    testId={`roster-session-jump-${session.sessionId}`}
-                    onToast={props.onToast}
-                    onDone={() => setMenuId(null)}
-                  />
-                </div>
-              ) : null}
-            </li>
-          ))}
-        </ul>
-      )}
-      {sliced.hiddenCount > 0 ? (
-        <p className="hint rosterSessionsMore" data-testid={`roster-sessions-more-${props.ownerId}`}>
-          还有 {sliced.hiddenCount} 段，用顶栏「对话」查看全部
-        </p>
-      ) : null}
-      {props.onNewSession !== undefined ? (
-        <button
-          type="button"
-          className="rosterSessionNew"
-          data-testid={`roster-session-new-${props.ownerId}`}
-          onClick={event => {
-            event.stopPropagation()
-            props.onNewSession?.(props.ownerId)
-          }}
-        >
-          + 新开对话
-        </button>
-      ) : null}
-    </div>
   )
 }
 

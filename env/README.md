@@ -2,7 +2,7 @@
 
 本目录是一份独立的 `DSH_HOME`（loopback）。不要 `--lan`。口固定 **3084**，不要打别人的 3080 / 3081 / 3083。
 
-官方 pin：`@deepseek-ai/dsh` / `@deepseek-ai/dsh-base` / `@deepseek-ai/dsh-web-app` 均为 **0.1.1-rc.2**（`boot.sh` 用 `npx @deepseek-ai/dsh@0.1.1-rc.2 --no-open`）。会话 tags 是插件标记（`$DSH_HOME/session-tool/marks.jsonl`）。
+官方 pin：`@deepseek-ai/dsh` / `@deepseek-ai/dsh-base` / `@deepseek-ai/dsh-web-app` 均为 **0.1.5-rc.1**（`boot.sh` 用 `npx @deepseek-ai/dsh@0.1.5-rc.1 --no-open`）。会话 tags 是插件标记（`$DSH_HOME/session-tool/marks.jsonl`）。
 
 ```text
 env/
@@ -11,14 +11,12 @@ env/
 ├── settings.example.yaml # 唯一入 git 的配置模板（无明文 key）
 ├── .env / .credentials.yaml / .anonymous-user-id   # git 忽略
 ├── dsh-bot/              # 运行时人设注册表（gitignore）
-│   └── bots.json
-├── .agent-presets/
-│   ├── dsh-bot/          # 默认 bundled preset（setup 种子）
-│   └── dsh-bot--*/       # 自动人设 preset（gitignore）
+│   ├── bots.json
+│   └── session-voice/    # 每会话基础人设快照
 └── profiles/gb/          bundles + 邻仓 link；overlay 把 webUrl 指到 :3084
 ```
 
-模型 key：`$DSH_HOME/.credentials.yaml` 优先于 `$DSH_HOME/.env`（官方 Models 页写前者）。都 git 忽略。`setup.sh` 若本地没有 `.env`，会从 `~/.dsh/.env` 拷一份并 chmod 600。`settings.yaml` 不存在时从邻仓 session-tool 的 env 拷贝（否则从 `settings.example.yaml`）。邻仓拷贝不含 `agent-presets.default`；`setup.sh` 种子后会写入 `agent-presets.default: dsh-bot`（BR-002），再 `chmod 600`。
+模型 key 与 `llm-pi-ai` / `agent-default-model` 来自 `~/workspace/dsh/plugin/.shared/`。`setup.sh` 会跑 `apply.sh --home "$PWD"`。`settings.example.yaml` 只是无 LAN/无 key 的模板，不是活配置。Bot 人设只在 `$DSH_HOME/dsh-bot/bots.json`。
 
 ```sh
 pnpm install
@@ -49,6 +47,8 @@ bash scripts/manual-test.sh --no-write
 UF-004 标记查询（不 boot，直读本目录 `session-tool/marks.jsonl`）：
 
 ```sh
+DSH_HOME=$PWD node ../../session-tool/plugin/packages/session-tool-cli/lib/bin.js marks list --mark app:dsh-bot
+# --kind 仍是精确匹配（过渡期）
 DSH_HOME=$PWD node ../../session-tool/plugin/packages/session-tool-cli/lib/bin.js marks list --kind kind:dsh-bot
 ```
 
@@ -56,18 +56,17 @@ DSH_HOME=$PWD node ../../session-tool/plugin/packages/session-tool-cli/lib/bin.j
 
 ### `$DSH_HOME/dsh-bot/` 运行数据
 
-人设注册表与自动 preset 都是 **env 运行数据，不入 git**（INV-204）。`.gitignore` 已忽略 `env/dsh-bot/`、`env/.agent-presets/dsh-bot--*`、`bots.json`。
+人设注册表是 **env 运行数据，不入 git**（INV-204）。`.gitignore` 已忽略 `env/dsh-bot/`、`bots.json`。
 
 | 路径 | 内容 |
 |---|---|
-| `$DSH_HOME/dsh-bot/bots.json` | 人设清单唯一事实源：`{id, name, avatar, presetId, modelOverride?, createdAt}`。**人设文本不在此文件**，只在对应 preset 的 persona 行。首次启动种子默认 bot（id `dsh-bot`）。 |
-| `$DSH_HOME/.agent-presets/dsh-bot--<slug>/` | 工作台新建人设时整文件模板生成的自动 preset；写后校验，失败回滚删目录。编辑人设重写该目录，只影响其后新会话。 |
-| `$DSH_HOME/.agent-presets/dsh-bot/` | 默认 bot 的 bundled preset（setup 种子）。不要 YAML surgery；自定义人设请新建 bot。 |
-| `$DSH_HOME/sessions/`、`$DSH_HOME/session-tool/` | 会话投影与 marks（含 `kind:dsh-bot` / `bot:<id>`）；删除人设不删历史会话。 |
+| `$DSH_HOME/dsh-bot/bots.json` | 人设清单唯一事实源：`{id, name, avatar, presetId, persona, modelOverride?, createdAt}`。`presetId` 只是遗留 GUI 对账别名（种子 `dsh-bot`，自定义 `dsh-bot--<id>`），**不再**对应 `.agent-presets/` 目录。首次启动种子默认 bot（id `dsh-bot`）。 |
+| `$DSH_HOME/dsh-bot/session-voice/<sessionId>.txt` | 创建会话时钉死的基础人设。编辑注册表不影响旧会话。 |
+| `$DSH_HOME/sessions/`、`$DSH_HOME/session-tool/` | 会话投影与 marks（含 `app:dsh-bot` / 过渡期 `kind:dsh-bot` / `bot:<id>`）；删除人设不删历史会话。 |
 
 | 依赖 | 去哪 | bundle 层 |
 |---|---|---|
-| `@deepseek-ai/dsh-base` / `dsh-web-app` | npm 正式包 0.1.1-rc.2 | 是 |
+| `@deepseek-ai/dsh-base` / `dsh-web-app` | npm 正式包 0.1.5-rc.1 | 是 |
 | `tool-session` | `../../session-tool/plugin/packages/tool-session` | 是 |
 | `tool-dsh-bot` | `packages/tool-dsh-bot` | 是（patch 同时 insert `dsh-bot-host`） |
 | `session-tool-local` / `session-tool` / `session-marks` | 邻仓 `packages/*` | 否（给 loader resolve） |
@@ -76,5 +75,5 @@ DSH_HOME=$PWD node ../../session-tool/plugin/packages/session-tool-cli/lib/bin.j
 只 `add tool-session` 不够：邻包不会提升到 profile 根。
 
 ```sh
-DSH_HOME=$PWD/env npx --yes @deepseek-ai/dsh@0.1.1-rc.2 --profile gb --dump-config
+DSH_HOME=$PWD/env npx --yes @deepseek-ai/dsh@0.1.5-rc.1 --profile gb --dump-config
 ```

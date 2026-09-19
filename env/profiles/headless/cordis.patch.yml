@@ -1,4 +1,13 @@
-# Your patch layer for this dsh profile, applied after every bundle layer:
-# a top-level YAML array of loader patch entries (id-targeted config
-# overrides, disables, and insert lists; `!!js` expressions allowed).
-[]
+# Your patch layer for this dsh profile, applied after every bundle layer.
+# Settings.yaml is the live source. Pin composition fallback so a missing
+# settings document does not start agents on deepseek-flash.
+- id: agent-default-model
+  config:
+    provider: anthropic
+    model: deepseek-flash
+
+# Official DeepSeek chat + search are disabled so they cannot bypass deepseek-flash.
+- id: llm-deepseek
+  disabled: true
+- id: web-search-deepseek
+  disabled: true

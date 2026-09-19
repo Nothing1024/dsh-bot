@@ -4,7 +4,7 @@ import { join } from 'node:path'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { Context } from '@deepseek-ai/cordis'
 import { SessionId } from '@deepseek-ai/dsh-session'
-import { get, put } from 'session-marks'
+import { expandRemoveAliases, expandWriteAliases, get, patch, put } from 'session-marks'
 import {
   SessionToolError,
   SessionWebUnreachableError,
@@ -38,6 +38,10 @@ interface StubMessage {
 }
 
 class StubSessionTool implements SessionToolService {
+  async readMarks(_caller: Parameters<SessionToolService['readMarks']>[0], sessionId: SessionId) {
+    return { sessionId, tags: [], hiddenPrefixes: ['~'] }
+  }
+
   readonly createCalls: Array<{ caller: SessionToolCaller; options: Parameters<SessionToolService['create']>[1] }> = []
   readonly writeCalls: Array<{ sessionId: string; content: string }> = []
   readonly waitCalls: Array<{ sessionId: string; options: Parameters<SessionToolService['wait']>[2] }> = []
@@ -59,7 +63,11 @@ class StubSessionTool implements SessionToolService {
     if (this.createError !== undefined) throw this.createError
     this.createCalls.push({ caller, options })
     this.next += 1
-    return { sessionId: SessionId(`session-bot-${this.next}`) }
+    const sessionId = SessionId(`session-bot-${this.next}`)
+    if (options.tags !== undefined && options.tags.length > 0) {
+      await patch(sessionId, { add: expandWriteAliases(options.tags) })
+    }
+    return { sessionId }
   }
 
   async write(_caller: SessionToolCaller, sessionId: SessionId, content: string) {
@@ -118,8 +126,16 @@ class StubSessionTool implements SessionToolService {
   async getVisibility() {
     return { hasHiddenMark: false, archived: false, isHidden: false }
   }
-  async hide() {
+  async hide(_caller: SessionToolCaller, sessionId: SessionId) {
+    await patch(sessionId, { add: expandWriteAliases(['hidden']) })
     return { hasHiddenMark: true, archived: false, isHidden: true }
+  }
+  async mark(_caller: SessionToolCaller, sessionId: SessionId, options: { add?: readonly string[]; remove?: readonly string[] }) {
+    const tags = await patch(sessionId, {
+      ...options.add !== undefined && options.add.length > 0 ? { add: expandWriteAliases(options.add) } : {},
+      ...options.remove !== undefined && options.remove.length > 0 ? { remove: expandRemoveAliases(options.remove) } : {},
+    })
+    return { sessionId, tags }
   }
   async unhide() {
     return { hasHiddenMark: false, archived: false, isHidden: false }
@@ -128,6 +144,7 @@ class StubSessionTool implements SessionToolService {
 
 class StubPlatform implements DshBotPlatform {
   readonly archiveCalls: string[] = []
+  readonly unarchiveCalls: string[] = []
   readonly selectCalls: Array<{ sessionId: string; model: DshBotModelRef }> = []
   readonly restoreCalls: DshBotModelRef[] = []
   readonly createCalls: Array<{ agentPreset: string; cwd: string }> = []
@@ -142,6 +159,10 @@ class StubPlatform implements DshBotPlatform {
   async archiveSession(sessionId: string) {
     if (this.archiveError !== undefined) throw this.archiveError
     this.archiveCalls.push(sessionId)
+  }
+
+  async unarchiveSession(sessionId: string) {
+    this.unarchiveCalls.push(sessionId)
   }
 
   async selectModel(sessionId: string, model: DshBotModelRef) {
@@ -242,8 +263,14 @@ describe('DshBotService.askBot', () => {
     expect(created.caller).toEqual(AGENT)
     expect(created.options.parentSessionId).toBe('session-caller')
     expect(created.options.title).toBe('~dsh-bot: 量子纠缠是什么')
-    expect(created.options.tags).toEqual(['kind:dsh-bot', 'kind:hidden'])
-    expect(sessionTool.writeCalls[0]).toEqual({ sessionId: 'session-bot-1', content: '量子纠缠是什么' })
+    expect(created.options.tags).toEqual(['app:dsh-bot', 'kind:dsh-bot', 'form:plugin', 'bot:dsh-bot'])
+    const written = sessionTool.writeCalls[0]?.content ?? ''
+    expect(written).toContain('<system-reminder>')
+    expect(written).toContain('量子纠缠是什么')
+    expect(written).toContain('grok-4.6')
+    expect(written).not.toContain('{{model}}')
+    expect(written).not.toContain('{{cwd}}')
+    expect(written).toContain('行为规范')
     expect(sessionTool.waitCalls[0]!.options).toEqual({ until: 'idle', timeoutMs: 30_000 })
     expect(platform.archiveCalls).toEqual(['session-bot-1'])
     expect(platform.selectCalls).toEqual([{
@@ -254,18 +281,25 @@ describe('DshBotService.askBot', () => {
       { provider: 'anthropic', model: 'grok-4.6', reasoningEffort: 'xhigh' },
     ])
     const tags = await get('session-bot-1')
-    expect(tags).toEqual(expect.arrayContaining(['kind:dsh-bot', 'kind:hidden']))
+    expect(tags).toEqual(expect.arrayContaining(['app:dsh-bot', 'kind:dsh-bot', 'form:plugin', 'bot:dsh-bot', 'hidden', 'kind:hidden']))
   })
 
-  it('merges marks instead of replacing an existing create set', async () => {
-    const { bot } = boot()
-    await put('session-bot-1', ['kind:delegated', 'other'])
+  it('writes ownership tags on create and lets hide() dual-write hidden marks', async () => {
+    const { bot, sessionTool } = boot()
     await bot.askBot(CLI, { prompt: 'hello', title: 'hi' })
-    expect(await get('session-bot-1')).toEqual(expect.arrayContaining([
-      'kind:delegated',
+    expect(sessionTool.createCalls[0]!.options.tags).toEqual([
+      'app:dsh-bot',
       'kind:dsh-bot',
+      'form:plugin',
+      'bot:dsh-bot',
+    ])
+    expect(await get('session-bot-1')).toEqual(expect.arrayContaining([
+      'app:dsh-bot',
+      'kind:dsh-bot',
+      'form:plugin',
+      'bot:dsh-bot',
+      'hidden',
       'kind:hidden',
-      'other',
     ]))
   })
 
@@ -450,17 +484,17 @@ describe('applyModelOverride mutex', () => {
 })
 
 describe('DshBotService.createSession / listSessions', () => {
-  it('creates a visible session without archiving', async () => {
+  it('creates a Bot-visible chat hidden from Harness', async () => {
     const { bot, sessionTool, platform } = boot()
     const created = await bot.createSession(AGENT, { title: 'Plan', cwd: '/work' })
     expect(created.title).toBe('Plan')
     expect(sessionTool.createCalls[0]!.options).toEqual({
       title: 'Plan',
-      tags: ['kind:dsh-bot'],
+      tags: ['app:dsh-bot', 'kind:dsh-bot', 'form:plugin', 'kind:dsh-bot-chat', 'bot:dsh-bot'],
       cwd: '/work',
     })
     expect(platform.archiveCalls).toHaveLength(0)
-    expect(await get(created.sessionId)).toEqual(['kind:dsh-bot'])
+    expect(await get(created.sessionId)).toEqual(expect.arrayContaining(['app:dsh-bot', 'kind:dsh-bot', 'form:plugin', 'kind:dsh-bot-chat', 'bot:dsh-bot', 'hidden', 'kind:hidden']))
   })
 
   it('passes workspacePath through to sessionTool.create', async () => {
@@ -468,7 +502,7 @@ describe('DshBotService.createSession / listSessions', () => {
     await bot.createSession(CLI, { title: 'Bound', workspacePath: '/work/plugin' })
     expect(sessionTool.createCalls[0]!.options).toEqual({
       title: 'Bound',
-      tags: ['kind:dsh-bot'],
+      tags: ['app:dsh-bot', 'kind:dsh-bot', 'form:plugin', 'kind:dsh-bot-chat', 'bot:dsh-bot'],
       workspacePath: '/work/plugin',
     })
     expect(platform.archiveCalls).toHaveLength(0)
@@ -504,6 +538,21 @@ describe('DshBotService.createSession / listSessions', () => {
     expect(hiddenOn.map(row => row.sessionId).sort()).toEqual(['session-hidden', 'session-live'])
     expect(hiddenOn.find(row => row.sessionId === 'session-gone')).toBeUndefined()
   })
+
+  it('lists transition inventory as the union of app:dsh-bot and kind:dsh-bot', async () => {
+    const sessionTool = new StubSessionTool()
+    await put('session-legacy', ['kind:dsh-bot'])
+    await put('session-new', ['app:dsh-bot', 'form:plugin'])
+    sessionTool.listResult = {
+      sessions: [
+        { sessionId: SessionId('session-legacy'), title: 'Legacy', tags: ['kind:dsh-bot'], status: 'idle', createdAt: 1 },
+        { sessionId: SessionId('session-new'), title: 'New', tags: ['app:dsh-bot', 'form:plugin'], status: 'idle', createdAt: 2 },
+      ],
+    }
+    const { bot } = boot({ sessionTool })
+    expect((await bot.listSessions()).map(row => row.sessionId).sort()).toEqual(['session-legacy', 'session-new'])
+  })
+
   it('falls back to platform.listSessions when sessionTool.list is web-unreachable', async () => {
     const sessionTool = new StubSessionTool()
     sessionTool.listError = new SessionWebUnreachableError('web gateway unreachable for workspace/follow: HTTP 401')

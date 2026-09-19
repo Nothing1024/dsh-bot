@@ -45,7 +45,7 @@ export function RoutinesPanel(props: RoutinesPanelProps) {
     <div className="memoryPanel routinesPanel" data-testid="routines-panel">
       <header className="memoryPanelHead">
         <strong>例程 · {props.botName}</strong>
-        <button type="button" className="retry" data-testid="routines-close" onClick={props.onClose}>
+        <button type="button" className="ghostBtn isTiny" data-testid="routines-close" onClick={props.onClose}>
           关闭
         </button>
       </header>
@@ -60,7 +60,7 @@ export function RoutinesPanel(props: RoutinesPanelProps) {
                 <span>{lastLabel(row)}</span>
                 <button
                   type="button"
-                  className="retry"
+                  className="ghostBtn isTiny"
                   data-testid={`routine-toggle-${row.id}`}
                   onClick={() => { void props.onToggle(row.id, !row.enabled) }}
                 >
@@ -68,13 +68,13 @@ export function RoutinesPanel(props: RoutinesPanelProps) {
                 </button>
                 {confirmId === row.id ? (
                   <>
-                    <button type="button" className="retry" data-testid={`routine-delete-yes-${row.id}`} onClick={() => { void props.onDelete(row.id) }}>
+                    <button type="button" className="dangerBtn isTiny" data-testid={`routine-delete-yes-${row.id}`} onClick={() => { void props.onDelete(row.id) }}>
                       确认删除
                     </button>
-                    <button type="button" className="retry" onClick={() => setConfirmId(null)}>取消</button>
+                    <button type="button" className="ghostBtn isTiny" onClick={() => setConfirmId(null)}>取消</button>
                   </>
                 ) : (
-                  <button type="button" className="retry" data-testid={`routine-delete-${row.id}`} onClick={() => setConfirmId(row.id)}>
+                  <button type="button" className="ghostBtn isTiny" data-testid={`routine-delete-${row.id}`} onClick={() => setConfirmId(row.id)}>
                     删除
                   </button>
                 )}
@@ -118,9 +118,11 @@ export function RoutinesPanel(props: RoutinesPanelProps) {
           有输出时通知
         </label>
         {error !== null ? <p className="formError" data-testid="routines-error">{error}</p> : null}
-        <button type="submit" className="retry" data-testid="routine-create" disabled={busy}>
-          新建
-        </button>
+        <div className="formActions">
+          <button type="submit" className="primaryBtn" data-testid="routine-create" disabled={busy}>
+            新建
+          </button>
+        </div>
       </form>
     </div>
   )

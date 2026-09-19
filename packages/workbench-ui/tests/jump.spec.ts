@@ -6,6 +6,7 @@ import {
   JUMP_ACK_MS,
   JUMP_MESSAGE_TYPE,
   JUMP_RESULT_TYPE,
+  browseSessionTool,
   performWorkbenchJump,
   requestJump,
   resetJumpInFlight,
@@ -24,9 +25,9 @@ describe('jump helpers', () => {
   it('labels standalone vs in-tab actions', () => {
     expect(window.parent).toBe(window)
     expect(sessionJumpLabel()).toBe('复制会话 ID')
-    expect(sessionJumpTitle()).toBe('在右栏页签内可直接跳转')
-    expect(sessionJumpLabel(false)).toBe('在 DSH 打开')
-    expect(sessionJumpTitle(false)).toBe('在官方 conversation 视图打开此会话')
+    expect(sessionJumpTitle()).toBe('复制后可到会话协作打开原来的会话')
+    expect(sessionJumpLabel(false)).toBe('在官方会话打开')
+    expect(sessionJumpTitle(false)).toBe('通过会话协作跳到官方对话')
   })
 
   it('maps machine reasons for the failure toast', () => {
@@ -75,7 +76,7 @@ describe('jump helpers', () => {
     const onToast = vi.fn()
     await performWorkbenchJump('session-live', onToast)
     expect(writeText).toHaveBeenCalledWith('session-live')
-    expect(onToast).toHaveBeenCalledWith('已复制会话 ID')
+    expect(onToast).toHaveBeenCalledWith('已复制会话 ID，可到会话协作打开')
   })
 })
 
@@ -83,5 +84,39 @@ describe('copySessionId', () => {
   it('returns false when clipboard is missing', async () => {
     Object.defineProperty(navigator, 'clipboard', { configurable: true, value: undefined })
     expect(await copySessionId('s1')).toBe(false)
+  })
+})
+
+describe('hosted official jump', () => {
+  it('calls the host opener instead of copying', async () => {
+    const openOfficial = vi.fn(async () => undefined)
+    const onToast = vi.fn()
+    await performWorkbenchJump('session-live', onToast, openOfficial)
+    expect(openOfficial).toHaveBeenCalledWith('session-live')
+    expect(onToast).not.toHaveBeenCalled()
+  })
+
+  it('toasts the host error message', async () => {
+    const onToast = vi.fn()
+    await performWorkbenchJump('session-live', onToast, async () => {
+      throw new Error('宿主不支持打开会话')
+    })
+    expect(onToast).toHaveBeenCalledWith('宿主不支持打开会话')
+  })
+})
+
+describe('browseSessionTool', () => {
+  it('opens the host panel when provided', () => {
+    const open = vi.fn()
+    const onToast = vi.fn()
+    browseSessionTool(onToast, open)
+    expect(open).toHaveBeenCalledTimes(1)
+    expect(onToast).not.toHaveBeenCalled()
+  })
+
+  it('toasts a hint when the host panel is unavailable', () => {
+    const onToast = vi.fn()
+    browseSessionTool(onToast)
+    expect(onToast).toHaveBeenCalledWith('请在 DSH 侧栏打开「会话协作」查看原来的会话')
   })
 })

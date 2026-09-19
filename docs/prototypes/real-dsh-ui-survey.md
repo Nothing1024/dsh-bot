@@ -27,7 +27,7 @@
 - 右栏 `details` **默认关到 0 宽**；hero / 切会话也会把它收掉
 - 另有一层 **better-sidebar**（`[data-dsh-better-sidebar]`）：IDE 页签条，不是 `details`
 
-截图：`docs/prototypes/real/pw-landing.png`、`docs/dsh-bot-workbench/evidence/phase-4/closer-gui-new.png`
+截图：`docs/prototypes/real/pw-landing.png`、`docs/archive/dsh-bot-workbench/evidence/phase-4/closer-gui-new.png`
 
 ### A2. 左侧栏（`data-slot="sidebar"`）
 
@@ -60,7 +60,7 @@ hero 时 header 隐藏（`.wSkVaW_header.wSkVaW_headerHidden`）。打开会话�
   - 中文，不是 Chat / Trajectory
 - **没有** 房间页签、成员条、记忆/例程 pill、分叉按钮、详情开关画在标题栏右侧
 
-截图：`docs/prototypes/real/pw-session-open.png`、`docs/dsh-bot-session-nav/evidence/phase-1/jump-visible.png`
+截图：`docs/prototypes/real/pw-session-open.png`、`docs/archive/dsh-bot-session-nav/evidence/phase-1/jump-visible.png`
 
 ### A4. 会话视图 tab —— 存在，但不是原型画的
 

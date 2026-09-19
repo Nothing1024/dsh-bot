@@ -2,7 +2,7 @@
   "name": "dsh-bot",
   "version": "0.1.0",
   "private": true,
-  "description": "DSH Bot plugin: resident conversation agent (persona preset + model follows DSH config) plus dsh_bot_ask delegation and a better-sidebar tab",
+  "description": "DSH Bot plugin: resident conversation agent (persona preset + model follows DSH config) plus dsh_bot_ask delegation and a workbench",
   "type": "module",
   "packageManager": "pnpm@11.7.0",
   "scripts": {

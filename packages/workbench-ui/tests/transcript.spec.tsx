@@ -48,18 +48,21 @@ describe('Transcript', () => {
     expect(screen.getByTestId('transcript-msg-2').className).toMatch(/assistant/)
   })
 
-  it('renders thinking and tool as fold cards', () => {
-    render(<Transcript items={items} working={false} />)
-    expect(screen.getByTestId('transcript-thinking-2')).toBeTruthy()
-    expect(screen.queryByTestId('transcript-thinking-2-body')).toBeNull()
-    fireEvent.click(screen.getByTestId('transcript-thinking-2-toggle'))
-    expect(screen.getByTestId('transcript-thinking-2-body').textContent).toMatch(/remember I am a poet/)
-    expect(screen.getByTestId('transcript-tool-2')).toBeTruthy()
-    expect(screen.getByTestId('transcript-tool-2-body').textContent).toMatch(/bash/)
-    expect(screen.getByTestId('transcript-msg-2').textContent).toMatch(/我是诗人小北/)
+  it('shows only text messages through live updates and history reloads', () => {
+    const { rerender } = render(<Transcript items={items} working />)
+    expect(screen.queryByTestId('transcript-thinking-2')).toBeNull()
+    expect(screen.queryByTestId('transcript-tool-2')).toBeNull()
+    expect(screen.getByTestId('transcript').textContent).not.toMatch(/remember|bash/)
+    rerender(<Transcript items={[...items, { id: 'live-tool', kind: 'tool', seq: 3, text: 'raw result' },
+      { id: 'live', kind: 'message', role: 'assistant', seq: 4, text: '继续回复', streaming: true },
+      { id: 'empty', kind: 'message', role: 'assistant', seq: 5, text: '' },
+    ]} working={false} />)
+    expect(screen.getByTestId('transcript-msg-4').textContent).toContain('继续回复')
+    expect(screen.getByTestId('transcript').textContent).not.toContain('raw result')
+    expect(screen.queryByTestId('transcript-msg-5')).toBeNull()
   })
 
-  it('renders pending approval and question cards, then a read-only done state', () => {
+  it('keeps pending actions outside text history and omits completed actions', () => {
     const onApproval = vi.fn()
     const onQuestion = vi.fn()
     render(
@@ -82,7 +85,9 @@ describe('Transcript', () => {
     fireEvent.change(screen.getByTestId('transcript-question-4-input'), { target: { value: 'grok' } })
     fireEvent.click(screen.getByTestId('transcript-question-4-submit'))
     expect(onQuestion).toHaveBeenCalledWith(expect.objectContaining({ id: 'q-1' }), 'grok')
-    expect(screen.getByTestId('transcript-approval-5-done').textContent).toMatch(/已处理/)
+    expect(screen.queryByTestId('transcript-approval-5')).toBeNull()
+    expect(screen.getByTestId('transcript').textContent).not.toMatch(/允许 bash|模型/)
+    expect(screen.getByTestId('conversation-actions').contains(screen.getByTestId('transcript-approval-3'))).toBe(true)
   })
 
   it('shows a stream cursor on the last assistant bubble', () => {
@@ -177,20 +182,18 @@ describe('Transcript', () => {
     expect(onReplyTo.mock.calls[0]?.[0]?.seq).toBe(2)
   })
 
-  it('renders a reply cite on the user row and a missing-source fallback', () => {
+  it('renders a persisted quote even when its source is outside loaded history', () => {
     render(
       <Transcript
-        items={[{ id: 'm-3', kind: 'message', seq: 3, role: 'user', text: '再来一句' }]}
-        working={false}
-        groupMode
-        replyMarks={[{
-          text: '再来一句',
+        items={[{ id: 'm-3', kind: 'message', seq: 3, role: 'user', text: '再来一句',
           replyTo: { seq: 2, speaker: '诗人小北', text: '我是诗人小北' },
         }]}
+        working={false}
+        groupMode
         onReplyTo={vi.fn()}
       />,
     )
-    expect(screen.getByTestId('transcript-reply-cite-3').textContent).toBe('原消息已删除')
+    expect(screen.getByTestId('transcript-reply-cite-3').textContent).toBe('→ 诗人小北我是诗人小北')
   })
 
   it('pins an assistant row and offers member pick in a room', () => {
@@ -260,7 +263,7 @@ describe('Transcript', () => {
   })
 })
 
-  it('labels [agent] peer lines without dropping fold cards', () => {
+  it('labels peer text without exposing process cards', () => {
     render(
       <Transcript
         items={[
@@ -271,8 +274,7 @@ describe('Transcript', () => {
         working={false}
       />,
     )
-    expect(screen.getByTestId('transcript-thinking-1')).toBeTruthy()
+    expect(screen.queryByTestId('transcript-thinking-1')).toBeNull()
     expect(screen.getByTestId('transcript-peer-2').textContent).toBe('来自 校对阿宁')
     expect(screen.getByTestId('transcript-peer-3').textContent).toBe('来自 诗人小北')
   })
-

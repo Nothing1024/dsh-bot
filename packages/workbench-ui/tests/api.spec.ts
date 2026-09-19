@@ -32,6 +32,35 @@ describe('workbenchCall', () => {
     expect(outcome.error.message).toMatch(/gateway down/)
   })
 
+  it('reports a stalled request as a timeout instead of hanging forever', async () => {
+    vi.useFakeTimers()
+    try {
+      vi.stubGlobal('fetch', vi.fn((_url: string, init?: { signal?: AbortSignal }) => {
+        let reject!: (error: Error) => void
+        const promise = new Promise<never>((_resolve, fail) => { reject = fail })
+        init?.signal?.addEventListener('abort', () => reject(new Error('The operation was aborted.')))
+        return promise
+      }))
+      const pending = workbenchCall('prompt', { sessionId: 's1', text: 'hi' })
+      await vi.advanceTimersByTimeAsync(20_000)
+      const outcome = await pending
+      expect(outcome.ok).toBe(false)
+      if (outcome.ok) return
+      expect(outcome.error.code).toBe('timeout')
+    } finally {
+      vi.useRealTimers()
+    }
+  })
+
+  it('names an expired credential instead of reporting a parse failure', async () => {
+    vi.stubGlobal('fetch', vi.fn(async () => ({ status: 401, statusText: 'Unauthorized', json: async () => { throw new Error('not json') } })))
+    const outcome = await workbenchCall('listBots', {})
+    expect(outcome.ok).toBe(false)
+    if (outcome.ok) return
+    expect(outcome.error.code).toBe('unauthorized')
+    expect(outcome.error.message).toMatch(/401/)
+  })
+
   it('POSTs createBot with {args}', async () => {
     const { createBot } = await import('../src/api.ts')
     const fetchMock = vi.fn(async (url: string, init?: { body?: string; method?: string }) => {

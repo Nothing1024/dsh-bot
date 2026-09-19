@@ -1,16 +1,17 @@
 /**
  * `ctx.dshBot` provider: delegated ask, visible create, and marked list.
- * Session I/O is exclusively `ctx.sessionTool` (BR-003). Bot-owned model
- * override is settings `dsh-bot.model`, applied via ASM-007
- * `session.selectModel` + restore of `agent-default-model` (BR-010).
+ * Session I/O is exclusively `ctx.sessionTool` (BR-003). Persona is plugin
+ * config: frozen per session, injected as plugin-source context when agents
+ * exist, otherwise wrapped onto session-tool writes. Not a DSH agentPreset.
+ * Bot-owned model override is settings `dsh-bot.model` via `session.selectModel`.
  * @module dsh-bot-host
  */
 
 import { dirname } from 'node:path'
 import { Context, Service } from '@deepseek-ai/cordis'
-import { installSettingsSection, settingsNamespace } from '@deepseek-ai/dsh-settings'
+import type { SettingsProvider } from '@deepseek-ai/dsh-settings'
 import z from '@deepseek-ai/schemastery'
-import type { SessionToolCaller } from 'session-tool'
+import { type SessionToolCaller } from 'session-tool'
 import { get } from 'session-marks'
 import {
   askBot,
@@ -31,11 +32,7 @@ import { DshBotError } from './errors.ts'
 import { readRosterSections, writeRosterSections, type RosterSection } from './roster-layout.ts'
 import { createPlatform } from './platform.ts'
 import type { DshBotModelRef, DshBotPlatform } from './platform.ts'
-import {
-  MANAGED_PRESET_PREFIX,
-  createBotsRuntime,
-  createPresetGate,
-} from './bots.ts'
+import { createBotsRuntime, SEED_BOT_ID } from './bots.ts'
 import type {
   BotView,
   BotsRuntime,
@@ -46,12 +43,17 @@ import { composePersona, createMemoryStore, renderMemorySection, shouldExtract, 
 import type { MemoryStore } from './memory.ts'
 import { createExtractAsk, extractMemory } from './memory-extract.ts'
 import type { ExtractAsk } from './memory-extract.ts'
-import { botMark, mergeBotMarks, parseBotMark, peerMark, routineMark } from './marks.ts'
+import { hasBotInventoryMark, parseBotMark, peerMark, routineMark } from './marks.ts'
+import { resolvePersonaPlaceholders, wrapPrompt } from './session-voice.ts'
+import { createSessionVoiceStore } from './session-voice-store.ts'
+import type { SessionVoiceStore } from './session-voice-store.ts'
+import { installVoicePreStep } from './session-voice-inject.ts'
+import type { VoicePreStep } from './session-voice-inject.ts'
 import {
-  acceptPeerSend,
   appendPeerLog,
   createPeerRateLimiter,
-  finishPeerSend,
+  PeerInbox,
+  PEER_RECEIVE_GUIDANCE,
   readPeerLog,
   type PeerSendIO,
 } from './peers.ts'
@@ -73,6 +75,7 @@ import {
 import type { ReconcileResult } from './reconcile.ts'
 import { attachWorkbenchHttp } from './workbench-routes.ts'
 import {
+  archiveOwnedSessions,
   createOwnedSession,
   listOwnedSessions,
   projectRoomHistory,
@@ -97,9 +100,9 @@ import type {
 } from './groups.ts'
 import {
   createRoundTracker,
-  runGroupRound,
 } from './group-engine.ts'
 import type { RoundTracker } from './group-engine.ts'
+import { GroupInbox } from './group-inbox.ts'
 
 export { composePersona, createMemoryStore, renderMemorySection, shouldExtract } from './memory.ts'
 export type { MemoryLogEntry, MemoryProfileEntry, MemoryStore } from './memory.ts'
@@ -124,6 +127,7 @@ export type {
   DshBotSessionRow,
   ListBotSessionsRequest,
 } from './ask.ts'
+export { isVoiceInjection, unwrapPrompt, wrapPrompt, resolvePersonaPlaceholders } from './session-voice.ts'
 export {
   DSH_BOT_GROUP_HIDDEN_TITLE_PREFIX,
   DSH_BOT_HIDDEN_KIND,
@@ -133,7 +137,6 @@ export {
   botMark,
   groupMark,
   groupRoomMark,
-  mergeBotMarks,
   parseBotMark,
   parseGroupMark,
   parseGroupRoomMark,
@@ -155,6 +158,7 @@ export { attachDshBotHttp, handleDshBotHttp } from './routes.ts'
 export type { DshBotHttpFace, DshBotModelInfo, ListSessionsRpcValue } from './routes.ts'
 export { attachWorkbenchHttp, handleWorkbenchStatic, dispatchWorkbenchApi } from './workbench-routes.ts'
 export {
+  archiveOwnedSessions,
   createOwnedSession,
   listOwnedSessions,
   isPlatformInjection,
@@ -201,6 +205,7 @@ export {
   buildMemberTurnPrompt,
   createRoundTracker,
   isSkipReply,
+  orderRoundSpeakers,
   parseMentions,
   runGroupRound,
   toRoomSpeech,
@@ -211,13 +216,8 @@ export {
   SEED_BOT_ID,
   SEED_PRESET_ID,
   createBotsRuntime,
-  createPresetGate,
   hashAvatarColor,
-  readPersonaText,
-  replacePersonaText,
   slugifyName,
-  yamlPersonaScalar,
-  yamlSingleQuote,
 } from './bots.ts'
 export type {
   BotAvatar,
@@ -227,7 +227,6 @@ export type {
   CreateBotInput,
   DeleteBotResult,
   ListBotsResult,
-  PresetGate,
   UpdateBotInput,
 } from './bots.ts'
 export {
@@ -242,7 +241,7 @@ export type {
 } from './reconcile.ts'
 
 /** Settings namespace for bot-owned defaults (hot, live). */
-export const DSH_BOT_SETTINGS_NAMESPACE = settingsNamespace('dsh-bot')
+export const DSH_BOT_SETTINGS_NAMESPACE = 'dsh-bot'
 
 /** Plugin / settings section for {@link DshBotService}. */
 export interface DshBotConfig {
@@ -262,6 +261,7 @@ export interface DshBotServiceExtras {
   readonly extractAsk?: ExtractAsk
   readonly behaviorSection?: (bot: BotView) => string
   readonly routines?: RoutineStore
+  readonly voices?: SessionVoiceStore
 }
 
 declare module '@deepseek-ai/cordis' {
@@ -272,7 +272,7 @@ declare module '@deepseek-ai/cordis' {
 
 /**
  * The DSH Bot host service (`ctx.dshBot`). Required inject is sessionTool;
- * settings / webServer / workspaceRegistry / apiProxy / agentDefaultModel
+ * settings / webServer / workspaceRegistry / sessionController / agentDefaultModel
  * are optional and resolved per call.
  */
 class DshBotService extends Service {
@@ -281,9 +281,6 @@ class DshBotService extends Service {
   static Config: z<DshBotConfig> = z.object({
     webUrl: z.string().default('http://127.0.0.1:3084'),
     askTimeoutMs: z.number().step(1).min(1).default(180_000),
-    // Optional override (BR-010): empty/omitted provider+model ⇒ follow global.
-    // Inner fields must not be .required() — bundle config omits `model` entirely
-    // and cordis still materializes the object.
     model: z.object({
       provider: z.string().default(''),
       model: z.string().default(''),
@@ -302,13 +299,17 @@ class DshBotService extends Service {
   private readonly botsRuntime: BotsRuntime
   private readonly groupsRuntime: GroupsRuntime
   private readonly roundTracker: RoundTracker
+  private readonly groupInbox: GroupInbox
   private readonly memoryStore: MemoryStore
   private readonly extractAsk: ExtractAsk
   private readonly behaviorSection?: (bot: BotView) => string
+  private readonly voices: SessionVoiceStore
+  private readonly voicePreStep: VoicePreStep
   private readonly routineStore: RoutineStore
   private readonly scheduler: RoutineScheduler
   private readonly unread = new Map<string, number>()
   private readonly peerLimiter = createPeerRateLimiter()
+  private readonly peerInbox = new PeerInbox(() => { console.warn('[dsh-bot-peers] delivery failed') })
   private readonly sessionWorking = new Map<string, string>()
   private botIds: string[] = []
   private readonly routineErrors = new Map<string, number>()
@@ -342,7 +343,7 @@ class DshBotService extends Service {
     })
     this.source = () => entry
     this.platform = platform ?? createPlatform(ctx)
-    this.botsRuntime = botsRuntime ?? createBotsRuntime({ gate: createPresetGate(ctx) })
+    this.botsRuntime = botsRuntime ?? createBotsRuntime()
     this.memoryStore = extras?.memory ?? createMemoryStore(() => {
       const home = process.env.DSH_HOME?.trim()
       if (home === undefined || home === '') {
@@ -357,6 +358,7 @@ class DshBotService extends Service {
       config: () => this.source(),
     })
     this.behaviorSection = extras?.behaviorSection ?? (bot => renderBehaviorSection(bot.declined ?? []))
+    this.voices = extras?.voices ?? createSessionVoiceStore(() => this.home())
     this.routineStore = extras?.routines ?? createRoutineStore(() => {
       const home = process.env.DSH_HOME?.trim()
       if (home === undefined || home === '') throw new Error('DSH_HOME is not set')
@@ -368,8 +370,10 @@ class DshBotService extends Service {
       wake: routine => this.performWake(routine),
     })
     if (this.source().routinesEnabled !== false) void this.scheduler.rearmAll()
+    this.voicePreStep = installVoicePreStep(ctx, sessionId => this.sessionVoice(sessionId))
     ctx.effect(() => () => {
       this.scheduler.disarmAll()
+      this.voicePreStep.dispose()
     })
     this.groupsRuntime = groupsRuntime ?? createGroupsRuntime({
       listBotIds: async () => {
@@ -378,11 +382,15 @@ class DshBotService extends Service {
       },
     })
     this.roundTracker = createRoundTracker()
-    installSettingsSection(ctx, DSH_BOT_SETTINGS_NAMESPACE, DshBotService.Config, entry, {
-      setSource: (current) => {
-        this.source = current
-      },
-      onChange: () => { void this.scheduler.rearmAll() },
+    this.groupInbox = new GroupInbox(() => this.groupDependencies())
+    ctx.inject(['settings'], (settingsCtx) => {
+      const settings: SettingsProvider = settingsCtx.settings
+      settings.installSection(ctx, DSH_BOT_SETTINGS_NAMESPACE, DshBotService.Config, entry, {
+        setSource: (current) => {
+          this.source = current
+        },
+        onChange: () => { void this.scheduler.rearmAll() },
+      })
     })
     ctx.inject(['webServer'], (webCtx) => {
       attachDshBotHttp(webCtx, this)
@@ -390,35 +398,29 @@ class DshBotService extends Service {
     })
   }
 
-  /** Current resolved config (settings overlay, read on every call). */
   currentConfig(): DshBotRuntimeConfig {
     return this.source()
   }
 
-  /**
-   * Hidden delegated Q&A. Each call mints its own session.
-   */
-  askBot(caller: SessionToolCaller, request: AskBotRequest): Promise<AskBotResult> {
-    return askBot(this.ctx, this.ctx.sessionTool, this.platform, this.source(), caller, request)
+  async askBot(caller: SessionToolCaller, request: AskBotRequest): Promise<AskBotResult> {
+    return askBot(this.ctx, this.ctx.sessionTool, this.platform, this.source(), caller, {
+      ...request,
+      voice: this.voicePreStep.active() ? '' : request.voice ?? await this.voiceFor(SEED_BOT_ID),
+      onCreated: async sessionId => {
+        await this.freezeVoice(String(sessionId), SEED_BOT_ID)
+        await request.onCreated?.(sessionId)
+      },
+    })
   }
 
-  /**
-   * Visible bot session (sidebar create). Title has no `~` prefix.
-   */
   createSession(caller: SessionToolCaller, request: CreateBotSessionRequest = {}): Promise<CreateBotSessionResult> {
     return createVisibleBotSession(this.ctx, this.ctx.sessionTool, this.platform, this.source(), caller, request)
   }
 
-  /**
-   * Marked bot sessions intersected with live session-tool metadata.
-   */
   listSessions(request: ListBotSessionsRequest = {}): Promise<readonly DshBotSessionRow[]> {
     return listMarkedBotSessions(this.ctx.sessionTool, request, this.platform)
   }
 
-  /**
-   * Current bot model + source for the sidebar footer (UF-006).
-   */
   currentBotModel(): DshBotModelInfo {
     const override = resolveOverride(this.source())
     if (override !== undefined) {
@@ -445,51 +447,88 @@ class DshBotService extends Service {
   }
 
   createBot(input: CreateBotInput) {
-    return this.botsRuntime.createBot(input).then(async view => {
-      await this.injectMemory(view.id)
-      return this.botsRuntime.getBot(view.id)
-    })
+    return this.botsRuntime.createBot(input)
   }
 
   updateBot(input: UpdateBotInput) {
-    return this.botsRuntime.updateBot(input).then(async view => {
-      await this.injectMemory(view.id)
-      return this.botsRuntime.getBot(view.id)
-    })
+    return this.botsRuntime.updateBot(input)
   }
 
-  deleteBot(input: { id: string }) {
-    return this.botsRuntime.deleteBot(input).then(async result => {
+  async deleteBot(input: { id: string }) {
+    const result = await this.botsRuntime.deleteBot(input)
+    let groups: { updated: readonly string[]; deleted: readonly string[] } = { updated: [], deleted: [] }
+    try {
+      groups = await this.groupsRuntime.removeBotFromGroups(input.id)
+    } catch {
+      // registry already dropped the bot
+    }
+    try {
       await this.memoryStore.remove(input.id)
+    } catch {
+      // leftover memory cannot be opened from the roster
+    }
+    try {
       const rows = await this.routineStore.list(input.id)
       for (const row of rows) {
         this.scheduler.disarm(row.id)
-        await this.routineStore.update({ id: row.id, enabled: false })
+        try {
+          await this.routineStore.update({ id: row.id, enabled: false })
+        } catch {
+          // disable is best-effort once the owner is gone
+        }
       }
-      this.unread.delete(input.id)
-      return result
-    })
+    } catch {
+      // leftover routines stay unreachable without a live bot
+    }
+    try {
+      await archiveOwnedSessions(this.ctx.sessionTool, this.platform, input.id)
+    } catch {
+      // marked sessions are inert without a live bot
+    }
+    this.unread.delete(input.id)
+    return { ...result, groups }
   }
 
-  /**
-   * Workbench: gateway session.create {agentPreset,cwd} + marks bot:<id>.
-   */
   async createBotSession(input: CreateOwnedSessionRequest) {
-    await this.injectMemory(input.botId)
     return createOwnedSession(
       this.ctx.sessionTool,
       this.platform,
       this.botsRuntime,
       this.source(),
       input,
+      (sessionId, botId) => this.freezeVoice(sessionId, botId),
     )
   }
 
-  /**
-   * Workbench: marks `bot:<id>` ∩ session metadata, newest first.
-   */
   listBotSessions(input: ListOwnedSessionsRequest) {
     return listOwnedSessions(this.ctx.sessionTool, this.platform, this.botsRuntime, input)
+  }
+
+  async renameSession(input: { sessionId: string; title: string }): Promise<{ sessionId: string; title: string }> {
+    const sessionId = input.sessionId.trim()
+    const title = input.title.trim()
+    if (sessionId === '' || title === '' || title.length > 60) throw new DshBotError('invalid-input', '名称须为 1–60 个字符')
+    const room = await this.groupsRuntime.peekRoom(sessionId)
+    if (room) await this.groupsRuntime.renameGroupSession({ sessionId, title })
+    else {
+      const tags = await get(sessionId)
+      if (!hasBotInventoryMark(tags ?? [])) {
+        throw new DshBotError('not-found', '只能重命名 Bot 对话', { sessionId })
+      }
+      await this.ctx.sessionTool.rename({ kind: 'cli' }, SessionId(sessionId), { title })
+    }
+    return { sessionId, title }
+  }
+
+  async prepareOfficialJump(input: { sessionId: string }): Promise<{ sessionId: string }> {
+    const sessionId = input.sessionId.trim()
+    if (sessionId === '') throw new DshBotError('invalid-input', 'sessionId is required')
+    const tags = await get(sessionId)
+    if (!hasBotInventoryMark(tags ?? [])) {
+      throw new DshBotError('not-found', '只能打开 Bot 对话', { sessionId })
+    }
+    await this.platform.unarchiveSession(sessionId)
+    return { sessionId }
   }
 
   history(input: HistoryRequest): Promise<HistoryResult> {
@@ -535,51 +574,63 @@ class DshBotService extends Service {
     const group = await this.groupsRuntime.getGroup(room.header.groupId)
     const members = new Map<string, WorkbenchHistoryAuthor>()
     for (const id of group.memberIds) {
-      const bot = await this.botsRuntime.getBot(id)
-      members.set(id, {
-        botId: bot.id,
-        name: bot.name,
-        avatar: bot.avatar,
-      })
+      try {
+        const bot = await this.botsRuntime.getBot(id)
+        members.set(id, {
+          botId: bot.id,
+          name: bot.name,
+          avatar: bot.avatar,
+        })
+      } catch (error) {
+        if (error instanceof DshBotError && error.code === 'bot-not-found') continue
+        throw error
+      }
     }
     const items = projectRoomHistory(room, members, input.sinceSeq)
     const round = this.roundTracker.get(room.header.roomId)
     return {
       sessionId: room.header.roomId,
       items,
-      working: round?.working === true,
+      working: round?.working === true || this.groupInbox.working(room.header.roomId),
       ...round?.speaking === undefined ? {} : { speaking: round.speaking },
+      ...round?.round === undefined ? {} : { round: round.round },
+      ...round?.rounds === undefined ? {} : { rounds: round.rounds },
     }
   }
 
   private async promptSession(input: PromptRequest): Promise<PromptResult> {
     const room = await this.groupsRuntime.peekRoom(input.sessionId)
     if (room === undefined) {
-      const result = await promptOwnedSession(this.ctx.sessionTool, input, this.platform)
+      const text = await this.wrapForSession(input.sessionId, input.text)
+      const result = await promptOwnedSession(this.ctx.sessionTool, { ...input, text }, this.platform)
       await this.notePrompt(input.sessionId, input.text)
       return result
     }
-    const result = await runGroupRound({
+    return this.groupInbox.submit(input)
+  }
+
+  private groupDependencies() {
+    return {
       sessionTool: this.ctx.sessionTool,
       platform: this.platform,
       bots: this.botsRuntime,
       groups: this.groupsRuntime,
       config: this.source(),
       tracker: this.roundTracker,
+      voiceInjected: () => this.voicePreStep.active(),
       createCwd: () => {
         const home = process.env.DSH_HOME?.trim()
         if (home !== undefined && home !== '') return dirname(home)
         return process.cwd()
       },
-    }, { roomId: input.sessionId, text: input.text })
-    return {
-      sessionId: result.roomId,
-      ...result.unmatchedMentions ? { unmatchedMentions: true } : {},
+      voiceFor: (botId: string) => this.voiceFor(botId),
+      sessionVoice: (sessionId: string) => this.sessionVoice(sessionId),
+      freezeVoice: (sessionId: string, botId: string) => this.freezeVoice(sessionId, botId),
     }
   }
 
   memoryList(input: { botId: string }) {
-    return this.botsRuntime.getBot(input.botId).then(async () => {
+    return this.requireBot(input.botId).then(async () => {
       const listed = await this.memoryStore.list(input.botId)
       return {
         profile: listed.profile.map(row => ({ id: row.id, text: row.text, ts: row.ts })),
@@ -596,7 +647,7 @@ class DshBotService extends Service {
   }
 
   memoryRemember(input: { botId: string; text: string; sessionId?: string }) {
-    return this.botsRuntime.getBot(input.botId).then(async () => {
+    return this.requireBot(input.botId).then(async () => {
       const row = await this.memoryStore.appendLog(input.botId, {
         kind: 'log',
         text: input.text.slice(0, 200),
@@ -610,21 +661,18 @@ class DshBotService extends Service {
   }
 
   memoryForget(input: { botId: string; id: string }) {
-    return this.botsRuntime.getBot(input.botId).then(async () => {
+    return this.requireBot(input.botId).then(async () => {
       await this.memoryStore.tombstone(input.botId, input.id)
-      await this.injectMemory(input.botId)
       return { ok: true as const }
     })
   }
 
   memoryClear(input: { botId: string }) {
-    return this.botsRuntime.getBot(input.botId).then(async () => {
+    return this.requireBot(input.botId).then(async () => {
       await this.memoryStore.clear(input.botId)
-      await this.injectMemory(input.botId)
       return { ok: true as const }
     })
   }
-
 
   routineList(input: { botId?: string } = {}) {
     return this.routineStore.list(input.botId)
@@ -656,7 +704,6 @@ class DshBotService extends Service {
 
   async routineDecline(input: { botId: string; topic: string }) {
     const view = await this.botsRuntime.declineTopic(input.botId, input.topic)
-    await this.injectMemory(view.id)
     return { ok: true as const, declined: view.declined ?? [] }
   }
 
@@ -673,17 +720,16 @@ class DshBotService extends Service {
       io: {
         ensureSession: async current => {
           if (current.sessionId !== undefined && current.sessionId !== '') return current.sessionId
-          await this.injectMemory(current.botId)
           const created = await createOwnedSession(this.ctx.sessionTool, this.platform, this.botsRuntime, this.source(), {
             botId: current.botId,
             title: `例程 · ${current.name}`,
-          })
-          await mergeBotMarks(created.sessionId, [botMark(current.botId), routineMark(current.id)])
+            extraTags: [routineMark(current.id)],
+          }, (sessionId, botId) => this.freezeVoice(sessionId, botId))
           return created.sessionId
         },
         writeWaitRead: async (sessionId, text) => {
           return await withPromptLock(sessionId, async () => {
-            await this.ctx.sessionTool.write({ kind: 'cli' }, SessionId(sessionId), text)
+            await this.ctx.sessionTool.write({ kind: 'cli' }, SessionId(sessionId), await this.wrapForSession(sessionId, text))
             const waited = await this.ctx.sessionTool.wait({ kind: 'cli' }, SessionId(sessionId), {
               until: 'idle',
               timeoutMs: this.source().askTimeoutMs,
@@ -694,27 +740,93 @@ class DshBotService extends Service {
           })
         },
         writeSystem: async (sessionId, text) => {
-          await this.ctx.sessionTool.write({ kind: 'cli' }, SessionId(sessionId), text)
+          await this.ctx.sessionTool.write({ kind: 'cli' }, SessionId(sessionId), await this.wrapForSession(sessionId, text))
         },
       },
     }, routine)
   }
 
-  async injectMemory(botId: string): Promise<void> {
-    const bot = await this.botsRuntime.getBot(botId)
-    if (!bot.presetId.startsWith(MANAGED_PRESET_PREFIX)) return
-    const listed = await this.memoryStore.list(bot.id)
-    const memory = renderMemorySection(listed.profile, listed.log)
-    const behavior = this.behaviorSection?.(bot)
-    const full = composePersona(stripMemorySection(bot.persona), {
-      ...memory === '' ? {} : { memory },
-      ...behavior === undefined || behavior.trim() === '' ? {} : { behavior },
-    })
-    await this.botsRuntime.rewritePresetPersona(bot.id, full)
+  private async requireBot(botId: string): Promise<BotView> {
+    return this.botsRuntime.getBot(botId)
   }
 
   private memoryOn(): boolean {
     return this.source().memoryEnabled !== false
+  }
+
+  private async voiceFor(botId: string, sessionId?: string): Promise<string> {
+    const bot = await this.requireBot(botId)
+    const listed = this.memoryOn() ? await this.memoryStore.list(bot.id) : { profile: [] as const, log: [] as const }
+    const memory = renderMemorySection(listed.profile, listed.log)
+    const behavior = [this.behaviorSection?.(bot), PEER_RECEIVE_GUIDANCE].filter(Boolean).join('\n\n')
+    const vars = await this.sessionModelCwd(sessionId, bot)
+    let frozen = sessionId === undefined ? undefined : await this.voices.read(sessionId)
+    if (sessionId !== undefined && frozen === undefined) {
+      await this.voices.snapshot(sessionId, resolvePersonaPlaceholders(stripMemorySection(bot.persona), vars))
+      frozen = await this.voices.read(sessionId)
+    }
+    const base = frozen ?? resolvePersonaPlaceholders(stripMemorySection(bot.persona), vars)
+    return composePersona(base, {
+      ...memory === '' ? {} : { memory },
+      ...behavior === undefined || behavior.trim() === '' ? {} : { behavior },
+    })
+  }
+
+  private async freezeVoice(sessionId: string, botId: string): Promise<void> {
+    const bot = await this.requireBot(botId)
+    const vars = await this.sessionModelCwd(sessionId, bot)
+    await this.voices.snapshot(sessionId, resolvePersonaPlaceholders(stripMemorySection(bot.persona), vars))
+  }
+
+  private async sessionVoice(sessionId: string): Promise<string | undefined> {
+    try {
+      const tags = await get(sessionId)
+      const botId = parseBotMark(tags ?? [])
+      if (botId === undefined) return undefined
+      return await this.voiceFor(botId, sessionId)
+    } catch (error) {
+      if (error instanceof DshBotError && error.code === 'bot-not-found') return undefined
+      throw error
+    }
+  }
+
+  private async sessionModelCwd(
+    sessionId: string | undefined,
+    bot: BotView,
+  ): Promise<{ model?: string; cwd?: string }> {
+    const override = bot.modelOverride ?? resolveOverride(this.source())
+    const model = override !== undefined
+      ? `${override.provider}/${override.model}`
+      : (() => {
+        const global = this.platform.snapshotGlobalDefault()
+        const provider = global?.provider ?? ''
+        const name = global?.model ?? ''
+        return provider === '' && name === '' ? '' : `${provider}/${name}`
+      })()
+    let cwd = ''
+    if (sessionId !== undefined && sessionId !== '') {
+      const store = this.ctx.get('sessions') as {
+        get?(id: string): { header?: { cwd?: string } } | undefined
+      } | undefined
+      cwd = store?.get?.(sessionId)?.header?.cwd?.trim() ?? ''
+    }
+    return {
+      ...model === '' ? {} : { model },
+      ...cwd === '' ? {} : { cwd },
+    }
+  }
+
+  private async wrapForSession(sessionId: string, text: string): Promise<string> {
+    if (this.voicePreStep.active()) return text
+    try {
+      const tags = await get(sessionId)
+      const botId = parseBotMark(tags ?? [])
+      if (botId === undefined) return text
+      return wrapPrompt(await this.voiceFor(botId, sessionId), text)
+    } catch (error) {
+      if (error instanceof DshBotError && error.code === 'bot-not-found') return text
+      throw error
+    }
   }
 
   private async notePrompt(sessionId: string, text: string): Promise<void> {
@@ -789,7 +901,10 @@ class DshBotService extends Service {
     }
   }
 
-  cancel(input: { sessionId: string }) {
+  async cancel(input: { sessionId: string }) {
+    if (await this.groupsRuntime.peekRoom(input.sessionId) !== undefined) {
+      return this.groupInbox.cancel(input.sessionId)
+    }
     if (this.platform.cancelSession === undefined) {
       throw new DshBotError('cancel-unavailable', 'sessions.cancel is unavailable')
     }
@@ -867,23 +982,37 @@ class DshBotService extends Service {
         return hit?.sessionId
       },
       createPeerSession: async (toBot, fromBot, title) => {
-        await this.injectMemory(toBot)
         const created = await createOwnedSession(
           this.ctx.sessionTool,
           this.platform,
           this.botsRuntime,
           this.source(),
-          { botId: toBot, title },
+          { botId: toBot, title, extraTags: [peerMark(fromBot)] },
+          (sessionId, botId) => this.freezeVoice(sessionId, botId),
         )
-        await mergeBotMarks(created.sessionId, [botMark(toBot), peerMark(fromBot)])
         return created.sessionId
       },
       write: async (sessionId, text) => {
         await withPromptLock(sessionId, async () => {
-          await this.ctx.sessionTool.write({ kind: 'cli' }, SessionId(sessionId), text)
+          await this.ctx.sessionTool.write({ kind: 'cli' }, SessionId(sessionId), await this.wrapForSession(sessionId, text))
         })
       },
-      waitRead: async sessionId => {
+      readCursor: async sessionId => {
+        const read = await this.ctx.sessionTool.read({ kind: 'cli' }, SessionId(sessionId), { maxBlocks: 500 })
+        return read.messages.reduce((max, row) => Math.max(max, row.seq), -1)
+      },
+      exchange: async (sessionId, text) => withPromptLock(sessionId, async () => {
+        const before = await this.ctx.sessionTool.read({ kind: 'cli' }, SessionId(sessionId), { maxBlocks: 500 })
+        const cursor = before.messages.reduce((max, row) => Math.max(max, row.seq), -1)
+        await this.ctx.sessionTool.write({ kind: 'cli' }, SessionId(sessionId), await this.wrapForSession(sessionId, text))
+        const waited = await this.ctx.sessionTool.wait({ kind: 'cli' }, SessionId(sessionId), {
+          until: 'idle', timeoutMs: this.source().askTimeoutMs,
+        })
+        if (wakeWaitFailed(waited.status)) return undefined
+        const read = await this.ctx.sessionTool.read({ kind: 'cli' }, SessionId(sessionId), { maxBlocks: 500 })
+        return extractAssistantAnswer(read.messages.filter(row => row.seq > cursor))
+      }),
+      waitRead: async (sessionId, afterSeq) => {
         const waited = await this.ctx.sessionTool.wait({ kind: 'cli' }, SessionId(sessionId), {
           until: 'idle',
           timeoutMs: this.source().askTimeoutMs,
@@ -891,24 +1020,25 @@ class DshBotService extends Service {
         if (wakeWaitFailed(waited.status)) return undefined
         return await withPromptLock(sessionId, async () => {
           const read = await this.ctx.sessionTool.read({ kind: 'cli' }, SessionId(sessionId), { maxBlocks: 500 })
-          return extractAssistantAnswer(read.messages)
+          return extractAssistantAnswer(afterSeq === undefined ? read.messages : read.messages.filter(row => row.seq > afterSeq))
         })
       },
       resolveFromSession: async (fromBot, hint) => {
         const listed = await listOwnedSessions(this.ctx.sessionTool, this.platform, this.botsRuntime, { botId: fromBot })
         if (hint !== undefined && hint !== '') {
-          const exact = listed.sessions.find(row => row.sessionId === hint && row.hidden !== true)
-          if (exact !== undefined) return exact.sessionId
+          const tags = await get(hint)
+          if (parseBotMark(tags ?? []) !== fromBot) throw new DshBotError('invalid-input', 'reply target does not belong to the sender')
+          return hint
         }
         const newest = listed.sessions.find(row => row.hidden !== true)
         if (newest !== undefined) return newest.sessionId
-        await this.injectMemory(fromBot)
         const created = await createOwnedSession(
           this.ctx.sessionTool,
           this.platform,
           this.botsRuntime,
           this.source(),
           { botId: fromBot },
+          (sessionId, botId) => this.freezeVoice(sessionId, botId),
         )
         return created.sessionId
       },
@@ -934,13 +1064,7 @@ class DshBotService extends Service {
     }
     const io = this.peerIO()
     try {
-      const accepted = await acceptPeerSend(io, payload)
-      if (accepted.ok) {
-        void finishPeerSend(io, payload, accepted.sessionId).catch(error => {
-          console.warn('[dsh-bot-peers] echo failed', error)
-        })
-      }
-      return accepted
+      return await this.peerInbox.send(io, payload)
     } catch (error) {
       if (error instanceof DshBotError && error.code === 'bot-not-found') {
         return { ok: false as const, error: 'bot-not-found' }
@@ -987,12 +1111,9 @@ class DshBotService extends Service {
     }
   }
 
-  /**
-   * Backfill GUI / v1 sessions onto registry bots (async; does not delete marks).
-   */
   reconcile(): Promise<ReconcileResult> {
     const run = this.reconcileGate.then(() => (
-      reconcileBotSessions(this.platform, this.botsRuntime, this.reconcileState)
+      reconcileBotSessions(this.platform, this.botsRuntime, this.reconcileState, this.ctx.sessionTool)
     ))
     this.reconcileGate = run.then(() => undefined, () => undefined)
     return run
@@ -1002,8 +1123,6 @@ class DshBotService extends Service {
 export default DshBotService
 export { DshBotService }
 
-
 function maxItemSeq(items: readonly { readonly seq: number }[]): number {
   return items.reduce((max, item) => item.seq > max ? item.seq : max, 0)
 }
-

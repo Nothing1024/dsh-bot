@@ -8,6 +8,7 @@ import { zh } from './locales.ts'
 import type { OverlayState, OverlayStore } from './overlay-store.ts'
 import type { RosterRpc } from './roster-rpc.ts'
 import css from './OverlayForms.module.css'
+import { formatWireError } from 'dsh-bot-shared'
 
 export interface OverlayFormsProps {
   overlay: OverlayStore
@@ -83,7 +84,7 @@ function BotFields(props: OverlayFormsProps & { t: (key: string, vars?: Record<s
           ...modelOverride !== undefined ? { modelOverride } : {},
         })
       if (!outcome.ok) {
-        props.overlay.setBusy(false, outcome.error.code === 'unavailable' ? '网关不可达' : outcome.error.message)
+        props.overlay.setBusy(false, formatWireError(outcome.error))
         return
       }
       props.overlay.close()
@@ -143,6 +144,7 @@ function GroupFields(props: OverlayFormsProps & { t: (key: string, vars?: Record
   const visibleBots = useMemo(() => props.bots.filter(bot => bot.hidden !== true), [props.bots])
   const [name, setName] = useState(group?.name ?? '')
   const [memberIds, setMemberIds] = useState<readonly string[]>(group?.memberIds ?? [])
+  const [rounds, setRounds] = useState<number>(group?.rounds ?? 3)
   const nameRef = useRef<HTMLInputElement>(null)
   useEffect(() => { nameRef.current?.focus() }, [])
   const blocked = name.trim() === '' || memberIds.length < GROUP_MEMBER_MIN || memberIds.length > GROUP_MEMBER_MAX
@@ -155,10 +157,10 @@ function GroupFields(props: OverlayFormsProps & { t: (key: string, vars?: Record
     void (async () => {
       props.overlay.setBusy(true)
       const outcome = editing && group !== undefined
-        ? await props.roster.updateGroup({ id: group.id, name: name.trim(), memberIds })
-        : await props.roster.createGroup({ name: name.trim(), memberIds })
+        ? await props.roster.updateGroup({ id: group.id, name: name.trim(), memberIds, rounds })
+        : await props.roster.createGroup({ name: name.trim(), memberIds, rounds })
       if (!outcome.ok) {
-        props.overlay.setBusy(false, outcome.error.code === 'unavailable' ? '网关不可达' : outcome.error.message)
+        props.overlay.setBusy(false, formatWireError(outcome.error))
         return
       }
       props.overlay.close()
@@ -193,6 +195,21 @@ function GroupFields(props: OverlayFormsProps & { t: (key: string, vars?: Record
         </div>
         {memberIds.length < GROUP_MEMBER_MIN ? <div className={css.hint}>{props.t('overlay.memberHint')}</div> : null}
       </div>
+      <label className={css.field}>
+        <span>{props.t('overlay.rounds')}</span>
+        <select
+          data-testid="dsh-bot-overlay-rounds"
+          value={String(rounds)}
+          onChange={event => { setRounds(Number(event.target.value)) }}
+          disabled={props.state.busy}
+        >
+          <option value="1">1</option>
+          <option value="2">2</option>
+          <option value="3">3</option>
+          <option value="5">5</option>
+          <option value="0">{props.t('overlay.roundsInfinite')}</option>
+        </select>
+      </label>
       <div className={css.actions}>
         <button type="button" onClick={() => { props.overlay.close() }} disabled={props.state.busy}>{props.t('overlay.cancel')}</button>
         <button type="submit" data-testid="dsh-bot-overlay-save" data-primary="1" disabled={blocked || props.state.busy}>{props.t('overlay.save')}</button>
@@ -219,7 +236,7 @@ function ConfirmDelete(props: OverlayFormsProps & { t: (key: string, vars?: Reco
       const id = props.state.id ?? ''
       const outcome = isGroup ? await props.roster.deleteGroup(id) : await props.roster.deleteBot(id)
       if (!outcome.ok) {
-        props.overlay.setBusy(false, outcome.error.code === 'unavailable' ? '网关不可达' : outcome.error.message)
+        props.overlay.setBusy(false, formatWireError(outcome.error))
         return
       }
       props.overlay.close()

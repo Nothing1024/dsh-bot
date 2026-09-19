@@ -58,6 +58,29 @@ export function sessionIdOf(frame: Record<string, unknown>): string {
   return typeof frame.sessionId === 'string' ? frame.sessionId : ''
 }
 
+/** Map a live `session/event` onto the workbench mux vocabulary (BR-011). */
+export function muxFrameFromSessionEvent(session: { readonly id?: unknown }, event: unknown): Record<string, unknown> {
+  const rec = event as { type?: unknown; seq?: unknown; data?: { id?: unknown; reason?: unknown } }
+  const type = typeof rec.type === 'string' ? rec.type : ''
+  const sessionId = String(session.id ?? '')
+  if (type === 'approval/asked') {
+    const approvalId = rec.data?.id
+    return {
+      type: 'approval/requested',
+      sessionId,
+      seq: rec.seq,
+      approvalId,
+      rpcId: approvalId,
+      message: rec.data?.reason,
+      event,
+    }
+  }
+  if (type === 'approval/decided') {
+    return { type: 'approval/resolved', sessionId, seq: rec.seq, event }
+  }
+  return { type: 'session/event', sessionId, seq: rec.seq, event }
+}
+
 export interface BotEventsSource {
   subscribeMux?(signal: AbortSignal): AsyncIterable<unknown> | undefined
   subscribeHost?(signal: AbortSignal): AsyncIterable<unknown> | undefined
@@ -84,7 +107,7 @@ export async function handleBotEventsHttp(
     ac.abort()
     const payload = JSON.stringify({
       ok: false,
-      error: { code: 'events-unavailable', message: 'apiProxy.events is not available' },
+      error: { code: 'events-unavailable', message: 'session events are not available' },
     })
     res.statusCode = 503
     res.setHeader('Content-Type', 'application/json; charset=utf-8')
@@ -147,6 +170,8 @@ export async function handleBotEventsHttp(
       }
     }
     const out: Record<string, unknown> = { ...frame }
+    const roomMark = tags?.find(tag => tag.startsWith('group-room:'))
+    if (roomMark !== undefined) out.roomId = roomMark.slice('group-room:'.length)
     if (rpcId !== undefined) out.rpcId = rpcId
     if (!res.writableEnded) res.write(encodeSse(out))
   }

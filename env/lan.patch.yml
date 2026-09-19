@@ -1,0 +1,13 @@
+# Plugin-private LAN overlay. Bind/trust come from dsh-web-lan-access.
+# This file only retargets session-tool-local.webUrl.
+- id: session-tool-local
+  config:
+    allowAllScope: 'top-level'
+    cliAllowAll: true
+    readMaxBlocks: 500
+    listMaxRows: 100
+    webUrl: !!js process.env.DSH_LAN_WEB_URL ?? 'http://127.0.0.1:3084'
+    allowOthersToWrite: 'workspace'
+    showDelegated: true
+    hiddenPrefixes:
+      - '~'

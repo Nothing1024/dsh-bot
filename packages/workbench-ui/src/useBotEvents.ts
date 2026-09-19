@@ -35,12 +35,13 @@ export function mergeLiveItems(
   const liveStream = sessionId !== null && stream !== null && stream.sessionId === sessionId && stream.text !== ''
   const extraCards = sessionId === null
     ? []
-    : cards.filter(card => card.sessionId === sessionId && !items.some(item => item.id === card.id))
+    : cards.filter(card => (card.sessionId === sessionId || card.roomId === sessionId) && !items.some(item => item.id === card.id))
   if (!liveStream && extraCards.length === 0) return items as WorkbenchHistoryItem[]
   const out = [...items]
   if (liveStream && stream !== null) {
     let last = -1
     for (let i = out.length - 1; i >= 0; i -= 1) {
+      if (out[i]!.kind === 'message' && out[i]!.role === 'user') break
       if (out[i]!.kind === 'message' && out[i]!.role === 'assistant') {
         last = i
         break
@@ -63,7 +64,7 @@ export function mergeLiveItems(
   }
   if (sessionId !== null) {
     for (const card of cards) {
-      if (card.sessionId === sessionId && !out.some(item => item.id === card.id)) out.push(card)
+      if ((card.sessionId === sessionId || card.roomId === sessionId) && !out.some(item => item.id === card.id)) out.push(card)
     }
   }
   return out
@@ -84,12 +85,14 @@ function cardFromFrame(frame: Record<string, unknown>): WorkbenchHistoryItem | n
   const type = typeof frame.type === 'string' ? frame.type : ''
   const sessionId = typeof frame.sessionId === 'string' ? frame.sessionId : ''
   const rpcId = typeof frame.rpcId === 'string' ? frame.rpcId : ''
+  const room = typeof frame.roomId === 'string' ? { roomId: frame.roomId } : {}
   if (sessionId === '') return null
   if (type === 'approval/requested') {
     const approvalId = typeof frame.approvalId === 'string' ? frame.approvalId : rpcId
     return {
       id: `approval-${rpcId || approvalId || sessionId}`,
       kind: 'approval',
+      ...room,
       seq: typeof frame.seq === 'number' ? frame.seq : Date.now(),
       sessionId,
       rpcId,
@@ -102,6 +105,7 @@ function cardFromFrame(frame: Record<string, unknown>): WorkbenchHistoryItem | n
     return {
       id: `question-${rpcId || sessionId}`,
       kind: 'question',
+      ...room,
       seq: typeof frame.seq === 'number' ? frame.seq : Date.now(),
       sessionId,
       rpcId,
@@ -174,7 +178,7 @@ export function useBotEvents(): BotLiveState {
           setStream({ sessionId, text: next })
           return
         }
-        if (eventType === 'assistant/message') {
+        if (eventType === 'assistant/message' || eventType === 'turn/end' || eventType === 'user/message') {
           streams.current.delete(sessionId)
           setStream(current => current?.sessionId === sessionId ? null : current)
           bump()

@@ -2,13 +2,12 @@
  * GUI / v1 session backfill: preset reverse-lookup, v1 leftovers, skip
  * cache, idempotence, never delete existing marks (Task 12).
  */
-import { existsSync, mkdirSync, writeFileSync } from 'node:fs'
 import { mkdtempSync, rmSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { Context } from '@deepseek-ai/cordis'
-import { get, put } from 'session-marks'
+import { expandRemoveAliases, expandWriteAliases, get, patch, put } from 'session-marks'
 import type {
   SessionToolCaller,
   SessionToolListResult,
@@ -19,7 +18,6 @@ import { SessionId } from '@deepseek-ai/dsh-session'
 import DshBotService from '../src/index.ts'
 import type { DshBotConfig } from '../src/index.ts'
 import { createBotsRuntime } from '../src/bots.ts'
-import type { PresetGate, PresetListEntry } from '../src/bots.ts'
 import { parseBotMark } from '../src/marks.ts'
 import type { DshBotModelRef, DshBotPlatform } from '../src/platform.ts'
 
@@ -28,18 +26,11 @@ const BASE_CONFIG: DshBotConfig = {
   askTimeoutMs: 30_000,
 }
 
-const TEMPLATE = `---
-- id: persona
-  name: '@deepseek-ai/dsh-persona'
-  config:
-    text: >-
-      你是 DSH Bot。
-
-- id: tool-bash
-  name: '@deepseek-ai/dsh-tool-bash'
-`
-
 class StubSessionTool implements SessionToolService {
+  async readMarks(_caller: Parameters<SessionToolService['readMarks']>[0], sessionId: SessionId) {
+    return { sessionId, tags: [], hiddenPrefixes: ['~'] }
+  }
+
   listResult: SessionToolListResult = { sessions: [] }
 
   async create() {
@@ -66,8 +57,10 @@ class StubSessionTool implements SessionToolService {
   async workspaceAdd() {
     return { workspaceId: 'ws', path: '/tmp', created: true }
   }
+  readonly archived: string[] = []
+  readonly hideCalls: string[] = []
   async workspaceList() {
-    return { workspaces: [], archivedSessionIds: [] }
+    return { workspaces: [], archivedSessionIds: this.archived }
   }
   async workspaceRename() {
     return { workspaceId: 'ws', title: 't' }
@@ -80,8 +73,18 @@ class StubSessionTool implements SessionToolService {
   async getVisibility() {
     return { hasHiddenMark: false, archived: false, isHidden: false }
   }
-  async hide() {
-    return { hasHiddenMark: true, archived: false, isHidden: true }
+  async hide(_caller: SessionToolCaller, sessionId: SessionId) {
+    this.hideCalls.push(sessionId)
+    this.archived.push(sessionId)
+    await patch(sessionId, { add: expandWriteAliases(['hidden']) })
+    return { hasHiddenMark: true, archived: true, isHidden: true }
+  }
+  async mark(_caller: SessionToolCaller, sessionId: SessionId, options: { add?: readonly string[]; remove?: readonly string[] }) {
+    const tags = await patch(sessionId, {
+      ...options.add !== undefined && options.add.length > 0 ? { add: expandWriteAliases(options.add) } : {},
+      ...options.remove !== undefined && options.remove.length > 0 ? { remove: expandRemoveAliases(options.remove) } : {},
+    })
+    return { sessionId, tags }
   }
   async unhide() {
     return { hasHiddenMark: false, archived: false, isHidden: false }
@@ -93,6 +96,7 @@ class StubPlatform implements DshBotPlatform {
   listCalls = 0
 
   async archiveSession() {}
+  async unarchiveSession() {}
   async selectModel() {}
   snapshotGlobalDefault(): DshBotModelRef {
     return { provider: 'anthropic', model: 'grok-4.6' }
@@ -108,29 +112,6 @@ class StubPlatform implements DshBotPlatform {
   }
 }
 
-function seedTemplate(home: string): void {
-  const dir = join(home, '.agent-presets', 'dsh-bot')
-  mkdirSync(dir, { recursive: true })
-  writeFileSync(join(dir, 'agent.cordis.yml'), TEMPLATE)
-  writeFileSync(join(dir, 'preset.yml'), 'name: DSH Bot\n')
-}
-
-function fsGate(home: string): PresetGate {
-  return {
-    async list(): Promise<PresetListEntry[]> {
-      const root = join(home, '.agent-presets')
-      if (!existsSync(root)) return []
-      const { readdirSync } = await import('node:fs')
-      const out: PresetListEntry[] = []
-      for (const id of readdirSync(root)) {
-        if (!existsSync(join(root, id, 'agent.cordis.yml'))) continue
-        out.push({ id })
-      }
-      return out
-    },
-  }
-}
-
 const homes: string[] = []
 const previousHome = process.env.DSH_HOME
 
@@ -138,7 +119,6 @@ beforeEach(() => {
   const home = mkdtempSync(join(tmpdir(), 'dsh-bot-rec-'))
   homes.push(home)
   process.env.DSH_HOME = home
-  seedTemplate(home)
 })
 
 afterEach(() => {
@@ -150,15 +130,15 @@ afterEach(() => {
   else process.env.DSH_HOME = previousHome
 })
 
-function boot(platform?: StubPlatform): { bot: DshBotService; platform: StubPlatform } {
+function boot(platform?: StubPlatform): { bot: DshBotService; platform: StubPlatform; sessionTool: StubSessionTool } {
   const home = process.env.DSH_HOME!
-  const gate = fsGate(home)
-  const botsRuntime = createBotsRuntime({ gate, home: () => home, now: () => 1 })
+  const botsRuntime = createBotsRuntime({ home: () => home, now: () => 1 })
   const plat = platform ?? new StubPlatform()
   const ctx = new Context()
-  ctx.provide('sessionTool', new StubSessionTool())
+  const sessionTool = new StubSessionTool()
+  ctx.provide('sessionTool', sessionTool)
   const bot = new DshBotService(ctx, BASE_CONFIG, plat, botsRuntime)
-  return { bot, platform: plat }
+  return { bot, platform: plat, sessionTool }
 }
 
 describe('parseBotMark', () => {
@@ -170,6 +150,19 @@ describe('parseBotMark', () => {
 })
 
 describe('reconcileBotSessions', () => {
+  it('migrates old chats without surfacing auxiliary sessions or touching coding sessions', async () => {
+    const { bot, platform, sessionTool } = boot()
+    for (const id of ['chat', 'aux']) await put(id, ['kind:dsh-bot', 'bot:dsh-bot', ...(id === 'aux' ? ['kind:hidden'] : [])])
+    platform.gatewayRows = ['chat', 'aux', 'coding'].map(sessionId => ({ sessionId, running: false, updatedAt: 1 }))
+    await bot.reconcile()
+    expect(sessionTool.hideCalls).toEqual(['chat', 'aux'])
+    expect(await get('chat')).toEqual(expect.arrayContaining(['app:dsh-bot', 'kind:dsh-bot', 'form:plugin', 'kind:dsh-bot-chat', 'hidden', 'kind:hidden']))
+    expect(await get('aux')).not.toContain('kind:dsh-bot-chat')
+    expect(await get('coding')).toBeUndefined()
+    await bot.reconcile()
+    expect(sessionTool.hideCalls).toEqual(['chat', 'aux'])
+  })
+
   it('labels an unlabeled GUI session whose agentPreset is a registry bot', async () => {
     const platform = new StubPlatform()
     platform.gatewayRows = [
@@ -181,7 +174,7 @@ describe('reconcileBotSessions', () => {
     expect(result.assigned).toEqual([
       { sessionId: 'session-gui', botId: 'dsh-bot', reason: 'preset' },
     ])
-    expect(await get('session-gui')).toEqual(expect.arrayContaining(['kind:dsh-bot', 'bot:dsh-bot']))
+    expect(await get('session-gui')).toEqual(expect.arrayContaining(['app:dsh-bot', 'kind:dsh-bot', 'form:plugin', 'bot:dsh-bot']))
   })
 
   it('assigns v1 leftovers (kind:dsh-bot without bot:) to the seed bot', async () => {
@@ -195,7 +188,7 @@ describe('reconcileBotSessions', () => {
     expect(result.assigned).toEqual([
       { sessionId: 'session-v1', botId: 'dsh-bot', reason: 'v1-legacy' },
     ])
-    expect(await get('session-v1')).toEqual(expect.arrayContaining(['kind:dsh-bot', 'bot:dsh-bot']))
+    expect(await get('session-v1')).toEqual(expect.arrayContaining(['app:dsh-bot', 'kind:dsh-bot', 'form:plugin', 'bot:dsh-bot']))
   })
 
   it('labels a managed-preset GUI session onto that bot', async () => {
@@ -215,7 +208,7 @@ describe('reconcileBotSessions', () => {
       { sessionId: 'session-poet', botId: created.id, reason: 'preset' },
     ])
     expect(await get('session-poet')).toEqual(
-      expect.arrayContaining(['kind:dsh-bot', `bot:${created.id}`]),
+      expect.arrayContaining(['app:dsh-bot', 'kind:dsh-bot', 'form:plugin', `bot:${created.id}`]),
     )
   })
 
@@ -246,7 +239,7 @@ describe('reconcileBotSessions', () => {
     const first = await bot.reconcile()
     expect(first.labeled).toBe(1)
     const tags = await get('session-keep')
-    expect(tags).toEqual(expect.arrayContaining(['kind:dsh-bot', 'bot:dsh-bot', 'kind:hidden', 'custom:keep']))
+    expect(tags).toEqual(expect.arrayContaining(['app:dsh-bot', 'kind:dsh-bot', 'form:plugin', 'bot:dsh-bot', 'hidden', 'kind:hidden', 'custom:keep']))
     const second = await bot.reconcile()
     expect(second.labeled).toBe(0)
     expect(second.alreadyLabeled).toBe(1)
@@ -263,6 +256,6 @@ describe('reconcileBotSessions', () => {
     const result = await bot.reconcile()
     expect(result.alreadyLabeled).toBe(1)
     expect(result.labeled).toBe(0)
-    expect(await get('session-owned')).toEqual(expect.arrayContaining(['kind:dsh-bot', 'bot:dsh-bot']))
+    expect(await get('session-owned')).toEqual(expect.arrayContaining(['app:dsh-bot', 'kind:dsh-bot', 'form:plugin', 'bot:dsh-bot']))
   })
 })

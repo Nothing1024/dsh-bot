@@ -1,13 +1,14 @@
 /**
  * In-process ASM-007 / INV-002 gates. dsh-bot-host never fetches the web
  * gateway; session create/write/wait/read go through ctx.sessionTool only.
- * selectModel and archiveSession are official in-process ctx services
- * (apiProxy / workspaceRegistry / agentDefaultModel).
+ * selectModel / prompt / list go through ctx.sessionController; archive
+ * stays on ctx.workspaceRegistry; the global default is agentDefaultModel.
  * @module dsh-bot-host/platform
  */
 
 import type { Context } from '@deepseek-ai/cordis'
 import { DshBotError } from './errors.ts'
+import { muxFrameFromSessionEvent } from './bot-events.ts'
 
 /** Bot-owned model selection (settings `dsh-bot.model`). */
 export interface DshBotModelRef {
@@ -49,6 +50,7 @@ export interface SessionPromptRequest {
 
 export interface DshBotPlatform {
   archiveSession(sessionId: string): Promise<void>
+  unarchiveSession(sessionId: string): Promise<void>
   selectModel(sessionId: string, model: DshBotModelRef): Promise<void>
   snapshotGlobalDefault(): DshBotModelRef | undefined
   restoreGlobalDefault(model: DshBotModelRef): Promise<void>
@@ -64,81 +66,75 @@ export interface DshBotPlatform {
   subscribeHost?(signal: AbortSignal): AsyncIterable<unknown> | undefined
 }
 
-/** Duck-typed `ctx.apiProxy` unary result. */
-interface RpcResult<T> {
-  readonly ok: boolean
-  readonly value?: T
-  readonly error?: { readonly code: string; readonly message: string }
-}
-
-interface RpcEnvelope<T> {
-  readonly result: RpcResult<T>
-}
-
-interface ApiProxyDuck {
-  readonly sessions?: {
-    create(request: {
-      rpcId: string
-      payload: { cwd?: string; agentPreset?: string; sessionId?: string }
-    }): Promise<RpcEnvelope<{ sessionId: string; agentPreset?: string }>>
-    rename(request: {
-      rpcId: string
-      payload: { sessionId: string; title: string }
-    }): Promise<RpcEnvelope<{ title: string; seq: number }>>
-    list(request: {
-      rpcId: string
-      payload: { cursor?: string }
-    }): Promise<RpcEnvelope<{
-      items?: ReadonlyArray<{
-        sessionId?: string
-        running?: boolean
-        updatedAt?: number
-        agentPreset?: string
-        title?: string
-        projections?: { readonly values?: { readonly title?: unknown } }
-      }>
-    }>>
-    selectModel(request: {
-      rpcId: string
-      payload: { sessionId: string; provider: string; model: string; reasoningEffort?: string }
-    }): Promise<RpcEnvelope<{ selected: DshBotModelRef }>>
-    prompt?(request: {
-      rpcId: string
-      payload: { sessionId: string; mode: 'queue' | 'steer'; content: ReadonlyArray<{ type: 'text'; text: string }> }
-    }): Promise<RpcEnvelope<{ accepted: true }>>
-    cancel?(request: {
-      rpcId: string
-      payload: { sessionId: string }
-    }): Promise<RpcEnvelope<{ accepted: true }>>
-    updateQueue?(request: {
-      rpcId: string
-      payload: { sessionId: string; itemId: string; action: unknown }
-    }): Promise<RpcEnvelope<{ accepted: true }>>
-  }
-  readonly events?: {
-    mux?(request: { rpcId: string; payload: Record<string, unknown> }, signal: AbortSignal): AsyncIterable<unknown>
-    host?(request: { rpcId: string; payload: Record<string, unknown> }, signal: AbortSignal): AsyncIterable<unknown>
-  }
-  respond?(message: {
-    type: 'client-response'
-    rpcId: string
-    result: { ok: true; value: unknown }
-  }): Promise<unknown>
-  readonly workspace?: {
-    archiveSession(request: {
-      rpcId: string
-      payload: { sessionId: string }
-    }): Promise<RpcEnvelope<{ archivedSessionIds: readonly string[] }>>
-  }
-}
-
 interface WorkspaceRegistryDuck {
   archiveSession(sessionId: string): Promise<void>
+  readonly archivedSessionIds?: readonly string[]
+  enqueueOperation?(operation: () => Promise<unknown>): Promise<unknown>
+  requireState?(): { readonly archivedSessionIds: readonly string[] } & Record<string, unknown>
+  setState?(state: unknown): Promise<void>
 }
 
 interface AgentDefaultModelDuck {
   currentSelection(): DshBotModelRef
   saveSelection(next: DshBotModelRef): Promise<void>
+}
+
+interface SessionControllerDuck {
+  create(request: {
+    readonly cwd?: string
+    readonly agentPreset?: string
+    readonly sessionId?: string
+  }): Promise<{ readonly sessionId: string; readonly agentPreset?: string }>
+  rename(request: {
+    readonly sessionId: string
+    readonly title: string
+  }): Promise<{ readonly title: string; readonly seq: number }>
+  list(
+    request: { readonly cursor?: string },
+    signal: AbortSignal,
+  ): Promise<{
+    readonly items: ReadonlyArray<{
+      readonly sessionId?: string
+      readonly running?: boolean
+      readonly updatedAt?: number
+      readonly cwd?: string
+      readonly projections?: { readonly values?: { readonly title?: unknown; readonly agentPreset?: unknown } }
+    }>
+  }>
+  selectModel(request: {
+    readonly sessionId: string
+    readonly provider: string
+    readonly model: string
+    readonly reasoningEffort?: string
+  }): Promise<{ readonly selected: DshBotModelRef }>
+  prompt(
+    request: {
+      readonly requestId: string
+      readonly sessionId: string
+      readonly mode: 'queue' | 'steer'
+      readonly content: ReadonlyArray<{ readonly type: 'text'; readonly text: string }>
+    },
+    signal: AbortSignal,
+  ): Promise<{ readonly accepted: true }>
+  cancel(request: { readonly sessionId: string }): { readonly accepted: true } | Promise<{ readonly accepted: true }>
+  updateQueue(request: {
+    readonly sessionId: string
+    readonly itemId: string
+    readonly action: unknown
+  }): { readonly accepted: true } | Promise<{ readonly accepted: true }>
+  control?(signal: AbortSignal): AsyncIterable<unknown>
+}
+
+interface PendingRespond {
+  readonly sessionId: string
+  readonly resolve: (value: unknown) => void
+}
+
+function agentSessionId(agent: unknown): string {
+  if (typeof agent !== 'object' || agent === null) return ''
+  const rec = agent as { id?: unknown; session?: { id?: unknown } }
+  if (typeof rec.id === 'string' && rec.id !== '') return rec.id
+  return typeof rec.session?.id === 'string' ? rec.session.id : ''
 }
 
 function mintRpcId(): string {
@@ -155,71 +151,313 @@ function titleOfGatewayItem(item: {
   return undefined
 }
 
+function agentPresetOf(item: {
+  readonly agentPreset?: string
+  readonly projections?: { readonly values?: { readonly agentPreset?: unknown } }
+}): string | undefined {
+  if (typeof item.agentPreset === 'string' && item.agentPreset !== '') return item.agentPreset
+  const projected = item.projections?.values?.agentPreset
+  return typeof projected === 'string' && projected !== '' ? projected : undefined
+}
+
+function remoteCode(error: unknown): string {
+  if (error === null || typeof error !== 'object') return ''
+  if (!('code' in error) || typeof error.code !== 'string') return ''
+  return error.code
+}
+
+function fail(code: DshBotError['code'], message: string, sessionId?: string, cause?: unknown): never {
+  throw new DshBotError(code, message, {
+    ...sessionId === undefined ? {} : { sessionId },
+    ...cause === undefined ? {} : { cause },
+  })
+}
+
+function sessionControllerOf(ctx: Context): SessionControllerDuck | undefined {
+  return ctx.get('sessionController') as SessionControllerDuck | undefined
+}
+
+function withResolvers<T>(): { promise: Promise<T>; resolve: (value: T) => void } {
+  let resolve!: (value: T) => void
+  const promise = new Promise<T>(ok => { resolve = ok })
+  return { promise, resolve }
+}
+
+function listen(
+  ctx: Context,
+  name: string,
+  listener: (...args: never[]) => unknown,
+  options?: { global?: boolean; prepend?: boolean },
+): () => boolean {
+  return (ctx.on as unknown as (
+    event: string,
+    fn: (...args: never[]) => unknown,
+    opts?: { global?: boolean; prepend?: boolean },
+  ) => () => boolean)(name, listener, options)
+}
+
+function eventIterable(
+  subscribe: (push: (item: unknown) => void) => () => boolean | void,
+  signal: AbortSignal,
+): AsyncIterable<unknown> {
+  return {
+    [Symbol.asyncIterator](): AsyncIterator<unknown> {
+      const queue: unknown[] = []
+      let waiting: ReturnType<typeof withResolvers<void>> | undefined
+      let done = false
+      const push = (item: unknown): void => {
+        if (done) return
+        queue.push(item)
+        waiting?.resolve()
+      }
+      const dispose = subscribe(push)
+      const onAbort = (): void => {
+        if (done) return
+        done = true
+        dispose()
+        waiting?.resolve()
+      }
+      if (signal.aborted) onAbort()
+      else signal.addEventListener('abort', onAbort, { once: true })
+      return {
+        async next() {
+          while (!done && queue.length === 0) {
+            waiting = withResolvers<void>()
+            await waiting.promise
+            waiting = undefined
+          }
+          if (queue.length > 0) return { value: queue.shift(), done: false }
+          return { value: undefined, done: true }
+        },
+        async return() {
+          onAbort()
+          return { value: undefined, done: true }
+        },
+      }
+    },
+  }
+}
+
+
+async function* mapControlToHost(frames: AsyncIterable<unknown>): AsyncIterable<unknown> {
+  for await (const frame of frames) {
+    if (typeof frame !== 'object' || frame === null) continue
+    const rec = frame as {
+      type?: unknown
+      sessionId?: unknown
+      items?: unknown
+      value?: { queues?: Record<string, unknown> }
+    }
+    if (rec.type === 'queue') {
+      yield { type: 'session/queue', sessionId: rec.sessionId, items: rec.items }
+      continue
+    }
+    if (rec.type === 'projection') {
+      yield { type: 'session/projection', ...rec }
+      continue
+    }
+    if (rec.type === 'baseline' && rec.value?.queues !== undefined) {
+      for (const sessionId of Object.keys(rec.value.queues)) {
+        yield {
+          type: 'session/queue',
+          sessionId,
+          items: rec.value.queues[sessionId],
+        }
+      }
+    }
+  }
+}
+
+function mergeIterables(streams: ReadonlyArray<AsyncIterable<unknown> | undefined>): AsyncIterable<unknown> | undefined {
+  const live = streams.filter((stream): stream is AsyncIterable<unknown> => stream !== undefined)
+  if (live.length === 0) return undefined
+  if (live.length === 1) return live[0]
+  return {
+    async *[Symbol.asyncIterator]() {
+      const queue: unknown[] = []
+      let waiting: ReturnType<typeof withResolvers<void>> | undefined
+      let pending = live.length
+      const pumps = live.map(async stream => {
+        try {
+          for await (const item of stream) {
+            queue.push(item)
+            waiting?.resolve()
+          }
+        } finally {
+          pending -= 1
+          waiting?.resolve()
+        }
+      })
+      try {
+        while (pending > 0 || queue.length > 0) {
+          if (queue.length === 0) {
+            waiting = withResolvers<void>()
+            await waiting.promise
+            waiting = undefined
+            continue
+          }
+          yield queue.shift()
+        }
+      } finally {
+        await Promise.allSettled(pumps)
+      }
+    },
+  }
+}
+
 /**
  * Bind ASM-007 / INV-002 verbs to the live composition. Missing peers fail
  * loud at call time — never a silent skip.
  */
 export function createPlatform(ctx: Context): DshBotPlatform {
+  const pending = new Map<string, PendingRespond>()
+  const muxListeners = new Set<(item: unknown) => void>()
+  let muxDispose: (() => boolean) | undefined
+
+  const emitMux = (item: unknown): void => {
+    for (const listener of muxListeners) listener(item)
+  }
+
+  const ensureMux = (): void => {
+    if (muxDispose !== undefined) return
+    muxDispose = listen(ctx, 'session/event', (session: { id?: unknown }, event: unknown) => {
+      emitMux(muxFrameFromSessionEvent(session, event))
+    }, { global: true })
+    ctx.effect(() => () => {
+      muxDispose?.()
+      muxDispose = undefined
+      muxListeners.clear()
+      pending.clear()
+    })
+  }
+
+  listen(ctx, 'approval/request', (req: {
+    agent?: unknown
+    reason?: string
+    signal?: AbortSignal
+  }, next: () => Promise<unknown>) => {
+    const sessionId = agentSessionId(req.agent)
+    if (sessionId === '') return next()
+    ensureMux()
+    const rpcId = mintRpcId()
+    const { promise, resolve } = withResolvers<unknown>()
+    pending.set(rpcId, { sessionId, resolve })
+    emitMux({
+      type: 'approval/requested',
+      sessionId,
+      rpcId,
+      approvalId: rpcId,
+      message: req.reason,
+    })
+    const onAbort = (): void => {
+      if (!pending.has(rpcId)) return
+      pending.delete(rpcId)
+      resolve('cancelled')
+    }
+    req.signal?.addEventListener('abort', onAbort, { once: true })
+    return promise
+  }, { prepend: true, global: true })
+
+  listen(ctx, 'user-questions/request', (req: {
+    agent?: unknown
+    questions?: unknown
+    signal?: AbortSignal
+  }, next: () => Promise<unknown>) => {
+    const sessionId = agentSessionId(req.agent)
+    if (sessionId === '') return next()
+    ensureMux()
+    const rpcId = mintRpcId()
+    const { promise, resolve } = withResolvers<unknown>()
+    pending.set(rpcId, { sessionId, resolve })
+    const first = Array.isArray(req.questions) ? req.questions[0] as { question?: unknown } | undefined : undefined
+    emitMux({
+      type: 'question/requested',
+      sessionId,
+      rpcId,
+      prompt: typeof first?.question === 'string' ? first.question : undefined,
+    })
+    const onAbort = (): void => {
+      if (!pending.has(rpcId)) return
+      pending.delete(rpcId)
+      resolve({ answers: [] })
+    }
+    req.signal?.addEventListener('abort', onAbort, { once: true })
+    return promise
+  }, { prepend: true, global: true })
+
   return {
     async archiveSession(sessionId) {
       const registry = ctx.get('workspaceRegistry') as WorkspaceRegistryDuck | undefined
-      if (registry !== undefined) {
-        try {
-          await registry.archiveSession(sessionId)
-          return
-        } catch (error) {
-          throw new DshBotError(
-            'archive-failed',
-            `workspace.archiveSession failed for ${sessionId}: ${error instanceof Error ? error.message : String(error)}`,
-            { sessionId, cause: error },
-          )
-        }
+      if (registry === undefined) {
+        fail('archive-unavailable', 'workspace.archiveSession is unavailable in this composition', sessionId)
       }
-      const api = ctx.get('apiProxy') as ApiProxyDuck | undefined
-      if (api?.workspace?.archiveSession === undefined) {
-        throw new DshBotError(
-          'archive-unavailable',
-          'workspace.archiveSession is unavailable in this composition',
-          { sessionId },
+      try {
+        await registry.archiveSession(sessionId)
+      } catch (error) {
+        fail(
+          'archive-failed',
+          `workspace.archiveSession failed for ${sessionId}: ${error instanceof Error ? error.message : String(error)}`,
+          sessionId,
+          error,
         )
       }
-      const response = await api.workspace.archiveSession({
-        rpcId: mintRpcId(),
-        payload: { sessionId },
-      })
-      if (response.result.ok === false) {
-        throw new DshBotError(
+    },
+
+    async unarchiveSession(sessionId) {
+      const registry = ctx.get('workspaceRegistry') as WorkspaceRegistryDuck | undefined
+      if (registry === undefined) {
+        fail('archive-unavailable', 'workspace.unarchiveSession is unavailable in this composition', sessionId)
+      }
+      if (
+        typeof registry.enqueueOperation !== 'function'
+        || typeof registry.requireState !== 'function'
+        || typeof registry.setState !== 'function'
+      ) {
+        fail('archive-unavailable', 'workspace.unarchiveSession is unavailable in this composition', sessionId)
+      }
+      const live = registry as WorkspaceRegistryDuck & {
+        enqueueOperation(operation: () => Promise<unknown>): Promise<unknown>
+        requireState(): { readonly archivedSessionIds: readonly string[] } & Record<string, unknown>
+        setState(state: unknown): Promise<void>
+      }
+      if (live.archivedSessionIds !== undefined && !live.archivedSessionIds.includes(sessionId)) return
+      try {
+        await live.enqueueOperation(async () => {
+          const state = live.requireState()
+          if (!state.archivedSessionIds.includes(sessionId)) return
+          await live.setState({
+            ...state,
+            archivedSessionIds: state.archivedSessionIds.filter(id => id !== sessionId),
+          })
+        })
+      } catch (error) {
+        fail(
           'archive-failed',
-          `workspace.archiveSession failed for ${sessionId}: ${response.result.error?.message ?? 'unknown error'}`,
-          { sessionId },
+          `workspace.unarchiveSession failed for ${sessionId}: ${error instanceof Error ? error.message : String(error)}`,
+          sessionId,
+          error,
         )
       }
     },
 
     async selectModel(sessionId, model) {
-      const api = ctx.get('apiProxy') as ApiProxyDuck | undefined
-      if (api?.sessions?.selectModel === undefined) {
-        throw new DshBotError(
-          'override-unavailable',
-          'session.selectModel is unavailable in this composition (ASM-007)',
-          { sessionId },
-        )
+      const sessions = sessionControllerOf(ctx)
+      if (sessions === undefined) {
+        fail('override-unavailable', 'session.selectModel is unavailable in this composition (ASM-007)', sessionId)
       }
-      const response = await api.sessions.selectModel({
-        rpcId: mintRpcId(),
-        payload: {
+      try {
+        await sessions.selectModel({
           sessionId,
           provider: model.provider,
           model: model.model,
           ...model.reasoningEffort === undefined ? {} : { reasoningEffort: model.reasoningEffort },
-        },
-      })
-      if (response.result.ok === false) {
-        const message = response.result.error?.message ?? 'model-unavailable'
-        throw new DshBotError(
+        })
+      } catch (error) {
+        fail(
           'override-invalid',
-          `illegal dsh-bot.model override ${model.provider}/${model.model}: ${message}`,
-          { sessionId },
+          `illegal dsh-bot.model override ${model.provider}/${model.model}: ${error instanceof Error ? error.message : String(error)}`,
+          sessionId,
+          error,
         )
       }
     },
@@ -251,179 +489,177 @@ export function createPlatform(ctx: Context): DshBotPlatform {
     },
 
     async createSession(request) {
-      const api = ctx.get('apiProxy') as ApiProxyDuck | undefined
-      if (api?.sessions?.create === undefined) {
-        throw new DshBotError(
-          'internal',
-          'session.create is unavailable in this composition',
-        )
+      const sessions = sessionControllerOf(ctx)
+      if (sessions === undefined) {
+        throw new DshBotError('internal', 'session.create is unavailable in this composition')
       }
-      const response = await api.sessions.create({
-        rpcId: mintRpcId(),
-        payload: {
+      try {
+        const value = await sessions.create({
           cwd: request.cwd,
           agentPreset: request.agentPreset,
-        },
-      })
-      if (response.result.ok === false) {
-        const wire = response.result.error?.code ?? ''
-        const message = response.result.error?.message ?? 'session.create failed'
+        })
+        const sessionId = typeof value?.sessionId === 'string' ? value.sessionId.trim() : ''
+        if (sessionId === '') {
+          throw new DshBotError('internal', 'session.create returned no sessionId')
+        }
+        const agentPreset = typeof value?.agentPreset === 'string' ? value.agentPreset : undefined
+        return {
+          sessionId,
+          ...agentPreset === undefined || agentPreset === '' ? {} : { agentPreset },
+        }
+      } catch (error) {
+        if (error instanceof DshBotError) throw error
+        const wire = remoteCode(error)
+        const message = error instanceof Error ? error.message : 'session.create failed'
         if (wire === 'agent-preset-not-found' || wire === 'agent-preset-invalid') {
           throw new DshBotError('preset-broken', message)
         }
         if (wire === 'web-unreachable') {
           throw new DshBotError('web-unreachable', message)
         }
-        throw new DshBotError('internal', message)
-      }
-      const value = response.result.value
-      const sessionId = typeof value?.sessionId === 'string' ? value.sessionId.trim() : ''
-      if (sessionId === '') {
-        throw new DshBotError('internal', 'session.create returned no sessionId')
-      }
-      const agentPreset = typeof value?.agentPreset === 'string' ? value.agentPreset : undefined
-      return {
-        sessionId,
-        ...agentPreset === undefined || agentPreset === '' ? {} : { agentPreset },
+        throw new DshBotError('internal', message, { cause: error })
       }
     },
 
     async renameSession(sessionId, title) {
-      const api = ctx.get('apiProxy') as ApiProxyDuck | undefined
-      if (api?.sessions?.rename === undefined) {
-        throw new DshBotError(
-          'internal',
-          `session.rename is unavailable in this composition (session ${sessionId})`,
-          { sessionId },
-        )
+      const sessions = sessionControllerOf(ctx)
+      if (sessions === undefined) {
+        fail('internal', `session.rename is unavailable in this composition (session ${sessionId})`, sessionId)
       }
-      const response = await api.sessions.rename({
-        rpcId: mintRpcId(),
-        payload: { sessionId, title },
-      })
-      if (response.result.ok === false) {
-        throw new DshBotError(
+      try {
+        await sessions.rename({ sessionId, title })
+      } catch (error) {
+        fail(
           'internal',
-          `session.rename failed for ${sessionId}: ${response.result.error?.message ?? 'unknown error'}`,
-          { sessionId },
+          `session.rename failed for ${sessionId}: ${error instanceof Error ? error.message : String(error)}`,
+          sessionId,
+          error,
         )
       }
     },
 
     async listSessions() {
-      const api = ctx.get('apiProxy') as ApiProxyDuck | undefined
-      if (api?.sessions?.list === undefined) return []
-      const response = await api.sessions.list({
-        rpcId: mintRpcId(),
-        payload: {},
-      })
-      if (response.result.ok === false) return []
-      const items = response.result.value?.items ?? []
-      const rows: GatewaySessionRow[] = []
-      for (const item of items) {
-        const sessionId = typeof item.sessionId === 'string' ? item.sessionId : ''
-        if (sessionId === '') continue
-        const agentPreset = typeof item.agentPreset === 'string' ? item.agentPreset : undefined
-        const title = titleOfGatewayItem(item)
-        rows.push({
-          sessionId,
-          running: item.running === true,
-          updatedAt: typeof item.updatedAt === 'number' && Number.isFinite(item.updatedAt) ? item.updatedAt : 0,
-          ...agentPreset === undefined || agentPreset === '' ? {} : { agentPreset },
-          ...title === undefined ? {} : { title },
-        })
+      const sessions = sessionControllerOf(ctx)
+      if (sessions === undefined) return []
+      try {
+        const { items } = await sessions.list({}, new AbortController().signal)
+        const rows: GatewaySessionRow[] = []
+        for (const item of items) {
+          const sessionId = typeof item.sessionId === 'string' ? item.sessionId : ''
+          if (sessionId === '') continue
+          const agentPreset = agentPresetOf(item)
+          const title = titleOfGatewayItem(item)
+          rows.push({
+            sessionId,
+            running: item.running === true,
+            updatedAt: typeof item.updatedAt === 'number' && Number.isFinite(item.updatedAt) ? item.updatedAt : 0,
+            ...agentPreset === undefined ? {} : { agentPreset },
+            ...title === undefined ? {} : { title },
+          })
+        }
+        return rows
+      } catch {
+        return []
       }
-      return rows
     },
 
     async promptSession(request) {
-      const api = ctx.get('apiProxy') as ApiProxyDuck | undefined
-      if (api?.sessions?.prompt === undefined) {
-        return { unavailable: true as const, message: 'sessions.prompt is unavailable' }
+      const sessions = sessionControllerOf(ctx)
+      if (sessions === undefined) {
+        return { unavailable: true as const, message: 'session.prompt is unavailable' }
       }
-      const response = await api.sessions.prompt({
-        rpcId: mintRpcId(),
-        payload: {
+      try {
+        await sessions.prompt({
+          requestId: mintRpcId(),
           sessionId: request.sessionId,
           mode: request.mode,
           content: [{ type: 'text', text: request.text }],
-        },
-      })
-      if (response.result.ok === false) {
-        throw new DshBotError(
+        }, new AbortController().signal)
+        return { accepted: true as const }
+      } catch (error) {
+        fail(
           'internal',
-          `sessions.prompt failed for ${request.sessionId}: ${response.result.error?.message ?? 'unknown error'}`,
-          { sessionId: request.sessionId },
+          `session.prompt failed for ${request.sessionId}: ${error instanceof Error ? error.message : String(error)}`,
+          request.sessionId,
+          error,
         )
       }
-      return { accepted: true as const }
     },
 
     async cancelSession(sessionId) {
-      const api = ctx.get('apiProxy') as ApiProxyDuck | undefined
-      if (api?.sessions?.cancel === undefined) {
-        return { unavailable: true as const, message: 'sessions.cancel is unavailable' }
+      const sessions = sessionControllerOf(ctx)
+      if (sessions === undefined) {
+        return { unavailable: true as const, message: 'session.cancel is unavailable' }
       }
-      const response = await api.sessions.cancel({
-        rpcId: mintRpcId(),
-        payload: { sessionId },
-      })
-      if (response.result.ok === false) {
-        throw new DshBotError(
+      try {
+        await sessions.cancel({ sessionId })
+        return { accepted: true as const }
+      } catch (error) {
+        fail(
           'internal',
-          `sessions.cancel failed for ${sessionId}: ${response.result.error?.message ?? 'unknown error'}`,
-          { sessionId },
+          `session.cancel failed for ${sessionId}: ${error instanceof Error ? error.message : String(error)}`,
+          sessionId,
+          error,
         )
       }
-      return { accepted: true as const }
     },
 
     async updateQueue(request) {
-      const api = ctx.get('apiProxy') as ApiProxyDuck | undefined
-      if (api?.sessions?.updateQueue === undefined) {
-        return { unavailable: true as const, message: 'sessions.updateQueue is unavailable' }
+      const sessions = sessionControllerOf(ctx)
+      if (sessions === undefined) {
+        return { unavailable: true as const, message: 'session.updateQueue is unavailable' }
       }
-      const response = await api.sessions.updateQueue({
-        rpcId: mintRpcId(),
-        payload: {
+      try {
+        await sessions.updateQueue({
           sessionId: request.sessionId,
           itemId: request.itemId,
           action: request.action,
-        },
-      })
-      if (response.result.ok === false) {
-        throw new DshBotError(
+        })
+        return { accepted: true as const }
+      } catch (error) {
+        fail(
           'internal',
-          `sessions.updateQueue failed for ${request.sessionId}: ${response.result.error?.message ?? 'unknown error'}`,
-          { sessionId: request.sessionId },
+          `session.updateQueue failed for ${request.sessionId}: ${error instanceof Error ? error.message : String(error)}`,
+          request.sessionId,
+          error,
         )
       }
-      return { accepted: true as const }
     },
 
     async respond(request) {
-      const api = ctx.get('apiProxy') as ApiProxyDuck | undefined
-      if (typeof api?.respond !== 'function') {
-        return { ok: false as const, message: 'apiProxy.respond is unavailable' }
+      const waiter = pending.get(request.rpcId)
+      if (waiter === undefined) {
+        return { ok: false as const, message: 'no pending approval or question for this rpcId' }
       }
-      await api.respond({
-        type: 'client-response',
-        rpcId: request.rpcId,
-        result: { ok: true, value: request.value },
-      })
+      const value = request.value
+      const rec = typeof value === 'object' && value !== null ? value as { sessionId?: unknown; outcome?: unknown; answer?: unknown } : {}
+      if (typeof rec.sessionId === 'string' && rec.sessionId !== '' && rec.sessionId !== waiter.sessionId) {
+        return { ok: false as const, message: 'sessionId does not match the pending request' }
+      }
+      pending.delete(request.rpcId)
+      if ('outcome' in rec) waiter.resolve(rec.outcome)
+      else if ('answer' in rec) waiter.resolve(rec.answer)
+      else waiter.resolve(value)
       return { ok: true as const }
     },
 
     subscribeMux(signal) {
-      const api = ctx.get('apiProxy') as ApiProxyDuck | undefined
-      if (typeof api?.events?.mux !== 'function') return undefined
-      return api.events.mux({ rpcId: mintRpcId(), payload: {} }, signal)
+      ensureMux()
+      return eventIterable(push => {
+        muxListeners.add(push)
+        return () => { muxListeners.delete(push) }
+      }, signal)
     },
 
     subscribeHost(signal) {
-      const api = ctx.get('apiProxy') as ApiProxyDuck | undefined
-      if (typeof api?.events?.host !== 'function') return undefined
-      return api.events.host({ rpcId: mintRpcId(), payload: {} }, signal)
+      const status = eventIterable(push => listen(ctx, 'api-session/status', (sessionId: string, running: boolean) => {
+        push({ type: 'host/session-status', sessionId, running })
+      }, { global: true }), signal)
+      const sessions = sessionControllerOf(ctx)
+      const control = typeof sessions?.control === 'function'
+        ? mapControlToHost(sessions.control(signal))
+        : undefined
+      return mergeIterables([status, control])
     },
   }
 }

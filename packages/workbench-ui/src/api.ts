@@ -53,25 +53,55 @@ interface RpcFail { ok: false; error: WorkbenchWireError }
 export type RpcResult<T> = RpcOk<T> | RpcFail
 
 /**
+ * Upper bound for one `/dsh-bot/*` round trip. Every host handler is local and
+ * answers in milliseconds; anything slower is a stalled connection, not work.
+ */
+const RPC_TIMEOUT_MS = 20_000
+
+/**
  * POST `/dsh-bot/<method>` with `{args}` and unwrap `{ok,value|error}`.
+ *
+ * Bounded on purpose: a browser that has queued this request behind its
+ * per-origin connection cap (several gateway tabs, each holding an SSE stream)
+ * never rejects on its own, and the workbench would sit in its sending state
+ * forever. A stale page from before a gateway restart fails the same way,
+ * except the gateway answers 401 — that one names itself instead of timing out.
  */
 export async function workbenchCall<T>(
   method: string,
   args: Record<string, unknown> = {},
 ): Promise<RpcResult<T>> {
+  const controller = new AbortController()
+  let timedOut = false
+  const timer = setTimeout(() => {
+    timedOut = true
+    controller.abort()
+  }, RPC_TIMEOUT_MS)
   let response: Response
   try {
     response = await fetch(`/dsh-bot/${method}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ args }),
+      signal: controller.signal,
     })
   } catch (error) {
     return {
       ok: false,
       error: {
-        code: 'unavailable',
+        code: timedOut ? 'timeout' : 'unavailable',
         message: error instanceof Error ? error.message : String(error),
+      },
+    }
+  } finally {
+    clearTimeout(timer)
+  }
+  if (response.status === 401 || response.status === 403) {
+    return {
+      ok: false,
+      error: {
+        code: 'unauthorized',
+        message: `HTTP ${response.status}${response.statusText === undefined || response.statusText === '' ? '' : ` ${response.statusText}`}`,
       },
     }
   }
@@ -79,7 +109,7 @@ export async function workbenchCall<T>(
   try {
     json = await response.json()
   } catch {
-    return { ok: false, error: { code: 'internal', message: `dsh-bot RPC ${method} returned non-JSON` } }
+    return { ok: false, error: { code: 'internal', message: `dsh-bot RPC ${method} returned non-JSON (HTTP ${response.status ?? 'unknown'})` } }
   }
   if (typeof json !== 'object' || json === null) {
     return { ok: false, error: { code: 'internal', message: `dsh-bot RPC ${method} returned an empty body` } }
@@ -117,6 +147,7 @@ export function listSessionsModel(): Promise<RpcResult<{ botModel: WorkbenchBotM
 }
 
 export interface PromptValue {
+  readonly messageId?: string
   readonly sessionId: string
   readonly unmatchedMentions?: boolean
 }
@@ -146,10 +177,12 @@ export function prompt(
   sessionId: string,
   text: string,
   mode?: 'queue' | 'steer',
+  metadata: { requestId?: string; replyToSeq?: number } = {},
 ): Promise<RpcResult<PromptValue>> {
   return workbenchCall<PromptValue>('prompt', {
     sessionId,
     text,
+    ...metadata,
     ...mode === undefined ? {} : { mode },
   })
 }
@@ -209,6 +242,7 @@ export function listGroups(): Promise<RpcResult<ListGroupsValue>> {
 export function createGroup(args: {
   readonly name: string
   readonly memberIds: readonly string[]
+  readonly rounds?: number
 }): Promise<RpcResult<WorkbenchGroup>> {
   return workbenchCall<WorkbenchGroup>('createGroup', { ...args })
 }
@@ -217,10 +251,12 @@ export function updateGroup(args: {
   readonly id: string
   readonly name?: string
   readonly memberIds?: readonly string[]
+  readonly rounds?: number
 }): Promise<RpcResult<WorkbenchGroup>> {
   const body: Record<string, unknown> = { id: args.id }
   if (args.name !== undefined) body.name = args.name
   if (args.memberIds !== undefined) body.memberIds = args.memberIds
+  if (args.rounds !== undefined) body.rounds = args.rounds
   return workbenchCall<WorkbenchGroup>('updateGroup', body)
 }
 
@@ -358,4 +394,3 @@ export function updateBotLayout(input: {
 export function rosterSections(): Promise<RpcResult<{ sections: readonly RosterSection[] }>> {
   return workbenchCall('updateBotLayout', {})
 }
-

@@ -11,7 +11,7 @@ import { ModeFooterAction } from './ModeFooterAction.tsx'
 import { OverlayHost } from './OverlayHost.tsx'
 import { firstVisibleId, runMenuAction } from './menu-action.ts'
 import type { OverlayStore } from './overlay-store.ts'
-import { countBotSessions, pickLatestBotSession } from './bot-preset.ts'
+import { pickLatestBotSession } from './bot-preset.ts'
 import { readLastBot } from './roster-items.ts'
 import type { RosterRowModel } from './roster-items.ts'
 import type { RosterRpc } from './roster-rpc.ts'
@@ -19,7 +19,7 @@ import { pendingBotIds, selectBot, sliceNested } from './select-bot.ts'
 import { jumpToSession } from './session-jump.ts'
 import type { SessionJumpFace } from './session-jump.ts'
 import type { SidebarModeStore } from './sidebar-mode.ts'
-import { writeLastSession } from 'dsh-bot-shared'
+import { formatWireError, writeLastSession } from 'dsh-bot-shared'
 import { DSH_BOT_SESSIONS_TAB_ID } from './tab-id.ts'
 import { openGroup } from './workbench-frame.ts'
 
@@ -113,27 +113,34 @@ export function BoundBotRegion(props: BoundRosterProps): ReactElement {
   }, [actionError])
 
   useEffect(() => {
-    const byId = sessionSnap.byId
     for (const bot of bots.items) {
       if (bot.hidden === true) continue
-      const latest = pickLatestBotSession(bot.presetId, byId)
+      const owned = sessionsByBot[bot.id]
+      const latestOwned = owned !== undefined && owned.length > 0
+        ? [...owned].sort((a, b) => b.updatedAt - a.updatedAt)[0]
+        : undefined
+      if (latestOwned !== undefined) {
+        props.roster.ensurePreview(bot.id, latestOwned.sessionId, latestOwned.updatedAt)
+        continue
+      }
+      const latest = pickLatestBotSession(bot.presetId, sessionSnap.byId)
       if (latest === undefined) continue
       props.roster.ensurePreview(bot.id, latest.sessionId, latest.updatedAt)
     }
-  }, [bots.items, sessionSnap.byId, props.roster])
+  }, [bots.items, sessionSnap.byId, sessionsByBot, props.roster])
 
   const pending = useMemo(
-    () => pendingBotIds(bots.items, sessionSnap.byId),
-    [bots.items, sessionSnap.byId],
+    () => pendingBotIds(bots.items, sessionSnap.byId, sessionsByBot),
+    [bots.items, sessionSnap.byId, sessionsByBot],
   )
-  // BR-604 "会话数": path B only fetches `listBotSessions` for the selected bot, so
-  // every other row counts its sessions from the official list by preset (BR-607).
   const sessionCounts = useMemo(() => {
     const counts: Record<string, number> = {}
-    for (const bot of bots.items) counts[bot.id] = countBotSessions(bot.presetId, sessionSnap.byId)
-    for (const [id, rows] of Object.entries(sessionsByBot)) counts[id] = rows.length
+    for (const bot of bots.items) {
+      const owned = sessionsByBot[bot.id]
+      counts[bot.id] = owned !== undefined ? owned.length : 0
+    }
     return counts
-  }, [bots.items, sessionSnap.byId, sessionsByBot])
+  }, [bots.items, sessionsByBot])
   const rosterState = deriveRosterState(bots.status, bots.items.length, groups.items.length)
   const selectedBot = bots.items.find(row => row.id === selectedId)
   const nested = selectedBot === undefined ? [] : sliceNested(sessionsByBot[selectedBot.id] ?? [], sessionSnap.current ?? null)
@@ -155,7 +162,7 @@ export function BoundBotRegion(props: BoundRosterProps): ReactElement {
         const created = await props.roster.createBotSession(botId)
         if (!created.ok) {
           setNestedStatus('error')
-          setNestedError(created.error.code === 'unavailable' ? props.t('roster.gatewayDown') : created.error.message)
+          setNestedError(formatWireError(created.error))
           return
         }
         if (!jumpToSession(props.sessions, created.value.sessionId)) {
@@ -209,7 +216,7 @@ export function BoundBotRegion(props: BoundRosterProps): ReactElement {
     void (async () => {
       const created = await props.roster.createGroupSession(groupId)
       if (!created.ok) {
-        setNestedError(created.error.message)
+        setNestedError(formatWireError(created.error))
         return
       }
       const result = await openGroup({
@@ -313,13 +320,14 @@ export interface BoundFooterProps {
 
 export function BoundModeFooter(props: BoundFooterProps): ReactElement {
   const bots = useSyncExternalStore(props.roster.bots.subscribe, props.roster.bots.getSnapshot, props.roster.bots.getSnapshot)
+  const sessionsByBot = useSyncExternalStore(props.roster.sessionsByBot.subscribe, props.roster.sessionsByBot.getSnapshot, props.roster.sessionsByBot.getSnapshot)
   const list = props.sessions?.list
   const sessionSnap = useSyncExternalStore(
     list?.subscribe ?? ((fn: () => void) => { void fn; return () => {} }),
     list?.getSnapshot ?? emptyList,
     list?.getSnapshot ?? emptyList,
   )
-  const pending = pendingBotIds(bots.items, sessionSnap.byId)
+  const pending = pendingBotIds(bots.items, sessionSnap.byId, sessionsByBot)
   const unread = bots.items.reduce((sum, bot) => bot.hidden === true ? sum : sum + (bot.unread ?? 0), 0)
   const footerProps: import('./ModeFooterAction.tsx').ModeFooterActionProps = {
     mode: props.mode,

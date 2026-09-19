@@ -1,0 +1,14 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "noEmit": false,
+    "emitDeclarationOnly": true,
+    "rootDir": "src",
+    "outDir": "lib/types",
+    "paths": {
+      "dsh-bot-shared": ["../dsh-bot-shared/lib/index.d.ts"],
+      "dsh-bot-shared/*": ["../dsh-bot-shared/lib/*.d.ts"]
+    }
+  },
+  "include": ["src"]
+}

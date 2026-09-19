@@ -68,6 +68,51 @@ describe('GroupForm', () => {
     expect(onSubmit).toHaveBeenCalledWith({
       name: '编辑室',
       memberIds: ['dsh-bot', 'shiren-xiaobei'],
+      rounds: 3,
     })
+  })
+
+  it('submits unlimited rounds when the group is set to 无限', () => {
+    const onSubmit = vi.fn()
+    render(
+      <GroupForm
+        mode="create"
+        bots={BOTS}
+        busy={false}
+        error={null}
+        onCancel={vi.fn()}
+        onSubmit={onSubmit}
+      />,
+    )
+    fireEvent.change(screen.getByTestId('group-form-name'), { target: { value: '无限室' } })
+    fireEvent.click(screen.getByTestId('group-form-member-dsh-bot'))
+    fireEvent.click(screen.getByTestId('group-form-member-shiren-xiaobei'))
+    fireEvent.change(screen.getByTestId('group-form-rounds'), { target: { value: '0' } })
+    fireEvent.click(screen.getByTestId('group-form-submit'))
+    expect(onSubmit).toHaveBeenCalledWith({
+      name: '无限室',
+      memberIds: ['dsh-bot', 'shiren-xiaobei'],
+      rounds: 0,
+    })
+  })
+
+  it('renders as a modal and cancels on a mask click', () => {
+    const onCancel = vi.fn()
+    render(
+      <GroupForm
+        mode="edit"
+        bots={BOTS}
+        initial={{ id: 'bianji-shi', name: '编辑室', memberIds: ['dsh-bot', 'shiren-xiaobei'], createdAt: 1, rounds: 2 }}
+        busy={false}
+        error={null}
+        onCancel={onCancel}
+        onSubmit={vi.fn()}
+      />,
+    )
+    expect((screen.getByTestId('group-form-rounds') as HTMLSelectElement).value).toBe('2')
+    fireEvent.mouseDown(screen.getByTestId('group-form-mask'))
+    expect(onCancel).toHaveBeenCalledTimes(1)
+    fireEvent.mouseDown(screen.getByTestId('group-form'))
+    expect(onCancel).toHaveBeenCalledTimes(1)
   })
 })

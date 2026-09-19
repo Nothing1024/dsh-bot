@@ -24,6 +24,39 @@ describe('App roster load', () => {
     localStorage.clear()
   })
 
+  it('shares selection with a portalled roster and preserves independent thread drafts', async () => {
+    const rows = [{ sessionId: 's-old', title: '旧对话', tags: [], status: 'idle', createdAt: 1, updatedAt: 1, hidden: false, working: false }]
+    vi.stubGlobal('fetch', vi.fn(async (url: string) => {
+      if (url.endsWith('/listBots')) return jsonOk({ bots: [SEED] })
+      if (url.endsWith('/listBotSessions')) return jsonOk({ sessions: [...rows] })
+      if (url.endsWith('/createBotSession')) {
+        rows.push({ ...rows[0]!, sessionId: 's-new', title: '新对话', createdAt: 2, updatedAt: 2 })
+        return jsonOk(rows[1])
+      }
+      return jsonOk({ sessions: [], groups: [], items: [] })
+    }))
+    const target = document.createElement('div')
+    document.body.append(target)
+    const view = render(<App rosterTarget={target} />)
+    try {
+      await screen.findByTestId('roster-row-dsh-bot')
+      expect(target.querySelector('[data-testid="roster-row-dsh-bot"]')).toBeTruthy()
+      expect(view.container.querySelector('[data-testid="roster-row-dsh-bot"]')).toBeNull()
+      await vi.waitFor(() => expect(screen.getByTestId('session-select').getAttribute('data-session-id')).toBe('s-old'))
+      fireEvent.change(screen.getByTestId('composer-input'), { target: { value: '旧草稿' } })
+      fireEvent.click(screen.getByTestId('session-new'))
+      await vi.waitFor(() => expect(screen.getByTestId('session-select').getAttribute('data-session-id')).toBe('s-new'))
+      expect((screen.getByTestId('composer-input') as HTMLTextAreaElement).value).toBe('')
+      fireEvent.change(screen.getByTestId('composer-input'), { target: { value: '新草稿' } })
+      fireEvent.click(screen.getByTestId('session-select'))
+      fireEvent.click(screen.getByTestId('session-option-s-old'))
+      await vi.waitFor(() => expect((screen.getByTestId('composer-input') as HTMLTextAreaElement).value).toBe('旧草稿'))
+      fireEvent.click(screen.getByTestId('session-select'))
+      fireEvent.click(screen.getByTestId('session-option-s-new'))
+      await vi.waitFor(() => expect((screen.getByTestId('composer-input') as HTMLTextAreaElement).value).toBe('新草稿'))
+    } finally { view.unmount(); target.remove() }
+  })
+
   it('renders seeded bots after listBots', async () => {
     vi.stubGlobal('fetch', vi.fn(async (url: string) => {
       if (String(url).includes('listBots')) return jsonOk({ bots: [SEED] })
@@ -34,7 +67,7 @@ describe('App roster load', () => {
     expect(screen.getByTestId('conversation-identity').textContent).toMatch(/DSH Bot/)
   })
 
-  it('lists the selected bot\'s sessions under the roster row', async () => {
+  it('keeps bound sessions in the conversation switcher, not under the roster row', async () => {
     vi.stubGlobal('fetch', vi.fn(async (url: string) => {
       const path = String(url)
       if (path.includes('listBots')) return jsonOk({ bots: [SEED] })
@@ -67,10 +100,15 @@ describe('App roster load', () => {
       return jsonOk({ sessions: [], botModel: { provider: 'anthropic', model: 'grok-4.6', source: 'global-default' } })
     }))
     render(<App />)
-    expect(await screen.findByTestId('roster-session-s-new')).toBeTruthy()
-    expect(screen.getByTestId('roster-session-s-new').textContent).toMatch(/论诗/)
-    expect(screen.getByTestId('roster-session-s-old').textContent).toMatch(/新对话/)
-    fireEvent.click(screen.getByTestId('roster-session-s-old'))
+    await screen.findByTestId('roster-row-dsh-bot')
+    expect(screen.queryByTestId('roster-session-s-new')).toBeNull()
+    expect(screen.queryByTestId('roster-sessions-dsh-bot')).toBeNull()
+    expect(await screen.findByTestId('roster-session-count-dsh-bot')).toHaveProperty('textContent', '2')
+    fireEvent.click(screen.getByTestId('session-select'))
+    expect(await screen.findByTestId('session-option-s-new')).toBeTruthy()
+    expect(screen.getByTestId('session-option-s-new').textContent).toMatch(/论诗/)
+    expect(screen.getByTestId('session-option-s-old').textContent).toMatch(/新对话/)
+    fireEvent.click(screen.getByTestId('session-option-s-old'))
     await vi.waitFor(() => {
       expect(screen.getByTestId('session-select').getAttribute('data-session-id')).toBe('s-old')
     })
@@ -215,7 +253,7 @@ describe('App roster load', () => {
     fireEvent.click(screen.getByTestId('conversation-identity'))
     expect(await screen.findByTestId('bot-form')).toBeTruthy()
     expect(screen.getByTestId('bot-form').getAttribute('data-mode')).toBe('edit')
-    expect(screen.getByTestId('bot-form-hint').textContent).toMatch(/新对话生效/)
+    expect(screen.getByTestId('bot-form-hint').textContent).toMatch(/人设对之后的新对话生效/)
   })
 
   it('shows an unsent composer draft on the selected roster row', async () => {
@@ -313,5 +351,51 @@ describe('App roster load', () => {
     await vi.waitFor(() => {
       expect(screen.getByTestId('roster-row-editors').getAttribute('data-active')).toBe('true')
     })
+  })
+
+  it('refreshes groups after deleting a member bot', async () => {
+    const extra = {
+      id: 'shiren-xiaobei',
+      name: '诗人小北',
+      avatar: { color: '#c9a227' },
+      presetId: 'dsh-bot--shiren-xiaobei',
+      createdAt: 2,
+      persona: '人设',
+      protected: false,
+    }
+    const other = {
+      id: 'editor',
+      name: 'Editor',
+      avatar: { color: '#3db88a' },
+      presetId: 'dsh-bot--editor',
+      createdAt: 3,
+      persona: '人设',
+      protected: false,
+    }
+    let groups = [
+      { id: 'pair', name: '两人组', memberIds: ['dsh-bot', 'shiren-xiaobei'], createdAt: 4, rounds: 3 },
+      { id: 'trio', name: '三人组', memberIds: ['dsh-bot', 'shiren-xiaobei', 'editor'], createdAt: 5 },
+    ]
+    vi.stubGlobal('fetch', vi.fn(async (url: string) => {
+      const path = String(url)
+      if (path.includes('listBots')) return jsonOk({ bots: [SEED, extra, other] })
+      if (path.includes('listGroups')) return jsonOk({ groups })
+      if (path.includes('deleteBot')) {
+        groups = [{ id: 'trio', name: '三人组', memberIds: ['dsh-bot', 'editor'], createdAt: 5 }]
+        return jsonOk({ id: 'shiren-xiaobei', deleted: true })
+      }
+      return jsonOk({ sessions: [], rooms: [], botModel: { provider: '', model: '', source: 'global-default' } })
+    }))
+    render(<App />)
+    expect(await screen.findByTestId('roster-row-pair')).toBeTruthy()
+    expect(screen.getByTestId('roster-row-trio')).toBeTruthy()
+    fireEvent.click(screen.getByTestId('roster-menu-shiren-xiaobei'))
+    fireEvent.click(screen.getByTestId('roster-delete-shiren-xiaobei'))
+    fireEvent.click(screen.getByTestId('roster-delete-ok'))
+    await vi.waitFor(() => {
+      expect(screen.queryByTestId('roster-row-shiren-xiaobei')).toBeNull()
+      expect(screen.queryByTestId('roster-row-pair')).toBeNull()
+    })
+    expect(screen.getByTestId('roster-row-trio')).toBeTruthy()
   })
 })

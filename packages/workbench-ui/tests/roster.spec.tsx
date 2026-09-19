@@ -25,6 +25,18 @@ describe('Roster', () => {
     cleanup()
   })
 
+  it('pins groups and offers explicit category destinations without changing on open', () => {
+    const onLayout = vi.fn()
+    render(<Roster items={[item({ id: 'group', kind: 'group', section: 'work' })]} onSelect={vi.fn()} onCreate={vi.fn()} onEdit={vi.fn()} onDelete={vi.fn()} onRename={vi.fn()} onLayout={onLayout} />)
+    fireEvent.click(screen.getByTestId('roster-menu-group'))
+    fireEvent.click(screen.getByTestId('roster-pin-group'))
+    expect(onLayout).toHaveBeenCalledWith({ groups: [{ id: 'group', section: 'pinned' }] })
+    onLayout.mockClear()
+    fireEvent.click(screen.getByTestId('roster-menu-group'))
+    fireEvent.click(screen.getByTestId('roster-move-group'))
+    expect(onLayout).toHaveBeenCalledWith({ groups: [{ id: 'group', section: 'life' }] })
+  })
+
   it('renders avatar, name, preview, relative time, selected and working', () => {
     render(
       <Roster
@@ -241,6 +253,30 @@ describe('Roster', () => {
     })
     expect(screen.queryByTestId('roster-hover-xiaodui-aning')).toBeNull()
     vi.useRealTimers()
+  })
+
+  it('does not list sessions under a selected bot', () => {
+    render(
+      <Roster
+        items={[item({
+          sessionCount: 2,
+          sessions: [
+            { sessionId: 's-new', title: '论诗', updatedAt: NOW, working: false, hidden: false, selected: true },
+            { sessionId: 's-old', title: '新对话', updatedAt: NOW - 1000, working: false, hidden: false, selected: false },
+          ],
+        })]}
+        onSelect={vi.fn()}
+        onCreate={vi.fn()}
+        onEdit={vi.fn()}
+        onDelete={vi.fn()}
+        onRename={vi.fn()}
+        onSelectSession={vi.fn()}
+        onNewSession={vi.fn()}
+      />,
+    )
+    expect(screen.queryByTestId('roster-session-s-new')).toBeNull()
+    expect(screen.queryByTestId('roster-session-new-dsh-bot')).toBeNull()
+    expect(screen.getByTestId('roster-session-count-dsh-bot').textContent).toBe('2')
   })
 
 })

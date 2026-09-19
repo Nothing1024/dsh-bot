@@ -59,7 +59,8 @@
   },
   "dependencies": {
     "react": "^18.3.1",
-    "dsh-bot-shared": "workspace:*"
+    "dsh-bot-shared": "workspace:*",
+    "workbench-ui": "workspace:*"
   },
   "devDependencies": {
     "@deepseek-ai/cordis": "4.0.2",

@@ -41,11 +41,11 @@ export function PeersPanel(props: PeersPanelProps) {
   const mine = groups.filter(group => group.memberIds.includes(props.botId))
   return (
     <div className="memoryPanel" data-testid="peers-panel">
-      <div className="memoryHead">
+      <header className="memoryPanelHead">
         <span>同事 · {props.botName}</span>
-        <button type="button" className="retry" data-testid="peers-close" onClick={props.onClose}>关闭</button>
-      </div>
-      <div className="memoryBody">
+        <button type="button" className="ghostBtn isTiny" data-testid="peers-close" onClick={props.onClose}>关闭</button>
+      </header>
+      <div className="memoryPanelBody">
         {counts.size === 0 ? (
           <p className="hint" data-testid="peers-empty">还没有往来</p>
         ) : (

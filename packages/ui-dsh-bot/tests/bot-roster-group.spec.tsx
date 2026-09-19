@@ -24,6 +24,7 @@ const room: WorkbenchGroup = {
   memberIds: ['reviewer'],
   createdAt: 2,
   section: 'work',
+  rounds: 3,
 }
 
 afterEach(() => {

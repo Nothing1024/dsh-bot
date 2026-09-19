@@ -72,12 +72,15 @@ afterEach(() => {
 })
 
 describe('resolveIdentityBot', () => {
-  it('matches dsh-bot and dsh-bot-- presets and rejects the rest', () => {
+  it('matches leftover presets and owned sessions, and rejects the rest', () => {
     expect(resolveIdentityBot('s1', [reviewer], 'idle', { s1: { agentPreset: 'dsh-bot--reviewer' } })?.id).toBe('reviewer')
     expect(resolveIdentityBot('s1', [seed], 'idle', { s1: { agentPreset: 'dsh-bot' } })?.id).toBe('dsh-bot')
     expect(resolveIdentityBot('s1', [reviewer], 'idle', { s1: { agentPreset: 'standard' } })).toBeNull()
     expect(resolveIdentityBot('s1', [reviewer], 'idle', { s1: { agentPreset: 'dsh-bot--gone' } })).toBeNull()
     expect(resolveIdentityBot('s1', [], 'loading', { s1: { agentPreset: 'dsh-bot--reviewer' } })).toBeNull()
+    expect(resolveIdentityBot('s1', [reviewer], 'idle', { s1: { agentPreset: 'standard' } }, {
+      reviewer: [{ sessionId: 's1' }],
+    })?.id).toBe('reviewer')
   })
 })
 

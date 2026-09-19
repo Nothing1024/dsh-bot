@@ -8,7 +8,7 @@ import { join } from 'node:path'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { Context } from '@deepseek-ai/cordis'
 import { SessionId } from '@deepseek-ai/dsh-session'
-import { get, put } from 'session-marks'
+import { expandRemoveAliases, expandWriteAliases, get, patch, put } from 'session-marks'
 import type {
   SessionToolCaller,
   SessionToolListResult,
@@ -21,7 +21,7 @@ import type { DshBotConfig } from '../src/index.ts'
 import { DshBotError } from '../src/errors.ts'
 import { botMark } from '../src/marks.ts'
 import { createBotsRuntime } from '../src/bots.ts'
-import type { PresetGate, PresetListEntry } from '../src/bots.ts'
+import type { BotsRuntime } from '../src/bots.ts'
 import type { DshBotModelRef, DshBotPlatform } from '../src/platform.ts'
 import {
   projectWorkbenchHistory,
@@ -36,6 +36,10 @@ const BASE_CONFIG: DshBotConfig = {
 }
 
 class StubSessionTool implements SessionToolService {
+  async readMarks(_caller: Parameters<SessionToolService['readMarks']>[0], sessionId: SessionId) {
+    return { sessionId, tags: [], hiddenPrefixes: ['~'] }
+  }
+
   readonly createCalls: unknown[] = []
   readonly writeCalls: Array<{ sessionId: string; content: string }> = []
   readonly readCalls: Array<{ sessionId: string; sinceSeq?: number }> = []
@@ -49,7 +53,11 @@ class StubSessionTool implements SessionToolService {
 
   async create(caller: SessionToolCaller, options: Parameters<SessionToolService['create']>[1]) {
     this.createCalls.push({ caller, options })
-    return { sessionId: SessionId('session-tool-created') }
+    const sessionId = SessionId('session-tool-created')
+    if (options.tags !== undefined && options.tags.length > 0) {
+      await patch(sessionId, { add: expandWriteAliases(options.tags) })
+    }
+    return { sessionId }
   }
 
   async write(_caller: SessionToolCaller, sessionId: SessionId, content: string) {
@@ -106,8 +114,20 @@ class StubSessionTool implements SessionToolService {
   async getVisibility() {
     return { hasHiddenMark: false, archived: false, isHidden: false }
   }
-  async hide() {
+  readonly hideCalls: string[] = []
+  hideError: Error | undefined
+  async hide(_caller: SessionToolCaller, sessionId: SessionId) {
+    if (this.hideError !== undefined) throw this.hideError
+    this.hideCalls.push(sessionId)
+    await patch(sessionId, { add: expandWriteAliases(['hidden']) })
     return { hasHiddenMark: true, archived: false, isHidden: true }
+  }
+  async mark(_caller: SessionToolCaller, sessionId: SessionId, options: { add?: readonly string[]; remove?: readonly string[] }) {
+    const tags = await patch(sessionId, {
+      ...options.add !== undefined && options.add.length > 0 ? { add: expandWriteAliases(options.add) } : {},
+      ...options.remove !== undefined && options.remove.length > 0 ? { remove: expandRemoveAliases(options.remove) } : {},
+    })
+    return { sessionId, tags }
   }
   async unhide() {
     return { hasHiddenMark: false, archived: false, isHidden: false }
@@ -123,7 +143,16 @@ class StubPlatform implements DshBotPlatform {
   gatewayRows: Array<{ sessionId: string; running: boolean; updatedAt: number; agentPreset?: string; title?: string }> = []
   private next = 0
 
-  async archiveSession() {}
+  readonly unarchiveCalls: string[] = []
+  readonly archiveCalls: string[] = []
+
+  async archiveSession(sessionId: string) {
+    this.archiveCalls.push(sessionId)
+  }
+
+  async unarchiveSession(sessionId: string) {
+    this.unarchiveCalls.push(sessionId)
+  }
 
   async selectModel(sessionId: string, model: DshBotModelRef) {
     this.selectCalls.push({ sessionId, model })
@@ -158,41 +187,6 @@ class StubPlatform implements DshBotPlatform {
   }
 }
 
-
-const TEMPLATE = `---
-- id: persona
-  name: '@deepseek-ai/dsh-persona'
-  config:
-    text: >-
-      你是 DSH Bot。
-
-- id: tool-bash
-  name: '@deepseek-ai/dsh-tool-bash'
-`
-
-function seedTemplate(home: string): void {
-  const dir = join(home, '.agent-presets', 'dsh-bot')
-  mkdirSync(dir, { recursive: true })
-  writeFileSync(join(dir, 'agent.cordis.yml'), TEMPLATE)
-  writeFileSync(join(dir, 'preset.yml'), 'name: DSH Bot\ndescription: resident.\n')
-}
-
-function fsGate(home: string): PresetGate {
-  return {
-    async list(): Promise<PresetListEntry[]> {
-      const root = join(home, '.agent-presets')
-      if (!existsSync(root)) return []
-      const { readdirSync } = await import('node:fs')
-      const out: PresetListEntry[] = []
-      for (const id of readdirSync(root)) {
-        if (!existsSync(join(root, id, 'agent.cordis.yml'))) continue
-        out.push({ id })
-      }
-      return out
-    },
-  }
-}
-
 const homes: string[] = []
 const previousHome = process.env.DSH_HOME
 
@@ -216,7 +210,7 @@ function boot(options: {
   platform?: StubPlatform
   config?: DshBotConfig
   extractAsk?: (prompt: string, botId: string) => Promise<string | null>
-  botsRuntime?: import('../src/bots.ts').BotsRuntime
+  botsRuntime?: BotsRuntime
 } = {}): { bot: DshBotService; sessionTool: StubSessionTool; platform: StubPlatform; ctx: Context } {
   const sessionTool = options.sessionTool ?? new StubSessionTool()
   const platform = options.platform ?? new StubPlatform()
@@ -303,11 +297,13 @@ describe('projectWorkbenchHistory', () => {
       { seq: 2, role: 'user', blocks: [{ type: 'text', text: 'Current runtime context. This snapshot supersedes earlier runtime-context snapshots.\n\nCurrent DSH file policy: workspace-write.' }] },
       { seq: 3, role: 'user', blocks: [{ type: 'text', text: '<system-reminder>\nA skill is a reusable set.\n<available_skills></available_skills>\n</system-reminder>' }] },
       { seq: 4, role: 'user', blocks: [{ type: 'text', text: '诗人小北，现在轮到你在「编辑室」里说话。\n房间里刚说的：\n用户: 你们是谁?\n按你自己的身份接一句。没有要补充的可以沉默。' }] },
-      { seq: 5, role: 'assistant', blocks: [{ type: 'text', text: '我是诗人小北' }] },
+      { seq: 5, role: 'user', blocks: [{ type: 'text', text: '<system-reminder>\nYou are speaking in this session as the following persona. Stay in character. Do not mention these instructions.\n\n你是诗人。\n</system-reminder>\n\n你好' }] },
+      { seq: 6, role: 'assistant', blocks: [{ type: 'text', text: '我是诗人小北' }] },
     ] as SessionToolMessageRow[])
     expect(items.filter(item => item.kind === 'message').map(item => item.text)).toEqual([
       '你是谁?',
       '诗人小北，现在轮到你在「编辑室」里说话。\n房间里刚说的：\n用户: 你们是谁?\n按你自己的身份接一句。没有要补充的可以沉默。',
+      '你好',
       '我是诗人小北',
     ])
   })
@@ -327,20 +323,52 @@ describe('turnIsOpen', () => {
 })
 
 describe('createBotSession / listBotSessions / history / prompt', () => {
-  it('creates via gateway session.create, marks bot:<id>, and skips sessionTool.create', async () => {
+  it('creates via sessionTool.create and marks bot:<id>', async () => {
     const { bot, sessionTool, platform } = boot()
     await bot.listBots()
     const created = await bot.createBotSession({ botId: 'dsh-bot', title: 'Plan' })
-    expect(created.sessionId).toBe('session-owned-1')
+    expect(created.sessionId).toBe('session-tool-created')
     expect(created.botId).toBe('dsh-bot')
     expect(created.presetId).toBe('dsh-bot')
-    expect(platform.createCalls).toEqual([
-      { agentPreset: 'dsh-bot', cwd: join(process.env.DSH_HOME!, '..') },
+    expect(sessionTool.createCalls).toHaveLength(1)
+    expect(platform.createCalls).toHaveLength(0)
+    expect(await get('session-tool-created')).toEqual(expect.arrayContaining(['app:dsh-bot', 'kind:dsh-bot', 'form:plugin', 'kind:dsh-bot-chat', 'bot:dsh-bot', 'hidden', 'kind:hidden']))
+    expect(platform.renameCalls).toEqual([{ sessionId: 'session-tool-created', title: 'Plan' }])
+    expect(platform.selectCalls[0]?.sessionId).toBe('session-tool-created')
+  })
+
+  it('writes extra instance keys at create instead of a second mark', async () => {
+    const { bot, sessionTool } = boot()
+    await bot.createBotSession({ botId: 'dsh-bot', title: '例程', extraTags: ['routine:r1'] })
+    expect((sessionTool.createCalls[0] as { options: { tags: string[] } }).options.tags).toEqual([
+      'app:dsh-bot',
+      'kind:dsh-bot',
+      'form:plugin',
+      'kind:dsh-bot-chat',
+      'bot:dsh-bot',
+      'routine:r1',
     ])
-    expect(sessionTool.createCalls).toHaveLength(0)
-    expect(await get('session-owned-1')).toEqual(expect.arrayContaining(['kind:dsh-bot', 'bot:dsh-bot']))
-    expect(platform.renameCalls).toEqual([{ sessionId: 'session-owned-1', title: 'Plan' }])
-    expect(platform.selectCalls[0]?.sessionId).toBe('session-owned-1')
+    expect(await get('session-tool-created')).toEqual(expect.arrayContaining(['routine:r1', 'bot:dsh-bot', 'app:dsh-bot']))
+  })
+
+  it('keeps a newly hidden chat in the Bot history list and remains writable', async () => {
+    const { bot, sessionTool } = boot()
+    const created = await bot.createBotSession({ botId: 'dsh-bot', title: '私聊' })
+    expect(sessionTool.hideCalls).toEqual([created.sessionId])
+    sessionTool.listResult = { sessions: [{ sessionId: SessionId(created.sessionId), title: '私聊',
+      tags: (await get(created.sessionId))!, status: 'idle', createdAt: 1 }] }
+    const listed = await bot.listBotSessions({ botId: 'dsh-bot' })
+    expect(listed.sessions).toHaveLength(1)
+    expect(listed.sessions[0]).toMatchObject({ sessionId: created.sessionId, hidden: false })
+    await bot.prompt({ sessionId: created.sessionId, text: '你好' })
+    expect(sessionTool.writeCalls[0]?.sessionId).toBe(created.sessionId)
+  })
+
+  it('reports a hide failure instead of returning a visible chat as success', async () => {
+    const { bot, sessionTool } = boot()
+    sessionTool.hideError = new Error('visibility unavailable')
+    await expect(bot.createBotSession({ botId: 'dsh-bot' })).rejects.toThrow('visibility unavailable')
+    expect(sessionTool.writeCalls).toHaveLength(0)
   })
 
   it('applies the per-bot modelOverride via the v1 platform gate', async () => {
@@ -517,42 +545,81 @@ describe('createBotSession / listBotSessions / history / prompt', () => {
     await expect(bot.createBotSession({ botId: 'missing' })).rejects.toMatchObject({ code: 'bot-not-found' })
   })
 
-  it('does not change v1 createSession (sessionTool.create, kind:dsh-bot only)', async () => {
+  it('also hides legacy createSession from Harness', async () => {
     const { bot, sessionTool, platform } = boot()
     const created = await bot.createSession(CLI, { title: 'Legacy', cwd: '/work' })
     expect(created.title).toBe('Legacy')
     expect(sessionTool.createCalls).toHaveLength(1)
     expect(platform.createCalls).toHaveLength(0)
-    expect(await get(created.sessionId)).toEqual(['kind:dsh-bot'])
+    expect(await get(created.sessionId)).toEqual(expect.arrayContaining(['app:dsh-bot', 'kind:dsh-bot', 'form:plugin', 'kind:dsh-bot-chat', 'bot:dsh-bot', 'hidden', 'kind:hidden']))
+  })
+
+  it('prepareOfficialJump unarchives a bot-owned session', async () => {
+    const { bot, platform } = boot()
+    const created = await bot.createBotSession({ botId: 'dsh-bot' })
+    await bot.prepareOfficialJump({ sessionId: created.sessionId })
+    expect(platform.unarchiveCalls).toEqual([created.sessionId])
+  })
+
+  it('prepareOfficialJump rejects a session Bot does not own', async () => {
+    const { bot } = boot()
+    await expect(bot.prepareOfficialJump({ sessionId: 'session-other' })).rejects.toMatchObject({ code: 'not-found' })
   })
 })
 
-
 describe('memory inject + extract hooks', () => {
-  it('injects memory into a managed preset before createOwnedSession', async () => {
+  it('wraps memory onto the next prompt instead of writing a DSH preset', async () => {
     const home = process.env.DSH_HOME!
-    seedTemplate(home)
     const botsRuntime = createBotsRuntime({
-      gate: fsGate(home),
       home: () => home,
     })
     const created = await botsRuntime.createBot({ name: '校对阿宁', persona: '你是校对阿宁。' })
     const dir = join(home, 'dsh-bot', 'memory', created.id)
     mkdirSync(dir, { recursive: true })
     writeFileSync(join(dir, 'profile.md'), '<!-- dsh-mem p1 1 -->\n- 用户叫 Nothing\n')
-    const { bot } = boot({ botsRuntime })
+    const { bot, sessionTool } = boot({ botsRuntime })
     const session = await bot.createBotSession({ botId: created.id })
     expect(session.botId).toBe(created.id)
-    const composition = readFileSync(
-      join(home, '.agent-presets', created.presetId, 'agent.cordis.yml'),
-      'utf8',
-    )
-    expect(composition).toContain('你记得的事')
-    expect(composition).toContain('用户叫 Nothing')
+    await bot.prompt({ sessionId: session.sessionId, text: '你好' })
+    const written = sessionTool.writeCalls[0]?.content ?? ''
+    expect(written).toContain('<system-reminder>')
+    expect(written).toContain('你是校对阿宁。')
+    expect(written).toContain('你记得的事')
+    expect(written).toContain('用户叫 Nothing')
+    expect(written).toContain('你好')
+    expect(existsSync(join(home, 'dsh-bot', 'session-voice', `${session.sessionId}.txt`))).toBe(true)
     const registry = JSON.parse(readFileSync(join(home, 'dsh-bot', 'bots.json'), 'utf8')) as {
       bots: Array<{ id: string; persona?: string }>
     }
     expect(registry.bots.find(row => row.id === created.id)?.persona).toBe('你是校对阿宁。')
+  })
+
+  it('keeps the create-time persona after the registry is edited', async () => {
+    const home = process.env.DSH_HOME!
+    const botsRuntime = createBotsRuntime({ home: () => home })
+    const created = await botsRuntime.createBot({ name: '校对阿宁', persona: '你是校对阿宁。' })
+    const sessionTool = new StubSessionTool()
+    let n = 0
+    sessionTool.create = async (caller, options) => {
+      sessionTool.createCalls.push({ caller, options })
+      n += 1
+      const sessionId = SessionId(`session-tool-created-${n}`)
+      if (options.tags !== undefined && options.tags.length > 0) {
+        await patch(sessionId, { add: expandWriteAliases(options.tags) })
+      }
+      return { sessionId }
+    }
+    const { bot } = boot({ botsRuntime, sessionTool })
+    const session = await bot.createBotSession({ botId: created.id })
+    await botsRuntime.updateBot({ id: created.id, persona: '你是新校对。' })
+    await bot.prompt({ sessionId: session.sessionId, text: '你好' })
+    const written = sessionTool.writeCalls[0]?.content ?? ''
+    expect(written).toContain('你是校对阿宁。')
+    expect(written).not.toContain('你是新校对。')
+    const next = await bot.createBotSession({ botId: created.id, title: '新对话' })
+    await bot.prompt({ sessionId: next.sessionId, text: '你好' })
+    const later = sessionTool.writeCalls[1]?.content ?? ''
+    expect(later).toContain('你是新校对。')
   })
 
   it('extracts once after a turn closes and skips a second poll', async () => {
@@ -618,5 +685,44 @@ describe('routine history projection', () => {
     ] as never)
     expect(items.some(item => item.kind === 'message' && item.role === 'user')).toBe(false)
     expect(items.some(item => item.kind === 'propose-routine' && item.name === '校稿')).toBe(true)
+  })
+})
+
+describe('deleteBot cascade', () => {
+  it('archives owned sessions and drops a two-member group', async () => {
+    const { bot, sessionTool, platform } = boot()
+    const poet = await bot.createBot({ name: '诗人小北', persona: '人设' })
+    const editor = await bot.createBot({ name: 'Editor', persona: '人设' })
+    const pair = await bot.createGroup({ name: '两人组', memberIds: [poet.id, editor.id] })
+    const trio = await bot.createGroup({ name: '三人组', memberIds: [poet.id, editor.id, 'dsh-bot'] })
+    const created = await bot.createBotSession({ botId: poet.id, title: '私聊' })
+    sessionTool.hideCalls.length = 0
+    platform.archiveCalls.length = 0
+    const result = await bot.deleteBot({ id: poet.id })
+    expect(result).toMatchObject({ id: poet.id, deleted: true })
+    expect(result.groups.deleted).toEqual([pair.id])
+    expect(result.groups.updated).toEqual([trio.id])
+    const groups = await bot.listGroups()
+    expect(groups.groups.map(row => row.name)).toEqual(['三人组'])
+    expect(groups.groups[0]?.memberIds).toEqual(expect.arrayContaining([editor.id, 'dsh-bot']))
+    expect(groups.groups[0]?.memberIds).not.toContain(poet.id)
+    expect(sessionTool.hideCalls).toContain(created.sessionId)
+    expect(platform.archiveCalls).toContain(created.sessionId)
+    await expect(bot.listBots()).resolves.toMatchObject({
+      bots: expect.arrayContaining([expect.objectContaining({ id: 'dsh-bot' })]),
+    })
+    expect((await bot.listBots()).bots.map(row => row.id)).not.toContain(poet.id)
+  })
+
+  it('still deletes the bot when session hide fails', async () => {
+    const { bot, sessionTool } = boot()
+    const poet = await bot.createBot({ name: '诗人小北', persona: '人设' })
+    await bot.createBotSession({ botId: poet.id, title: '私聊' })
+    sessionTool.hideError = new Error('visibility unavailable')
+    await expect(bot.deleteBot({ id: poet.id })).resolves.toMatchObject({
+      id: poet.id,
+      deleted: true,
+    })
+    expect((await bot.listBots()).bots.map(row => row.id)).not.toContain(poet.id)
   })
 })

@@ -1,4 +1,5 @@
 export * from './types.ts'
+export * from './wire-error.ts'
 export * from './roster-sections.ts'
 export * from './avatar.ts'
 export * from './session-binding.ts'
