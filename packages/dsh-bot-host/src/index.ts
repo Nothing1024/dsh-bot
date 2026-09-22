@@ -9,7 +9,7 @@
 
 import { dirname } from 'node:path'
 import { Context, Service } from '@deepseek-ai/cordis'
-import type { SettingsProvider } from '@deepseek-ai/dsh-settings'
+import type { Volatile } from '@deepseek-ai/cordis'
 import z from '@deepseek-ai/schemastery'
 import { type SessionToolCaller } from 'session-tool'
 import { get } from 'session-marks'
@@ -241,7 +241,7 @@ export type {
   ReconcileState,
 } from './reconcile.ts'
 
-/** Settings namespace for bot-owned defaults (hot, live). */
+/** Cordis entry id. Legacy `settings.yaml` section `dsh-bot` imports onto this id. */
 export const DSH_BOT_SETTINGS_NAMESPACE = 'dsh-bot'
 
 /** Plugin / settings section for {@link DshBotService}. */
@@ -251,10 +251,30 @@ export interface DshBotConfig {
   /** `wait until idle` deadline for {@link DshBotService.askBot}. */
   readonly askTimeoutMs: number
   /** Bot-owned model; omit/empty ⇒ follow `agent-default-model`. */
-  readonly model?: DshBotModelRef
+  readonly model?: DshBotModelRef | Volatile<DshBotModelRef | undefined>
   /** Memory extract + inject. Default enabled. */
-  readonly memory?: { readonly enabled?: boolean }
-  readonly routines?: { readonly enabled?: boolean }
+  readonly memory?: { readonly enabled?: boolean } | Volatile<{ readonly enabled?: boolean } | undefined>
+  readonly routines?: { readonly enabled?: boolean } | Volatile<{ readonly enabled?: boolean } | undefined>
+}
+
+function currentOf<T>(value: T | Volatile<T | undefined> | undefined): T | undefined {
+  if (value !== undefined && typeof value === 'object' && value !== null && 'get' in value && typeof value.get === 'function') {
+    return value.get() as T | undefined
+  }
+  return value as T | undefined
+}
+
+function liveConfig(config: DshBotConfig): DshBotRuntimeConfig {
+  const model = currentOf(config.model)
+  const memory = currentOf(config.memory)
+  const routines = currentOf(config.routines)
+  return {
+    webUrl: config.webUrl,
+    askTimeoutMs: config.askTimeoutMs,
+    ...model === undefined || model.model === '' ? {} : { model },
+    memoryEnabled: memory?.enabled !== false,
+    routinesEnabled: routines?.enabled !== false,
+  }
 }
 
 export interface DshBotServiceExtras {
@@ -286,13 +306,13 @@ class DshBotService extends Service {
       provider: z.string().default(''),
       model: z.string().default(''),
       reasoningEffort: z.string(),
-    }),
+    }).volatile(),
     memory: z.object({
       enabled: z.boolean().default(true),
-    }),
+    }).volatile(),
     routines: z.object({
       enabled: z.boolean().default(true),
-    }),
+    }).volatile(),
   })
 
   private source: () => DshBotRuntimeConfig
@@ -335,14 +355,7 @@ class DshBotService extends Service {
     extras?: DshBotServiceExtras,
   ) {
     super(ctx, 'dshBot')
-    const entry: DshBotRuntimeConfig = Object.freeze({
-      webUrl: config.webUrl,
-      askTimeoutMs: config.askTimeoutMs,
-      ...config.model === undefined ? {} : { model: config.model },
-      memoryEnabled: config.memory?.enabled !== false,
-      routinesEnabled: config.routines?.enabled !== false,
-    })
-    this.source = () => entry
+    this.source = () => liveConfig(config)
     this.platform = platform ?? createPlatform(ctx)
     this.botsRuntime = botsRuntime ?? createBotsRuntime()
     this.memoryStore = extras?.memory ?? createMemoryStore(() => {
@@ -384,15 +397,8 @@ class DshBotService extends Service {
     })
     this.roundTracker = createRoundTracker()
     this.groupInbox = new GroupInbox(() => this.groupDependencies())
-    ctx.inject(['settings'], (settingsCtx) => {
-      const settings: SettingsProvider = settingsCtx.settings
-      settings.installSection(ctx, DSH_BOT_SETTINGS_NAMESPACE, DshBotService.Config, entry, {
-        setSource: (current) => {
-          this.source = current
-        },
-        onChange: () => { void this.scheduler.rearmAll() },
-      })
-    })
+    const reload = ctx as unknown as { on(name: string, listener: () => void): () => void }
+    reload.on('app-boot/config-reload', () => { void this.scheduler.rearmAll() })
     ctx.inject(['webServer'], (webCtx) => {
       attachDshBotHttp(webCtx, this)
       attachWorkbenchHttp(webCtx)

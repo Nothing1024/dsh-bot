@@ -13,6 +13,7 @@ import { SessionId } from '@deepseek-ai/dsh-session'
 import { hasHiddenMark, listByMark } from 'session-marks'
 import type { SessionToolCaller, SessionToolService } from 'session-tool'
 import { extractAssistantAnswer, resolveOverride } from './ask.ts'
+import { forkChildId, readAssistant } from './fork-continuation.ts'
 import type { DshBotRuntimeConfig } from './ask.ts'
 import type { BotView, BotsRuntime } from './bots.ts'
 import { DshBotError } from './errors.ts'
@@ -553,6 +554,16 @@ async function askMemberTurn(
         `${bot.name} failed to reply (status ${waited.status})`,
         { sessionId },
       )
+    }
+    if (waited.status === 'forked') {
+      const childId = await forkChildId(deps.sessionTool, CLI_CALLER, sessionId)
+      const continued = childId === undefined
+        ? undefined
+        : await readAssistant(deps.sessionTool, CLI_CALLER, childId)
+      const answer = continued === undefined ? undefined : toRoomSpeech(continued, prompt)
+      if (answer === undefined) return false
+      await deps.groups.appendRoomMessage(roomId, { kind: 'member', botId: bot.id }, answer)
+      return true
     }
     const raw = await lastAssistantText(deps.sessionTool, sessionId, afterSeq)
     const answer = raw === undefined ? undefined : toRoomSpeech(raw, prompt)

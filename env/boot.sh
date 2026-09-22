@@ -66,9 +66,7 @@ fi
 # `npx` leaves a wrapper that can exit 0 while the node child keeps :3084.
 DSH_JS="$ROOT/profiles/gb/node_modules/@deepseek-ai/dsh/lib/bin.js"
 if [ ! -f "$DSH_JS" ]; then
-  DSH_JS=$(ls -1t "$HOME/.npm/_npx/"*/node_modules/@deepseek-ai/dsh/lib/bin.js 2>/dev/null | head -1 || true)
+  echo "env/boot: missing $DSH_JS; run env/setup.sh" >&2
+  exit 1
 fi
-if [ -n "${DSH_JS:-}" ] && [ -f "$DSH_JS" ]; then
-  exec node "$DSH_JS" --profile gb --port "$GW_PORT" --no-open "$@"
-fi
-exec npx --yes @deepseek-ai/dsh@0.1.6-alpha.2 --profile gb --port "$GW_PORT" --no-open "$@"
+exec node "$DSH_JS" --profile gb --port "$GW_PORT" --no-open "$@"

@@ -49,7 +49,7 @@ export interface SessionPromptRequest {
 }
 
 export interface DshBotPlatform {
-  archiveSession(sessionId: string): Promise<void>
+  archiveSession(sessionId: string, options?: { readonly stopActivity?: boolean }): Promise<void>
   unarchiveSession(sessionId: string): Promise<void>
   selectModel(sessionId: string, model: DshBotModelRef): Promise<void>
   snapshotGlobalDefault(): DshBotModelRef | undefined
@@ -67,7 +67,7 @@ export interface DshBotPlatform {
 }
 
 interface WorkspaceRegistryDuck {
-  archiveSession(sessionId: string): Promise<void>
+  archiveSession(sessionId: string, options?: { readonly stopActivity?: boolean }): Promise<void>
   readonly archivedSessionIds?: readonly string[]
   enqueueOperation?(operation: () => Promise<unknown>): Promise<unknown>
   requireState?(): { readonly archivedSessionIds: readonly string[] } & Record<string, unknown>
@@ -405,7 +405,7 @@ export function createPlatform(ctx: Context): DshBotPlatform {
         fail('archive-unavailable', 'workspace.archiveSession is unavailable in this composition', sessionId)
       }
       try {
-        await registry.archiveSession(sessionId)
+        await registry.archiveSession(sessionId, { stopActivity: true })
       } catch (error) {
         fail(
           'archive-failed',
@@ -712,8 +712,9 @@ function withOverrideGate<T>(fn: () => Promise<T>): Promise<T> {
 
 /**
  * Pin a plugin-created session to the intended model, then restore the
- * deployment default that `session.selectModel` would otherwise rewrite
- * (Task 4 ASM-007). `override` set ⇒ BR-010 bot-owned model; omitted ⇒
+ * deployment default. On 0.1.7 `selectModel` still writes that selection
+ * through `agentDefaultModel.saveSelection`, so the previous snapshot is
+ * written back. `override` set ⇒ BR-010 bot-owned model; omitted ⇒
  * live `agent-default-model` (UF-005 次路径). session-tool durableCreate
  * does not take a model and can miss a live settings.update, so follow-
  * global still selectModel's the snapshot. Serialized against other applies.

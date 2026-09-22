@@ -31,6 +31,7 @@ import { applyModelOverride } from './platform.ts'
 import type { DshBotModelRef, DshBotPlatform } from './platform.ts'
 import { SEED_BOT_ID } from './bots.ts'
 import { wrapPrompt } from './session-voice.ts'
+import { forkChildId, readAssistant } from './fork-continuation.ts'
 
 /** Max graphemes kept after the `~dsh-bot: ` title prefix. */
 const TITLE_SUMMARY_MAX = 48
@@ -287,6 +288,27 @@ export async function askBot(
     }
     if (waited.status === 'failed' || waited.status === 'aborted') {
       throwEmptyAnswer(ctx, sessionId, waited)
+    }
+    if (waited.status === 'forked') {
+      const childId = await forkChildId(sessionTool, caller, sessionId)
+      if (childId === undefined) throwEmptyAnswer(ctx, sessionId, waited)
+      const childWait = await sessionTool.wait(caller, SessionId(childId), {
+        until: 'idle',
+        timeoutMs: config.askTimeoutMs,
+      })
+      if (childWait.status === 'timeout') {
+        throw new DshBotError(
+          'wait-timeout',
+          `dsh_bot_ask timed out waiting for fork child ${childId} (session kept)`,
+          { sessionId: childId },
+        )
+      }
+      if (childWait.status === 'failed' || childWait.status === 'aborted' || childWait.status === 'forked') {
+        throwEmptyAnswer(ctx, SessionId(childId), childWait)
+      }
+      const continued = await readAssistant(sessionTool, caller, childId)
+      if (continued === undefined) throwEmptyAnswer(ctx, SessionId(childId), childWait)
+      return { sessionId, answer: continued }
     }
     const read = await sessionTool.read(caller, sessionId, { maxBlocks: 500 })
     const answer = extractAssistantAnswer(read.messages)

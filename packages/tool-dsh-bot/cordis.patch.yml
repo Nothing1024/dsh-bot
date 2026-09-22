@@ -5,7 +5,7 @@
 #
 # Profile overlay must not insert these same ids again (double mount).
 - insert:
-    - id: dsh-bot-host
+    - id: dsh-bot
       name: 'dsh-bot-host'
       config:
         webUrl: 'http://127.0.0.1:3084'

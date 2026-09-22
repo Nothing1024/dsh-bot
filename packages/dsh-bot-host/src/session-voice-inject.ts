@@ -7,9 +7,20 @@
  */
 
 import type { Context } from '@deepseek-ai/cordis'
+import type {} from '@deepseek-ai/dsh-llm'
 import { wrapVoice } from './session-voice.ts'
 
-const PLUGIN = 'dsh-bot-host'
+/** Persona reminder written ahead of a user turn. V4 admits this kind; the shared `plugin` kind is gone. */
+export interface DshBotInstructionSource {
+  readonly kind: 'dsh-bot-instructions'
+  readonly form: 'instructions'
+}
+
+declare module '@deepseek-ai/dsh-llm' {
+  interface MessageSourceMap {
+    'dsh-bot-instructions': DshBotInstructionSource
+  }
+}
 
 interface PreStepDecision {
   readonly kind: string
@@ -78,7 +89,7 @@ export function installVoicePreStep(
         id: crypto.randomUUID(),
         role: 'user' as const,
         content: [{ type: 'text' as const, text: reminder }],
-        source: { kind: 'plugin' as const, plugin: PLUGIN, form: 'instructions' as const },
+        source: { kind: 'dsh-bot-instructions' as const, form: 'instructions' as const },
       }
       return { kind: 'enter', messages: [injected, ...batch] }
     })

@@ -16,6 +16,7 @@ import { shouldExtract } from './memory.ts'
 import { applyModelOverride } from './platform.ts'
 import type { DshBotPlatform } from './platform.ts'
 import { hideBotSession } from './session-visibility.ts'
+import { forkChildId, readAssistant } from './fork-continuation.ts'
 
 export interface ExtractPayload {
   readonly profile: readonly string[]
@@ -177,6 +178,11 @@ export function createExtractAsk(deps: {
       })
       if (waited.status === 'timeout' || waited.status === 'failed' || waited.status === 'aborted') {
         return null
+      }
+      if (waited.status === 'forked') {
+        const childId = await forkChildId(deps.sessionTool, CLI_CALLER, sessionId)
+        if (childId === undefined) return null
+        return await readAssistant(deps.sessionTool, CLI_CALLER, childId) ?? null
       }
       const read = await deps.sessionTool.read(CLI_CALLER, sessionId, { maxBlocks: 500 })
       return extractAssistantAnswer(read.messages) ?? null

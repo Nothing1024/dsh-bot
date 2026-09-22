@@ -238,7 +238,12 @@ export function projectWorkbenchHistory(
       const type = typeof block.type === 'string' ? block.type : ''
       if (type === 'text') {
         const text = blockText(block)
-        if (text !== '') texts.push(text)
+        if (text === '') continue
+        if (row.role === 'tool') {
+          tools.push({ name: 'tool', summary: text })
+          continue
+        }
+        texts.push(text)
         continue
       }
       if (type === 'reasoning') {
