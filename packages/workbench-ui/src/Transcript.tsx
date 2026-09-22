@@ -3,7 +3,7 @@
  * outside the text-only message history.
  * Assistant markdown is DSH-shaped GFM. No large avatar beside 1:1 assistant (BR-205).
  */
-import { useEffect, useRef, useState, type Ref, type UIEvent } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState, type Ref, type UIEvent } from 'react'
 import { routineCreate, routineDecline } from './api.ts'
 import type { WorkbenchBot, WorkbenchHistoryItem } from './api.ts'
 import { hashAvatarColor } from './avatar.ts'
@@ -29,6 +29,7 @@ export interface TranscriptReplyMark {
 }
 
 export interface TranscriptProps {
+  readonly conversationKey?: string
   readonly botId?: string
   readonly items: readonly WorkbenchHistoryItem[]
   readonly pending?: { readonly text: string; readonly failed?: boolean } | null
@@ -44,6 +45,7 @@ export interface TranscriptProps {
   readonly onPickMember?: (botId: string, item: WorkbenchHistoryItem) => void
   readonly onApproval?: (item: WorkbenchHistoryItem, outcome: 'allowed-once' | 'rejected') => void
   readonly onQuestion?: (item: WorkbenchHistoryItem, answer: string) => void
+  readonly onRetryMember?: (item: WorkbenchHistoryItem) => void
 }
 
 function markFor(text: string | undefined, marks: readonly TranscriptReplyMark[] | undefined): TranscriptReplyTo | undefined {
@@ -61,19 +63,41 @@ function sourceMissing(items: readonly WorkbenchHistoryItem[], seq: number): boo
 export function Transcript(props: TranscriptProps) {
   const scroller = useRef<HTMLDivElement>(null)
   const stick = useRef(true)
+  const [away, setAway] = useState(false)
   const [menuSeq, setMenuSeq] = useState<number | null>(null)
   const menuRef = useRef<HTMLDivElement>(null)
 
   const onScroll = (event: UIEvent<HTMLDivElement>): void => {
     const node = event.currentTarget
     stick.current = node.scrollHeight - node.scrollTop - node.clientHeight < 48
+    setAway(!stick.current)
   }
 
-  useEffect(() => {
+  const toLatest = (): void => {
+    stick.current = true
+    setAway(false)
+    if (scroller.current) scroller.current.scrollTop = scroller.current.scrollHeight
+  }
+
+  useLayoutEffect(() => { toLatest() }, [props.conversationKey])
+
+  useLayoutEffect(() => {
     const node = scroller.current
     if (node === null || !stick.current) return
     node.scrollTop = node.scrollHeight
   }, [props.items, props.pending, props.working])
+
+  // Images and the growing composer can change geometry without a new message.
+  useEffect(() => {
+    const node = scroller.current
+    if (!node || typeof ResizeObserver === 'undefined') return
+    const observer = new ResizeObserver(() => {
+      if (stick.current) node.scrollTop = node.scrollHeight
+    })
+    observer.observe(node)
+    for (const child of node.children) observer.observe(child)
+    return () => observer.disconnect()
+  }, [props.items])
 
   useEffect(() => {
     if (menuSeq === null) return
@@ -104,6 +128,12 @@ export function Transcript(props: TranscriptProps) {
       >
         {messages.map(item => {
           const mark = item.role === 'user' ? item.replyTo ?? markFor(item.text, props.replyMarks) : undefined
+          const retryBotId = item.author?.botId
+          const canRetry = props.onRetryMember !== undefined
+            && item.error !== undefined
+            && retryBotId !== undefined
+            && retryBotId !== ''
+            && !messages.some(other => other.seq > item.seq && other.author?.botId === retryBotId)
           return (
             <TranscriptRow
               key={item.id}
@@ -111,7 +141,7 @@ export function Transcript(props: TranscriptProps) {
               menuOpen={canMenu && menuSeq === item.seq}
               {...menuSeq === item.seq ? { menuRef } : {}}
               {...mark === undefined ? {} : { replyTo: mark, sourceGone: sourceMissing(props.items, mark.seq) }}
-              {...canMenu ? {
+              {...canMenu && item.pending !== true ? {
                 onOpenMenu: () => setMenuSeq(current => current === item.seq ? null : item.seq),
               } : {}}
               {...props.onReplyTo === undefined ? {} : {
@@ -134,6 +164,10 @@ export function Transcript(props: TranscriptProps) {
               }}
               {...props.onApproval === undefined ? {} : { onApproval: props.onApproval }}
               {...props.onQuestion === undefined ? {} : { onQuestion: props.onQuestion }}
+              {...canRetry ? {
+                onRetryMember: () => props.onRetryMember?.(item),
+                retryDisabled: props.working,
+              } : {}}
             />
           )
         })}
@@ -163,6 +197,9 @@ export function Transcript(props: TranscriptProps) {
           <TypingIndicator {...props.speaking === undefined ? {} : { speaking: props.speaking }} />
         ) : null}
       </div>
+      {away ? <button type="button" className="jumpLatest" aria-label="回到最新消息" onClick={toLatest}>
+        ↓ 最新消息
+      </button> : null}
     </>
   )
 }
@@ -288,6 +325,8 @@ function TranscriptRow(props: {
   onPickMember?: (botId: string) => void
   onApproval?: (item: WorkbenchHistoryItem, outcome: 'allowed-once' | 'rejected') => void
   onQuestion?: (item: WorkbenchHistoryItem, answer: string) => void
+  onRetryMember?: () => void
+  retryDisabled?: boolean
 }) {
   const item = props.item
   const role = item.role === 'user' ? 'user' : 'assistant'
@@ -351,7 +390,18 @@ function TranscriptRow(props: {
         ) : null}
         {item.error !== undefined ? (
           <div className="memberError" data-testid={`transcript-error-${item.seq}`}>
-            {item.error.code}: {item.error.message}
+            <span>{item.error.code}: {item.error.message}</span>
+            {props.onRetryMember !== undefined ? (
+              <button
+                type="button"
+                className="retry"
+                data-testid={`transcript-retry-${item.seq}`}
+                disabled={props.retryDisabled === true}
+                onClick={() => props.onRetryMember?.()}
+              >
+                {props.retryDisabled === true ? '重试中' : '重试该成员'}
+              </button>
+            ) : null}
           </div>
         ) : (
           <div className={`bubble ${role}`}>
@@ -361,6 +411,11 @@ function TranscriptRow(props: {
             {item.streaming === true ? <span className="streamCursor" data-testid={`transcript-stream-${item.seq}`} /> : null}
           </div>
         )}
+        {role === 'user' && item.cancelledAt !== undefined ? (
+          <span className="hint" data-testid={`transcript-cancelled-${item.seq}`} title={new Date(item.cancelledAt).toLocaleString()}>
+            已取消 · 不再继续回应
+          </span>
+        ) : null}
       </div>
       {canMenu ? (
         <div className="msgMenu" ref={props.menuRef}>

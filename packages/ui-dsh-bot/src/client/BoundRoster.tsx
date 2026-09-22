@@ -1,5 +1,5 @@
 /**
- * Bot-mode region bound to roster-rpc, overlay, and sessions.open.
+ * Bot-mode region bound to roster-rpc, overlay, and uiWorkspace.openSession.
  */
 import { useEffect, useMemo, useRef, useState, useSyncExternalStore, type ReactElement } from 'react'
 import type { WorkbenchSessionRow } from 'dsh-bot-shared'
@@ -16,7 +16,7 @@ import { readLastBot } from './roster-items.ts'
 import type { RosterRowModel } from './roster-items.ts'
 import type { RosterRpc } from './roster-rpc.ts'
 import { pendingBotIds, selectBot, sliceNested } from './select-bot.ts'
-import { jumpToSession } from './session-jump.ts'
+import { jumpToSession, mainViewId } from './session-jump.ts'
 import type { SessionJumpFace } from './session-jump.ts'
 import type { SidebarModeStore } from './sidebar-mode.ts'
 import { formatWireError, writeLastSession } from 'dsh-bot-shared'
@@ -143,7 +143,8 @@ export function BoundBotRegion(props: BoundRosterProps): ReactElement {
   }, [bots.items, sessionsByBot])
   const rosterState = deriveRosterState(bots.status, bots.items.length, groups.items.length)
   const selectedBot = bots.items.find(row => row.id === selectedId)
-  const nested = selectedBot === undefined ? [] : sliceNested(sessionsByBot[selectedBot.id] ?? [], sessionSnap.current ?? null)
+  const activeSessionId = mainViewId(props.sessions) ?? null
+  const nested = selectedBot === undefined ? [] : sliceNested(sessionsByBot[selectedBot.id] ?? [], activeSessionId)
 
   const runSelect = async (botId: string, forceCreate = false): Promise<void> => {
     if (lock.current) return
@@ -154,7 +155,7 @@ export function BoundBotRegion(props: BoundRosterProps): ReactElement {
     lastAction.current = () => { void runSelect(botId, forceCreate) }
     try {
       if (forceCreate) {
-        if (props.sessions?.open === undefined) {
+        if (typeof props.sessions?.openSession !== 'function') {
           setNestedStatus('error')
           setNestedError(props.t('roster.hostNoOpen'))
           return
@@ -279,7 +280,7 @@ export function BoundBotRegion(props: BoundRosterProps): ReactElement {
     lastMessages,
     sessionCounts,
     selectedId,
-    currentSessionId: sessionSnap.current ?? null,
+    currentSessionId: activeSessionId,
     nestedSessions: nestedRows,
     nestedStatus,
     onSelect,

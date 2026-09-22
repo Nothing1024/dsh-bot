@@ -6,7 +6,7 @@
 import { useEffect, useRef, useState, type ReactElement, type SVGProps } from 'react'
 import { zh } from './locales.ts'
 import type { IDshBotClient } from './rpc.ts'
-import { handleJumpMessage, type SessionJumpFace } from './session-jump.ts'
+import { handleJumpMessage, mainViewId, type SessionJumpFace } from './session-jump.ts'
 import { setWorkbenchFrame } from './workbench-frame.ts'
 import css from './DshBotTab.module.css'
 
@@ -44,7 +44,7 @@ export function resolveCreateCwd(
   workspaces: WorkspaceCwdFace | undefined,
 ): string | undefined {
   const sessionSnap = sessions?.list?.getSnapshot()
-  const current = sessionSnap?.current
+  const current = mainViewId(sessions)
   if (current !== undefined && sessionSnap !== undefined) {
     const cwd = sessionSnap.byId?.[current]?.cwd
     if (cwd !== undefined && cwd.trim() !== '') return cwd

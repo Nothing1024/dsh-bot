@@ -63,6 +63,7 @@ export interface GroupRoomRow {
   readonly groupId: string
   readonly createdAt: number
   readonly updatedAt: number
+  readonly working?: boolean
 }
 
 export interface ListGroupRoomsResult {
@@ -75,6 +76,7 @@ export type RoomSpeaker =
   | { readonly kind: 'error'; readonly botId: string; readonly code: string }
 
 export interface RoomMessage {
+  readonly cancelledAt?: number
   readonly requestId?: string
   readonly replyTo?: { readonly seq: number; readonly speaker: string; readonly text: string }
   readonly type: 'message'
@@ -108,6 +110,7 @@ export interface GroupsRuntime {
   listGroupSessions(input: { groupId: string }): Promise<ListGroupRoomsResult>
   renameGroupSession(input: { sessionId: string; title: string }): Promise<GroupRoomRow>
   peekRoom(roomId: string): Promise<RoomState | undefined>
+  markRoomCancelled(roomId: string, messageIds: readonly string[]): Promise<void>
   appendRoomMessage(
     roomId: string,
     speaker: RoomSpeaker,
@@ -373,6 +376,8 @@ function parseRoomFile(raw: string, roomId: string): RoomState | undefined {
       if (id === '' || Number.isNaN(seq) || speaker === undefined) continue
       const reply = rec.replyTo as RoomMessage['replyTo']
       messages.push({ type: 'message', id, seq, speaker, text, createdAt,
+        ...speaker.kind === 'user' && typeof rec.cancelledAt === 'number' && Number.isFinite(rec.cancelledAt)
+          ? { cancelledAt: rec.cancelledAt } : {},
         ...typeof rec.requestId === 'string' ? { requestId: rec.requestId } : {},
         ...reply !== undefined && reply !== null && Number.isSafeInteger(reply.seq)
           && typeof reply.text === 'string' && typeof reply.speaker === 'string' ? { replyTo: reply } : {},
@@ -609,6 +614,17 @@ export function createGroupsRuntime(options: GroupsRuntimeOptions): GroupsRuntim
     return await readRoomFile(home, id)
   }
 
+  const markRoomCancelled = async (roomId: string, messageIds: readonly string[]): Promise<void> => {
+    if (messageIds.length === 0) return
+    const state = await peekRoom(roomId)
+    if (state === undefined) throw new DshBotError('invalid-input', 'group room does not exist')
+    const wanted = new Set(messageIds)
+    const cancelledAt = nowOf()
+    const messages = state.messages.map(row => row.speaker.kind === 'user' && wanted.has(row.id) && row.cancelledAt === undefined
+      ? { ...row, cancelledAt } : row)
+    await atomicWriteText(roomFilePath(homeOf(), roomId), encodeRoom({ header: state.header, messages }))
+  }
+
   const appendRoomMessage = async (
     roomId: string,
     speaker: RoomSpeaker,
@@ -636,7 +652,13 @@ export function createGroupsRuntime(options: GroupsRuntimeOptions): GroupsRuntim
     const index = rooms.findIndex(row => row.roomId === id)
     if (index >= 0) {
       const current = rooms[index]!
-      rooms[index] = { ...current, updatedAt: message.createdAt }
+      const untitled = current.title === undefined || current.title.trim() === ''
+      const autoTitle = untitled && speaker.kind === 'user' ? firstLineTitle(text) : undefined
+      rooms[index] = {
+        ...current,
+        updatedAt: message.createdAt,
+        ...autoTitle === undefined ? {} : { title: autoTitle },
+      }
       await saveRoomsIndex(home, rooms)
     }
     return message
@@ -675,7 +697,14 @@ export function createGroupsRuntime(options: GroupsRuntimeOptions): GroupsRuntim
     listGroupSessions: input => withLock(() => listGroupSessions(input)),
     renameGroupSession: input => withLock(() => renameGroupSession(input)),
     peekRoom: roomId => withLock(() => peekRoom(roomId)),
+    markRoomCancelled: (roomId, messageIds) => withLock(() => markRoomCancelled(roomId, messageIds)),
     appendRoomMessage: (roomId, speaker, text, metadata) => withLock(() => appendRoomMessage(roomId, speaker, text, metadata)),
     updateLayout: updates => withLock(() => updateLayout(updates)),
   }
+}
+
+function firstLineTitle(text: string): string | undefined {
+  const first = text.trim().split(/\r?\n/, 1)[0]?.trim() ?? ''
+  if (first === '') return undefined
+  return first.length <= 20 ? first : `${first.slice(0, 20).trimEnd()}…`
 }

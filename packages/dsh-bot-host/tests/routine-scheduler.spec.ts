@@ -44,6 +44,9 @@ function clock() {
     pending() {
       return timers.size
     },
+    nextDelay() {
+      return Math.min(...[...timers.values()].map(row => row.due - now))
+    },
   }
 }
 
@@ -80,9 +83,24 @@ async function setup(enabled = true) {
 }
 
 describe('createScheduler', () => {
+  it('waits in safe chunks for long intervals without moving the deadline or firing early', async () => {
+    const { scheduler, store, time, wakes, row } = await setup()
+    await store.update({ id: row.id, schedule: '@every 1000h' })
+    const deadline = time.now() + 3_600_000_000
+    await scheduler.arm(row.id)
+    expect(time.nextDelay()).toBeLessThanOrEqual(2_147_483_647)
+    await time.flush(2_147_483_647)
+    expect(wakes).toEqual([])
+    expect(scheduler.nextRunAt(row.id)).toBe(deadline)
+    await time.flush(deadline - time.now())
+    expect(wakes).toEqual([row.id])
+    scheduler.disarm(row.id)
+    expect(time.pending()).toBe(0)
+  })
   it('fires once when due and rearms', async () => {
     const { scheduler, time, wakes, row } = await setup()
     await scheduler.arm(row.id)
+    expect(scheduler.nextRunAt(row.id)).toBe(time.now() + 60_000)
     expect(wakes).toEqual([])
     await time.flush(60_000)
     expect(wakes).toEqual([row.id])
@@ -95,6 +113,7 @@ describe('createScheduler', () => {
     await scheduler.arm(row.id)
     await store.update({ id: row.id, enabled: false })
     scheduler.disarm(row.id)
+    expect(scheduler.nextRunAt(row.id)).toBeUndefined()
     await time.flush(180_000)
     expect(wakes).toEqual([])
   })

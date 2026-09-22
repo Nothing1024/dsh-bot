@@ -23,7 +23,7 @@ export interface SlotsFace {
 export interface RegionHost {
   slots?: SlotsFace
   sessions?: {
-    open?: (id: string) => void
+    openSession?: (id: string) => void
   }
 }
 
@@ -64,7 +64,7 @@ export function bindBotRegion(
     const slots = ctx.slots
     if (slots === undefined) return
     const open = (id: string): void => {
-      ctx.sessions?.open?.(id)
+      ctx.sessions?.openSession?.(id)
     }
     const expandHint = (): void => {
       // owner expandSidebar is the real expander; this is the registrant inject seat

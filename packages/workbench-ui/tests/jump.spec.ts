@@ -12,6 +12,7 @@ import {
   resetJumpInFlight,
   sessionJumpLabel,
   sessionJumpTitle,
+  isChildBotSession,
 } from '../src/jump.ts'
 
 describe('jump helpers', () => {
@@ -35,6 +36,12 @@ describe('jump helpers', () => {
     expect(formatJumpReason('timeout')).toBe('跳转超时')
     expect(formatJumpReason('archived')).toMatch(/已归档/)
     expect(formatJumpReason('会话不存在或已删除')).toBe('会话不存在或已删除')
+  })
+
+  it('treats child and parent marks as subagent sessions', () => {
+    expect(isChildBotSession(['child', 'hidden'])).toBe(true)
+    expect(isChildBotSession(['parent:session-1'])).toBe(true)
+    expect(isChildBotSession(['kind:hidden', 'app:dsh-bot'])).toBe(false)
   })
 
   it('returns unsupported when there is no parent host', async () => {

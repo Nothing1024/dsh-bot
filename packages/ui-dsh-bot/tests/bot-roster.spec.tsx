@@ -51,6 +51,7 @@ const room: WorkbenchGroup = {
 afterEach(() => {
   cleanup()
   localStorage.clear()
+  sessionStorage.clear()
 })
 
 describe('BotRoster', () => {

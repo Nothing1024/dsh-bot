@@ -1,18 +1,26 @@
 /**
  * Jump a bound bot session into the official conversation.
  *
- * Unarchive first (official UI clears archived current), wait for the
- * workspace archive echo, then `sessions.open` + `selectPanel(null)`.
- * Do not pair `beginNavigation` with `refresh` — `selectPanel` aborts that
- * signal and the old path returned without opening.
+ * Child rows and sessions still in the archive set are refused before
+ * `prepareOfficialJump`, so an archived target is not unarchived and not
+ * opened. A session that is not archived still goes through the existing
+ * prepare step, then the same `executeJump` path as the iframe bridge.
+ * Never fall back to the removed `sessions.open`.
  */
+import { executeJump, isBlockedChildSession, JUMP_REASON_ARCHIVED, JUMP_REASON_SUBAGENT } from './session-jump.ts'
+import type { SessionJumpFace } from './session-jump.ts'
+
 export const SESSION_TOOL_PANEL_ID = 'session-tool'
 
 export const OFFICIAL_ARCHIVED_MESSAGE = '该会话已归档（委托会话默认归档），官方界面无法查看'
 
 export interface SessionToolJumpHost {
+  uiWorkspace?: {
+    openSession?(id: string): void
+  }
   sessions: {
-    open?(id: string): void
+    subagentAddress?(id: string): unknown
+    list?: SessionJumpFace['list']
     refresh?(): Promise<unknown> | unknown
   }
   layout: {
@@ -86,11 +94,28 @@ export async function openOfficialSession(
   sessionId: string,
   options: { archivedWaitMs?: number } = {},
 ): Promise<void> {
+  if (isBlockedChildSession({
+    ...typeof host.sessions.subagentAddress === 'function'
+      ? { subagentAddress: (id: string) => host.sessions.subagentAddress?.(id) }
+      : {},
+    ...host.sessions.list !== undefined ? { list: host.sessions.list } : {},
+  }, sessionId)) throw new Error(JUMP_REASON_SUBAGENT)
+  if (isArchived(host, sessionId)) throw new Error(OFFICIAL_ARCHIVED_MESSAGE)
   await requestPrepareOfficialJump(sessionId)
-  if (typeof host.sessions.open !== 'function') throw new Error('宿主不支持打开会话')
+  if (typeof host.uiWorkspace?.openSession !== 'function') throw new Error('宿主不支持打开会话')
   if (typeof host.layout.selectPanel !== 'function') throw new Error('宿主不支持切换面板')
   await waitWhileArchived(host, sessionId, options.archivedWaitMs ?? 2000)
-  host.sessions.open(sessionId)
+  const face: SessionJumpFace = {
+    openSession: (id: string) => { host.uiWorkspace?.openSession?.(id) },
+    ...typeof host.sessions.subagentAddress === 'function'
+      ? { subagentAddress: (id: string) => host.sessions.subagentAddress?.(id) }
+      : {},
+    ...host.sessions.list !== undefined ? { list: host.sessions.list } : {},
+  }
+  const result = executeJump(face, sessionId, host.workspaces)
+  if (!result.ok) {
+    throw new Error(result.reason === JUMP_REASON_ARCHIVED ? OFFICIAL_ARCHIVED_MESSAGE : result.reason)
+  }
   host.layout.selectPanel(null)
 }
 

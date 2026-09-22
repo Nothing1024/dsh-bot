@@ -4,6 +4,7 @@
     "noEmit": true,
     "lib": ["es2023", "dom", "dom.iterable"],
     "paths": {
+      "@deepseek-ai/cordis": ["./node_modules/cordis"],
       "dsh-bot-shared": ["./packages/dsh-bot-shared/src/index.ts"],
       "dsh-bot-shared/roster-sections": ["./packages/dsh-bot-shared/src/roster-sections.ts"],
       "dsh-bot-shared/avatar": ["./packages/dsh-bot-shared/src/avatar.ts"],

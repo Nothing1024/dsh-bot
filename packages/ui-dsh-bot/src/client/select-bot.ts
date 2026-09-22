@@ -47,7 +47,7 @@ export function errorMessage(error: { code?: string; message: string } | undefin
  * Resolve and open the bound official session for `botId`.
  */
 export async function selectBot(botId: string, deps: SelectBotDeps): Promise<SelectBotResult> {
-  if (deps.sessions?.open === undefined) {
+  if (typeof deps.sessions?.openSession !== 'function') {
     return { ok: false, rows: [], error: '宿主不支持打开会话' }
   }
   deps.onPhase?.('resolving')

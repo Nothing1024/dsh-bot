@@ -2,6 +2,7 @@
 import { cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { App } from '../src/App.tsx'
+import { LAST_OWNER_KEY, LAST_SESSION_KEY_PREFIX } from 'dsh-bot-shared'
 
 const SEED = {
   id: 'dsh-bot',
@@ -22,6 +23,7 @@ describe('App roster load', () => {
     cleanup()
     vi.unstubAllGlobals()
     localStorage.clear()
+    sessionStorage.clear()
   })
 
   it('shares selection with a portalled roster and preserves independent thread drafts', async () => {
@@ -65,6 +67,44 @@ describe('App roster load', () => {
     render(<App />)
     expect(await screen.findByTestId('roster-row-dsh-bot')).toBeTruthy()
     expect(screen.getByTestId('conversation-identity').textContent).toMatch(/DSH Bot/)
+  })
+
+  it('falls back to an available bot if the saved selection was deleted', async () => {
+    localStorage.setItem(LAST_OWNER_KEY, 'deleted-group')
+    vi.stubGlobal('fetch', vi.fn(async (url: string) => {
+      if (url.endsWith('/listBots')) return jsonOk({ bots: [SEED] })
+      return jsonOk({ groups: [], sessions: [], items: [] })
+    }))
+    render(<App />)
+    await screen.findByTestId('roster-row-dsh-bot')
+    expect(screen.getByTestId('conversation-identity').textContent).toMatch(/DSH Bot/)
+    expect(localStorage.getItem(LAST_OWNER_KEY)).toBe('dsh-bot')
+  })
+
+  it.each(['unchanged', 'other-tab-room', 'other-tab-bot'])('restores this page after remount when shared selection is %s', async external => {
+    const group = { id: 'editors', name: '编辑室', memberIds: ['dsh-bot'], createdAt: 3 }
+    vi.stubGlobal('fetch', vi.fn(async (url: string) => {
+      if (url.endsWith('/listBots')) return jsonOk({ bots: [SEED] })
+      if (url.endsWith('/listGroups')) return jsonOk({ groups: [group] })
+      if (url.endsWith('/listGroupSessions')) return jsonOk({ rooms: [
+        { roomId: 'room-new', groupId: 'editors', createdAt: 5, updatedAt: 5 },
+        { roomId: 'room-old', groupId: 'editors', createdAt: 3, updatedAt: 3 },
+      ] })
+      return jsonOk({ sessions: [], items: [], working: false })
+    }))
+    const first = render(<App />)
+    fireEvent.click(await screen.findByTestId('roster-row-editors'))
+    await vi.waitFor(() => expect(screen.getByTestId('session-select').getAttribute('data-session-id')).toBe('room-new'))
+    fireEvent.click(screen.getByTestId('session-select'))
+    fireEvent.click(screen.getByTestId('session-option-room-old'))
+    await vi.waitFor(() => expect(screen.getByTestId('session-select').getAttribute('data-session-id')).toBe('room-old'))
+    first.unmount()
+    // Other tabs share localStorage, but cannot change this tab's sessionStorage.
+    if (external !== 'unchanged') localStorage.setItem(`${LAST_SESSION_KEY_PREFIX}editors`, 'room-new')
+    if (external === 'other-tab-bot') localStorage.setItem(LAST_OWNER_KEY, 'dsh-bot')
+    render(<App />)
+    await vi.waitFor(() => expect(screen.getByTestId('roster-row-editors').getAttribute('data-active')).toBe('true'))
+    await vi.waitFor(() => expect(screen.getByTestId('session-select').getAttribute('data-session-id')).toBe('room-old'))
   })
 
   it('keeps bound sessions in the conversation switcher, not under the roster row', async () => {
@@ -112,6 +152,39 @@ describe('App roster load', () => {
     await vi.waitFor(() => {
       expect(screen.getByTestId('session-select').getAttribute('data-session-id')).toBe('s-old')
     })
+  })
+
+  it('forwards host session navigation callbacks through the app shell', async () => {
+    const openOfficial = vi.fn(async () => undefined)
+    const openTool = vi.fn()
+    vi.stubGlobal('fetch', vi.fn(async (url: string) => {
+      const path = String(url)
+      if (path.includes('listBots')) return jsonOk({ bots: [SEED] })
+      if (path.includes('listBotSessions')) {
+        return jsonOk({
+          sessions: [{
+            sessionId: 's-host',
+            title: '主会话',
+            tags: [],
+            status: 'idle',
+            createdAt: 1,
+            updatedAt: 1,
+            hidden: false,
+            working: false,
+          }],
+        })
+      }
+      return jsonOk({ sessions: [], groups: [], items: [], botModel: { provider: '', model: '', source: 'global-default' } })
+    }))
+    render(<App onOpenOfficialSession={openOfficial} onOpenSessionTool={openTool} />)
+    await screen.findByTestId('session-current-menu')
+    fireEvent.click(screen.getByTestId('session-current-menu'))
+    expect(screen.getByTestId('session-current-jump').textContent).toBe('在官方会话打开')
+    fireEvent.click(screen.getByTestId('session-current-jump'))
+    await vi.waitFor(() => expect(openOfficial).toHaveBeenCalledWith('s-host'))
+    fireEvent.click(screen.getByTestId('session-select'))
+    fireEvent.click(screen.getByTestId('session-tool-browse'))
+    expect(openTool).toHaveBeenCalledTimes(1)
   })
 
   it('sends createBot once when create is clicked twice', async () => {

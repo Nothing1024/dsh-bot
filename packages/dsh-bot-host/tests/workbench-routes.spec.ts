@@ -270,3 +270,15 @@ describe('roster layout RPC', () => {
   })
 })
 
+describe('retryMember RPC dispatch', () => {
+  it('routes retryMember with roomId and errorSeq', async () => {
+    const retryMember = vi.fn(async () => ({ roomId: 'r1', botId: 'dsh-bot', accepted: true as const }))
+    const bot = { retryMember } as unknown as Parameters<typeof dispatchWorkbenchApi>[0]
+    await expect(dispatchWorkbenchApi(bot, 'retryMember', {
+      roomId: 'r1',
+      botId: 'dsh-bot',
+      errorSeq: 3,
+    })).resolves.toEqual({ roomId: 'r1', botId: 'dsh-bot', accepted: true })
+    expect(retryMember).toHaveBeenCalledWith({ roomId: 'r1', botId: 'dsh-bot', errorSeq: 3 })
+  })
+})

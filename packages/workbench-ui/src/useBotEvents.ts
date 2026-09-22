@@ -3,13 +3,16 @@
  * Parses assistant/chunk text-delta and approval/question cards.
  */
 import { useEffect, useRef, useState } from 'react'
-import type { WorkbenchHistoryItem } from './api.ts'
+import type { HistoryValue, WorkbenchHistoryItem, WorkbenchBot } from './api.ts'
 
 const RECONNECT_CAP_MS = 10_000
 
 export interface LiveStream {
   readonly sessionId: string
   readonly text: string
+  readonly roomId?: string
+  readonly complete?: boolean
+  readonly seq?: number
 }
 
 export interface BotStatusLive {
@@ -21,9 +24,15 @@ export interface BotStatusLive {
 export interface BotLiveState {
   readonly sseReady: boolean
   readonly stream: LiveStream | null
+  readonly streams: readonly LiveStream[]
   readonly cards: readonly WorkbenchHistoryItem[]
   readonly status: readonly BotStatusLive[]
   readonly epoch: number
+}
+
+function visibleStreamText(text: string): string {
+  // Control payloads become cards / readable suggestions only after persistence.
+  return text.replace(/\[propose-routine\][\s\S]*?(?:\[\/propose-routine\]|$)/g, '').trimEnd()
 }
 
 export function mergeLiveItems(
@@ -32,7 +41,8 @@ export function mergeLiveItems(
   stream: LiveStream | null,
   cards: readonly WorkbenchHistoryItem[],
 ): WorkbenchHistoryItem[] {
-  const liveStream = sessionId !== null && stream !== null && stream.sessionId === sessionId && stream.text !== ''
+  const text = visibleStreamText(stream?.text ?? '')
+  const liveStream = sessionId !== null && stream !== null && stream.sessionId === sessionId && text !== ''
   const extraCards = sessionId === null
     ? []
     : cards.filter(card => (card.sessionId === sessionId || card.roomId === sessionId) && !items.some(item => item.id === card.id))
@@ -48,7 +58,8 @@ export function mergeLiveItems(
       }
     }
     if (last >= 0) {
-      out[last] = { ...out[last]!, text: stream.text, streaming: true }
+      // A completed persisted answer is authoritative; do not animate its handoff again.
+      if (stream.complete !== true) out[last] = { ...out[last]!, text, streaming: true }
     } else {
       const seq = out.reduce((max, item) => item.seq > max ? item.seq : max, 0) + 1
       out.push({
@@ -56,8 +67,9 @@ export function mergeLiveItems(
         kind: 'message',
         seq,
         role: 'assistant',
-        text: stream.text,
-        streaming: true,
+        text,
+        streaming: stream.complete !== true,
+        pending: true,
         sessionId,
       })
     }
@@ -68,6 +80,38 @@ export function mergeLiveItems(
     }
   }
   return out
+}
+
+/** Only the active hidden member session may paint into its group room. */
+export function mergeGroupStream(
+  items: readonly WorkbenchHistoryItem[],
+  roomId: string | null,
+  stream: LiveStream | null,
+  speaking: HistoryValue['speaking'] | null,
+  members: readonly WorkbenchBot[],
+): readonly WorkbenchHistoryItem[] {
+  if (!stream || !speaking?.sessionId || stream.sessionId !== speaking.sessionId
+    || stream.roomId !== roomId || !stream.text.trim()) return items
+  // Hidden sessions are reused. Never replay cached text from an earlier turn.
+  if (speaking.afterSessionSeq === undefined || stream.seq === undefined
+    || stream.seq <= speaking.afterSessionSeq) return items
+  const member = members.find(row => row.id === speaking.botId)
+  if (!member) return items
+  const text = visibleStreamText(stream.text).trim()
+  if (!text) return items
+  if (/^(?:\(\s*)?pass(?:\s*\))?\s*\.?$/i.test(text)) return items
+  // Echoed orchestration wrappers wait for the host's sanitized final answer.
+  if (/^(?:\[|<|【小组)|现在轮到你|房间里刚说的/.test(text)) return items
+  // afterSeq distinguishes a repeated reply from the same member's previous turn.
+  const saved = items.some(item => item.role === 'assistant' && item.author?.botId === member.id
+    && item.seq > (speaking.afterSeq ?? -1))
+  if (saved) return items
+  return [...items, {
+    id: `stream-${stream.sessionId}`, kind: 'message', role: 'assistant',
+    seq: items.reduce((max, item) => Math.max(max, item.seq), 0) + 1,
+    text, streaming: stream.complete !== true, pending: true,
+    author: { botId: member.id, name: member.name, avatar: member.avatar },
+  }]
 }
 
 function asRecord(value: unknown): Record<string, unknown> {
@@ -122,10 +166,11 @@ function cardFromFrame(frame: Record<string, unknown>): WorkbenchHistoryItem | n
 export function useBotEvents(): BotLiveState {
   const [sseReady, setSseReady] = useState(false)
   const [stream, setStream] = useState<LiveStream | null>(null)
+  const [streamRows, setStreamRows] = useState<readonly LiveStream[]>([])
   const [cards, setCards] = useState<readonly WorkbenchHistoryItem[]>([])
   const [status, setStatus] = useState<readonly BotStatusLive[]>([])
   const [epoch, setEpoch] = useState(0)
-  const streams = useRef(new Map<string, string>())
+  const streams = useRef(new Map<string, LiveStream>())
 
   useEffect(() => {
     if (typeof EventSource === 'undefined') return
@@ -135,6 +180,19 @@ export function useBotEvents(): BotLiveState {
     let delay = 500
 
     const bump = (): void => { setEpoch(n => n + 1) }
+    const publish = (sessionId: string, next: LiveStream | null): void => {
+      if (next === null) streams.current.delete(sessionId)
+      else streams.current.set(sessionId, next)
+      // Keep active turns, but bound retained completed handoffs.
+      if (streams.current.size > 64) {
+        for (const [id, row] of streams.current) {
+          if (streams.current.size <= 64) break
+          if (row.complete) streams.current.delete(id)
+        }
+      }
+      setStream(current => next ?? (current?.sessionId === sessionId ? null : current))
+      setStreamRows([...streams.current.values()])
+    }
 
     const handle = (raw: string): void => {
       let parsed: unknown
@@ -170,17 +228,25 @@ export function useBotEvents(): BotLiveState {
         const event = asRecord(frame.event)
         const eventType = typeof event.type === 'string' ? event.type : ''
         if (sessionId === '') return
+        if (eventType === 'assistant/start' || eventType === 'assistant/attempt') {
+          publish(sessionId, null)
+          return
+        }
         if (eventType === 'assistant/chunk') {
           const delta = chunkText(event)
           if (delta === '') return
-          const next = `${streams.current.get(sessionId) ?? ''}${delta}`
-          streams.current.set(sessionId, next)
-          setStream({ sessionId, text: next })
+          const previous = streams.current.get(sessionId)
+          const next = `${previous?.complete ? '' : previous?.text ?? ''}${delta}`
+          publish(sessionId, { sessionId, text: next,
+            ...typeof event.seq === 'number' ? { seq: event.seq } : {},
+            ...typeof frame.roomId === 'string' ? { roomId: frame.roomId } : {},
+          })
           return
         }
         if (eventType === 'assistant/message' || eventType === 'turn/end' || eventType === 'user/message') {
-          streams.current.delete(sessionId)
-          setStream(current => current?.sessionId === sessionId ? null : current)
+          const previous = streams.current.get(sessionId)
+          if (eventType === 'assistant/message' && previous) publish(sessionId, { ...previous, complete: true })
+          else if (eventType === 'user/message' || previous?.complete !== true) publish(sessionId, null)
           bump()
         }
         return
@@ -230,5 +296,5 @@ export function useBotEvents(): BotLiveState {
     }
   }, [])
 
-  return { sseReady, stream, cards, status, epoch }
+  return { sseReady, stream, streams: streamRows, cards, status, epoch }
 }

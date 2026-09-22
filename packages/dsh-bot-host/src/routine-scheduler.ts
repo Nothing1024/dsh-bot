@@ -11,6 +11,7 @@ export interface SchedulerWakeResult {
 }
 
 export interface RoutineScheduler {
+  nextRunAt(id: string): number | undefined
   arm(id: string): Promise<void>
   disarm(id: string): void
   disarmAll(): void
@@ -32,6 +33,7 @@ export function createScheduler(options: CreateSchedulerOptions): RoutineSchedul
   const setTimeoutOf = options.setTimeout ?? setTimeout
   const clearTimeoutOf = options.clearTimeout ?? clearTimeout
   const timers = new Map<string, ReturnType<typeof setTimeout>>()
+  const dueAt = new Map<string, number>()
   const running = new Set<string>()
 
   const live = (): boolean => options.enabled?.() !== false
@@ -40,9 +42,12 @@ export function createScheduler(options: CreateSchedulerOptions): RoutineSchedul
     const handle = timers.get(id)
     if (handle !== undefined) clearTimeoutOf(handle)
     timers.delete(id)
+    dueAt.delete(id)
   }
 
   const fire = async (id: string): Promise<void> => {
+    timers.delete(id)
+    dueAt.delete(id)
     if (!live() || running.has(id)) {
       if (live()) await arm(id)
       return
@@ -75,12 +80,23 @@ export function createScheduler(options: CreateSchedulerOptions): RoutineSchedul
     }
     if (!routine.enabled) return
     const due = nextRun(routine.schedule, nowOf())
-    const wait = Math.max(0, due - nowOf())
-    const handle = setTimeoutOf(() => fire(id), wait)
-    timers.set(id, handle)
+    dueAt.set(id, due)
+    // Node clamps delays above 2^31 - 1 to 1 ms. Keep the original deadline
+    // while waiting in chunks, including for relative @every schedules.
+    const waitUntilDue = (): void => {
+      const wait = Math.min(2_147_483_647, Math.max(0, due - nowOf()))
+      const handle = setTimeoutOf(async () => {
+        if (timers.get(id) !== handle) return
+        if (nowOf() < due) { waitUntilDue(); return }
+        await fire(id)
+      }, wait)
+      timers.set(id, handle)
+    }
+    waitUntilDue()
   }
 
   return {
+    nextRunAt: id => dueAt.get(id),
     arm,
     disarm,
     disarmAll() {

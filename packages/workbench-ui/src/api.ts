@@ -272,6 +272,15 @@ export function listGroupSessions(groupId: string): Promise<RpcResult<{ rooms: r
   return workbenchCall('listGroupSessions', { groupId })
 }
 
+export function retryMember(
+  roomId: string,
+  botId: string,
+  errorSeq: number,
+): Promise<RpcResult<{ roomId: string; botId: string; accepted: true }>> {
+  return workbenchCall('retryMember', { roomId, botId, errorSeq })
+}
+
+
 export function draftStorageKey(botId: string): string {
   return `dsh-bot:draft:${botId}`
 }
@@ -331,6 +340,10 @@ export function memoryCount(value: MemoryListValue | undefined): number {
 
 export function routineList(botId?: string): Promise<RpcResult<readonly RoutineRow[]>> {
   return workbenchCall('routineList', botId === undefined || botId === '' ? {} : { botId })
+}
+
+export function routinePreview(schedule: string): Promise<RpcResult<{ schedule: string; timeZone: string; nextRunAt: number }>> {
+  return workbenchCall('routinePreview', { schedule })
 }
 
 export function routineCreate(input: {

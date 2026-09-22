@@ -3,6 +3,7 @@
  * @module dsh-bot-host/routines
  */
 import { existsSync } from 'node:fs'
+import { randomUUID } from 'node:crypto'
 import { mkdir, readFile, rename, writeFile } from 'node:fs/promises'
 import { dirname, join } from 'node:path'
 import { DshBotError } from './errors.ts'
@@ -74,6 +75,7 @@ const RUNS_MAX = 20
 const NAME_MAX = 64
 const EVERY_RE = /^@every\s+(\d+)\s*([mh])$/u
 const CRON_TZ_RE = /^CRON_TZ=(\S+)\s+(.+)$/u
+const fileGates = new Map<string, Promise<void>>()
 
 export function parseSchedule(text: string): ParsedSchedule {
   const trimmed = text.trim()
@@ -105,12 +107,18 @@ export function nextRun(schedule: string, now: number): number {
   const parsed = parseSchedule(schedule)
   if (parsed.kind === 'every') return now + parsed.ms
   const tz = parsed.tz ?? 'UTC'
+  const formatter = tz === 'UTC' ? undefined : wallClockFormatter(tz)
   const start = Math.floor(now / 60_000) * 60_000 + 60_000
   const limit = start + 366 * 24 * 60 * 60 * 1000
   for (let ts = start; ts <= limit; ts += 60_000) {
-    if (cronMatches(parsed.fields, ts, tz)) return ts
+    if (cronMatches(parsed.fields, ts, formatter)) return ts
   }
   throw new DshBotError('invalid-input', `schedule ${JSON.stringify(schedule)} never matches`)
+}
+
+export function previewSchedule(schedule: string, now = Date.now()) {
+  const parsed = parseSchedule(schedule)
+  return { schedule: schedule.trim(), timeZone: parsed.tz ?? 'UTC', nextRunAt: nextRun(schedule, now) }
 }
 
 export function createRoutineStore(
@@ -144,14 +152,20 @@ export function createRoutineStore(
   const save = async (rows: readonly RoutineRow[]): Promise<void> => {
     const file = pathOf()
     await mkdir(dirname(file), { recursive: true })
-    const tmp = `${file}.${process.pid}.${Date.now()}.tmp`
+    const tmp = `${file}.${randomUUID()}.tmp`
     await writeFile(tmp, `${JSON.stringify(rows, null, 2)}\n`, 'utf8')
     await rename(tmp, file)
   }
 
   const withLock = async <T>(fn: (rows: RoutineRow[]) => Promise<T> | T): Promise<T> => {
-    const rows = await load()
-    const result = await fn(rows)
+    const file = pathOf()
+    const previous = fileGates.get(file) ?? Promise.resolve()
+    const result = previous.then(async () => fn(await load()))
+    const settled = result.then(() => undefined, () => undefined)
+    fileGates.set(file, settled)
+    void settled.then(() => {
+      if (fileGates.get(file) === settled) fileGates.delete(file)
+    })
     return result
   }
 
@@ -379,8 +393,8 @@ function rangeBounds(token: string, min: number, max: number): [number, number] 
   return [a!, b!]
 }
 
-function cronMatches(fields: CronFields, ts: number, tz: string): boolean {
-  const parts = wallClock(ts, tz)
+function cronMatches(fields: CronFields, ts: number, formatter?: Intl.DateTimeFormat): boolean {
+  const parts = wallClock(ts, formatter)
   return fields.minute.includes(parts.minute)
     && fields.hour.includes(parts.hour)
     && fields.month.includes(parts.month)
@@ -388,14 +402,8 @@ function cronMatches(fields: CronFields, ts: number, tz: string): boolean {
     && fields.dow.includes(parts.dow)
 }
 
-function wallClock(ts: number, tz: string): {
-  minute: number
-  hour: number
-  day: number
-  month: number
-  dow: number
-} {
-  const fmt = new Intl.DateTimeFormat('en-US', {
+function wallClockFormatter(tz: string): Intl.DateTimeFormat {
+  return new Intl.DateTimeFormat('en-US', {
     timeZone: tz,
     hourCycle: 'h23',
     year: 'numeric',
@@ -405,8 +413,22 @@ function wallClock(ts: number, tz: string): {
     minute: '2-digit',
     weekday: 'short',
   })
+}
+
+function wallClock(ts: number, formatter?: Intl.DateTimeFormat): {
+  minute: number
+  hour: number
+  day: number
+  month: number
+  dow: number
+} {
+  const date = new Date(ts)
+  if (formatter === undefined) return {
+    minute: date.getUTCMinutes(), hour: date.getUTCHours(), day: date.getUTCDate(),
+    month: date.getUTCMonth() + 1, dow: date.getUTCDay(),
+  }
   const bag: Record<string, string> = {}
-  for (const part of fmt.formatToParts(new Date(ts))) {
+  for (const part of formatter.formatToParts(date)) {
     if (part.type !== 'literal') bag[part.type] = part.value
   }
   const dowMap: Record<string, number> = {

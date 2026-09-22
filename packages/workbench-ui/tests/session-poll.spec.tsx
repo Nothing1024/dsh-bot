@@ -8,6 +8,7 @@ function Probe(props: {
   sessionId: string | null
   enabled: boolean
   sseReady?: boolean
+  incremental?: boolean
   load: (sessionId: string, sinceSeq?: number) => Promise<RpcResult<HistoryValue>>
 }) {
   const state = useSessionPoll(props)
@@ -16,11 +17,43 @@ function Probe(props: {
       <span data-testid="poll-working">{String(state.working)}</span>
       <span data-testid="poll-count">{state.items.length}</span>
       <span data-testid="poll-ids">{state.items.map(item => item.id).join(',')}</span>
+      <span data-testid="poll-cancelled">{state.items.filter(item => item.cancelledAt !== undefined).map(item => item.id).join(',')}</span>
     </div>
   )
 }
 
 describe('useSessionPoll', () => {
+  it('ignores a delayed history response after switching conversations', async () => {
+    let finishOld!: (value: RpcResult<HistoryValue>) => void
+    const load = async (id: string): Promise<RpcResult<HistoryValue>> => id === 'old'
+      ? await new Promise(resolve => { finishOld = resolve })
+      : { ok: true, value: { sessionId: id, working: false, items: [{ id: 'new-message', seq: 1, kind: 'message', role: 'user', text: 'new' }] } }
+    const view = render(<Probe sessionId="old" enabled sseReady load={load} />)
+    view.rerender(<Probe sessionId="new" enabled sseReady load={load} />)
+    await act(async () => { await Promise.resolve() })
+    expect(screen.getByTestId('poll-ids').textContent).toBe('new-message')
+    await act(async () => { finishOld({ ok: true, value: { sessionId: 'old', working: true, items: [{ id: 'old-message', seq: 1, kind: 'message', role: 'user', text: 'old' }] } }) })
+    expect(screen.getByTestId('poll-ids').textContent).toBe('new-message')
+    expect(screen.getByTestId('poll-working').textContent).toBe('false')
+  })
+
+  it('refreshes cancellation of older messages in non-incremental group history', async () => {
+    vi.useFakeTimers()
+    let cancelled = false
+    const load = vi.fn(async (_id: string, sinceSeq?: number): Promise<RpcResult<HistoryValue>> => ({ ok: true, value: {
+      sessionId: 'room', working: false,
+      items: [
+        { id: 'old', kind: 'message', seq: 1, role: 'user', text: 'older request', ...cancelled ? { cancelledAt: 10 } : {} },
+        { id: 'latest', kind: 'message', seq: 2, role: 'user', text: 'later request' },
+      ].filter(row => sinceSeq === undefined || row.seq >= sinceSeq) as WorkbenchHistoryItem[],
+    } }))
+    render(<Probe sessionId="room" enabled incremental={false} load={load} />)
+    await act(async () => { await Promise.resolve() })
+    cancelled = true
+    await act(async () => { await vi.advanceTimersByTimeAsync(POLL_IDLE_MS) })
+    expect(load).toHaveBeenLastCalledWith('room', undefined)
+    expect(screen.getByTestId('poll-cancelled').textContent).toBe('old')
+  })
   afterEach(() => {
     cleanup()
     vi.useRealTimers()
@@ -137,6 +170,12 @@ describe('useSessionPoll', () => {
 })
 
 describe('mergeHistoryItems', () => {
+  it('updates an existing message when only its cancellation marker changes', () => {
+    const original: WorkbenchHistoryItem = { id: 'm1', kind: 'message', seq: 1, role: 'user', text: 'cancel me' }
+    const cancelled = { ...original, cancelledAt: 123 }
+    expect(mergeHistoryItems([original], [cancelled], false)[0]?.cancelledAt).toBe(123)
+    expect(mergeHistoryItems([original], [cancelled], true)[0]?.cancelledAt).toBe(123)
+  })
   it('keeps prior seqs and replaces overlapping last-seq rows even when ids shift', () => {
     const current: WorkbenchHistoryItem[] = [
       { id: 'message-8-1', kind: 'message', seq: 8, role: 'user', text: '你是谁?' },
@@ -158,4 +197,3 @@ describe('mergeHistoryItems', () => {
     expect(mergeHistoryItems(current, [], true)).toBe(current)
   })
 })
-

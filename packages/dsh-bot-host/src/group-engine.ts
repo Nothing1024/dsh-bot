@@ -5,6 +5,10 @@
  * @module dsh-bot-host/group-engine
  */
 
+import { parseMentions } from 'dsh-bot-shared'
+export { parseMentions } from 'dsh-bot-shared'
+export type { MentionMember, MentionParse } from 'dsh-bot-shared'
+
 import { SessionId } from '@deepseek-ai/dsh-session'
 import { hasHiddenMark, listByMark } from 'session-marks'
 import type { SessionToolCaller, SessionToolService } from 'session-tool'
@@ -29,23 +33,13 @@ import { unwrapPrompt, wrapPrompt } from './session-voice.ts'
 
 const CLI_CALLER: SessionToolCaller = { kind: 'cli' }
 const ROOM_TRANSCRIPT_MAX = 24
-const ALL_HANDLES = new Set(['all', 'everyone'])
 export const GROUP_MAX_ROUNDS = 3
 export const GROUP_MAX_MEMBER_TURNS = 10
 
-export interface MentionMember {
-  readonly id: string
-  readonly name: string
-}
-
-export interface MentionParse {
-  readonly responderIds: readonly string[]
-  readonly unmatched: boolean
-  readonly namedAll: boolean
-}
-
 export interface RoundSpeaking {
   readonly sessionId?: string
+  readonly afterSeq?: number
+  readonly afterSessionSeq?: number
   readonly botId: string
   readonly name: string
 }
@@ -75,6 +69,29 @@ export interface RunGroupRoundRequest {
 export interface RunGroupRoundResult {
   readonly roomId: string
   readonly unmatchedMentions: boolean
+}
+
+export interface RetryMemberTurnRequest {
+  readonly roomId: string
+  readonly botId: string
+  readonly errorSeq: number
+  readonly signal?: AbortSignal
+}
+
+export interface RetryMemberTurnResult {
+  readonly roomId: string
+  readonly botId: string
+  readonly posted: boolean
+}
+
+export interface PreparedRetryMemberTurn {
+  readonly roomId: string
+  readonly botId: string
+  readonly group: { readonly id: string; readonly name: string; readonly rounds: number }
+  readonly bot: BotView
+  readonly members: readonly BotView[]
+  readonly names: Map<string, string>
+  readonly context: RoomMessage
 }
 
 export interface GroupEngineDeps {
@@ -134,60 +151,6 @@ export function orderRoundSpeakers<T>(memberIds: readonly T[], round: number): T
   return [...memberIds.slice(offset), ...memberIds.slice(0, offset)]
 }
 
-function matchMember(token: string, members: readonly MentionMember[]): MentionMember | undefined {
-  const compact = token.replace(/\s+/g, '')
-  if (compact === '') return undefined
-  let prefixHit: MentionMember | undefined
-  for (const member of members) {
-    const nameCompact = member.name.replace(/\s+/g, '')
-    if (member.id === token || member.name === token || nameCompact === compact) return member
-    if (nameCompact !== '' && compact.startsWith(nameCompact)) {
-      if (prefixHit === undefined || member.name.length > prefixHit.name.length) prefixHit = member
-    }
-  }
-  return prefixHit
-}
-
-/**
- * Resolve @handles against current members. No mention or unmatched → all
- * members (in memberIds order). `@all` / `@everyone` = everyone.
- */
-export function parseMentions(text: string, members: readonly MentionMember[]): MentionParse {
-  const order = members.map(row => row.id)
-  const mentions = [...text.matchAll(/@([^\s@]+)/g)].map(match => match[1] ?? '')
-  if (mentions.length === 0) {
-    return { responderIds: order, unmatched: false, namedAll: false }
-  }
-  const wanted = new Set<string>()
-  let namedAll = false
-  let anyMatch = false
-  for (const raw of mentions) {
-    const token = raw.trim()
-    if (token === '') continue
-    if (ALL_HANDLES.has(token.toLowerCase())) {
-      namedAll = true
-      anyMatch = true
-      continue
-    }
-    const hit = matchMember(token, members)
-    if (hit !== undefined) {
-      wanted.add(hit.id)
-      anyMatch = true
-    }
-  }
-  if (namedAll) {
-    return { responderIds: order, unmatched: false, namedAll: true }
-  }
-  if (!anyMatch) {
-    return { responderIds: order, unmatched: true, namedAll: false }
-  }
-  return {
-    responderIds: order.filter(id => wanted.has(id)),
-    unmatched: false,
-    namedAll: false,
-  }
-}
-
 export function isSkipReply(text: string): boolean {
   const trimmed = text.trim()
   if (trimmed === '') return true
@@ -214,10 +177,10 @@ export function messagesSinceMemberLastSpoke(
   for (let index = messages.length - 1; index >= 0; index -= 1) {
     const speaker = messages[index]!.speaker
     if (speaker.kind === 'member' && speaker.botId === botId) {
-      return messages.slice(index + 1)
+      return messages.slice(index + 1).filter(row => row.cancelledAt === undefined)
     }
   }
-  return messages
+  return messages.filter(row => row.cancelledAt === undefined)
 }
 
 /**
@@ -348,19 +311,13 @@ export async function runGroupRound(
     const room = await deps.groups.peekRoom(roomId)
     if (room === undefined) throw new DshBotError('invalid-input', `room ${JSON.stringify(roomId)} does not exist`)
     const group = await deps.groups.getGroup(room.header.groupId)
-    const members: BotView[] = []
-    for (const id of group.memberIds) {
-      try {
-        members.push(await deps.bots.getBot(id))
-      } catch (error) {
-        if (error instanceof DshBotError && error.code === 'bot-not-found') continue
-        throw error
-      }
-    }
+    const members = await liveGroupMembers(deps, group)
     if (members.length === 0) {
       throw new DshBotError('invalid-input', `group ${JSON.stringify(group.id)} has no live members`)
     }
+
     const mention = parseMentions(text, members.map(row => ({ id: row.id, name: row.name })))
+    if (mention.unmatched) throw new DshBotError('invalid-mention', `无法识别或存在重名：${mention.unmatchedHandles.join('、')}`)
     const snapshot = members.filter(row => mention.responderIds.includes(row.id))
     const responderIds = snapshot.map(row => row.id)
     const memberById = new Map(snapshot.map(row => [row.id, row]))
@@ -411,6 +368,120 @@ export async function runGroupRound(
   })
 }
 
+async function liveGroupMembers(deps: GroupEngineDeps, group: { readonly memberIds: readonly string[] }): Promise<BotView[]> {
+  const members: BotView[] = []
+  for (const id of group.memberIds) {
+    try {
+      members.push(await deps.bots.getBot(id))
+    } catch (error) {
+      if (error instanceof DshBotError && error.code === 'bot-not-found') continue
+      throw error
+    }
+  }
+  return members
+}
+
+/**
+ * One supplemental speech for a member whose last room line is an error.
+ * Does not append another user message or re-run the full round.
+ */
+export async function retryMemberTurn(
+  deps: GroupEngineDeps,
+  request: RetryMemberTurnRequest,
+): Promise<RetryMemberTurnResult> {
+  const roomId = request.roomId.trim()
+  if (roomId === '') throw new DshBotError('invalid-input', 'roomId is required')
+  const prepared = await prepareRetryMemberTurn(deps, request)
+  return await executeRetryMemberTurn(deps, prepared, request.signal)
+}
+
+export async function prepareRetryMemberTurn(
+  deps: GroupEngineDeps,
+  request: RetryMemberTurnRequest,
+): Promise<PreparedRetryMemberTurn> {
+  const roomId = request.roomId.trim()
+  const botId = request.botId.trim()
+  if (roomId === '') throw new DshBotError('invalid-input', 'roomId is required')
+  if (botId === '') throw new DshBotError('invalid-input', 'botId is required')
+  if (!Number.isInteger(request.errorSeq) || request.errorSeq < 1) {
+    throw new DshBotError('invalid-input', 'errorSeq is required')
+  }
+  if (deps.tracker.get(roomId)?.working === true) {
+    throw new DshBotError('invalid-input', 'room is busy')
+  }
+  const room = await deps.groups.peekRoom(roomId)
+  if (room === undefined) throw new DshBotError('invalid-input', `room ${JSON.stringify(roomId)} does not exist`)
+  const group = await deps.groups.getGroup(room.header.groupId)
+  if (!group.memberIds.includes(botId)) {
+    throw new DshBotError('bot-not-found', `bot ${JSON.stringify(botId)} is not in this group`)
+  }
+  const errorLine = room.messages.find(row => row.seq === request.errorSeq)
+  if (
+    errorLine === undefined
+    || errorLine.speaker.kind !== 'error'
+    || errorLine.speaker.botId !== botId
+  ) {
+    throw new DshBotError('invalid-input', 'error line does not belong to this member')
+  }
+  const superseded = room.messages.some(row =>
+    row.seq > errorLine.seq
+    && (row.speaker.kind === 'member' || row.speaker.kind === 'error')
+    && row.speaker.botId === botId,
+  )
+  if (superseded) throw new DshBotError('invalid-input', 'this error has already been superseded')
+  let context: RoomMessage | undefined
+  for (let index = room.messages.length - 1; index >= 0; index -= 1) {
+    const row = room.messages[index]!
+    if (row.speaker.kind === 'user' && row.seq <= errorLine.seq) {
+      context = row
+      break
+    }
+  }
+  if (context === undefined) {
+    throw new DshBotError('invalid-input', 'no user message to retry against')
+  }
+  const members = await liveGroupMembers(deps, group)
+  const bot = members.find(row => row.id === botId)
+  if (bot === undefined) {
+    throw new DshBotError('bot-not-found', `bot ${JSON.stringify(botId)} is not in this group`)
+  }
+  return {
+    roomId,
+    botId,
+    group,
+    bot,
+    members,
+    names: new Map(members.map(row => [row.id, row.name])),
+    context,
+  }
+}
+
+export async function executeRetryMemberTurn(
+  deps: GroupEngineDeps,
+  prepared: PreparedRetryMemberTurn,
+  signal: AbortSignal | undefined,
+): Promise<RetryMemberTurnResult> {
+  const { roomId, botId, group, bot, members, names, context } = prepared
+  return await withRoomLock(roomId, async () => {
+    deps.tracker.begin(roomId, 1)
+    try {
+      const posted = await askMemberTurn(deps, {
+        roomId,
+        group,
+        bot,
+        members,
+        names,
+        message: context,
+        ...signal === undefined ? {} : { signal },
+      })
+      return { roomId, botId, posted }
+    } finally {
+      deps.tracker.end(roomId)
+    }
+  })
+}
+
+
 async function askMemberTurn(
   deps: GroupEngineDeps,
   input: {
@@ -434,7 +505,6 @@ async function askMemberTurn(
       bot,
     })
     if (input.signal?.aborted) return false
-    deps.tracker.speak(roomId, { botId: bot.id, name: bot.name, sessionId })
     const latest = await deps.groups.peekRoom(roomId)
     const eligible = (latest?.messages ?? []).filter(row => row.speaker.kind !== 'user' || row.seq <= message.seq)
     const unread = messagesSinceMemberLastSpoke(eligible, bot.id).slice(-ROOM_TRANSCRIPT_MAX)
@@ -456,6 +526,10 @@ async function askMemberTurn(
     const before = await deps.sessionTool.read(CLI_CALLER, SessionId(sessionId), { maxBlocks: 500 })
     const afterSeq = before.messages.reduce((max, row) => Math.max(max, row.seq), -1)
     if (input.signal?.aborted) return false
+    deps.tracker.speak(roomId, { botId: bot.id, name: bot.name, sessionId,
+      afterSeq: (latest?.messages ?? []).reduce((max, row) => Math.max(max, row.seq), 0),
+      afterSessionSeq: afterSeq,
+    })
     await deps.sessionTool.write(CLI_CALLER, SessionId(sessionId), deps.voiceInjected?.() === true ? prompt : wrapPrompt(voice, prompt))
     if (input.signal?.aborted) {
       await deps.platform.cancelSession?.(sessionId)

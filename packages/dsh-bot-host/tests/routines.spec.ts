@@ -7,7 +7,7 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { afterEach, describe, expect, it } from 'vitest'
 import { parseProposeRoutine, renderBehaviorSection } from '../src/routine-behavior.ts'
-import { createRoutineStore, nextRun, parseSchedule } from '../src/routines.ts'
+import { createRoutineStore, nextRun, parseSchedule, previewSchedule } from '../src/routines.ts'
 
 const homes: string[] = []
 
@@ -60,6 +60,19 @@ describe('parseSchedule', () => {
 })
 
 describe('nextRun', () => {
+  it('handles sparse UTC schedules without rebuilding a formatter every minute', () => {
+    const now = Date.parse('2026-01-02T00:00:00Z')
+    expect(nextRun('0 0 1 1 *', now)).toBe(Date.parse('2027-01-01T00:00:00Z'))
+    expect(() => nextRun('0 0 31 2 *', now)).toThrow(/never matches/)
+  }, 2000)
+  it('previews legacy UTC and explicit local time without changing old schedules', () => {
+    const now = Date.parse('2026-09-19T10:00:00+08:00')
+    expect(previewSchedule('@daily', now)).toEqual({
+      schedule: '@daily', timeZone: 'UTC', nextRunAt: Date.parse('2026-09-20T00:00:00Z'),
+    })
+    expect(previewSchedule('CRON_TZ=Asia/Shanghai 0 9 * * *', now).nextRunAt)
+      .toBe(Date.parse('2026-09-20T09:00:00+08:00'))
+  })
   it('adds interval for @every', () => {
     expect(nextRun('@every 1m', 1_000)).toBe(61_000)
   })
@@ -84,6 +97,25 @@ describe('nextRun', () => {
 })
 
 describe('createRoutineStore', () => {
+  it('preserves concurrent creates and concurrent edits with run records', async () => {
+    const { api } = store()
+    const rows = await Promise.all(Array.from({ length: 12 }, (_, index) => api.create({
+      botId: 'ops', name: `任务 ${index}`, schedule: '@daily', instruction: '检查状态',
+    })))
+    expect((await api.list()).map(row => row.id).sort()).toEqual(rows.map(row => row.id).sort())
+    const row = rows[0]!
+    await Promise.all([
+      api.update({ id: row.id, instruction: '更新后的指令', enabled: false }),
+      ...Array.from({ length: 10 }, (_, index) => api.recordRun(row.id, { ts: index + 1, outcome: 'silent', ms: 20 })),
+    ])
+    const saved = await api.get(row.id)
+    expect(saved.instruction).toBe('更新后的指令')
+    expect(saved.enabled).toBe(false)
+    expect(saved.runs).toHaveLength(10)
+    await expect(api.update({ id: 'missing', enabled: false })).rejects.toThrow()
+    expect(await api.list()).toHaveLength(12)
+  })
+
   it('creates, lists, records at most 20 runs, and backups corrupt files', async () => {
     const { home, api, advance } = store()
     const created = await api.create({

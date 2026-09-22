@@ -28,6 +28,7 @@ import type {
   UpdateGroupInput,
 } from './groups.ts'
 import { DshBotError } from './errors.ts'
+import { previewSchedule } from './routines.ts'
 import type { DshBotModelRef } from './platform.ts'
 import type { ReconcileResult } from './reconcile.ts'
 import type {
@@ -80,6 +81,7 @@ export interface WorkbenchBotsFace {
   deleteGroup(input: { id: string }): Promise<DeleteGroupResult>
   createGroupSession(input: { groupId: string }): Promise<GroupRoomRow>
   listGroupSessions(input: { groupId: string }): Promise<ListGroupRoomsResult>
+  retryMember(input: { roomId: string; botId: string; errorSeq: number }): Promise<{ roomId: string; botId: string; accepted: true }>
   memoryList(input: { botId: string }): Promise<unknown>
   memoryRemember(input: { botId: string; text: string; sessionId?: string }): Promise<unknown>
   memoryForget(input: { botId: string; id: string }): Promise<unknown>
@@ -263,6 +265,12 @@ export async function dispatchWorkbenchApi(
       if (groupId === '') throw new DshBotError('invalid-input', 'groupId is required')
       return await bot.listGroupSessions({ groupId })
     }
+    case 'retryMember': {
+      const roomId = asString(args.roomId).trim() || asString(args.sessionId).trim()
+      const botId = asString(args.botId).trim()
+      if (roomId === '' || botId === '') throw new DshBotError('invalid-input', 'roomId and botId are required')
+      return await bot.retryMember({ roomId, botId, errorSeq: asSeq(args.errorSeq) })
+    }
     case 'memoryList': {
       const botId = asString(args.botId).trim()
       if (botId === '') throw new DshBotError('invalid-input', 'botId is required')
@@ -291,6 +299,9 @@ export async function dispatchWorkbenchApi(
       const botId = asString(args.botId).trim()
       if (botId === '') throw new DshBotError('invalid-input', 'botId is required')
       return await bot.memoryClear({ botId })
+    }
+    case 'routinePreview': {
+      return previewSchedule(asString(args.schedule))
     }
     case 'routineList': {
       const botId = asString(args.botId).trim()
@@ -526,6 +537,16 @@ function parseModelOverride(value: unknown): DshBotModelRef | null | undefined {
 function asString(value: unknown): string {
   return typeof value === 'string' ? value : ''
 }
+
+function asSeq(value: unknown): number {
+  if (typeof value === 'number' && Number.isInteger(value) && value > 0) return value
+  if (typeof value === 'string' && /^\d+$/.test(value)) {
+    const parsed = Number(value)
+    if (parsed > 0) return parsed
+  }
+  throw new DshBotError('invalid-input', 'errorSeq is required')
+}
+
 
 function parseCreateBotSession(args: Record<string, unknown>): CreateOwnedSessionRequest {
   const botId = asString(args.botId).trim()

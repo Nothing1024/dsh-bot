@@ -207,6 +207,7 @@ export {
   isSkipReply,
   orderRoundSpeakers,
   parseMentions,
+  retryMemberTurn,
   runGroupRound,
   toRoomSpeech,
 } from './group-engine.ts'
@@ -559,9 +560,20 @@ class DshBotService extends Service {
     return this.groupsRuntime.createGroupSession(input)
   }
 
-  listGroupSessions(input: { groupId: string }) {
-    return this.groupsRuntime.listGroupSessions(input)
+  async listGroupSessions(input: { groupId: string }) {
+    const result = await this.groupsRuntime.listGroupSessions(input)
+    return {
+      rooms: result.rooms.map(room => ({
+        ...room,
+        working: this.roundTracker.get(room.roomId)?.working === true || this.groupInbox.working(room.roomId),
+      })),
+    }
   }
+
+  retryMember(input: { roomId: string; botId: string; errorSeq: number }) {
+    return this.groupInbox.retryMember(input)
+  }
+
 
   private async readHistory(input: HistoryRequest): Promise<HistoryResult> {
     const room = await this.groupsRuntime.peekRoom(input.sessionId)
@@ -674,8 +686,12 @@ class DshBotService extends Service {
     })
   }
 
-  routineList(input: { botId?: string } = {}) {
-    return this.routineStore.list(input.botId)
+  async routineList(input: { botId?: string } = {}) {
+    const rows = await this.routineStore.list(input.botId)
+    return rows.map(row => {
+      const nextRunAt = this.scheduler.nextRunAt(row.id)
+      return { ...row, ...nextRunAt === undefined ? {} : { nextRunAt } }
+    })
   }
 
   async routineCreate(input: { botId: string; name: string; schedule: string; instruction: string; notify?: boolean }) {

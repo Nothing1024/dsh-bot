@@ -23,6 +23,82 @@ function jsonErr(code: string, message: string): { json: () => Promise<unknown> 
 }
 
 describe('Conversation', () => {
+  it('keeps the first outgoing message visible while the new session history is loading', async () => {
+    let created = false
+    vi.stubGlobal('fetch', vi.fn(async (url: string) => {
+      if (url.endsWith('/listBotSessions')) return jsonOk({ sessions: created ? [{ sessionId: 'new-session', title: '新对话', tags: [], status: 'idle', createdAt: 1, updatedAt: 1, hidden: false, working: false }] : [] })
+      if (url.endsWith('/createBotSession')) { created = true; return jsonOk({ sessionId: 'new-session' }) }
+      if (url.endsWith('/history')) return await new Promise(() => {})
+      if (url.endsWith('/prompt')) return jsonOk({ sessionId: 'new-session' })
+      return jsonOk({})
+    }))
+    render(<Conversation bot={BOT} />)
+    const input = await screen.findByTestId('composer-input')
+    fireEvent.change(input, { target: { value: '立即看到我发出的消息' } })
+    await act(async () => { fireEvent.keyDown(input, { key: 'Enter' }) })
+    expect(screen.getByTestId('transcript-pending').textContent).toContain('立即看到我发出的消息')
+    expect(screen.queryByTestId('conversation-loading')).toBeNull()
+  })
+
+  it('shows the active group member stream before the room has a saved reply', async () => {
+    vi.stubGlobal('fetch', vi.fn(async (url: string) => {
+      if (url.endsWith('/listGroupSessions')) return jsonOk({ rooms: [{ roomId: 'room-live', groupId: 'g', createdAt: 1, updatedAt: 1 }] })
+      if (url.endsWith('/history')) return jsonOk({ sessionId: 'room-live', working: true,
+        speaking: { botId: BOT.id, name: BOT.name, sessionId: 'hidden-member', afterSeq: 1, afterSessionSeq: 0 },
+        items: [{ id: 'u', kind: 'message', seq: 1, role: 'user', text: '请写长一点' }],
+      })
+      return jsonOk({})
+    }))
+    render(<Conversation group={{ id: 'g', name: '小组', memberIds: [BOT.id], createdAt: 1, rounds: 1 }} members={[BOT]}
+      live={{ epoch: 0, cards: [], stream: { sessionId: 'hidden-member', roomId: 'room-live', seq: 2, text: '第一段已经开始' } }} />)
+    await screen.findByTestId('composer-input')
+    expect(await screen.findByText('第一段已经开始')).toBeTruthy()
+    expect(screen.getByTestId('transcript-msg-2').getAttribute('data-author')).toBe(BOT.id)
+    expect(screen.queryByTestId('transcript-working')).toBeNull()
+  })
+
+  it('refreshes routine outcomes while the panel stays open', async () => {
+    vi.useFakeTimers()
+    let ran = false
+    vi.stubGlobal('fetch', vi.fn(async (url: string) => {
+      if (url.endsWith('/listBotSessions')) return jsonOk({ sessions: [] })
+      if (url.endsWith('/routineList')) return jsonOk([{
+        id: 'r-live', botId: BOT.id, name: '自动核查', schedule: '@every 1m',
+        instruction: '检查', enabled: true, notify: false, createdAt: 1,
+        ...(ran ? { lastRunAt: 1000, lastOutcome: 'spoke' } : {}),
+      }])
+      return jsonOk({ items: [] })
+    }))
+    try {
+      await act(async () => { render(<Conversation bot={BOT} />) })
+      await act(async () => { fireEvent.click(screen.getByTestId('routines-open')) })
+      expect(screen.getByTestId('routine-row-r-live').textContent).toContain('还没有运行')
+      ran = true
+      await act(async () => { await vi.advanceTimersByTimeAsync(5000) })
+      expect(screen.getByTestId('routine-row-r-live').textContent).toContain('有新消息')
+    } finally {
+      cleanup()
+      vi.useRealTimers()
+    }
+  })
+
+  it('finds externally created routine sessions when opening the chooser without changing the selection', async () => {
+    let created = false
+    vi.stubGlobal('fetch', vi.fn(async (url: string) => {
+      if (url.endsWith('/listBotSessions')) return jsonOk({ sessions: (created ? ['routine-new', 's1'] : ['s1']).map(id => ({
+        sessionId: id, title: id, tags: [], status: 'idle', createdAt: 1, updatedAt: 1, hidden: false, working: false,
+      })) })
+      if (url.endsWith('/history')) return jsonOk({ sessionId: 's1', items: [], working: false })
+      return jsonOk({})
+    }))
+    render(<Conversation bot={BOT} />)
+    await screen.findByTestId('composer-input')
+    created = true
+    fireEvent.click(screen.getByTestId('session-select'))
+    expect(await screen.findByTestId('session-option-routine-new')).toBeTruthy()
+    expect(screen.getByTestId('session-select').getAttribute('data-session-id')).toBe('s1')
+  })
+
   it('keeps the selected session and its draft when a previous send completes', async () => {
     let resolve!: (value: void) => void
     const promise = new Promise<void>(done => { resolve = done })
@@ -51,6 +127,7 @@ describe('Conversation', () => {
     cleanup()
     vi.unstubAllGlobals()
     localStorage.clear()
+    sessionStorage.clear()
   })
 
 
@@ -438,6 +515,76 @@ describe('Conversation', () => {
     expect(screen.getByTestId('session-tool-browse').textContent).toMatch(/会话协作/)
   })
 
+  it('labels untitled group rooms with the group clock, not a room id', async () => {
+    const group = { id: 'bianji-shi', name: '编辑室', memberIds: [BOT.id], createdAt: 1, rounds: 3 }
+    vi.stubGlobal('fetch', vi.fn(async (url: string) => {
+      const path = String(url)
+      if (path.includes('listGroupSessions')) {
+        return jsonOk({
+          rooms: [{ roomId: 'room-abcdef12zzzz', groupId: group.id, createdAt: 1_700_000_000_000, updatedAt: 1_700_000_000_000 }],
+        })
+      }
+      if (path.includes('history')) {
+        return jsonOk({ sessionId: 'room-abcdef12zzzz', working: false, items: [] })
+      }
+      return jsonOk({})
+    }))
+    render(<Conversation group={group} members={[BOT]} />)
+    const trigger = await screen.findByTestId('session-select')
+    fireEvent.click(trigger)
+    const option = screen.getByTestId('session-option-room-abcdef12zzzz')
+    expect(option.textContent).toMatch(/编辑室 · /)
+    expect(option.textContent).not.toMatch(/房间 /)
+    expect(option.textContent).not.toMatch(/abcdef12/)
+  })
+
+  it('retries a member error row without sending another prompt', async () => {
+    const group = { id: 'bianji-shi', name: '编辑室', memberIds: [BOT.id], createdAt: 1, rounds: 3 }
+    const calls: string[] = []
+    vi.stubGlobal('fetch', vi.fn(async (url: string, init?: { body?: string }) => {
+      const path = String(url)
+      calls.push(path)
+      if (path.includes('listGroupSessions')) {
+        return jsonOk({
+          rooms: [{ roomId: 'room-1', groupId: group.id, createdAt: 1, updatedAt: 1 }],
+        })
+      }
+      if (path.includes('history')) {
+        return jsonOk({
+          sessionId: 'room-1',
+          working: false,
+          items: [
+            { id: 'm-1', kind: 'message', seq: 1, role: 'user', text: '你们是谁?' },
+            {
+              id: 'm-2',
+              kind: 'message',
+              seq: 2,
+              role: 'assistant',
+              text: 'session-failed: timed out',
+              author: { botId: BOT.id, name: BOT.name, avatar: BOT.avatar },
+              error: { code: 'session-failed', message: 'session-failed: timed out' },
+            },
+          ],
+        })
+      }
+      if (path.includes('retryMember')) {
+        const args = JSON.parse(String(init?.body ?? '{}')) as { args?: { roomId?: string; botId?: string; errorSeq?: number } }
+        expect(args.args).toEqual({ roomId: 'room-1', botId: BOT.id, errorSeq: 2 })
+        return jsonOk({ roomId: 'room-1', botId: BOT.id, accepted: true })
+      }
+      return jsonOk({})
+    }))
+    render(<Conversation group={group} members={[BOT]} />)
+    expect(await screen.findByTestId('transcript-error-2')).toBeTruthy()
+    fireEvent.click(screen.getByTestId('transcript-retry-2'))
+    await vi.waitFor(() => {
+      expect(calls.some(path => path.includes('retryMember'))).toBe(true)
+    })
+    expect(calls.some(path => path.includes('/prompt'))).toBe(false)
+    expect((await screen.findByTestId('conversation-toast')).textContent).toBe('已开始重试该成员')
+  })
+
+
   it('sets a reply card from the group message menu and clears it after send', async () => {
     const group = { id: 'bianji-shi', name: '编辑室', memberIds: [BOT.id], createdAt: 1, rounds: 3 }
     vi.stubGlobal('fetch', vi.fn(async (url: string) => {
@@ -585,6 +732,33 @@ describe('Conversation', () => {
     })
     fireEvent.click(pill)
     expect(await screen.findByTestId('peers-panel')).toBeTruthy()
+  })
+
+  it('keeps a named and working group room in the chooser', async () => {
+    vi.stubGlobal('fetch', vi.fn(async (url: string) => {
+      const path = String(url)
+      if (path.includes('listGroupSessions')) {
+        return jsonOk({
+          rooms: [{
+            roomId: 'room-named',
+            groupId: 'g',
+            title: '选题讨论',
+            createdAt: 1,
+            updatedAt: 1,
+            working: true,
+          }],
+        })
+      }
+      if (path.includes('history')) return jsonOk({ sessionId: 'room-named', items: [], working: true })
+      return jsonOk({})
+    }))
+    render(<Conversation group={{ id: 'g', name: '编辑室', memberIds: [BOT.id], createdAt: 1, rounds: 3 }} members={[BOT]} />)
+    const select = await screen.findByTestId('session-select')
+    expect(select.textContent).toContain('选题讨论')
+    fireEvent.click(select)
+    const option = await screen.findByTestId('session-option-room-named')
+    expect(option.textContent).toContain('选题讨论')
+    expect(option.textContent).toContain('工作中')
   })
 
   it('names the empty group CTA after 新开房间', async () => {

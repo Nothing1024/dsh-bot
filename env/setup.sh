@@ -29,4 +29,4 @@ if [ -d "$HEADLESS" ]; then
 fi
 echo "env/setup: ok"
 echo "boot: $ROOT/boot.sh"
-echo "or:   DSH_HOME=$ROOT npx --yes @deepseek-ai/dsh@0.1.5-rc.1 --profile gb --port 3084 --no-open"
+echo "or:   DSH_HOME=$ROOT npx --yes @deepseek-ai/dsh@0.1.6-alpha.2 --profile gb --port 3084 --no-open"

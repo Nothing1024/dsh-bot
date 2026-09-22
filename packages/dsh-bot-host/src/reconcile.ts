@@ -5,10 +5,9 @@
  * @module dsh-bot-host/reconcile
  */
 
-import { SessionId } from '@deepseek-ai/dsh-session'
 import type { SessionToolService } from 'session-tool'
 import { hideBotSession } from './session-visibility.ts'
-import { get, hasHiddenMark } from 'session-marks'
+import { get, patch } from 'session-marks'
 import { SEED_BOT_ID } from './bots.ts'
 import type { BotsRuntime } from './bots.ts'
 import {
@@ -18,7 +17,9 @@ import {
   DSH_BOT_KIND,
   botMark,
   botOwnershipTags,
+  expandWriteAliases,
   hasBotInventoryMark,
+  hasHiddenMark,
   isAuxiliaryBotSession,
   parseBotMark,
 } from './marks.ts'
@@ -54,8 +55,6 @@ export function createReconcileState(): ReconcileState {
   return { skipNonBot: new Set() }
 }
 
-const CLI_CALLER = { kind: 'cli' as const }
-
 function missingOwnership(tags: readonly string[]): string[] {
   const add: string[] = []
   if (!tags.includes(DSH_BOT_APP)) add.push(DSH_BOT_APP)
@@ -64,9 +63,9 @@ function missingOwnership(tags: readonly string[]): string[] {
   return add
 }
 
-async function markAdd(sessionTool: SessionToolService, sessionId: string, add: readonly string[]): Promise<void> {
+async function markAdd(sessionId: string, add: readonly string[]): Promise<void> {
   if (add.length === 0) return
-  await sessionTool.mark(CLI_CALLER, SessionId(sessionId), { add })
+  await patch(sessionId, { add: expandWriteAliases(add) })
 }
 
 /**
@@ -111,7 +110,7 @@ export async function reconcileBotSessions(
       if (!isAuxiliaryBotSession(tags, row.title) && !tags.includes(DSH_BOT_CHAT_KIND)) {
         add.push(DSH_BOT_CHAT_KIND)
       }
-      await markAdd(sessionTool, sessionId, add)
+      await markAdd(sessionId, add)
       const auxiliary = isAuxiliaryBotSession(tags, row.title)
       if (!hasHiddenMark(tags) || (auxiliary && !archived.has(sessionId))) {
         await hideBotSession(sessionTool, platform, sessionId, { kind: 'cli' }, {
@@ -123,7 +122,7 @@ export async function reconcileBotSessions(
     if (existingBot !== undefined) {
       state.skipNonBot.delete(sessionId)
       if (!hasInventory) {
-        await markAdd(sessionTool, sessionId, [...botOwnershipTags(), botMark(existingBot)])
+        await markAdd(sessionId, [...botOwnershipTags(), botMark(existingBot)])
         assigned.push({ sessionId, botId: existingBot, reason: 'ensure-kind' })
       } else {
         alreadyLabeled += 1
@@ -133,7 +132,7 @@ export async function reconcileBotSessions(
 
     if (hasInventory) {
       state.skipNonBot.delete(sessionId)
-      await markAdd(sessionTool, sessionId, [...botOwnershipTags(), botMark(SEED_BOT_ID)])
+      await markAdd(sessionId, [...botOwnershipTags(), botMark(SEED_BOT_ID)])
       assigned.push({ sessionId, botId: SEED_BOT_ID, reason: 'v1-legacy' })
       continue
     }
@@ -145,7 +144,7 @@ export async function reconcileBotSessions(
     }
 
     state.skipNonBot.delete(sessionId)
-    await markAdd(sessionTool, sessionId, [...botOwnershipTags(), botMark(mapped)])
+    await markAdd(sessionId, [...botOwnershipTags(), botMark(mapped)])
     assigned.push({ sessionId, botId: mapped, reason: 'preset' })
   }
 

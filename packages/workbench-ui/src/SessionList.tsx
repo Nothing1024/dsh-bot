@@ -8,6 +8,7 @@ import { useEffect, useRef, useState, type MouseEvent } from 'react'
 import { relativeTime } from './avatar.ts'
 import {
   browseSessionTool,
+  CHILD_SESSION_JUMP_TOAST,
   performWorkbenchJump,
   SESSION_TOOL_BROWSE_LABEL,
   sessionJumpLabel,
@@ -20,6 +21,7 @@ export interface SessionChoice {
   readonly updatedAt: number
   readonly working: boolean
   readonly hidden: boolean
+  readonly child: boolean
   readonly selected: boolean
 }
 
@@ -42,6 +44,7 @@ export interface SessionJumpMenuItemProps {
   readonly testId: string
   readonly onToast: (text: string) => void
   readonly onDone: () => void
+  readonly child?: boolean
   readonly onOpenOfficialSession?: (sessionId: string) => Promise<void> | void
 }
 
@@ -50,13 +53,29 @@ export interface SessionJumpMenuItemProps {
  */
 export function SessionJumpMenuItem(props: SessionJumpMenuItemProps) {
   const hosted = props.onOpenOfficialSession !== undefined
+  const [busy, setBusy] = useState(false)
+  const busyRef = useRef(false)
   return (
     <button
       type="button"
       data-testid={props.testId}
       title={hosted ? sessionJumpTitle(false) : sessionJumpTitle()}
+      disabled={busy}
+      aria-busy={busy}
       onClick={() => {
-        void performWorkbenchJump(props.sessionId, props.onToast, props.onOpenOfficialSession).then(props.onDone)
+        if (props.child === true) {
+          props.onToast(CHILD_SESSION_JUMP_TOAST)
+          props.onDone()
+          return
+        }
+        if (busyRef.current) return
+        busyRef.current = true
+        setBusy(true)
+        void performWorkbenchJump(props.sessionId, props.onToast, props.onOpenOfficialSession).finally(() => {
+          busyRef.current = false
+          setBusy(false)
+          props.onDone()
+        })
       }}
     >
       {hosted ? '在官方会话打开' : sessionJumpLabel()}
@@ -131,6 +150,7 @@ export function SessionList(props: SessionListProps) {
                   <SessionJumpMenuItem
                     sessionId={item.sessionId}
                     testId={`session-jump-${item.sessionId}`}
+                    child={item.child}
                     onToast={toast}
                     onDone={() => setMenuId(null)}
                     {...props.onOpenOfficialSession === undefined ? {} : { onOpenOfficialSession: props.onOpenOfficialSession }}

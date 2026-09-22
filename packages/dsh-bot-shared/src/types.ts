@@ -91,6 +91,7 @@ export interface WorkbenchHistoryAuthor {
 }
 
 export interface WorkbenchHistoryItem {
+  readonly cancelledAt?: number
   readonly roomId?: string
   readonly replyTo?: { readonly seq: number; readonly speaker: string; readonly text: string }
   readonly id: string
@@ -116,7 +117,7 @@ export interface HistoryValue {
   readonly sessionId: string
   readonly items: readonly WorkbenchHistoryItem[]
   readonly working: boolean
-  readonly speaking?: { readonly botId: string; readonly name: string }
+  readonly speaking?: { readonly botId: string; readonly name: string; readonly sessionId?: string; readonly afterSeq?: number; readonly afterSessionSeq?: number }
   readonly round?: number
   readonly rounds?: number
 }
@@ -140,6 +141,8 @@ export interface GroupRoomRow {
   readonly groupId: string
   readonly createdAt: number
   readonly updatedAt: number
+  /** True while this room has an active group round. */
+  readonly working?: boolean
 }
 
 export interface MemoryProfileRow {
@@ -170,6 +173,8 @@ export interface RoutineRow {
   readonly instruction: string
   readonly enabled: boolean
   readonly notify: boolean
+  readonly nextRunAt?: number
+  readonly runs?: readonly { readonly ts: number; readonly outcome: 'spoke' | 'silent' | 'error'; readonly ms: number }[]
   readonly lastRunAt?: number
   readonly lastOutcome?: 'spoke' | 'silent' | 'error'
 }

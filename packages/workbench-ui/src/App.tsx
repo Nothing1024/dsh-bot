@@ -33,7 +33,7 @@ import type {
   WorkbenchSessionRow,
 } from './api.ts'
 import { rowPreview } from './avatar.ts'
-import { sessionDisplayTitle } from './session-binding.ts'
+import { groupRoomDisplayTitle, sessionDisplayTitle } from './session-binding.ts'
 import { BotForm } from './BotForm.tsx'
 import type { BotFormValues } from './BotForm.tsx'
 import {
@@ -53,7 +53,7 @@ import type { RosterItem, RosterSession } from './Roster.tsx'
 import { useBotEvents } from './useBotEvents.ts'
 import { useGlobalKeyboard } from './useGlobalKeyboard.ts'
 import { groupRosterItems } from './roster-sections.ts'
-import { formatWireError, SELECT_GROUP_MESSAGE_TYPE } from 'dsh-bot-shared'
+import { formatWireError, readLastOwner, writeLastOwner, SELECT_GROUP_MESSAGE_TYPE } from 'dsh-bot-shared'
 import type { WorkbenchWireError } from 'dsh-bot-shared'
 
 type ShellStatus = 'loading' | 'idle' | 'error'
@@ -66,6 +66,7 @@ type FormMode =
 const RECONCILE_MS = 30_000
 const BOT_POLL_IDLE_MS = 2000
 const BOT_POLL_SSE_MS = 15_000
+const GROUP_POLL_SSE_MS = 15_000
 
 function sameBot(a: WorkbenchBot, b: WorkbenchBot): boolean {
   return a.id === b.id
@@ -115,6 +116,8 @@ function overrideFromForm(values: BotFormValues): WorkbenchModelOverride | undef
  */
 export interface AppProps {
   readonly rosterTarget?: HTMLElement | null
+  readonly onOpenOfficialSession?: (sessionId: string) => Promise<void> | void
+  readonly onOpenSessionTool?: () => void
 }
 
 export function App(props: AppProps = {}) {
@@ -124,7 +127,7 @@ export function App(props: AppProps = {}) {
   const [error, setError] = useState<string | null>(null)
   const [bots, setBots] = useState<readonly WorkbenchBot[]>([])
   const [groups, setGroups] = useState<readonly WorkbenchGroup[]>([])
-  const [selectedId, setSelectedId] = useState<string | null>(null)
+  const [selectedId, setSelectedId] = useState<string | null>(readLastOwner)
   const [drafts, setDrafts] = useState<Record<string, string>>({})
   const [lastMessages, setLastMessages] = useState<Record<string, string>>({})
   const [workingIds, setWorkingIds] = useState<ReadonlySet<string>>(() => new Set())
@@ -149,6 +152,10 @@ export function App(props: AppProps = {}) {
   const selectedIdRef = useRef(selectedId)
   const conversationOwned = useRef(new Set<string>())
   selectedIdRef.current = selectedId
+
+  useEffect(() => {
+    if (status === 'idle' && selectedId !== null) writeLastOwner(selectedId)
+  }, [status, selectedId])
 
   useEffect(() => {
     const onMessage = (event: MessageEvent): void => {
@@ -288,7 +295,7 @@ export function App(props: AppProps = {}) {
       const times: Record<string, number> = {}
       const listed: Record<string, readonly WorkbenchSessionRow[]> = {}
       await Promise.all([
-        ...bots.map(async bot => {
+        ...(sseReady ? [] : bots.map(async bot => {
           const outcome = await listBotSessions(bot.id)
           if (!outcome.ok) return
           const sessions = outcome.value.sessions ?? []
@@ -300,21 +307,22 @@ export function App(props: AppProps = {}) {
           if (latest > 0) times[bot.id] = latest
           const selected = selectedIdRef.current
           if (bot.id !== selected || !conversationOwned.current.has(bot.id)) listed[bot.id] = sessions
-        }),
+        })),
         ...groups.map(async group => {
           const outcome = await listGroupSessions(group.id)
           if (!outcome.ok) return
           const rooms = outcome.value.rooms ?? []
           const sessions: WorkbenchSessionRow[] = rooms.map(row => ({
             sessionId: row.roomId,
-            title: `房间 ${row.roomId.slice(0, 8)}`,
+            title: groupRoomDisplayTitle(row.title, group.name, row.createdAt),
             tags: [],
             status: 'idle',
             createdAt: row.createdAt,
             updatedAt: row.updatedAt,
             hidden: false,
-            working: false,
+            working: row.working === true,
           }))
+          if (rooms.some(row => row.working === true)) next.add(group.id)
           let latest = 0
           for (const row of rooms) {
             latest = Math.max(latest, row.updatedAt, row.createdAt)
@@ -367,10 +375,7 @@ export function App(props: AppProps = {}) {
       })
     }
     void tick()
-    if (sseReady) {
-      return () => { cancelled = true }
-    }
-    const timer = setInterval(() => { void tick() }, 2000)
+    const timer = setInterval(() => { void tick() }, sseReady ? GROUP_POLL_SSE_MS : BOT_POLL_IDLE_MS)
     const onVis = (): void => {
       if (typeof document !== 'undefined' && !document.hidden) void tick()
     }
@@ -1020,6 +1025,8 @@ export function App(props: AppProps = {}) {
                 paletteOpen={paletteOpen}
                 sseReady={live.sseReady}
                 live={live}
+                {...props.onOpenOfficialSession === undefined ? {} : { onOpenOfficialSession: props.onOpenOfficialSession }}
+                {...props.onOpenSessionTool === undefined ? {} : { onOpenSessionTool: props.onOpenSessionTool }}
                 onEditMembers={() => {
                   setFormError(null)
                   setForm({ kind: 'edit-group', group: selectedGroup })
@@ -1064,6 +1071,8 @@ export function App(props: AppProps = {}) {
                 paletteOpen={paletteOpen}
                 sseReady={live.sseReady}
                 live={live}
+                {...props.onOpenOfficialSession === undefined ? {} : { onOpenOfficialSession: props.onOpenOfficialSession }}
+                {...props.onOpenSessionTool === undefined ? {} : { onOpenSessionTool: props.onOpenSessionTool }}
                 onEdit={() => {
                   setFormError(null)
                   setForm({ kind: 'edit', bot: selected })
@@ -1094,7 +1103,7 @@ export function App(props: AppProps = {}) {
             )}
             {form !== null && (form.kind === 'create-group' || form.kind === 'edit-group') ? (
               <GroupForm
-                key={form.kind === 'create-group' ? 'create-group' : form.group.id}
+                key={form.kind === 'create-group' ? 'create-group' : `edit-group:${form.group.id}`}
                 mode={form.kind === 'create-group' ? 'create' : 'edit'}
                 bots={bots}
                 {...form.kind === 'edit-group' ? { initial: form.group } : {}}
@@ -1110,7 +1119,7 @@ export function App(props: AppProps = {}) {
             ) : null}
             {form !== null && (form.kind === 'create' || form.kind === 'edit') ? (
               <BotForm
-                key={form.kind === 'create' ? 'create' : form.bot.id}
+                key={form.kind === 'create' ? 'create' : `edit-bot:${form.bot.id}`}
                 mode={form.kind}
                 {...form.kind === 'edit' ? { initial: form.bot } : {}}
                 botModel={botModel}

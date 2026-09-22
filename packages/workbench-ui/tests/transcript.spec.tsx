@@ -12,6 +12,24 @@ const items: readonly WorkbenchHistoryItem[] = [
 ]
 
 describe('Transcript', () => {
+  it('preserves reading position and offers a way back to the latest reply', () => {
+    const view = render(<Transcript items={items} working={false} />)
+    const scroll = screen.getByTestId('transcript')
+    Object.defineProperties(scroll, { scrollHeight: { value: 1000, configurable: true }, clientHeight: { value: 200, configurable: true } })
+    scroll.scrollTop = 200
+    fireEvent.scroll(scroll)
+    view.rerender(<Transcript items={[...items, { id: 'next', kind: 'message', seq: 3, role: 'assistant', text: '新回复' }]} working />)
+    expect(scroll.scrollTop).toBe(200)
+    fireEvent.click(screen.getByRole('button', { name: '回到最新消息' }))
+    expect(scroll.scrollTop).toBe(1000)
+    expect(screen.queryByRole('button', { name: '回到最新消息' })).toBeNull()
+  })
+
+  it('keeps cancelled requests visible with an explicit cancellation label', () => {
+    render(<Transcript items={[{ id: 'stopped', kind: 'message', seq: 9, role: 'user', text: '停止的请求', cancelledAt: 123 }]} working={false} groupMode />)
+    expect(screen.getByTestId('transcript-msg-9').textContent).toContain('停止的请求')
+    expect(screen.getByTestId('transcript-cancelled-9').textContent).toContain('已取消')
+  })
   afterEach(() => {
     cleanup()
   })
@@ -261,7 +279,56 @@ describe('Transcript', () => {
     fireEvent.click(screen.getByTestId('propose-decline-p-1'))
     expect(fetchMock).toHaveBeenCalled()
   })
-})
+
+  it('retries a group member error row', () => {
+    const onRetryMember = vi.fn()
+    render(
+      <Transcript
+        items={[
+          { id: 'm-1', kind: 'message', seq: 1, role: 'user', text: '你们是谁?' },
+          {
+            id: 'm-2',
+            kind: 'message',
+            seq: 2,
+            role: 'assistant',
+            text: 'session-failed: timed out',
+            author: { botId: 'dsh-bot', name: 'DSH Bot', avatar: { color: '#3db88a' } },
+            error: { code: 'session-failed', message: 'session-failed: timed out' },
+          },
+        ]}
+        working={false}
+        groupMode
+        onRetryMember={onRetryMember}
+      />,
+    )
+    fireEvent.click(screen.getByTestId('transcript-retry-2'))
+    expect(onRetryMember).toHaveBeenCalledTimes(1)
+    expect(onRetryMember.mock.calls[0]?.[0]?.seq).toBe(2)
+  })
+
+  it('disables member retry while the room is working', () => {
+    render(
+      <Transcript
+        items={[
+          {
+            id: 'm-2',
+            kind: 'message',
+            seq: 2,
+            role: 'assistant',
+            text: 'wait-timeout: timed out',
+            author: { botId: 'dsh-bot', name: 'DSH Bot', avatar: { color: '#3db88a' } },
+            error: { code: 'wait-timeout', message: 'wait-timeout: timed out' },
+          },
+        ]}
+        working
+        groupMode
+        onRetryMember={vi.fn()}
+      />,
+    )
+    expect((screen.getByTestId('transcript-retry-2') as HTMLButtonElement).disabled).toBe(true)
+    expect(screen.getByTestId('transcript-retry-2').textContent).toBe('重试中')
+  })
+
 
   it('labels peer text without exposing process cards', () => {
     render(
@@ -278,3 +345,5 @@ describe('Transcript', () => {
     expect(screen.getByTestId('transcript-peer-2').textContent).toBe('来自 校对阿宁')
     expect(screen.getByTestId('transcript-peer-3').textContent).toBe('来自 诗人小北')
   })
+})
+

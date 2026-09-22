@@ -23,6 +23,7 @@
     "test": "vitest run --config ../../vitest.config.ts packages/dsh-bot-host/tests"
   },
   "dependencies": {
+    "dsh-bot-shared": "workspace:*",
     "pinyin-pro": "^3.29.3",
     "session-marks": "workspace:*",
     "session-tool": "workspace:*",
@@ -30,14 +31,14 @@
   },
   "peerDependencies": {
     "@deepseek-ai/cordis": "^4.0.2",
-    "@deepseek-ai/dsh-session": "^0.1.5-rc.1",
-    "@deepseek-ai/dsh-settings": "^0.1.5-rc.1",
+    "@deepseek-ai/dsh-session": "^0.1.6-alpha.2",
+    "@deepseek-ai/dsh-settings": "^0.1.6-alpha.2",
     "@deepseek-ai/schemastery": "^3.18.1"
   },
   "devDependencies": {
     "@deepseek-ai/cordis": "4.0.2",
-    "@deepseek-ai/dsh-session": "0.1.5-rc.1",
-    "@deepseek-ai/dsh-settings": "0.1.5-rc.1",
+    "@deepseek-ai/dsh-session": "0.1.6-alpha.2",
+    "@deepseek-ai/dsh-settings": "0.1.6-alpha.2",
     "@deepseek-ai/schemastery": "3.18.1"
   }
 }

@@ -28,6 +28,12 @@ export function sessionJumpTitle(standalone = isStandaloneWorkbench()): string {
 export const SESSION_TOOL_BROWSE_LABEL = '在会话协作中查看全部'
 export const SESSION_TOOL_BROWSE_HINT = '请在 DSH 侧栏打开「会话协作」查看原来的会话'
 export const SESSION_TOOL_COPY_TOAST = '已复制会话 ID，可到会话协作打开'
+export const CHILD_SESSION_JUMP_TOAST = '不能按子代理打开'
+
+/** Bot inventory marks that mean this row is a child session, not a normal chat. */
+export function isChildBotSession(tags: readonly string[]): boolean {
+  return tags.includes('child') || tags.some(tag => tag.startsWith('parent:'))
+}
 
 export function formatJumpReason(reason: string | undefined): string {
   if (reason === undefined || reason === '') return '跳转失败'

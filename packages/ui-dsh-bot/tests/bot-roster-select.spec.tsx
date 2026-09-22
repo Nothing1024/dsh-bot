@@ -34,6 +34,7 @@ function row(id: string, updatedAt: number, hidden = false): WorkbenchSessionRow
 afterEach(() => {
   cleanup()
   localStorage.clear()
+  sessionStorage.clear()
 })
 
 describe('selectBot', () => {
@@ -45,7 +46,7 @@ describe('selectBot', () => {
       sessionsOf: async () => [row('s-new', 2), row('s-old', 1)],
       createBotSession: async () => { throw new Error('should not create') },
       markRead,
-      sessions: { open },
+      sessions: { openSession: open },
     })
     expect(result.ok).toBe(true)
     expect(result.sessionId).toBe('s-old')
@@ -61,7 +62,7 @@ describe('selectBot', () => {
       sessionsOf: async () => [row('s-new', 2), row('s-old', 1), row('s-hid', 3, true)],
       createBotSession: async () => { throw new Error('should not create') },
       markRead: async () => ({ ok: true as const, unread: 0 }),
-      sessions: { open },
+      sessions: { openSession: open },
     })
     expect(result.sessionId).toBe('s-new')
     expect(open).toHaveBeenCalledWith('s-new')
@@ -74,7 +75,7 @@ describe('selectBot', () => {
       sessionsOf: async () => [],
       createBotSession: create,
       markRead: async () => ({ ok: true as const, unread: 0 }),
-      sessions: { open },
+      sessions: { openSession: open },
     })
     expect(create).toHaveBeenCalledTimes(1)
     expect(open).toHaveBeenCalledWith('s-fresh')
@@ -106,13 +107,13 @@ describe('selectBot', () => {
       sessionsOf: async () => [],
       createBotSession: create,
       markRead: async () => ({ ok: true as const, unread: 0 }),
-      sessions: { open: vi.fn() },
+      sessions: { openSession: vi.fn() },
     })
     const second = selectBot('reviewer', {
       sessionsOf: async () => [],
       createBotSession: create,
       markRead: async () => ({ ok: true as const, unread: 0 }),
-      sessions: { open: vi.fn() },
+      sessions: { openSession: vi.fn() },
     })
     release()
     await Promise.all([first, second])

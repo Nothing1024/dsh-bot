@@ -12,12 +12,13 @@ export interface SessionPollState {
   readonly working: boolean
   readonly error: WorkbenchWireError | null
   readonly ready: boolean
-  readonly speaking: { readonly botId: string; readonly name: string } | null
+  readonly speaking: NonNullable<HistoryValue['speaking']> | null
   readonly round: number | null
   readonly rounds: number | null
 }
 
 export interface UseSessionPollOptions {
+  readonly incremental?: boolean
   readonly sessionId: string | null
   readonly enabled: boolean
   readonly sseReady?: boolean
@@ -44,6 +45,7 @@ function sameHistoryItem(a: WorkbenchHistoryItem, b: WorkbenchHistoryItem): bool
     && a.role === b.role
     && a.text === b.text
     && a.pending === b.pending
+    && a.cancelledAt === b.cancelledAt
     && a.streaming === b.streaming
     && a.name === b.name
     && a.summary === b.summary
@@ -76,11 +78,11 @@ export function mergeHistoryItems(
  * Poll `history` for one session. `sinceSeq` is used after the first page.
  */
 export function useSessionPoll(options: UseSessionPollOptions): SessionPollState & { refresh: () => void } {
-  const { sessionId, enabled, load, sseReady = false } = options
+  const { sessionId, enabled, load, sseReady = false, incremental = true } = options
   const [items, setItems] = useState<readonly WorkbenchHistoryItem[]>([])
   const [working, setWorking] = useState(false)
   const [error, setError] = useState<WorkbenchWireError | null>(null)
-  const [speaking, setSpeaking] = useState<{ readonly botId: string; readonly name: string } | null>(null)
+  const [speaking, setSpeaking] = useState<SessionPollState['speaking']>(null)
   const [round, setRound] = useState<number | null>(null)
   const [rounds, setRounds] = useState<number | null>(null)
   const [ready, setReady] = useState(sessionId === null || !enabled)
@@ -95,8 +97,10 @@ export function useSessionPoll(options: UseSessionPollOptions): SessionPollState
   const pull = useCallback(async (full: boolean): Promise<void> => {
     const id = sessionId
     if (id === null || !enabled) return
-    const sinceSeq = full ? undefined : maxSeq(itemsRef.current)
+    const request = ++tick.current
+    const sinceSeq = full || !incremental ? undefined : maxSeq(itemsRef.current)
     const outcome = await loadRef.current(id, sinceSeq)
+    if (request !== tick.current) return
     if (!outcome.ok) {
       setError(outcome.error)
       // A failing poll is not evidence a turn is still running: the last
@@ -114,7 +118,9 @@ export function useSessionPoll(options: UseSessionPollOptions): SessionPollState
     setWorking(current => current === nextWorking ? current : nextWorking)
     const speaking = outcome.value.speaking ?? null
     setSpeaking(current => (
-      current?.botId === speaking?.botId && current?.name === speaking?.name ? current : speaking
+      current?.botId === speaking?.botId && current?.name === speaking?.name
+        && current?.sessionId === speaking?.sessionId && current?.afterSeq === speaking?.afterSeq
+        && current?.afterSessionSeq === speaking?.afterSessionSeq ? current : speaking
     ))
     const nextRound = typeof outcome.value.round === 'number' ? outcome.value.round : null
     const nextRounds = typeof outcome.value.rounds === 'number' ? outcome.value.rounds : null
@@ -123,7 +129,7 @@ export function useSessionPoll(options: UseSessionPollOptions): SessionPollState
     const incoming = Array.isArray(outcome.value.items) ? outcome.value.items : []
     setItems(current => mergeHistoryItems(current, incoming, sinceSeq !== undefined))
     setReady(true)
-  }, [enabled, sessionId])
+  }, [enabled, sessionId, incremental])
 
   /** Full snapshot without clearing first (avoids an empty-transcript flash). */
   const refresh = useCallback((): void => {
@@ -142,6 +148,7 @@ export function useSessionPoll(options: UseSessionPollOptions): SessionPollState
     setReady(sessionId === null || !enabled)
     if (sessionId === null || !enabled) return
     void pull(true)
+    return () => { tick.current += 1 }
   }, [enabled, pull, sessionId])
 
   useEffect(() => {

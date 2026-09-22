@@ -6,8 +6,10 @@
  * @module dsh-bot-host/marks
  */
 
-import { hasHiddenMark, isTitleHidden, listByMark } from 'session-marks'
+import { expandRemoveAliases, expandWriteAliases, hasHiddenMark, isTitleHidden, listByMark } from 'session-marks'
 import type { SessionMarksRow } from 'session-marks'
+
+export { expandRemoveAliases, expandWriteAliases, hasHiddenMark, listByMark }
 
 /** Product inventory axis. New writes always include this. */
 export const DSH_BOT_APP = 'app:dsh-bot'

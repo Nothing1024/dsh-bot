@@ -71,4 +71,4 @@ fi
 if [ -n "${DSH_JS:-}" ] && [ -f "$DSH_JS" ]; then
   exec node "$DSH_JS" --profile gb --port "$GW_PORT" --no-open "$@"
 fi
-exec npx --yes @deepseek-ai/dsh@0.1.5-rc.1 --profile gb --port "$GW_PORT" --no-open "$@"
+exec npx --yes @deepseek-ai/dsh@0.1.6-alpha.2 --profile gb --port "$GW_PORT" --no-open "$@"

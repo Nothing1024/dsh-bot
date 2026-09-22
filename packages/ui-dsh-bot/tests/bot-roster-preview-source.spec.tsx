@@ -44,6 +44,7 @@ function historyFetch(itemsBySession: Record<string, readonly WorkbenchHistoryIt
 afterEach(() => {
   cleanup()
   localStorage.clear()
+  sessionStorage.clear()
 })
 
 describe('ensurePreview', () => {
@@ -200,7 +201,7 @@ describe('BoundBotRegion preview wiring', () => {
         roster={rpc}
         overlay={createOverlayStore()}
         sessions={{
-          open: vi.fn(),
+          openSession: vi.fn(),
           list: {
             getSnapshot: () => snapshot,
             subscribe: (fn) => {

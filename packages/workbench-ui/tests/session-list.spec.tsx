@@ -4,7 +4,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import { SessionList } from '../src/SessionList.tsx'
 import type { SessionChoice } from '../src/SessionList.tsx'
 
-const row: SessionChoice = { sessionId: 's-visible', title: '可见会话', updatedAt: 1, working: false, hidden: false, selected: true }
+const row: SessionChoice = { sessionId: 's-visible', title: '可见会话', updatedAt: 1, working: false, hidden: false, child: false, selected: true }
 afterEach(() => { cleanup(); vi.unstubAllGlobals() })
 
 describe('SessionList actions', () => {

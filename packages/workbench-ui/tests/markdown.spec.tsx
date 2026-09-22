@@ -8,13 +8,22 @@ describe('Markdown', () => {
     cleanup()
   })
 
+  it('keeps loose list numbering, non-one starts, and nested content', () => {
+    const { container } = render(<Markdown text={'3. 第三项\n\n4. 第四项\n\n   补充段落\n\n   - 子项\n\n5. 第五项'} />)
+    const list = container.querySelector('ol')!
+    expect(list.getAttribute('start')).toBe('3')
+    expect(list.children).toHaveLength(3)
+    expect(list.children[1]?.textContent).toContain('补充段落')
+    expect(list.children[1]?.querySelector('ul li')?.textContent).toBe('子项')
+  })
+
   it('renders GFM inlines, lists, fences, and http links', () => {
     const { container } = render(
       <Markdown text={'# 标题\n\n一段 **粗** 和 `码`\n\n```ts\nconst x = 1\n```\n\n- a\n- b\n\n[站](https://example.com)\n\n[坏](javascript:alert(1))'} />,
     )
     expect(container.querySelector('h1')?.textContent).toBe('标题')
     expect(container.querySelector('strong')?.textContent).toBe('粗')
-    expect(container.querySelector('pre code')?.textContent).toBe('const x = 1')
+    expect(container.querySelector('pre code')?.textContent).toBe('const x = 1\n')
     expect(container.querySelectorAll('li')).toHaveLength(2)
     const hrefs = [...container.querySelectorAll('a')].map(node => node.getAttribute('href'))
     expect(hrefs).toEqual(['https://example.com'])

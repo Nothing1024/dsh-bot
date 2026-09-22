@@ -2,11 +2,11 @@
  * Composer dock: draft isolated by botId, Enter sends, Shift+Enter newline.
  * Mention `@` and emoji `:` share one popup + keyboard pattern.
  */
-import { useEffect, useRef, useState, type KeyboardEvent } from 'react'
+import { useCallback, useEffect, useLayoutEffect, useRef, useState, type KeyboardEvent } from 'react'
 import { describeWireError } from 'dsh-bot-shared'
 import { readDraft, writeDraft, draftStorageKey } from './api.ts'
 import { emojiQuery, filterEmoji } from './emoji.ts'
-import { mentionQuery } from './mentions.ts'
+import { mentionHandle, mentionQuery, parseMentions } from './mentions.ts'
 
 export interface ComposerMember {
   readonly id: string
@@ -96,6 +96,26 @@ export function Composer(props: ComposerProps) {
   const mounted = useRef(true)
   textRef.current = text
   onDraftRef.current = props.onDraft
+
+  const fitInput = useCallback(() => {
+    const node = inputRef.current
+    if (!node) return
+    node.style.height = 'auto'
+    node.style.height = `${Math.min(220, Math.max(36, node.scrollHeight))}px`
+  }, [])
+  useLayoutEffect(fitInput, [fitInput, text])
+  useEffect(() => {
+    const node = inputRef.current
+    if (!node || typeof ResizeObserver === 'undefined') return
+    let width = node.clientWidth
+    const observer = new ResizeObserver(() => {
+      if (node.clientWidth === width) return
+      width = node.clientWidth
+      fitInput()
+    })
+    observer.observe(node)
+    return () => observer.disconnect()
+  }, [fitInput])
 
   useEffect(() => {
     const previousId = botRef.current
@@ -199,16 +219,17 @@ export function Composer(props: ComposerProps) {
     }
   }
 
-  const insertMention = (name: string): void => {
+  const insertMention = (name: string, id?: string): void => {
     const node = inputRef.current
     const caret = node?.selectionStart ?? text.length
     const query = mentionQuery(text, caret)
     if (query === null) return
-    const next = `${text.slice(0, query.start)}@${name} ${text.slice(caret)}`
+    const handle = id === undefined ? name : mentionHandle({ id, name }, props.members ?? [])
+    const next = `${text.slice(0, query.start)}@${handle} ${text.slice(caret)}`
     change(next)
     setPopup(null)
     requestAnimationFrame(() => {
-      const pos = query.start + name.length + 2
+      const pos = query.start + handle.length + 2
       node?.setSelectionRange(pos, pos)
       node?.focus()
     })
@@ -276,7 +297,7 @@ export function Composer(props: ComposerProps) {
         event.preventDefault()
         const choice = popupChoices[active]
         if (choice === undefined) return
-        if (popup === 'mention' && 'name' in choice) insertMention(choice.name)
+        if (popup === 'mention' && 'name' in choice) insertMention(choice.name, choice.id)
         else if (popup === 'emoji' && 'glyph' in choice) insertEmoji(choice.glyph)
         return
       }
@@ -287,6 +308,7 @@ export function Composer(props: ComposerProps) {
   }
 
   const locked = props.sending
+  const recipients = props.members === undefined ? null : parseMentions(text, props.members)
   const working = props.working === true
   const placeholder = `给 ${props.botName} 发消息`
   const replyTo = props.replyTo
@@ -358,9 +380,12 @@ export function Composer(props: ComposerProps) {
             ref={inputRef}
             className="composerInput"
             data-testid="composer-input"
+            id="dsh-bot-composer"
+            name="message"
+            aria-label={placeholder}
             placeholder={placeholder}
             value={text}
-            rows={2}
+            rows={1}
             onChange={event => change(event.target.value)}
             onKeyDown={onKeyDown}
             onSelect={event => syncPopup(event.currentTarget.value, event.currentTarget.selectionStart)}
@@ -376,7 +401,7 @@ export function Composer(props: ComposerProps) {
                     onMouseEnter={() => setActive(index)}
                     onMouseDown={event => {
                       event.preventDefault()
-                      insertMention(row.name)
+                      insertMention(row.name, row.id)
                     }}
                   >
                     {row.name}
@@ -436,6 +461,13 @@ export function Composer(props: ComposerProps) {
           {working ? '停止' : props.sending ? '发送中…' : '发送'}
         </button>
       </div>
+      {recipients !== null && text.trim() !== '' ? (
+        <p className={recipients.unmatched ? 'formError' : 'composerHint'} data-testid="composer-recipients" aria-live="polite">
+          {recipients.unmatched
+            ? `点名未确认：${recipients.unmatchedHandles.join('、')}；请重新选择成员`
+            : `本次回应：${props.members?.filter(row => recipients.responderIds.includes(row.id)).map(row => row.name).join('、')}`}
+        </p>
+      ) : null}
       <p className="composerHint" data-testid="composer-hint">
         Enter 发送 · Shift+Enter 换行{working ? ' · 回复中仍可继续输入' : ''}
       </p>

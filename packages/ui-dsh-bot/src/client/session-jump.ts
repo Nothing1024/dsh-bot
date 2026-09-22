@@ -1,22 +1,19 @@
 /**
- * Jump to a bot session from the sidebar list (vibee jumpToSession shape).
+ * Jump to a bot session from the sidebar list.
  * Duck-typed so this client half does not import platform runtime packages.
  */
 
 export interface SessionJumpFace {
-  open?(id: string): void
-  openSubagent?(address: unknown): void
+  openSession?(id: string): void
   subagentAddress?(id: string): unknown
   list?: {
-    getSnapshot(): { current?: string }
+    getSnapshot(): { byId?: Readonly<Record<string, object>> }
   }
 }
 
 /**
- * Archive membership face (`ctx.workspaces.list`). rc.2 keeps archived
- * sessions out of every viewing surface and has no unarchive: opening one
- * sets `current` and the projection sweep clears it again, so the bridge
- * must refuse up front with a precise reason.
+ * Archive membership face (`ctx.workspaces.list`). Archived sessions stay
+ * out of the main view: opening one is refused before `openSession`.
  */
 export interface ArchiveFace {
   list?: {
@@ -28,6 +25,8 @@ export const JUMP_MESSAGE_TYPE = 'dsh-bot:jump'
 export const JUMP_RESULT_TYPE = 'dsh-bot:jump-result'
 /** Machine reason: target is in `workspaces.list.archivedSessionIds`. */
 export const JUMP_REASON_ARCHIVED = 'archived'
+/** User-facing reason: catalogued subagent addresses must not be opened. */
+export const JUMP_REASON_SUBAGENT = '不能按子代理打开'
 
 export interface JumpResultPayload {
   readonly type: typeof JUMP_RESULT_TYPE
@@ -42,15 +41,20 @@ export interface JumpMessageEvent {
   readonly data: unknown
 }
 
+type JumpExec =
+  | { ok: true; current?: string }
+  | { ok: false; reason: string; current?: string }
+
 /**
- * Open `sessionId` via `sessions.open` (ASM-401). Catalogued subagent
- * addresses must not win: `openSubagent` lands an empty workspace for
- * `~dsh-bot:` hidden rows.
+ * Open `sessionId` through `uiWorkspace.openSession`. Archived targets and
+ * catalogued subagent addresses are refused and never handed to openSession.
  */
-export function jumpToSession(sessions: SessionJumpFace | undefined, sessionId: string): boolean {
-  if (sessions === undefined || sessions.open === undefined) return false
-  sessions.open(sessionId)
-  return true
+export function jumpToSession(
+  sessions: SessionJumpFace | undefined,
+  sessionId: string,
+  workspaces?: ArchiveFace,
+): boolean {
+  return executeJump(sessions, sessionId, workspaces).ok
 }
 
 function messageType(data: unknown): string | undefined {
@@ -67,10 +71,6 @@ export function sanitizeJumpSessionId(value: unknown): string | null {
   if (/[\u0000-\u001F<>]/.test(id)) return null
   return id
 }
-
-type JumpExec =
-  | { ok: true; current?: string }
-  | { ok: false; reason: string; current?: string }
 
 function replyJumpResult(
   source: MessageEventSource | null,
@@ -93,57 +93,91 @@ function replyJumpResult(
   }
 }
 
-function readCurrent(sessions: SessionJumpFace): string | undefined {
-  return sessions.list?.getSnapshot().current
-}
-
 function isArchived(workspaces: ArchiveFace | undefined, sessionId: string): boolean {
   const ids = workspaces?.list?.getSnapshot().archivedSessionIds
   return ids !== undefined && ids.includes(sessionId)
 }
 
+function mainViewCount(row: object | undefined): number {
+  if (row === undefined) return 0
+  const retainedBy = (row as { retainedBy?: { mainView?: number } }).retainedBy
+  return retainedBy?.mainView ?? 0
+}
+
+/** Session id whose `retainedBy.mainView` is greater than 0. */
+export function mainViewId(sessions: SessionJumpFace | undefined): string | undefined {
+  const byId = sessions?.list?.getSnapshot().byId
+  if (byId === undefined) return undefined
+  for (const [id, row] of Object.entries(byId)) {
+    if (mainViewCount(row) > 0) return id
+  }
+  return undefined
+}
+
+function mainViewRetained(sessions: SessionJumpFace, sessionId: string): boolean {
+  return mainViewCount(sessions.list?.getSnapshot().byId?.[sessionId]) > 0
+}
+
+function rowMarksChild(row: object | undefined): boolean {
+  if (row === undefined) return false
+  const record = row as { parentId?: unknown; origin?: unknown }
+  if (typeof record.parentId === 'string' && record.parentId !== '') return true
+  return record.origin === 'subagent'
+}
+
+function hasSubagentAddress(sessions: SessionJumpFace, sessionId: string): boolean {
+  const row = sessions.list?.getSnapshot().byId?.[sessionId]
+  if (rowMarksChild(row)) return true
+  if (typeof sessions.subagentAddress !== 'function') return false
+  const address = sessions.subagentAddress(sessionId)
+  return address !== undefined && address !== null
+}
+
+/** True when this id is already a child session and must not be handed to openSession. */
+export function isBlockedChildSession(sessions: SessionJumpFace, sessionId: string): boolean {
+  return hasSubagentAddress(sessions, sessionId)
+}
+
+function refuse(sessions: SessionJumpFace, reason: string): JumpExec {
+  const current = mainViewId(sessions)
+  return current === undefined
+    ? { ok: false, reason }
+    : { ok: false, reason, current }
+}
+
 /**
- * Refuse archived targets (reason `archived`), else `sessions.open` and
- * require `list.getSnapshot().current === sessionId` when the list face
- * exists (deleted ids do not land).
+ * Refuse archived targets (reason `archived`) and catalogued subagent
+ * addresses. Otherwise `uiWorkspace.openSession` and require
+ * `retainedBy.mainView > 0` when the list face exists.
  */
-function executeJump(
+export function executeJump(
   sessions: SessionJumpFace | undefined,
   sessionId: string,
   workspaces?: ArchiveFace,
 ): JumpExec {
-  if (sessions === undefined || sessions.open === undefined) {
+  if (sessions === undefined || typeof sessions.openSession !== 'function') {
     return { ok: false, reason: '当前页签不支持跳转' }
   }
-  if (isArchived(workspaces, sessionId)) {
-    const current = readCurrent(sessions)
-    return current === undefined
-      ? { ok: false, reason: JUMP_REASON_ARCHIVED }
-      : { ok: false, reason: JUMP_REASON_ARCHIVED, current }
-  }
+  if (isArchived(workspaces, sessionId)) return refuse(sessions, JUMP_REASON_ARCHIVED)
+  if (hasSubagentAddress(sessions, sessionId)) return refuse(sessions, JUMP_REASON_SUBAGENT)
   try {
-    sessions.open(sessionId)
+    sessions.openSession(sessionId)
   } catch {
-    return { ok: false, reason: '会话不存在或已删除' }
+    return refuse(sessions, '会话不存在或已删除')
   }
   if (sessions.list === undefined) return { ok: true }
-  const current = readCurrent(sessions)
-  if (current !== sessionId) {
-    // The projection sweep may have cleared an archived id that arrived
-    // after our snapshot; report it as archived rather than "deleted".
+  if (!mainViewRetained(sessions, sessionId)) {
     const reason = isArchived(workspaces, sessionId) ? JUMP_REASON_ARCHIVED : '会话不存在或已删除'
-    return current === undefined
-      ? { ok: false, reason }
-      : { ok: false, reason, current }
+    return refuse(sessions, reason)
   }
-  return { ok: true, current }
+  return { ok: true, current: sessionId }
 }
 
 /**
  * iframe → tab jump bridge. All three must hold: same origin, iframe
- * contentWindow source, type `dsh-bot:jump`. Hidden (`~` / kind:hidden)
- * sessions open directly (ASM-401); archived ones are refused with reason
- * `archived`. Replies `{type:'dsh-bot:jump-result', ok, reason?}`.
+ * contentWindow source, type `dsh-bot:jump`. Archived sessions and sessions
+ * that already have a subagent address are refused. Replies
+ * `{type:'dsh-bot:jump-result', ok, reason?}`.
  */
 export function handleJumpMessage(
   event: JumpMessageEvent,

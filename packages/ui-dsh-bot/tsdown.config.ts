@@ -91,6 +91,9 @@ const clientConfig: UserConfig = {
     'import.meta.env': JSON.stringify({ MODE: process.env.NODE_ENV ?? 'production' }),
   },
   inputOptions: {
+    // tsdown defaults CJS output to Node even when top-level platform is browser.
+    // This factory is consumed by the web shell, so package imports need browser conditions.
+    platform: 'browser',
     resolve: {
       conditionNames: ['browser', 'import', 'require', 'default'],
     },
@@ -99,6 +102,13 @@ const clientConfig: UserConfig = {
   plugins: [
     {
       name: 'dsh-client-bundle-purity',
+      generateBundle(_options, bundle) {
+        for (const chunk of Object.values(bundle)) {
+          if (chunk.type !== 'chunk') continue
+          const unknown = chunk.imports.filter(id => !CLIENT_EXTERNALS.includes(id) && bundle[id] === undefined)
+          if (unknown.length > 0) throw new Error(`client bundle requires unavailable modules: ${unknown.join(', ')}`)
+        }
+      },
       resolveId(source: string) {
         if (!source.startsWith('@deepseek-ai/')) return null
         if (CLIENT_EXTERNALS.includes(source)) return null

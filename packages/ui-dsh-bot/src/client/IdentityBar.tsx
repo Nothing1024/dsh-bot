@@ -11,7 +11,7 @@ import { zh } from './locales.ts'
 import type { OverlayStore } from './overlay-store.ts'
 import { botColor } from './roster-items.ts'
 import type { RosterRpc } from './roster-rpc.ts'
-import { jumpToSession } from './session-jump.ts'
+import { jumpToSession, mainViewId } from './session-jump.ts'
 import css from './IdentityBar.module.css'
 
 export interface IdentityBarProps {
@@ -357,7 +357,7 @@ export function IdentityBar(props: IdentityBarProps): ReactElement | null {
                         type="button"
                         className={css.session}
                         data-testid={`dsh-bot-identity-session-${row.sessionId}`}
-                        data-current={sessionSnap.current === row.sessionId ? '1' : '0'}
+                        data-current={mainViewId(props.sessions) === row.sessionId ? '1' : '0'}
                         onClick={() => {
                           jumpToSession(props.sessions, row.sessionId)
                           setPanel(null)

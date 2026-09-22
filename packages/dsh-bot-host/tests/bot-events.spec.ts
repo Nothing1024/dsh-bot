@@ -15,6 +15,7 @@ import {
   handleBotEventsHttp,
   marksAllowForward,
   muxFrameFromSessionEvent,
+  muxFrameFromAssistantStream,
   unwrapFrame,
 } from '../src/bot-events.ts'
 
@@ -218,5 +219,52 @@ describe('createPlatform approval waterfall', () => {
     await expect(decided).resolves.toBe('allowed-once')
     ac.abort()
     await pump
+  })
+
+  it('returns the user-question answer shape expected by the agent tool', async () => {
+    const { createPlatform } = await import('../src/platform.ts')
+    const ctx = new Context()
+    const platform = createPlatform(ctx)
+    const ac = new AbortController()
+    const mux = platform.subscribeMux?.(ac.signal)
+    if (mux === undefined) throw new Error('mux missing')
+    const frames: unknown[] = []
+    const pump = (async () => {
+      for await (const item of mux) {
+        frames.push(item)
+        if (frames.length >= 2) break
+      }
+    })()
+    const asking = (ctx.waterfall as (...args: unknown[]) => Promise<unknown>)({ agent: { id: 's-question' } } as never, 'user-questions/request' as never, {
+      agent: { id: 's-question' },
+      questions: [{ id: 'continue', question: '继续吗？' }],
+    }, async () => 'unavailable')
+    await new Promise(resolve => setTimeout(resolve, 0))
+    const frame = frames[0] as { rpcId?: string; type?: string; sessionId?: string }
+    expect(frame).toMatchObject({ type: 'question/requested', sessionId: 's-question', prompt: '继续吗？' })
+    expect(typeof frame.rpcId).toBe('string')
+    await expect(platform.respond?.({
+      rpcId: frame.rpcId ?? '',
+      value: { sessionId: 's-question', answer: '继续' },
+    })).resolves.toEqual({ ok: true })
+    await expect(asking).resolves.toEqual({
+      answers: [{ id: 'continue', selected: [], custom: '继续' }],
+    })
+    expect(frames[1]).toMatchObject({ type: 'question/resolved', sessionId: 's-question', rpcId: frame.rpcId })
+    ac.abort()
+    await pump
+  })
+})
+
+describe('current DSH assistant stream adapter', () => {
+  it('forwards transient text frames with their session sequence boundary', () => {
+    expect(muxFrameFromAssistantStream({ id: 's1', seq: 23 }, { type: 'chunk', chunk: { type: 'text-delta', text: '逐字' } })).toMatchObject({
+      type: 'session/event', sessionId: 's1', event: { type: 'assistant/chunk', seq: 23, data: { chunk: { type: 'text-delta', text: '逐字' } } },
+    })
+  })
+  it('resets retries and abandoned attempts but keeps committed answers for history handoff', () => {
+    expect(muxFrameFromAssistantStream({ id: 's1' }, { type: 'start' })).toMatchObject({ event: { type: 'assistant/start' } })
+    expect(muxFrameFromAssistantStream({ id: 's1' }, { type: 'end', outcome: { kind: 'abandoned' } })).toMatchObject({ event: { type: 'assistant/attempt' } })
+    expect(muxFrameFromAssistantStream({ id: 's1' }, { type: 'end', outcome: { kind: 'committed', eventType: 'assistant/message' } })).toBeUndefined()
   })
 })

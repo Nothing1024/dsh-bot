@@ -231,6 +231,24 @@ describe('groups runtime', () => {
     expect(listed.rooms.map(row => row.roomId)).toEqual([room.roomId])
   })
 
+  it('titles an untitled room from the first user line and keeps a rename', async () => {
+    const { groups } = runtime()
+    const created = await groups.createGroup({
+      name: '编辑室',
+      memberIds: ['dsh-bot', 'shiren-xiaobei'],
+    })
+    const room = await groups.createGroupSession({ groupId: created.id })
+    expect((await groups.listGroupSessions({ groupId: created.id })).rooms[0]?.title).toBeUndefined()
+    await groups.appendRoomMessage(room.roomId, { kind: 'user' }, '你们是谁?\n第二行')
+    expect((await groups.listGroupSessions({ groupId: created.id })).rooms[0]?.title).toBe('你们是谁?')
+    await groups.appendRoomMessage(room.roomId, { kind: 'member', botId: 'shiren-xiaobei' }, '我是诗人小北')
+    expect((await groups.listGroupSessions({ groupId: created.id })).rooms[0]?.title).toBe('你们是谁?')
+    await groups.renameGroupSession({ sessionId: room.roomId, title: '选题讨论' })
+    await groups.appendRoomMessage(room.roomId, { kind: 'user' }, '换个话题')
+    expect((await groups.listGroupSessions({ groupId: created.id })).rooms[0]?.title).toBe('选题讨论')
+  })
+
+
   it('getGroup throws group-not-found', async () => {
     const { groups } = runtime()
     await expect(groups.getGroup('missing')).rejects.toBeInstanceOf(DshBotError)

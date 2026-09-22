@@ -105,6 +105,7 @@ export interface WorkbenchHistoryAuthor {
 }
 
 export interface WorkbenchHistoryItem {
+  readonly cancelledAt?: number
   readonly replyTo?: { readonly seq: number; readonly speaker: string; readonly text: string }
   readonly id: string
   readonly kind: 'message' | 'thinking' | 'tool' | 'propose-routine'
@@ -124,7 +125,7 @@ export interface HistoryResult {
   readonly sessionId: string
   readonly items: readonly WorkbenchHistoryItem[]
   readonly working: boolean
-  readonly speaking?: { readonly botId: string; readonly name: string }
+  readonly speaking?: { readonly botId: string; readonly name: string; readonly sessionId?: string; readonly afterSeq?: number; readonly afterSessionSeq?: number }
   readonly round?: number
   readonly rounds?: number
 }
@@ -321,6 +322,7 @@ export function projectRoomHistory(
     if (sinceSeq !== undefined && line.seq < sinceSeq) continue
     if (line.speaker.kind === 'user') {
       items.push({
+        ...line.cancelledAt === undefined ? {} : { cancelledAt: line.cancelledAt },
         ...line.replyTo === undefined ? {} : { replyTo: line.replyTo },
         id: line.id,
         kind: 'message',
@@ -348,12 +350,15 @@ export function projectRoomHistory(
       })
       continue
     }
+    const parsed = parseProposeRoutine(line.text)
+    const suggestions = parsed.proposals.map(proposal =>
+      `例程建议：${proposal.name}（${proposal.schedule}）。可在 ${author.name} 的私聊中设置。`)
     items.push({
       id: line.id,
       kind: 'message',
       seq: line.seq,
       role: 'assistant',
-      text: line.text,
+      text: [parsed.text, ...suggestions].filter(Boolean).join('\n\n'),
       author,
     })
   }

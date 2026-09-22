@@ -2,8 +2,8 @@
   "name": "dsh-profile-headless",
   "private": true,
   "dependencies": {
-    "@deepseek-ai/dsh-base": "0.1.5-rc.1",
-    "@deepseek-ai/dsh-headless": "0.1.5-rc.1",
+    "@deepseek-ai/dsh-base": "0.1.6-alpha.2",
+    "@deepseek-ai/dsh-headless": "0.1.6-alpha.2",
     "session-marks": "link:../../../../../session-tool/plugin/packages/session-marks",
     "session-tool": "link:../../../../../session-tool/plugin/packages/session-tool",
     "session-tool-local": "link:../../../../../session-tool/plugin/packages/session-tool-local",

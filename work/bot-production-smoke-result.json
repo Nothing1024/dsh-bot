@@ -1,0 +1,18 @@
+{
+  "botId": "yanshou-linshi-bot-0913",
+  "groupId": "jiemian-yanshou-linshi-xiaozu",
+  "sessions": [
+    "session-7022bf5e-c931-43d3-9abf-bf125968eb97",
+    "session-ced0916d-7765-4cd8-ada6-d6168d8d292a"
+  ],
+  "checks": [
+    "exclusive panels and Escape",
+    "per-thread draft restore + persisted rename",
+    "group rooms in main panel + draft isolation + persisted naming/pin/category",
+    "real group roundtrip with attributed member replies",
+    "switching to Harness and back restores Bot",
+    "48px roster rows + inherited host theme",
+    "zero runtime exceptions during verification"
+  ],
+  "errors": []
+}

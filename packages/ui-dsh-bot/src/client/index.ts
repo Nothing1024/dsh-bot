@@ -7,6 +7,7 @@ import type { SlotsFace } from './region-registration.ts'
 import { createSidebarMode } from './sidebar-mode.ts'
 import { createWorkbenchSeat, WorkbenchPanel, WorkbenchRoster } from './WorkbenchPanel.tsx'
 import { openOfficialSession, openSessionToolPanel } from './session-tool-jump.ts'
+import type { SessionToolJumpHost } from './session-tool-jump.ts'
 
 export { DEFAULT_ROSTER_SECTIONS } from 'dsh-bot-shared'
 export { DSH_BOT_SESSIONS_TAB_ID } from './tab-id.ts'
@@ -15,13 +16,20 @@ export type { DshBotTabProps } from './DshBotTab.tsx'
 export type { IDshBotClient, DshBotListState, DshBotSessionRow } from './rpc.ts'
 
 export const BOT_PANEL_ID = 'dsh-bot'
-export const inject = ['sessions', 'locale', 'slots', 'layout', 'workspaces']
+export const inject = ['sessions', 'locale', 'slots', 'layout', 'workspaces', 'uiWorkspace']
 
 interface WorkbenchClient extends Pick<Context, 'effect'> {
   slots: SlotsFace
   locale: { register(ns: string, dicts: { zh: Record<string, string>; en: Record<string, string> }): () => void }
   layout: { selectPanel(id: string | null): void; beginNavigation(): AbortSignal }
-  sessions: { open?(id: string): void; refresh?(): Promise<unknown> | unknown }
+  uiWorkspace?: { openSession?(id: string): void }
+  sessions: {
+    subagentAddress?(id: string): unknown
+    list?: {
+      getSnapshot(): { byId?: Record<string, { retainedBy?: { mainView?: number } }> }
+    }
+    refresh?(): Promise<unknown> | unknown
+  }
   workspaces?: {
     list?: {
       getSnapshot(): { archivedSessionIds?: readonly string[] }
@@ -34,7 +42,12 @@ export function apply(ctx: Context): void {
   const client = ctx as unknown as WorkbenchClient
   client.effect(() => client.locale.register(NS, { zh, en }), 'ui-dsh-bot: dictionaries')
   if (!hasSlots(client)) return
-  const host = { sessions: client.sessions, layout: client.layout, workspaces: client.workspaces }
+  const host: SessionToolJumpHost = {
+    sessions: client.sessions,
+    layout: client.layout,
+    ...client.uiWorkspace !== undefined ? { uiWorkspace: client.uiWorkspace } : {},
+    ...client.workspaces !== undefined ? { workspaces: client.workspaces } : {},
+  }
   const mode = createSidebarMode()
   const restoreBot = mode.getSnapshot() === 'bot'
   mode.set('sessions')

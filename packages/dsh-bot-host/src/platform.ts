@@ -8,7 +8,7 @@
 
 import type { Context } from '@deepseek-ai/cordis'
 import { DshBotError } from './errors.ts'
-import { muxFrameFromSessionEvent } from './bot-events.ts'
+import { muxFrameFromAssistantStream, muxFrameFromSessionEvent } from './bot-events.ts'
 
 /** Bot-owned model selection (settings `dsh-bot.model`). */
 export interface DshBotModelRef {
@@ -128,6 +128,8 @@ interface SessionControllerDuck {
 interface PendingRespond {
   readonly sessionId: string
   readonly resolve: (value: unknown) => void
+  readonly kind: 'approval' | 'question'
+  readonly questionId?: string
 }
 
 function agentSessionId(agent: unknown): string {
@@ -323,7 +325,15 @@ export function createPlatform(ctx: Context): DshBotPlatform {
     muxDispose = listen(ctx, 'session/event', (session: { id?: unknown }, event: unknown) => {
       emitMux(muxFrameFromSessionEvent(session, event))
     }, { global: true })
+    const disposeLive = listen(ctx, 'agent/assistant-stream', (event: {
+      agent: { session: { id?: unknown; seq?: unknown } }
+      frame: Parameters<typeof muxFrameFromAssistantStream>[1]
+    }) => {
+      const frame = muxFrameFromAssistantStream(event.agent.session, event.frame)
+      if (frame !== undefined) emitMux(frame)
+    }, { global: true })
     ctx.effect(() => () => {
+      disposeLive()
       muxDispose?.()
       muxDispose = undefined
       muxListeners.clear()
@@ -341,7 +351,7 @@ export function createPlatform(ctx: Context): DshBotPlatform {
     ensureMux()
     const rpcId = mintRpcId()
     const { promise, resolve } = withResolvers<unknown>()
-    pending.set(rpcId, { sessionId, resolve })
+    pending.set(rpcId, { sessionId, resolve, kind: 'approval' })
     emitMux({
       type: 'approval/requested',
       sessionId,
@@ -368,8 +378,11 @@ export function createPlatform(ctx: Context): DshBotPlatform {
     ensureMux()
     const rpcId = mintRpcId()
     const { promise, resolve } = withResolvers<unknown>()
-    pending.set(rpcId, { sessionId, resolve })
-    const first = Array.isArray(req.questions) ? req.questions[0] as { question?: unknown } | undefined : undefined
+    const first = Array.isArray(req.questions)
+      ? req.questions[0] as { id?: unknown; question?: unknown } | undefined
+      : undefined
+    const questionId = typeof first?.id === 'string' && first.id !== '' ? first.id : 'question'
+    pending.set(rpcId, { sessionId, resolve, kind: 'question', questionId })
     emitMux({
       type: 'question/requested',
       sessionId,
@@ -637,8 +650,26 @@ export function createPlatform(ctx: Context): DshBotPlatform {
         return { ok: false as const, message: 'sessionId does not match the pending request' }
       }
       pending.delete(request.rpcId)
+      ensureMux()
+      emitMux({
+        type: `${waiter.kind}/resolved`,
+        sessionId: waiter.sessionId,
+        rpcId: request.rpcId,
+      })
       if ('outcome' in rec) waiter.resolve(rec.outcome)
-      else if ('answer' in rec) waiter.resolve(rec.answer)
+      else if ('answer' in rec) {
+        if (waiter.questionId === undefined) {
+          waiter.resolve(rec.answer)
+        } else {
+          waiter.resolve({
+            answers: [{
+              id: waiter.questionId,
+              selected: [],
+              ...typeof rec.answer === 'string' && rec.answer !== '' ? { custom: rec.answer } : {},
+            }],
+          })
+        }
+      }
       else waiter.resolve(value)
       return { ok: true as const }
     },

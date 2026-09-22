@@ -1,0 +1,11 @@
+{
+  "botId": "visibility-check-0913",
+  "sessionId": "session-6b3a0cec-122b-4483-8db5-b1803b28e073",
+  "checks": [
+    "new chat hidden in Harness and listed in Bot",
+    "real tool executed; streamed chat shows text only and stays archived",
+    "history reload keeps text replies without process cards",
+    "official default session tree omits Bot chat"
+  ],
+  "errors": []
+}

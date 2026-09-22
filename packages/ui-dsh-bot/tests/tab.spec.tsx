@@ -76,7 +76,7 @@ describe('DshBotTab', () => {
     vi.stubGlobal('fetch', vi.fn(async () => htmlOk()))
     const open = vi.fn()
     const log = vi.spyOn(console, 'info').mockImplementation(() => undefined)
-    render(<DshBotTab ctx={{ dshBot: client(), sessions: { open } }} />)
+    render(<DshBotTab ctx={{ dshBot: client(), sessions: { openSession: open } }} />)
     const frame = await screen.findByTestId('dsh-bot-iframe') as HTMLIFrameElement
     const iframeWindow = frame.contentWindow
     expect(iframeWindow).not.toBeNull()
@@ -127,7 +127,7 @@ describe('DshBotTab', () => {
 describe('resolveCreateCwd', () => {
   it('prefers the current session cwd then a workspace path', () => {
     expect(resolveCreateCwd(
-      { list: { getSnapshot: () => ({ current: 's1', byId: { s1: { cwd: '/from-session' } } }) } },
+      { list: { getSnapshot: () => ({ byId: { s1: { cwd: '/from-session', retainedBy: { mainView: 1 } } } }) } },
       { list: { getSnapshot: () => ({ items: [{ path: '/from-ws' }] }) } },
     )).toBe('/from-session')
     expect(resolveCreateCwd(

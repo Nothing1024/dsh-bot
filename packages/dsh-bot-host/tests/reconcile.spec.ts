@@ -7,7 +7,8 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { Context } from '@deepseek-ai/cordis'
-import { expandRemoveAliases, expandWriteAliases, get, patch, put } from 'session-marks'
+import { get, patch, put } from 'session-marks'
+import { expandRemoveAliases, expandWriteAliases } from '../src/marks.ts'
 import type {
   SessionToolCaller,
   SessionToolListResult,

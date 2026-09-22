@@ -59,9 +59,19 @@ function fakeRoster(overrides: Partial<RosterRpc> = {}): RosterRpc {
 }
 
 function sessionsFace(open = vi.fn()) {
-  const snapshot = { current: 's1', byId: { s1: { agentPreset: 'dsh-bot--reviewer', displayTitle: '来自 运维夜班' } } }
+  const snapshot = {
+    byId: {
+      s1: {
+        agentPreset: 'dsh-bot--reviewer',
+        displayTitle: '来自 运维夜班',
+        retainedBy: { mainView: 1 },
+      },
+    },
+  }
   return {
-    open,
+    openSession: (id: string) => {
+      open(id)
+    },
     list: {
       getSnapshot: () => snapshot,
       subscribe: () => () => {},

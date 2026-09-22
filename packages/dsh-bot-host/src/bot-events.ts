@@ -81,6 +81,21 @@ export function muxFrameFromSessionEvent(session: { readonly id?: unknown }, eve
   return { type: 'session/event', sessionId, seq: rec.seq, event }
 }
 
+/** Current DSH emits transient frames separately from durable session events. */
+export function muxFrameFromAssistantStream(
+  session: { readonly id?: unknown; readonly seq?: unknown },
+  frame: { readonly type?: unknown; readonly chunk?: unknown; readonly outcome?: { readonly kind?: unknown; readonly eventType?: unknown } },
+): Record<string, unknown> | undefined {
+  const type = frame.type === 'start' ? 'assistant/start'
+    : frame.type === 'chunk' ? 'assistant/chunk'
+      : frame.type === 'end' && (frame.outcome?.kind !== 'committed' || frame.outcome.eventType !== 'assistant/message')
+        ? 'assistant/attempt' : undefined
+  if (type === undefined || typeof session.id !== 'string') return undefined
+  return muxFrameFromSessionEvent(session, { type, seq: session.seq,
+    ...(type === 'assistant/chunk' ? { data: { chunk: frame.chunk } } : {}),
+  })
+}
+
 export interface BotEventsSource {
   subscribeMux?(signal: AbortSignal): AsyncIterable<unknown> | undefined
   subscribeHost?(signal: AbortSignal): AsyncIterable<unknown> | undefined

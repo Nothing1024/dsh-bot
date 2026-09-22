@@ -18,6 +18,7 @@ import {
   memoryClear,
   peerLog,
   routineList,
+  routinePreview,
   routineCreate,
   routineUpdate,
   routineDelete,
@@ -25,6 +26,7 @@ import {
   cancel,
   prompt,
   questionRespond,
+  retryMember,
 } from './api.ts'
 import type {
   MemoryListValue,
@@ -46,15 +48,17 @@ import { Transcript } from './Transcript.tsx'
 import type { TranscriptSpeaker } from './Transcript.tsx'
 
 import { SessionRename } from './interactions.tsx'
+import { isChildBotSession } from './jump.ts'
 import { SessionJumpMenuItem, SessionList } from './SessionList.tsx'
 import type { SessionChoice } from './SessionList.tsx'
 import {
+  groupRoomDisplayTitle,
   pickBoundSession,
   readLastSession,
   sessionDisplayTitle,
   writeLastSession,
 } from './session-binding.ts'
-import { mergeLiveItems } from './useBotEvents.ts'
+import { mergeLiveItems, mergeGroupStream } from './useBotEvents.ts'
 import type { BotLiveState } from './useBotEvents.ts'
 import { useSessionPoll } from './useSessionPoll.ts'
 
@@ -76,8 +80,9 @@ export interface ConversationProps {
   readonly onActiveSession?: (sessionId: string | null) => void
   readonly onSessions?: (sessions: readonly WorkbenchSessionRow[]) => void
   readonly onOpenOfficialSession?: (sessionId: string) => Promise<void> | void
+  readonly onOpenSessionTool?: () => void
   readonly sseReady?: boolean
-  readonly live?: Pick<BotLiveState, 'stream' | 'cards' | 'epoch'>
+  readonly live?: Pick<BotLiveState, 'stream' | 'cards' | 'epoch'> & Partial<Pick<BotLiveState, 'streams'>>
 }
 
 function resolveSpeaking(
@@ -105,19 +110,22 @@ function lastPreview(items: readonly WorkbenchHistoryItem[]): string {
 /**
  * Header + transcript + composer for one selected bot.
  */
-function roomsToSessions(rooms: readonly { roomId?: string; createdAt?: number; updatedAt?: number }[]): WorkbenchSessionRow[] {
+function roomsToSessions(
+  rooms: readonly { roomId?: string; title?: string; createdAt?: number; updatedAt?: number; working?: boolean }[],
+  groupName: string,
+): WorkbenchSessionRow[] {
   return rooms.flatMap(row => {
     const roomId = row.roomId
     if (typeof roomId !== 'string' || roomId === '') return []
     return [{
       sessionId: roomId,
-      title: `房间 ${roomId.slice(0, 8)}`,
+      title: groupRoomDisplayTitle(row.title, groupName, row.createdAt ?? 0),
       tags: [],
       status: 'idle' as const,
       createdAt: row.createdAt ?? 0,
       updatedAt: row.updatedAt ?? 0,
       hidden: false,
-      working: false,
+      working: row.working === true,
     }]
   })
 }
@@ -133,6 +141,7 @@ function toChoices(
     updatedAt: row.updatedAt > 0 ? row.updatedAt : row.createdAt,
     working: row.working,
     hidden: row.hidden,
+    child: isChildBotSession(row.tags),
     selected: row.sessionId === sessionId,
   }))
 }
@@ -214,7 +223,7 @@ export function Conversation(props: ConversationProps) {
         groupCreateRef.current = null
       }
       setListError(null)
-      const rows = roomsToSessions(rooms)
+      const rows = roomsToSessions(rooms, group.name)
       setSessions(rows)
       onSessionsRef.current?.(rows)
       const keep = pickBoundSession(rows.map(row => row.sessionId), prefer, readLastSession(identityId))
@@ -297,6 +306,10 @@ export function Conversation(props: ConversationProps) {
   }, [switcherOpen, currentMenuOpen])
 
   useEffect(() => {
+    if (switcherOpen) void loadSessionsRef.current(sessionIdRef.current)
+  }, [switcherOpen])
+
+  useEffect(() => {
     if (toast === null) return
     const timer = window.setTimeout(() => setToast(null), 4000)
     return () => window.clearTimeout(timer)
@@ -315,18 +328,26 @@ export function Conversation(props: ConversationProps) {
 
   const poll = useSessionPoll({
     sessionId,
+    // Stopping a room updates previously accepted messages, including queued ones.
+    // A last-sequence cursor cannot represent those updates across tabs.
+    incremental: !isGroup,
     enabled: sessionId !== null,
     sseReady: !isGroup && props.sseReady === true,
     load: (id, sinceSeq) => history(id, sinceSeq),
   })
 
-  const liveItems = mergeLiveItems(
+  const executionId = isGroup ? poll.speaking?.sessionId : sessionId
+  const liveStream = props.live?.streams?.find(row => row.sessionId === executionId)
+    ?? (props.live?.stream?.sessionId === executionId ? props.live?.stream ?? null : null)
+  const baseItems = mergeLiveItems(
     poll.items,
     sessionId,
-    props.live?.stream ?? null,
+    isGroup ? null : liveStream,
     props.live?.cards ?? [],
   )
-  const streaming = liveItems.some(item => item.streaming === true)
+  const liveItems = isGroup ? mergeGroupStream(baseItems, sessionId, liveStream, poll.speaking, members) : baseItems
+  const showingLiveReply = liveItems.some(item => item.streaming === true
+    || (item.role === 'assistant' && item.pending === true))
 
   const memoryBotId = bot?.id
   useEffect(() => {
@@ -350,10 +371,25 @@ export function Conversation(props: ConversationProps) {
   const botId = bot?.id
   useEffect(() => {
     if (isGroup || botId === undefined) return
-    void routineList(botId).then(result => {
-      if (result.ok) setRoutines(Array.isArray(result.value) ? result.value : [])
-    })
-  }, [botId, isGroup])
+    let cancelled = false
+    let loading = false
+    const refresh = async (): Promise<void> => {
+      if (loading) return
+      loading = true
+      try {
+        const result = await routineList(botId)
+        if (!cancelled && result.ok) setRoutines(Array.isArray(result.value) ? result.value : [])
+      } finally {
+        loading = false
+      }
+    }
+    void refresh()
+    const timer = routinesOpen ? window.setInterval(() => { void refresh() }, 5000) : undefined
+    return () => {
+      cancelled = true
+      if (timer !== undefined) window.clearInterval(timer)
+    }
+  }, [botId, isGroup, routinesOpen])
 
   useEffect(() => {
     if (isGroup || botId === undefined) return
@@ -444,6 +480,14 @@ export function Conversation(props: ConversationProps) {
   }
 
   const send = async (text: string): Promise<boolean> => {
+    if (isGroup) {
+      const mention = parseMentions(text, members)
+      if (mention.unmatched) {
+        setSendCode('invalid-mention')
+        setSendError(`无法识别或存在重名：${mention.unmatchedHandles.join('、')}`)
+        return false
+      }
+    }
     const sinceSeq = poll.items.reduce((max, item) => Math.max(max, item.seq), -1)
     let id = sessionId
     const current = (): boolean => mounted.current && sessionIdRef.current === id
@@ -476,9 +520,6 @@ export function Conversation(props: ConversationProps) {
         }
         setSessionId(id)
         await loadSessions(id)
-      }
-      if (isGroup && parseMentions(text, members.map(row => ({ id: row.id, name: row.name }))).unmatched) {
-        setToast('未匹配成员,已发给全员')
       }
       const previous = retryRequest.current
       const request = previous?.sessionId === id && previous.text === text && previous.replyToSeq === replyTo?.seq
@@ -515,7 +556,7 @@ export function Conversation(props: ConversationProps) {
     ? (bot.avatar.color !== '' ? bot.avatar.color : hashAvatarColor(bot.id))
     : '#5b8def'
   const empty = sessionsLoaded && poll.ready && poll.items.length === 0 && pending === null && !working && poll.error === null && listError === null
-  const transcriptLoading = !sessionsLoaded || (sessionId !== null && !poll.ready)
+  const transcriptLoading = pending === null && (!sessionsLoaded || (sessionId !== null && !poll.ready))
   const composerWorking = poll.working || awaitingTurn
   const speaking = resolveSpeaking(poll.speaking, members)
   const currentTitle = sessionId === null
@@ -610,6 +651,7 @@ export function Conversation(props: ConversationProps) {
                   botId={bot?.id ?? ''}
                   botName={identityName}
                   rows={routines}
+                  onPreview={routinePreview}
                   onClose={() => setRoutinesOpen(false)}
                   onCreate={async input => {
                     if (bot === undefined) return false
@@ -721,6 +763,7 @@ export function Conversation(props: ConversationProps) {
                   groupMode={isGroup}
                   onToast={setToast}
                   {...props.onOpenOfficialSession === undefined ? {} : { onOpenOfficialSession: props.onOpenOfficialSession }}
+                  {...props.onOpenSessionTool === undefined ? {} : { onOpenSessionTool: props.onOpenSessionTool }}
                   {...isGroup ? {} : {
                     includeHidden,
                     onIncludeHidden: (next: boolean) => setIncludeHidden(next),
@@ -750,6 +793,7 @@ export function Conversation(props: ConversationProps) {
                 <SessionJumpMenuItem
                   sessionId={sessionId}
                   testId="session-current-jump"
+                  child={sessions.some(row => row.sessionId === sessionId && isChildBotSession(row.tags))}
                   onToast={setToast}
                   onDone={() => setCurrentMenuOpen(false)}
                   {...props.onOpenOfficialSession === undefined ? {} : { onOpenOfficialSession: props.onOpenOfficialSession }}
@@ -832,10 +876,11 @@ export function Conversation(props: ConversationProps) {
       ) : (
         <div className="conversationStage isReady">
         <Transcript
+          conversationKey={sessionId ?? identityId}
           {...bot?.id === undefined ? {} : { botId: bot.id }}
           items={liveItems}
           pending={pending}
-          working={working && !streaming}
+          working={working && !showingLiveReply}
           {...speaking === null ? {} : { speaking }}
           onRemember={async (item: WorkbenchHistoryItem) => {
             const text = (item.text ?? '').slice(0, 200)
@@ -886,6 +931,13 @@ export function Conversation(props: ConversationProps) {
                 speaker: item.author?.name ?? (item.role === 'user' ? '你' : '成员'),
                 text: item.text ?? '',
               })
+            },
+            onRetryMember: async (item: WorkbenchHistoryItem) => {
+              const botId = item.author?.botId
+              if (sessionId === null || botId === undefined || botId === '') return
+              const result = await retryMember(sessionId, botId, item.seq)
+              setToast(result.ok ? '已开始重试该成员' : result.error.message)
+              poll.refresh()
             },
           } : {}}
         />
