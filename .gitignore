@@ -25,3 +25,4 @@ packages/*/src/*.js
 packages/*/src/*.d.ts
 packages/*/src/*.js.map
 packages/*/src/*.d.ts.map
+!packages/ui-dsh-bot/src/css-modules.d.ts
