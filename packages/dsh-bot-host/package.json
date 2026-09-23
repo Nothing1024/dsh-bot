@@ -25,8 +25,8 @@
   "dependencies": {
     "dsh-bot-shared": "workspace:*",
     "pinyin-pro": "^3.29.3",
-    "session-marks": "workspace:*",
-    "session-tool": "workspace:*",
+    "session-marks": "link:../../../../session-tool/plugin/packages/session-marks",
+    "session-tool": "link:../../../../session-tool/plugin/packages/session-tool",
     "workbench-ui": "workspace:*"
   },
   "peerDependencies": {

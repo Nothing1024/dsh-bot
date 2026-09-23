@@ -33,7 +33,7 @@
   },
   "dependencies": {
     "dsh-bot-host": "workspace:*",
-    "session-tool": "workspace:*"
+    "session-tool": "link:../../../../session-tool/plugin/packages/session-tool"
   },
   "peerDependencies": {
     "@deepseek-ai/cordis": "^4.0.3",

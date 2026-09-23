@@ -1,8 +1,5 @@
 packages:
   - packages/*
-  - ../../session-tool/plugin/packages/session-marks
-  - ../../session-tool/plugin/packages/session-tool
-  - ../../session-tool/plugin/packages/session-tool-local
 allowBuilds:
   '@deepseek-ai/dsh-subprocess-local': false
   '@google/genai': false
