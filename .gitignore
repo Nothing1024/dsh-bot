@@ -7,6 +7,8 @@ env/profiles/*/pnpm-lock.yaml
 env/sessions/
 env/storages/
 env/settings.yaml
+env/settings.yaml.imported
+env/logs/
 env/AGENTS.md
 env/.env
 env/.credentials.yaml

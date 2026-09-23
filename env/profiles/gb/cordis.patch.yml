@@ -62,8 +62,8 @@
               medium: medium
               high: high
               max: max
-          - id: grok-4.6
-            name: grok-4.6
+          - id: grok-4.7
+            name: grok-4.7
             contextWindow: 500000
             maxTokens: 64000
             input:
