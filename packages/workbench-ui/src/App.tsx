@@ -1,7 +1,7 @@
 /**
  * Workbench shell: 280px roster + conversation stage (reference-ui-notes §A).
  */
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { createPortal } from 'react-dom'
 import { notifyRoutineSpoke, shouldNotifyRoutine } from './notify.ts'
 import {
@@ -807,6 +807,10 @@ export function App(props: AppProps = {}) {
     if (identity.kind !== 'group') clearUnread(identity.id)
   }, [clearUnread, openOwnedSession])
 
+  const placeRoster = (node: ReactNode): ReactNode => (
+    props.rosterTarget != null ? createPortal(node, props.rosterTarget) : node
+  )
+
   return (
     <div
       className="shell"
@@ -814,39 +818,32 @@ export function App(props: AppProps = {}) {
       data-roster="roster"
       data-status={status}
     >
-      {status === 'loading' ? (
+      {status === 'loading' || status === 'error' ? (
         <>
-          <aside className="roster" data-testid="workbench-roster">
-            <div className="rosterHead">人设</div>
-            <div className="rosterBody">
-              <p className="hint" data-testid="workbench-loading">加载中…</p>
-            </div>
-          </aside>
-          <main className="conversation" data-testid="workbench-conversation">
-            <header className="conversationHead">对话</header>
-            <div className="conversationBody">
-              <p className="hint">选择人设后在这里对话</p>
-            </div>
-          </main>
-        </>
-      ) : status === 'error' ? (
-        <>
-          <aside className="roster" data-testid="workbench-roster">
-            <div className="rosterHead">人设</div>
-            <div className="rosterBody">
-              <div className="stateBox" data-testid="workbench-error">
-                <p className="errorText">无法加载工作台</p>
-                <p className="hint">{error}</p>
-                <button type="button" className="retry" data-testid="workbench-retry" onClick={() => { void load() }}>
-                  重试
-                </button>
+          {placeRoster(
+            <aside className="roster" data-testid="workbench-roster">
+              <div className="rosterHead">人设</div>
+              <div className="rosterBody">
+                {status === 'loading' ? (
+                  <p className="hint" data-testid="workbench-loading">加载中…</p>
+                ) : (
+                  <div className="stateBox" data-testid="workbench-error">
+                    <p className="errorText">无法加载工作台</p>
+                    <p className="hint">{error}</p>
+                    <button type="button" className="retry" data-testid="workbench-retry" onClick={() => { void load() }}>
+                      重试
+                    </button>
+                  </div>
+                )}
               </div>
-            </div>
-          </aside>
+            </aside>,
+          )}
           <main className="conversation" data-testid="workbench-conversation">
             <header className="conversationHead">对话</header>
             <div className="conversationBody">
-              <p className="hint">网关不可达时不会白屏，修好后点重试。</p>
+              <p className="hint">
+                {status === 'loading' ? '选择人设后在这里对话' : '网关不可达时不会白屏，修好后点重试。'}
+              </p>
             </div>
           </main>
         </>

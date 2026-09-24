@@ -1,7 +1,7 @@
 {
   // Self-contained type-check plane for the dsh-bot plugin (npm-based).
   // Platform @deepseek-ai/* resolve through the hoisted node_modules
-  // (pinned 0.1.5-rc.1); @deepseek-ai/cordis is the ecosystem Context/Service
+  // (pinned 0.1.7-rc.1); @deepseek-ai/cordis is the ecosystem Context/Service
   // identity. allowImportingTsExtensions + rewriteRelativeImportExtensions
   // keep src's real .ts import specifiers working while tsc still emits
   // .js-suffixed d.ts.

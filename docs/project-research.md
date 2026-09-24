@@ -8,7 +8,7 @@
 
 ## 1. 这是什么
 
-`dsh-bot` 是跑在本机 DeepSeek Harness 上的插件：常驻多人设对话 agent + 任意 agent 可调的委托工具 + 自己的工作台。人设存在插件配置里，不是 DSH `agentPreset`；模型跟随 DSH 配置，可 bot 专属 override。会话经邻仓 session-tool 管理，标记 `kind:dsh-bot`。本仓独占 loopback **3084**、profile **`gb`**，平台包钉 `@deepseek-ai/dsh@0.1.5-rc.1`。GitHub 仓名 `Nothing1024/dsh-bot`；本机目录仍是 `dsh-grok-bot/plugin`。
+`dsh-bot` 是跑在本机 DeepSeek Harness 上的插件：常驻多人设对话 agent + 任意 agent 可调的委托工具 + 自己的工作台。人设存在插件配置里，不是 DSH `agentPreset`；模型跟随 DSH 配置，可 bot 专属 override。会话经邻仓 session-tool 管理，标记 `kind:dsh-bot`。本仓独占 loopback **3084**、profile **`gb`**，平台包钉 `@deepseek-ai/dsh@0.1.7-rc.1`（2026-09-23 从文档里的 `0.1.5-rc.1` 改记；npm `latest` 仍是 `0.1.5-rc.2`）。GitHub 仓名 `Nothing1024/dsh-bot`；本机目录仍是 `dsh-grok-bot/plugin`。
 
 来源：[`README.md` L1–7](../README.md)、[`package.json` L1–5](../package.json)、[`packages/dsh-bot-host/src/index.ts` L1–6](../packages/dsh-bot-host/src/index.ts)。
 
@@ -23,7 +23,7 @@
 | 官方 `dsh web` / dsh-genoffice | 默认 / `go` | 3080 | 随官方 / `0.1.0-rc.7` | `~/.dsh` / genoffice env |
 | session-tool | `st` | 3081 | `0.1.5-rc.1` | session-tool env |
 | vibee | `vb` | 3083 | `0.1.0-rc.7` | vibee env |
-| **本仓** | **`gb`** | **3084** | **`0.1.5-rc.1`** | **本仓 `env/`** |
+| **本仓** | **`gb`** | **3084** | **`0.1.7-rc.1`** | **本仓 `env/`** |
 
 来源：[`README.md` L9–17](../README.md)、[`env/boot.sh` L11–12, L45](../env/boot.sh)、[`standards/host-descriptor.json`](../standards/host-descriptor.json)。
 
@@ -266,7 +266,7 @@ CLI 一律 `--profile headless --patch env/cli.patch.yml`。矩阵先核网关 `
 
 8. **typecheck 旧债。** triage L284：上一轮 `pnpm test` 439/439、`standard:check` 过，但 `typecheck` 报 `bot-events.spec.ts:192` TS2769、`bots.spec.ts:16` TS6133。本次未重跑。
 
-9. **vitest 注释过期。** [`vitest.config.ts` L9–10](../vitest.config.ts) 仍写平台 pin `0.1.1-rc.2` / cordis `4.0.1`；workspace 实际是 DSH `0.1.5-rc.1`、cordis `4.0.2`。
+9. **vitest 注释。** [`vitest.config.ts` L9–10](../vitest.config.ts) 现写平台 pin `0.1.7-rc.1` / cordis `4.0.4`（2026-09-13 调研时还是 `0.1.1-rc.2` / `4.0.1`，随后文档一度写成 `0.1.5-rc.1` / cordis `4.0.2`）。`profiles/gb` 额外声明 `@deepseek-ai/dsh-deepseek-account`、`@deepseek-ai/dsh-ptc-runtime`、`@deepseek-ai/dsh-sandbox`，都是 `0.1.7-rc.1`；见 [`env/README.md`](../env/README.md)。
 
 10. **`settings.example.yaml` 带私有代理 baseURL**（`panpanpan.59188888.xyz`）。入 git 的是模板不是 key，但仍是环境细节外泄。live `settings.yaml` git 忽略。
 

@@ -2,7 +2,7 @@
 
 本目录是一份独立的 `DSH_HOME`（loopback）。不要 `--lan`。口固定 **3084**，不要打别人的 3080 / 3081 / 3083。
 
-官方 pin：`@deepseek-ai/dsh` / `@deepseek-ai/dsh-base` / `@deepseek-ai/dsh-web-app` 均为 **0.1.5-rc.1**（`boot.sh` 用 `npx @deepseek-ai/dsh@0.1.5-rc.1 --no-open`）。会话 tags 是插件标记（`$DSH_HOME/session-tool/marks.jsonl`）。
+官方 pin：`@deepseek-ai/dsh` / `@deepseek-ai/dsh-base` / `@deepseek-ai/dsh-web-app` / `@deepseek-ai/dsh-headless` 均为 **0.1.7-rc.1**（`profiles/gb/package.json` 与 `profiles/headless/package.json`）。npm `latest` 仍是 `0.1.5-rc.2`，本仓不跟 latest。`boot.sh` 直接 exec `profiles/gb/node_modules/@deepseek-ai/dsh/lib/bin.js`，不用 `npx`。会话 tags 是插件标记（`$DSH_HOME/session-tool/marks.jsonl`）。
 
 ```text
 env/
@@ -66,7 +66,7 @@ DSH_HOME=$PWD node ../../session-tool/plugin/packages/session-tool-cli/lib/bin.j
 
 | 依赖 | 去哪 | bundle 层 |
 |---|---|---|
-| `@deepseek-ai/dsh-base` / `dsh-web-app` | npm 正式包 0.1.5-rc.1 | 是 |
+| `@deepseek-ai/dsh` / `dsh-base` / `dsh-web-app` | npm `0.1.7-rc.1`（`dsh` 是 CLI 入口，不进 bundles） | `dsh-base` / `dsh-web-app` 是 |
 | `tool-session` | `../../session-tool/plugin/packages/tool-session` | 是 |
 | `tool-dsh-bot` | `packages/tool-dsh-bot` | 是（patch 同时 insert `dsh-bot-host`） |
 | `session-tool-local` / `session-tool` / `session-marks` | 邻仓 `packages/*` | 否（给 loader resolve） |
@@ -75,5 +75,15 @@ DSH_HOME=$PWD node ../../session-tool/plugin/packages/session-tool-cli/lib/bin.j
 只 `add tool-session` 不够：邻包不会提升到 profile 根。
 
 ```sh
-DSH_HOME=$PWD/env npx --yes @deepseek-ai/dsh@0.1.5-rc.1 --profile gb --dump-config
+DSH_HOME=$PWD/env node profiles/gb/node_modules/@deepseek-ai/dsh/lib/bin.js --profile gb --dump-config
 ```
+
+### 可选宿主插件的 peer
+
+`dsh-base` 挂载 `deepseek-account`、`ptc-runtime`、`bash-sandbox`。实现包把下面三个模块放在 peerDependencies，profile 不声明就不会装进本目录：
+
+- `@deepseek-ai/dsh-deepseek-account`
+- `@deepseek-ai/dsh-ptc-runtime`
+- `@deepseek-ai/dsh-sandbox`
+
+`profiles/gb/package.json` 声明了这三项，版本 `0.1.7-rc.1`。`profiles/headless/package.json` 声明了 `@deepseek-ai/dsh-sandbox`。`permission` 等 `bash-sandbox` 的 `shell`，`account-controller` 等 `deepseek-account`。`0.1.7-rc.1` 的 `@deepseek-ai/dsh-sandbox` 导出 `classifyRunnerFailure`；更旧的 `0.1.5-rc.2` 没有这个导出。

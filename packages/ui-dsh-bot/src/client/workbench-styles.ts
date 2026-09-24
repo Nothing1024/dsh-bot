@@ -15,7 +15,7 @@ nav:has(> button [data-dsh-bot-nav]) > button:has([data-dsh-bot-nav="bot"]) { gr
 .dsh-bot-main-panel > .shell { height: 100%; }
 .dsh-bot-roster-seat { display: flex; flex-direction: column; flex: 1; overflow: hidden; }
 .dsh-bot-roster-target { min-height: 0; height: 100%; }
-.dsh-bot-roster-target > .roster { width: 100%; height: 100%; border: 0; }
+.dsh-bot-roster-target > .roster { width: 100%; height: 100%; border: 0; background: transparent; }
 `
   document.head.appendChild(tag)
 }

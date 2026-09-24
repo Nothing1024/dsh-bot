@@ -24,7 +24,7 @@
 | 测试地址 | `http://192.168.6.211:3084/`，局域网 HTTP |
 | 测试日期/工具 | 2026-09-13；本机 Chrome + chrome-devtools，host / DevToolsActivePort 静默 CDP，不使用 bringToFront / System Events 抢 OS 焦点 |
 | 测试版本线索 | 报告称 DSH-better-sidebar v0.19.1；模型显示 grok-4.6 · Xhigh，用量显示 anthropic/grok-4.6 |
-| 本仓静态版本 | README / workspace 钉 DSH 0.1.5-rc.1，gb profile 的 better-sidebar 为 0.19.1；尚未证明测试服务器运行的 bundle 与当前源码一致 |
+| 本仓静态版本 | 2026-09-13 当时 README / workspace 钉 DSH 0.1.5-rc.1，gb profile 的 better-sidebar 为 0.19.1。2026-09-23 profile 已是 `0.1.7-rc.1`，且不再挂 better-sidebar；当时测试 bundle 与现在源码不是同一份 |
 | 原证据根目录 | `~/Documents/grok-bot-tmp/dsh-ui-test/`，以下测试路径均相对此目录 |
 | 原文件可用性 | 本次读取 `/Users/nothing/Documents/grok-bot-tmp/dsh-ui-test/HANDOFF-下游交接.md` 和 `EXPLORE-INDEX.md` 均不存在；依据粘贴内容整理，未查看原截图/网络日志，不把引用路径当作已经核验 |
 | 本次核查级别 | PRD、源码及已安装依赖静态核对；没有重放 LAN GUI，也没有清理真实测试数据 |

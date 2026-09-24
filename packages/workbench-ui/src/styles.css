@@ -1,18 +1,18 @@
 :root {
   color-scheme: light dark;
-  --wb-bg: light-dark(#ffffff, #12151a);
-  --wb-panel: light-dark(#f6f7f9, #181c22);
-  --wb-border: light-dark(#dde1e7, #2c333c);
-  --wb-text: light-dark(#202733, #e8eaed);
-  --wb-muted: light-dark(#606a76, #9aa3ad);
-  --wb-accent: light-dark(#4467d7, #6b8cff);
-  --wb-danger: light-dark(#b83546, #f07178);
-  --wb-hover: light-dark(#edf0f4, #222830);
+  --wb-bg: var(--dsw-alias-bg-base, light-dark(#ffffff, #151517));
+  --wb-panel: var(--dsw-specific-sidebar-fill, light-dark(#f9fafb, #1b1b1c));
+  --wb-border: var(--dsw-alias-border-l2, light-dark(#0000001a, #ffffff1f));
+  --wb-text: var(--dsw-alias-label-primary, light-dark(#0f1115, #f9fafb));
+  --wb-muted: var(--dsw-alias-label-secondary, light-dark(#61666b, #cfd3d6));
+  --wb-accent: var(--dsw-alias-brand-primary, light-dark(#0f1115, #f9fafb));
+  --wb-danger: light-dark(#ec1313, #f25a5a);
+  --wb-hover: var(--dsw-alias-interactive-bg-hover, light-dark(#2631480f, #ffffff14));
   /* Field/card geometry shared by every form and panel surface. */
   --wb-radius: 10px;
   --wb-radius-sm: 8px;
   --wb-ring: color-mix(in srgb, var(--wb-accent) 26%, transparent);
-  --wb-field: light-dark(#ffffff, #101317);
+  --wb-field: var(--dsw-alias-bg-layer-1, light-dark(#ffffff, #232324));
 }
 
 * {
@@ -113,7 +113,7 @@ body,
 }
 
 .rosterRow.isSelected {
-  background: light-dark(#e5ecfa, #243044);
+  background: var(--wb-hover);
 }
 
 .rosterRow.isMuted {
@@ -150,7 +150,7 @@ body,
   z-index: 8;
   width: 220px;
   padding: 8px 10px;
-  background: light-dark(#ffffff, #1d232c);
+  background: var(--dsw-alias-bg-layer-1, light-dark(#ffffff, #232324));
   border: 1px solid var(--wb-border);
   border-radius: 8px;
   box-shadow: 0 8px 24px rgb(0 0 0 / 35%);
@@ -413,7 +413,7 @@ body,
   height: 16px;
   padding: 0 5px;
   border-radius: 999px;
-  background: light-dark(#e5eaf0, #2a3340);
+  background: var(--dsw-alias-interactive-bg-hover, light-dark(#2631480f, #ffffff14));
   color: var(--wb-muted);
   font-size: 10px;
   line-height: 16px;
@@ -471,7 +471,7 @@ body,
 }
 
 .rosterSession.isSelected {
-  background: light-dark(#dce6fa, #2a3a52);
+  background: var(--wb-hover);
 }
 
 .rosterSessionTitle {
@@ -820,7 +820,7 @@ body,
 }
 
 .sessionOption.isSelected {
-  background: light-dark(#e5ecfa, #243044);
+  background: var(--wb-hover);
 }
 
 .sessionOptionMain {
@@ -995,13 +995,13 @@ body,
 }
 
 .bubble.user {
-  background: #2c4a7c;
-  color: #fff;
+  background: var(--dsw-alias-button-primary-fill, var(--wb-accent));
+  color: var(--dsw-alias-label-primary-inverted, #fff);
   border-bottom-right-radius: 4px;
 }
 
 .bubble.assistant {
-  background: light-dark(#edf0f4, #222830);
+  background: var(--dsw-alias-bg-layer-2, light-dark(#ffffff, #2c2c2e));
   color: var(--wb-text);
   border-bottom-left-radius: 4px;
   white-space: normal;
@@ -1050,13 +1050,13 @@ body,
 .md code {
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
   font-size: 0.92em;
-  background: light-dark(#ffffff, #12151a);
+  background: var(--dsw-alias-bg-layer-1, light-dark(#ffffff, #232324));
   border-radius: 4px;
   padding: 0.05em 0.35em;
 }
 
 .md pre {
-  background: light-dark(#ffffff, #12151a);
+  background: var(--dsw-alias-bg-layer-1, light-dark(#ffffff, #232324));
   border: 1px solid var(--wb-border);
   border-radius: 8px;
   padding: 8px 10px;
@@ -1094,12 +1094,12 @@ body,
 }
 
 .md th {
-  background: light-dark(#f3f5f8, #1b2027);
+  background: var(--dsw-alias-bg-module-platform, light-dark(#f5f6f7, #353638));
   font-weight: 600;
 }
 
 .md tbody tr:nth-child(even) td {
-  background: light-dark(#f6f7f9, #1a1e24);
+  background: var(--dsw-alias-bg-layer-2, light-dark(#ffffff, #2c2c2e));
 }
 
 .bubbleWrap.isPending .bubble {
@@ -1141,7 +1141,7 @@ body,
 }
 
 .foldRow {
-  background: light-dark(#f3f5f8, #1b2027);
+  background: var(--dsw-alias-bg-module-platform, light-dark(#f5f6f7, #353638));
   border-radius: 8px;
   padding: 4px 8px;
 }
@@ -2121,7 +2121,7 @@ body,
 .proposeCard {
   margin: 8px 0;
   padding: 8px 10px;
-  border: 1px solid var(--border, light-dark(#4f5967, #ddd));
+  border: 1px solid var(--border, var(--wb-border));
   border-radius: 8px;
   background: var(--panel, #fff);
 }
@@ -2195,7 +2195,7 @@ body,
   padding: 1px 8px;
   border-radius: 999px;
   font-size: 11px;
-  color: var(--wb-muted, light-dark(#66707c, #9aa0a6));
+  color: var(--wb-muted, var(--dsw-alias-label-secondary));
   border: 1px solid var(--wb-border);
 }
 

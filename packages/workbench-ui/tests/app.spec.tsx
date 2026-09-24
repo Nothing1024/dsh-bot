@@ -59,6 +59,28 @@ describe('App roster load', () => {
     } finally { view.unmount(); target.remove() }
   })
 
+  it('keeps the loading roster in the sidebar seat', async () => {
+    let release: () => void = () => {}
+    const pending = new Promise<void>(resolve => { release = resolve })
+    vi.stubGlobal('fetch', vi.fn(async (url: string) => {
+      if (String(url).includes('listBots')) await pending
+      return jsonOk({ bots: [SEED], sessions: [], groups: [] })
+    }))
+    const target = document.createElement('div')
+    document.body.append(target)
+    const view = render(<App rosterTarget={target} />)
+    try {
+      expect(await screen.findByTestId('workbench-loading')).toBeTruthy()
+      expect(target.querySelector('[data-testid="workbench-roster"]')).toBeTruthy()
+      expect(view.container.querySelector('[data-testid="workbench-roster"]')).toBeNull()
+      expect(view.container.querySelector('[data-testid="workbench-conversation"]')).toBeTruthy()
+    } finally {
+      release()
+      view.unmount()
+      target.remove()
+    }
+  })
+
   it('renders seeded bots after listBots', async () => {
     vi.stubGlobal('fetch', vi.fn(async (url: string) => {
       if (String(url).includes('listBots')) return jsonOk({ bots: [SEED] })

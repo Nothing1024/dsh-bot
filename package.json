@@ -30,6 +30,6 @@
     "vitest": "^4.1.8"
   },
   "dependencies": {
-    "cordis": "npm:@deepseek-ai/cordis@4.0.3"
+    "cordis": "npm:@deepseek-ai/cordis@4.0.4"
   }
 }
