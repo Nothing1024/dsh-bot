@@ -2,7 +2,7 @@
 
 DSH 插件「**DSH Bot**」：常驻对话 agent（人设是插件内部配置，模型跟随 DSH 自身配置，可 bot 专属 override）+ 任意 agent 可调的 `dsh_bot_ask` 委托工具 + **DSH Bot 工作台**（多人设 roster + 独立 1:1 对话面 + **Grok Bot 式小组对话**）。工作台走官方 slots（左栏名册 + 中栏对话），不再挂 `dsh-better-sidebar`。
 
-本仓独占 loopback **3084**，profile **`gb`**，平台包钉 `@deepseek-ai/dsh@0.1.7-rc.1`（npm `latest` 仍是 `0.1.5-rc.2`；不是 vibee/genoffice 的 `0.1.0-rc.7`）。GitHub 仓名 `Nothing1024/dsh-bot`；本机目录仍是 `dsh-grok-bot/plugin`。
+本仓独占 loopback **3084**，profile **`gb`**，平台包版本是 `@deepseek-ai/dsh@0.1.7-rc.2`（npm `latest` 仍是 `0.1.5-rc.3`）。GitHub 仓名 `Nothing1024/dsh-bot`；本机目录仍是 `dsh-grok-bot/plugin`。
 
 会话经邻仓 session-tool 管理，标记 `app:dsh-bot`（过渡期双写 `kind:dsh-bot`）+ `form:plugin`。不要抢 3080 / 3081 / 3083。
 
@@ -10,10 +10,10 @@ DSH 插件「**DSH Bot**」：常驻对话 agent（人设是插件内部配置�
 
 | 谁 | profile | 口 | DSH 包 | `DSH_HOME` |
 |---|---|---|---|---|
-| 官方 `dsh web` / dsh-genoffice | 默认 / `go` | **3080** | 随官方 / `0.1.0-rc.7` | `~/.dsh` / genoffice env |
-| session-tool | `st` | **3081** | `0.1.5-rc.1` | session-tool env |
-| vibee | `vb` | **3083** | `0.1.0-rc.7` | vibee env |
-| **dsh-bot（本仓）** | **`gb`** | **3084** | **`0.1.7-rc.1`** | **本仓 `env/`** |
+| 官方 `dsh web` / dsh-genoffice | 默认 / `go` | **3080** | 随官方 / `0.1.7-rc.2` | `~/.dsh` / genoffice env |
+| session-tool | `st` | **3081** | `0.1.7-rc.2` | session-tool env |
+| vibee | `vb` | **3083** | `0.1.7-rc.2` | vibee env |
+| **dsh-bot（本仓）** | **`gb`** | **3084** | **`0.1.7-rc.2`** | **本仓 `env/`** |
 
 CLI / 矩阵先核监听进程的 `DSH_HOME` 再打，口对但仓不对就失败。
 

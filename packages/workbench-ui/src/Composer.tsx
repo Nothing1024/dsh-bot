@@ -38,6 +38,7 @@ export interface ComposerProps {
   /** Fired on every edit so the owner can drop a stale send error. */
   readonly onDraftEdit?: () => void
   readonly onClearReply?: () => void
+  readonly pending?: { readonly text: string; readonly failed?: boolean; readonly replyTo?: ComposerReplyTo | null } | null
 }
 
 /**
@@ -333,6 +334,28 @@ export function Composer(props: ComposerProps) {
 
   return (
     <div className="composer" data-testid="composer">
+      {props.pending != null ? (
+        <div className="pendingDock" data-testid="transcript-pending-dock">
+          <div
+            className={`bubbleWrap user${props.pending.failed === true ? ' isFailed' : ' isPending'}`}
+            data-testid="transcript-pending"
+            data-role="user"
+          >
+            <div className="bubbleCol">
+              {props.pending.replyTo != null ? (
+                <div className="replyCite" data-testid="transcript-reply-cite-pending">
+                  <span>→ {props.pending.replyTo.speaker}</span>
+                  {props.pending.replyTo.text ? <span className="replyExcerpt">{props.pending.replyTo.text}</span> : null}
+                </div>
+              ) : null}
+              <div className="bubble user">{props.pending.text}</div>
+              <span className="deliveryStatus" role="status">
+                {props.pending.failed === true ? '未确认送达 · 草稿已保留，可重试' : '正在发送…'}
+              </span>
+            </div>
+          </div>
+        </div>
+      ) : null}
       {replyTo !== undefined && replyTo !== null ? (
         <div className="replyCard" data-testid="composer-reply">
           <span className="replyCardText">

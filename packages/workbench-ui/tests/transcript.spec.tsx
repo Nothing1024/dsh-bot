@@ -141,16 +141,10 @@ describe('Transcript', () => {
     expect(bubble.querySelector('code')?.textContent).toBe('code')
   })
 
-  it('shows a working indicator and pending user bubble', () => {
-    render(
-      <Transcript
-        items={items}
-        working
-        pending={{ text: '下一句' }}
-      />,
-    )
+  it('keeps the working indicator in the transcript', () => {
+    render(<Transcript items={items} working pending={{ text: '下一句' }} />)
     expect(screen.getByTestId('transcript-working').textContent).toMatch(/工作中/)
-    expect(screen.getByTestId('transcript-pending').textContent).toMatch(/下一句/)
+    expect(screen.queryByTestId('transcript-pending')).toBeNull()
   })
 
   it('shows the speaking member on the typing bubble in group mode', () => {

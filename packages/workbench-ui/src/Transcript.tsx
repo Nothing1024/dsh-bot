@@ -171,28 +171,6 @@ export function Transcript(props: TranscriptProps) {
             />
           )
         })}
-        {props.pending !== undefined && props.pending !== null ? (
-          <div
-            className={`bubbleWrap user${props.pending.failed === true ? ' isFailed' : ' isPending'}`}
-            data-testid="transcript-pending"
-            data-role="user"
-          >
-            <div className="bubbleCol">
-              {props.pendingReply !== undefined && props.pendingReply !== null ? (
-                <ReplyCite
-                  seq={-1}
-                  speaker={props.pendingReply.speaker}
-                  text={props.pendingReply.text}
-                  missing={sourceMissing(props.items, props.pendingReply.seq)}
-                />
-              ) : null}
-              <div className="bubble user">{props.pending.text}</div>
-              <span className="deliveryStatus" role="status">
-                {props.pending.failed === true ? '未确认送达 · 草稿已保留，可重试' : '正在发送…'}
-              </span>
-            </div>
-          </div>
-        ) : null}
         {props.working ? (
           <TypingIndicator {...props.speaking === undefined ? {} : { speaking: props.speaking }} />
         ) : null}

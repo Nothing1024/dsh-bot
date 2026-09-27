@@ -617,6 +617,7 @@ body,
 }
 
 .conversationPane {
+  position: relative;
   flex: 1;
   min-height: 0;
   display: flex;
@@ -624,11 +625,11 @@ body,
 }
 
 .conversationStage {
-  position: relative;
   flex: 1;
   min-height: 0;
   display: flex;
   flex-direction: column;
+  overflow: hidden;
 }
 
 .conversationStage.isLoading {
@@ -1003,7 +1004,10 @@ body,
 .bubble.assistant {
   background: var(--dsw-alias-bg-layer-2, light-dark(#ffffff, #2c2c2e));
   color: var(--wb-text);
+  border: 1px solid var(--wb-border);
+  border-radius: 16px;
   border-bottom-left-radius: 4px;
+  box-shadow: 0 1px 2px rgb(0 0 0 / 4%);
   white-space: normal;
 }
 
@@ -1102,9 +1106,32 @@ body,
   background: var(--dsw-alias-bg-layer-2, light-dark(#ffffff, #2c2c2e));
 }
 
+.pendingDock {
+  position: absolute;
+  right: 28px;
+  bottom: calc(100% + 8px);
+  z-index: 4;
+  display: flex;
+  justify-content: flex-end;
+  max-width: min(86%, 44em);
+  pointer-events: none;
+}
+
+.pendingDock .bubbleWrap {
+  width: auto;
+  pointer-events: auto;
+}
+
+.pendingDock .bubble.user {
+  border-radius: 999px;
+  padding: 8px 14px;
+  box-shadow: 0 6px 18px rgb(0 0 0 / 16%);
+}
+
 .bubbleWrap.isPending .bubble {
   opacity: 0.7;
 }
+
 
 .bubbleWrap.isFailed .bubble {
   outline: 1px solid var(--wb-danger);
@@ -1245,6 +1272,7 @@ body,
 }
 
 .composer {
+  position: relative;
   flex: none;
   padding: 10px 18px 12px;
   display: flex;

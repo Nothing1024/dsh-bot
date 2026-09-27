@@ -945,6 +945,7 @@ export function Conversation(props: ConversationProps) {
       )}
       {sessionsLoaded ? (
       <Composer
+        pending={pending}
         botId={identityId}
         botName={identityName}
         disabled={false}
