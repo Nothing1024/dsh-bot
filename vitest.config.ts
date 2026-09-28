@@ -7,7 +7,7 @@ const root = fileURLToPath(new URL('.', import.meta.url))
  * Test-lane resolution for the dsh-bot monorepo (npm-based).
  * Neighbor session-tool packages resolve to their TypeScript sources.
  * Platform `@deepseek-ai/*` and `@deepseek-ai/cordis` resolve from the
- * hoisted node_modules (pinned 0.1.7-rc.2 / cordis 4.0.4).
+ * hoisted node_modules (pinned 0.2.0-rc.1 / cordis 4.0.4).
  */
 export default defineConfig({
   root,

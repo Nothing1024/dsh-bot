@@ -35,7 +35,7 @@
 - id: ui-settings-general
   name: "@deepseek-ai/dsh-client-ui-settings-general"
   config:
-    welcomeNoticeVersion: 2026-08-13.1
+    welcomeNoticeVersion: 2026-09-28.1
 - id: llm-pi-ai
   name: "@deepseek-ai/dsh-llm-pi-ai"
   config:
