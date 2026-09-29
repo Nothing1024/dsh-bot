@@ -11,3 +11,63 @@
   disabled: true
 - id: web-search-deepseek
   disabled: true
+- id: llm-pi-ai
+  name: "@deepseek-ai/dsh-llm-pi-ai"
+  config:
+    providers:
+      anthropic:
+        displayName: panpanpan new-api
+        apiKeyEnv: ANTHROPIC_API_KEY
+        api: openai-completions
+        baseURL: https://panpanpan.59188888.xyz/v1
+        compat:
+          thinkingFormat: openai
+          supportsReasoningEffort: true
+          supportsDeveloperRole: false
+        defaultContextWindow: 200000
+        defaultMaxTokens: 32768
+        models:
+          - id: claude-opus-5-5
+            name: claude-opus-5-5
+            contextWindow: 1048576
+            input:
+              - text
+              - image
+          - id: grok-4.7
+            name: grok-4.7
+            contextWindow: 500000
+            maxTokens: 64000
+            input:
+              - text
+              - image
+            reasoningEfforts:
+              off: null
+              low: low
+              medium: medium
+              high: high
+              xhigh: xhigh
+          - id: deepseek-flash
+            name: deepseek-flash
+            contextWindow: 1048576
+            maxTokens: 384000
+            input:
+              - text
+              - image
+            reasoningEfforts:
+              off: null
+              low: low
+              medium: medium
+              high: high
+              max: max
+          - id: claude-opus-4-6
+            name: claude-opus-4-6
+            contextWindow: 1048576
+            input:
+              - text
+              - image
+          - id: swe-2
+            name: swe-2
+            contextWindow: 1048576
+            input:
+              - text
+              - image

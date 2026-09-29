@@ -50,18 +50,12 @@
           supportsReasoningEffort: true
           supportsDeveloperRole: false
         models:
-          - id: deepseek-flash
-            name: deepseek-flash
+          - id: claude-opus-5-5
+            name: claude-opus-5-5
             contextWindow: 1048576
-            maxTokens: 384000
             input:
               - text
-            reasoningEfforts:
-              off: null
-              low: low
-              medium: medium
-              high: high
-              max: max
+              - image
           - id: grok-4.7
             name: grok-4.7
             contextWindow: 500000
@@ -75,13 +69,30 @@
               medium: medium
               high: high
               xhigh: xhigh
-          - id: claude-opus-5
-            name: claude-opus-5
+          - id: deepseek-flash
+            name: deepseek-flash
+            contextWindow: 1048576
+            maxTokens: 384000
             input:
               - text
+              - image
+            reasoningEfforts:
+              off: null
+              low: low
+              medium: medium
+              high: high
+              max: max
           - id: claude-opus-4-6
             name: claude-opus-4-6
+            contextWindow: 1048576
             input:
               - text
+              - image
+          - id: swe-2
+            name: swe-2
+            contextWindow: 1048576
+            input:
+              - text
+              - image
         defaultContextWindow: 200000
         defaultMaxTokens: 32768
