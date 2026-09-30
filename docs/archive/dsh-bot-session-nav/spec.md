@@ -1,6 +1,6 @@
 # dsh-bot-session-nav Spec
 
-> Version: 0.2.1 | Date: 2026-09-08 | Status: InProgress 执行中
+> Version: 0.2.2 | Date: 2026-09-30 | Status: Done 收缩交付（P1 跳转已交付；T5–T14 收纳/起题/归档/overview 由用户 2026-09-30 拍板不做，见 `../../remaining-prd-decision.md` §5）
 >
 > 本文件是本需求的**唯一事实源**。四期包:在工作台(`../dsh-bot-workbench/spec.md`,Done)与小组对话(`../archive/dsh-bot-group-chat/spec.md`,Done)之上做「会话导航与展示」。
 > 由母包 `../dsh-bot-interaction-master/spec.md` 统筹(先本包后 `../dsh-bot-group-rounds/`)。

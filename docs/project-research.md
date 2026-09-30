@@ -158,27 +158,20 @@ README「非目标与 BR-006」：
 
 ## 6. 交付状态
 
-`docs/` **没有活跃 PRD 包**。16 个任务包 2026-09-13 全部进 `archive/`（[`docs/README.md` L5](README.md)）。
+`docs/` **没有活跃 PRD 包**。16 个任务包 2026-09-13 全部进 `archive/`（[`docs/README.md` L5](README.md)）；2026-09-30 删除放弃的 interaction-master、native-surface，剩 14 个。
 
 ### 已验收（合同仍有效）
 
-mvp、workbench（18/19，T18 后关单）、group-chat、memory、routines、living-master、live-transcript、peers、roster、alive-master、native-experience、left-tab（23/23）。
+mvp、workbench（19/19，T18 2026-09-30 关单）、group-chat、memory、routines、living-master、live-transcript、peers、roster、alive-master、native-experience、session-nav（收缩交付：只做跳转）。left-tab（23/23）已交付，但 2026-09-30 主面改认「官方壳内嵌工作台」，只作历史基线。
 
 ### 明确未做 / 搁置
 
 | 项 | 状态 |
 |---|---|
-| session-nav T5–T14（收纳 / 自动起题 / overview） | 未做；与 left-tab 冲突，决策建议砍 |
-| group-rounds 0/15 | **产品缺口**：小组仍是一轮广播 |
-| interaction-master 0/5 | 子包不定，挂起 |
-| native-surface Deferred 0/14 | 搁置 |
+| session-nav T5–T14（收纳 / 自动起题 / 归档 / overview） | 2026-09-30 关单不做；手动改名由 `renameSession` 覆盖 |
+| group-rounds | 09-19 起多轮（默认 3 轮）、单成员重试、房间标题、working 真值已在代码里；2026-09-30 拍板补做引用即点名、轮内排队、继续讨论、删房间 |
 
-收口依据：[`docs/remaining-prd-decision.md`](remaining-prd-decision.md)。
-
-即使不做多轮，决策简报仍标这些三期缺口：房间标题占位 `房间 {id 前 8 位}`、roster 小组 `working: false` 写死、错误行无单成员重试、回复 pill 不改回应者。源码仍在：
-
-- [`packages/workbench-ui/src/App.tsx` L307–315](../packages/workbench-ui/src/App.tsx) `working: false`
-- [`packages/workbench-ui/src/Conversation.tsx` L124](../packages/workbench-ui/src/Conversation.tsx) 同类映射
+收口依据：[`docs/remaining-prd-decision.md`](remaining-prd-decision.md)（含 2026-09-30 拍板）。
 
 ### 2026-09-13 UI 反馈（未当作已修）
 

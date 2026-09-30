@@ -1,6 +1,6 @@
 # dsh-bot-workbench Spec
 
-> Version: 0.1.0 | Date: 2026-08-30 | Status: Ready 可执行(机制已实机验证;剩余 ASM 由 P0 校准消解)
+> Version: 0.1.1 | Date: 2026-09-30 | Status: Done 已验收（19/19；T18 UF-205 GUI 直建窗口被 BR-208 / left-tab BR-609 取消，2026-09-30 关单）
 >
 > 本文件是本需求的**唯一事实源**。二期包:在 v1(`../archive/dsh-bot-mvp/spec.md`,已 Done)之上加「多人设工作台」。
 > 设计素材:`reference-ui-notes.md`(参考产品 UI 结构调研,只读设计形状,禁拷代码)。

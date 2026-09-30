@@ -3,13 +3,13 @@
 2,P1:跳转桥,实现页签宿主 postMessage 桥,spec.md#task-2,1,pnpm --filter ui-dsh-bot run build && pnpm --filter ui-dsh-bot test → 全绿,已完成,
 3,P1:跳转桥,实现工作台跳转入口与直开降级,spec.md#task-3,2,pnpm --filter workbench-ui run build && pnpm --filter workbench-ui test → 全绿,已完成,
 4,P1:跳转桥,执行 Phase 1 回归验证,spec.md#task-4,3,pnpm -r run build && pnpm -r test + 页签实测可见/隐藏会话各跳一次,已完成,2026-09-08 重跑:根因是委托会话归档非隐藏;桥端 archived 分支已实现;live-jump-rerun.json allPass
-5,P2:起题与收纳,实现 host 自动起题,spec.md#task-5,1,pnpm --filter dsh-bot-host run build && pnpm --filter dsh-bot-host test → 全绿,待开始,
-6,P2:起题与收纳,实现收纳开关与创建分支,spec.md#task-6,1,pnpm --filter dsh-bot-host test + curl createBotSession 后 session.list 见 ~ 标题,待开始,
-7,P2:起题与收纳,实现会话行动作(重命名/隐藏/归档),spec.md#task-7,5;6,pnpm --filter dsh-bot-host test && pnpm --filter workbench-ui test → 全绿,待开始,开工前消解 ASM-406(归档不可寻回)
-8,P2:起题与收纳,执行 Phase 2 回归验证,spec.md#task-8,7,pnpm -r run build && pnpm -r test + 浏览器起题/开关/归档实测 + v2 隔离抽验,待开始,
-9,P3:聚合与推送,实现 overview 聚合接口与 roster 接入,spec.md#task-9,8,pnpm -r test + network 每拍仅 1 个 overview 请求,待开始,
-10,P3:聚合与推送,实现 SSE 事件通道与 UI 接入,spec.md#task-10,9,pnpm -r test + curl -N /dsh-bot/events 首帧 ≤1s,待开始,
-11,P3:聚合与推送,执行 Phase 3 回归验证,spec.md#task-11,10,pnpm -r run build && pnpm -r test + 双 bot 并发 ≤2s 更新 + 断线回落实测,待开始,
-12,P4:收尾验收,更新 standards/manual-test/README,spec.md#task-12,11,pnpm run standard:check 0 FAIL + bash scripts/manual-test.sh --no-write 全过,待开始,
-13,P4:收尾验收,执行 spec 5.2 真实场景全套测试,spec.md#task-13,12,5.2 矩阵逐行回放全过 + validate_package.py 证据审计 0 FAIL,待开始,
-14,P4:收尾验收,执行 Phase 4 回归验证,spec.md#task-14,13,pnpm -r build/typecheck/test/standard:check 全绿 + v1/v2/v3 抽验 + 红线 rg 为空,待开始,
+5,P2:起题与收纳,实现 host 自动起题,spec.md#task-5,1,pnpm --filter dsh-bot-host run build && pnpm --filter dsh-bot-host test → 全绿,已完成,"2026-09-30 关单(不做):用户拍板;收纳/归档/overview 与现主面冲突或平台不支持,手动改名由 renameSession 覆盖;见 docs/remaining-prd-decision.md §5"
+6,P2:起题与收纳,实现收纳开关与创建分支,spec.md#task-6,1,pnpm --filter dsh-bot-host test + curl createBotSession 后 session.list 见 ~ 标题,已完成,"2026-09-30 关单(不做):用户拍板;收纳/归档/overview 与现主面冲突或平台不支持,手动改名由 renameSession 覆盖;见 docs/remaining-prd-decision.md §5"
+7,P2:起题与收纳,实现会话行动作(重命名/隐藏/归档),spec.md#task-7,5;6,pnpm --filter dsh-bot-host test && pnpm --filter workbench-ui test → 全绿,已完成,"2026-09-30 关单(不做):用户拍板;收纳/归档/overview 与现主面冲突或平台不支持,手动改名由 renameSession 覆盖;见 docs/remaining-prd-decision.md §5"
+8,P2:起题与收纳,执行 Phase 2 回归验证,spec.md#task-8,7,pnpm -r run build && pnpm -r test + 浏览器起题/开关/归档实测 + v2 隔离抽验,已完成,"2026-09-30 关单(不做):用户拍板;收纳/归档/overview 与现主面冲突或平台不支持,手动改名由 renameSession 覆盖;见 docs/remaining-prd-decision.md §5"
+9,P3:聚合与推送,实现 overview 聚合接口与 roster 接入,spec.md#task-9,8,pnpm -r test + network 每拍仅 1 个 overview 请求,已完成,"2026-09-30 关单(不做):用户拍板;收纳/归档/overview 与现主面冲突或平台不支持,手动改名由 renameSession 覆盖;见 docs/remaining-prd-decision.md §5"
+10,P3:聚合与推送,实现 SSE 事件通道与 UI 接入,spec.md#task-10,9,pnpm -r test + curl -N /dsh-bot/events 首帧 ≤1s,已完成,"2026-09-30 关单(不做):用户拍板;收纳/归档/overview 与现主面冲突或平台不支持,手动改名由 renameSession 覆盖;见 docs/remaining-prd-decision.md §5"
+11,P3:聚合与推送,执行 Phase 3 回归验证,spec.md#task-11,10,pnpm -r run build && pnpm -r test + 双 bot 并发 ≤2s 更新 + 断线回落实测,已完成,"2026-09-30 关单(不做):用户拍板;收纳/归档/overview 与现主面冲突或平台不支持,手动改名由 renameSession 覆盖;见 docs/remaining-prd-decision.md §5"
+12,P4:收尾验收,更新 standards/manual-test/README,spec.md#task-12,11,pnpm run standard:check 0 FAIL + bash scripts/manual-test.sh --no-write 全过,已完成,"2026-09-30 关单(不做):用户拍板;收纳/归档/overview 与现主面冲突或平台不支持,手动改名由 renameSession 覆盖;见 docs/remaining-prd-decision.md §5"
+13,P4:收尾验收,执行 spec 5.2 真实场景全套测试,spec.md#task-13,12,5.2 矩阵逐行回放全过 + validate_package.py 证据审计 0 FAIL,已完成,"2026-09-30 关单(不做):用户拍板;收纳/归档/overview 与现主面冲突或平台不支持,手动改名由 renameSession 覆盖;见 docs/remaining-prd-decision.md §5"
+14,P4:收尾验收,执行 Phase 4 回归验证,spec.md#task-14,13,pnpm -r build/typecheck/test/standard:check 全绿 + v1/v2/v3 抽验 + 红线 rg 为空,已完成,"2026-09-30 关单(不做):用户拍板;收纳/归档/overview 与现主面冲突或平台不支持,手动改名由 renameSession 覆盖;见 docs/remaining-prd-decision.md §5"
