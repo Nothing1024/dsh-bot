@@ -553,7 +553,7 @@ describe('DshBotService.createSession / listSessions', () => {
     expect((await bot.listSessions()).map(row => row.sessionId).sort()).toEqual(['session-legacy', 'session-new'])
   })
 
-  it('falls back to platform.listSessions when sessionTool.list is web-unreachable', async () => {
+  it('lists from gateway session.list without a second sessionTool.list', async () => {
     const sessionTool = new StubSessionTool()
     sessionTool.listError = new SessionWebUnreachableError('web gateway unreachable for workspace/follow: HTTP 401')
     const platform = new StubPlatform()
@@ -570,6 +570,7 @@ describe('DshBotService.createSession / listSessions', () => {
     expect(hiddenOff[0]?.title).toBe('Plan')
     const hiddenOn = await bot.listSessions({ includeHidden: true })
     expect(hiddenOn.map(row => row.sessionId).sort()).toEqual(['session-hidden', 'session-live'])
+    expect(sessionTool.listCalls).toHaveLength(0)
   })
 
 

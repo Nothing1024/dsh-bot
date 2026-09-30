@@ -197,6 +197,38 @@ describe('Roster', () => {
     expect(screen.getByTestId('roster-section-life')).toBeTruthy()
   })
 
+  it('selects rows from the keyboard and folds categories with aria state while empty ones say so', () => {
+    const onSelect = vi.fn()
+    render(
+      <Roster
+        items={[item(), item({ id: 'other', name: '别人', selected: false })]}
+        onSelect={onSelect}
+        onCreate={vi.fn()}
+        onEdit={vi.fn()}
+        onDelete={vi.fn()}
+        onRename={vi.fn()}
+      />,
+    )
+    const row = screen.getByTestId('roster-row-other')
+    expect(row.tabIndex).toBe(0)
+    expect(row.getAttribute('aria-current')).toBeNull()
+    expect(screen.getByTestId('roster-row-dsh-bot').getAttribute('aria-current')).toBe('page')
+    fireEvent.keyDown(row, { key: 'Enter' })
+    fireEvent.keyDown(row, { key: ' ' })
+    expect(onSelect).toHaveBeenCalledTimes(2)
+    // Keys on the nested menu button stay with the button.
+    fireEvent.keyDown(screen.getByTestId('roster-menu-other'), { key: 'Enter' })
+    expect(onSelect).toHaveBeenCalledTimes(2)
+    expect(screen.getByTestId('roster-section-empty-life').textContent).toBe('暂无')
+    const toggle = screen.getByTestId('roster-section-toggle-work')
+    expect(toggle.getAttribute('aria-expanded')).toBe('true')
+    const list = document.getElementById(toggle.getAttribute('aria-controls') ?? '')
+    expect(list?.contains(row)).toBe(true)
+    fireEvent.click(toggle)
+    expect(toggle.getAttribute('aria-expanded')).toBe('false')
+    expect(screen.queryByTestId('roster-row-other')).toBeNull()
+  })
+
   it('hides a bot into the footer and unhides it', () => {
     const onLayout = vi.fn()
     const { rerender } = render(

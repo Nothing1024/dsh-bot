@@ -2,6 +2,7 @@
  * Lightweight local command palette: actions + current bots/groups. No search.
  */
 import { useEffect, useRef, useState, type KeyboardEvent as ReactKeyboardEvent } from 'react'
+import { ESCAPE_PRIORITY, useEscapeLayer } from './interactions.tsx'
 
 export const NEW_BOT_COMMAND = 'action:new-bot'
 export const NEW_GROUP_COMMAND = 'action:new-group'
@@ -71,6 +72,9 @@ export function CommandPalette(props: CommandPaletteProps) {
   const onSelect = props.onSelect
   const onClose = props.onClose
 
+  // Before the focus effect below, so the layer records the opener, not the panel.
+  useEscapeLayer(props.open, onClose, { priority: ESCAPE_PRIORITY.palette })
+
   useEffect(() => {
     if (!props.open) return
     setActive(0)
@@ -80,11 +84,6 @@ export function CommandPalette(props: CommandPaletteProps) {
   useEffect(() => {
     if (!props.open) return
     const onKey = (event: KeyboardEvent): void => {
-      if (event.key === 'Escape') {
-        event.preventDefault()
-        onClose()
-        return
-      }
       if (event.key === 'ArrowDown') {
         event.preventDefault()
         setActive(current => (count === 0 ? 0 : (current + 1) % count))

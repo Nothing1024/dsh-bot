@@ -1,7 +1,7 @@
 /**
  * Conversation stage: identity header, session switcher, transcript, composer.
  */
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useId, useRef, useState } from 'react'
 import { formatWireError } from 'dsh-bot-shared'
 import {
   createBotSession,
@@ -47,7 +47,7 @@ import { RoutinesPanel } from './RoutinesPanel.tsx'
 import { Transcript } from './Transcript.tsx'
 import type { TranscriptSpeaker } from './Transcript.tsx'
 
-import { SessionRename } from './interactions.tsx'
+import { ESCAPE_PRIORITY, moveMenuFocus, SessionRename, useEscapeLayer } from './interactions.tsx'
 import { isChildBotSession } from './jump.ts'
 import { SessionJumpMenuItem, SessionList } from './SessionList.tsx'
 import type { SessionChoice } from './SessionList.tsx'
@@ -61,6 +61,9 @@ import {
 import { mergeLiveItems, mergeGroupStream } from './useBotEvents.ts'
 import type { BotLiveState } from './useBotEvents.ts'
 import { useSessionPoll } from './useSessionPoll.ts'
+
+/** Group room safety poll while SSE is ready (full snapshot: member switches, cancels). */
+const GROUP_SSE_POLL_MS = 5000
 
 export interface ConversationProps {
   readonly bot?: WorkbenchBot
@@ -121,7 +124,7 @@ function roomsToSessions(
       sessionId: roomId,
       title: groupRoomDisplayTitle(row.title, groupName, row.createdAt ?? 0),
       tags: [],
-      status: 'idle' as const,
+      status: row.working === true ? 'live' as const : 'idle' as const,
       createdAt: row.createdAt ?? 0,
       updatedAt: row.updatedAt ?? 0,
       hidden: false,
@@ -164,12 +167,10 @@ export function Conversation(props: ConversationProps) {
   const [awaitingTurn, setAwaitingTurn] = useState(false)
   const [includeHidden, setIncludeHidden] = useState(false)
   const [toast, setToast] = useState<string | null>(null)
-  const [memoryOpen, setMemoryOpen] = useState(false)
+  const [panel, setPanel] = useState<'memory' | 'routines' | 'peers' | null>(null)
   const [memory, setMemory] = useState<MemoryListValue | null>(null)
   const [memoryUnavailable, setMemoryUnavailable] = useState(false)
-  const [routinesOpen, setRoutinesOpen] = useState(false)
   const [routines, setRoutines] = useState<readonly RoutineRow[]>([])
-  const [peersOpen, setPeersOpen] = useState(false)
   const [peerCount, setPeerCount] = useState(0)
   const [pinPick, setPinPick] = useState<string | null>(null)
   const [switcherOpen, setSwitcherOpen] = useState(false)
@@ -177,6 +178,7 @@ export function Conversation(props: ConversationProps) {
   const [replyTo, setReplyTo] = useState<ComposerReplyTo | null>(null)
   const retryRequest = useRef<{ sessionId: string; text: string; replyToSeq?: number; requestId: string } | null>(null)
   const switcherRef = useRef<HTMLDivElement>(null)
+  const switcherMenuId = useId()
   const sawWorkingRef = useRef(false)
   const sendSeqRef = useRef(-1)
   const groupCreateRef = useRef<ReturnType<typeof createGroupSession> | null>(null)
@@ -305,6 +307,16 @@ export function Conversation(props: ConversationProps) {
     return () => document.removeEventListener('mousedown', onDoc)
   }, [switcherOpen, currentMenuOpen])
 
+  useEscapeLayer(panel !== null, () => setPanel(null), { priority: ESCAPE_PRIORITY.panel })
+  useEscapeLayer(switcherOpen, () => setSwitcherOpen(false), {
+    priority: ESCAPE_PRIORITY.menu,
+    initialFocus: () => document.getElementById(switcherMenuId)?.querySelector<HTMLElement>('[role^="menuitem"]'),
+  })
+  useEscapeLayer(currentMenuOpen, () => setCurrentMenuOpen(false), {
+    priority: ESCAPE_PRIORITY.menu,
+    initialFocus: () => document.getElementById(`${switcherMenuId}-current`)?.querySelector<HTMLElement>('[role^="menuitem"]'),
+  })
+
   useEffect(() => {
     if (switcherOpen) void loadSessionsRef.current(sessionIdRef.current)
   }, [switcherOpen])
@@ -332,8 +344,11 @@ export function Conversation(props: ConversationProps) {
     // A last-sequence cursor cannot represent those updates across tabs.
     incremental: !isGroup,
     enabled: sessionId !== null,
-    sseReady: !isGroup && props.sseReady === true,
-    load: (id, sinceSeq) => history(id, sinceSeq),
+    sseReady: props.sseReady === true,
+    // Member sessions stream over SSE and their user/message / turn/end bump a
+    // refresh; the slow full poll still catches member switches and cancels.
+    ...isGroup ? { sseIntervalMs: GROUP_SSE_POLL_MS } : {},
+    load: history,
   })
 
   const executionId = isGroup ? poll.speaking?.sessionId : sessionId
@@ -369,6 +384,7 @@ export function Conversation(props: ConversationProps) {
   }, [isGroup, memoryBotId, poll.working])
 
   const botId = bot?.id
+  const routinesOpen = panel === 'routines'
   useEffect(() => {
     if (isGroup || botId === undefined) return
     let cancelled = false
@@ -623,7 +639,8 @@ export function Conversation(props: ConversationProps) {
                 className="memoryPill"
                 data-testid="memory-open"
                 title="记忆"
-                onClick={() => setMemoryOpen(open => !open)}
+                aria-expanded={panel === 'memory'}
+                onClick={() => setPanel(current => current === 'memory' ? null : 'memory')}
               >
                 🧠 {memoryCount(memory ?? undefined)}
               </button>
@@ -632,7 +649,8 @@ export function Conversation(props: ConversationProps) {
                 className="memoryPill"
                 data-testid="routines-open"
                 title="例程"
-                onClick={() => setRoutinesOpen(open => !open)}
+                aria-expanded={routinesOpen}
+                onClick={() => setPanel(current => current === 'routines' ? null : 'routines')}
               >
                 ⏰ {routines.length}
               </button>
@@ -641,7 +659,8 @@ export function Conversation(props: ConversationProps) {
                 className="memoryPill"
                 data-testid="peers-open"
                 title="同事"
-                onClick={() => setPeersOpen(open => !open)}
+                aria-expanded={panel === 'peers'}
+                onClick={() => setPanel(current => current === 'peers' ? null : 'peers')}
               >
                 同事 {peerCount}
               </button>
@@ -652,7 +671,7 @@ export function Conversation(props: ConversationProps) {
                   botName={identityName}
                   rows={routines}
                   onPreview={routinePreview}
-                  onClose={() => setRoutinesOpen(false)}
+                  onClose={() => setPanel(null)}
                   onCreate={async input => {
                     if (bot === undefined) return false
                     const result = await routineCreate({ botId: bot.id, ...input })
@@ -681,21 +700,21 @@ export function Conversation(props: ConversationProps) {
                   }}
                 />
               ) : null}
-              {peersOpen && bot !== undefined ? (
+              {panel === 'peers' && bot !== undefined ? (
                 <PeersPanel
                   open
                   botId={bot.id}
                   botName={identityName}
-                  onClose={() => setPeersOpen(false)}
+                  onClose={() => setPanel(null)}
                 />
               ) : null}
-              {memoryOpen ? (
+              {panel === 'memory' ? (
                 <MemoryPanel
                   open
                   botName={identityName}
                   data={memory}
                   unavailable={memoryUnavailable}
-                  onClose={() => setMemoryOpen(false)}
+                  onClose={() => setPanel(null)}
                   onForget={async id => {
                     if (bot === undefined) return false
                     const result = await memoryForget(bot.id, id)
@@ -722,7 +741,8 @@ export function Conversation(props: ConversationProps) {
               data-testid="session-select"
               data-session-id={sessionId ?? ''}
               aria-expanded={switcherOpen}
-              aria-haspopup="listbox"
+              aria-haspopup="menu"
+              aria-controls={switcherOpen ? switcherMenuId : undefined}
               title="切换这段对话"
               onClick={() => {
                 setCurrentMenuOpen(false)
@@ -743,7 +763,7 @@ export function Conversation(props: ConversationProps) {
               </span>
             </button>
             {switcherOpen ? (
-              <div className="sessionSwitchMenu" role="listbox">
+              <div className="sessionSwitchMenu" id={switcherMenuId} role="menu" aria-label={isGroup ? '切换房间' : '切换对话'} onKeyDown={moveMenuFocus}>
                 <SessionList
                   items={toChoices(sessions, identityName, sessionId)}
                   emptyHint="还没有绑定的对话"
@@ -779,6 +799,7 @@ export function Conversation(props: ConversationProps) {
                 aria-label="当前会话"
                 aria-expanded={currentMenuOpen}
                 aria-haspopup="menu"
+                aria-controls={currentMenuOpen ? `${switcherMenuId}-current` : undefined}
                 title="当前会话"
                 onClick={() => {
                   setSwitcherOpen(false)
@@ -789,7 +810,7 @@ export function Conversation(props: ConversationProps) {
               </button>
             ) : null}
             {!isGroup && currentMenuOpen && sessionId !== null ? (
-              <div className="rowMenu sessionCurrentMenuPanel" data-testid="session-current-menu-panel">
+              <div className="rowMenu sessionCurrentMenuPanel" id={`${switcherMenuId}-current`} role="menu" aria-label="当前会话" data-testid="session-current-menu-panel" onKeyDown={moveMenuFocus}>
                 <SessionJumpMenuItem
                   sessionId={sessionId}
                   testId="session-current-jump"

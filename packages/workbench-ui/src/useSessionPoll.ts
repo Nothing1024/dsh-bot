@@ -1,5 +1,6 @@
 /**
  * Transcript poll: 2s idle / 1s while working; pause when document.hidden.
+ * Once SSE is ready it stops, or slows to `sseIntervalMs` when set.
  */
 import { useCallback, useEffect, useRef, useState } from 'react'
 import type { HistoryValue, RpcResult, WorkbenchHistoryItem, WorkbenchWireError } from './api.ts'
@@ -22,7 +23,10 @@ export interface UseSessionPollOptions {
   readonly sessionId: string | null
   readonly enabled: boolean
   readonly sseReady?: boolean
-  readonly load: (sessionId: string, sinceSeq?: number) => Promise<RpcResult<HistoryValue>>
+  /** Safety cadence while SSE is ready; omitted = no timed polls then. */
+  readonly sseIntervalMs?: number
+  /** `signal` aborts when a newer request supersedes this one. */
+  readonly load: (sessionId: string, sinceSeq: number | undefined, signal: AbortSignal) => Promise<RpcResult<HistoryValue>>
 }
 
 function maxSeq(items: readonly WorkbenchHistoryItem[]): number | undefined {
@@ -78,7 +82,7 @@ export function mergeHistoryItems(
  * Poll `history` for one session. `sinceSeq` is used after the first page.
  */
 export function useSessionPoll(options: UseSessionPollOptions): SessionPollState & { refresh: () => void } {
-  const { sessionId, enabled, load, sseReady = false, incremental = true } = options
+  const { sessionId, enabled, load, sseReady = false, sseIntervalMs, incremental = true } = options
   const [items, setItems] = useState<readonly WorkbenchHistoryItem[]>([])
   const [working, setWorking] = useState(false)
   const [error, setError] = useState<WorkbenchWireError | null>(null)
@@ -93,14 +97,21 @@ export function useSessionPoll(options: UseSessionPollOptions): SessionPollState
   const workingRef = useRef(working)
   workingRef.current = working
   const tick = useRef(0)
+  const inFlight = useRef<AbortController | null>(null)
 
   const pull = useCallback(async (full: boolean): Promise<void> => {
     const id = sessionId
     if (id === null || !enabled) return
     const request = ++tick.current
+    // Only the newest request matters; drop the superseded one on the wire too.
+    inFlight.current?.abort()
+    const controller = new AbortController()
+    inFlight.current = controller
     const sinceSeq = full || !incremental ? undefined : maxSeq(itemsRef.current)
-    const outcome = await loadRef.current(id, sinceSeq)
-    if (request !== tick.current) return
+    const outcome = await loadRef.current(id, sinceSeq, controller.signal)
+    if (inFlight.current === controller) inFlight.current = null
+    // A superseded request (aborted or not) never reaches state, so `aborted` is never shown.
+    if (request !== tick.current || controller.signal.aborted) return
     if (!outcome.ok) {
       setError(outcome.error)
       // A failing poll is not evidence a turn is still running: the last
@@ -133,7 +144,6 @@ export function useSessionPoll(options: UseSessionPollOptions): SessionPollState
 
   /** Full snapshot without clearing first (avoids an empty-transcript flash). */
   const refresh = useCallback((): void => {
-    tick.current += 1
     void pull(true)
   }, [pull])
 
@@ -148,29 +158,42 @@ export function useSessionPoll(options: UseSessionPollOptions): SessionPollState
     setReady(sessionId === null || !enabled)
     if (sessionId === null || !enabled) return
     void pull(true)
-    return () => { tick.current += 1 }
+    return () => {
+      tick.current += 1
+      inFlight.current?.abort()
+      inFlight.current = null
+    }
   }, [enabled, pull, sessionId])
 
   useEffect(() => {
-    if (sessionId === null || !enabled || sseReady) return
+    if (sessionId === null || !enabled || (sseReady && sseIntervalMs === undefined)) return
     let cancelled = false
     let timer: ReturnType<typeof setTimeout> | undefined
-    const delay = (): number => (workingRef.current ? WORKING_MS : IDLE_MS)
+    const delay = (): number => sseReady && sseIntervalMs !== undefined
+      ? sseIntervalMs
+      : workingRef.current ? WORKING_MS : IDLE_MS
     const schedule = (): void => {
+      // One armed timer at most, even if a visibility refresh and a tick race.
+      if (timer !== undefined) clearTimeout(timer)
       timer = setTimeout(() => {
+        timer = undefined
         void (async () => {
           if (cancelled) return
-          if (typeof document !== 'undefined' && document.hidden) {
-            schedule()
-            return
-          }
+          // Hidden: stop; visibilitychange re-arms the loop.
+          if (typeof document !== 'undefined' && document.hidden) return
           await pull(false)
           if (!cancelled) schedule()
         })()
       }, delay())
     }
     const onVis = (): void => {
-      if (typeof document !== 'undefined' && !document.hidden) void pull(false)
+      if (typeof document === 'undefined' || document.hidden || cancelled) return
+      if (timer !== undefined) clearTimeout(timer)
+      timer = undefined
+      void (async () => {
+        await pull(false)
+        if (!cancelled && timer === undefined) schedule()
+      })()
     }
     document.addEventListener('visibilitychange', onVis)
     schedule()
@@ -179,7 +202,7 @@ export function useSessionPoll(options: UseSessionPollOptions): SessionPollState
       if (timer !== undefined) clearTimeout(timer)
       document.removeEventListener('visibilitychange', onVis)
     }
-  }, [enabled, pull, sessionId, sseReady])
+  }, [enabled, pull, sessionId, sseReady, sseIntervalMs])
 
   return { items, working, error, ready, speaking, round, rounds, refresh }
 }

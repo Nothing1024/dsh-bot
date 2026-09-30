@@ -8,18 +8,13 @@
 import { hideBotSession } from './session-visibility.ts'
 import { dirname } from 'node:path'
 import { SessionId } from '@deepseek-ai/dsh-session'
-import { listByMark } from 'session-marks'
-import {
-  SessionToolError,
-  SessionWebUnreachableError,
-} from 'session-tool'
+import { SessionToolError, SessionWebUnreachableError } from 'session-tool'
 import type {
   SessionToolCaller,
-  SessionToolListResult,
   SessionToolMessageRow,
   SessionToolService,
 } from 'session-tool'
-import { resolveOverride, visibleBotTitle } from './ask.ts'
+import { listMarkedSessions, resolveOverride, visibleBotTitle } from './ask.ts'
 import type { DshBotRuntimeConfig } from './ask.ts'
 import type { BotsRuntime } from './bots.ts'
 import { DshBotError } from './errors.ts'
@@ -30,6 +25,7 @@ import {
   botOwnershipTags,
   parseRoutineMark,
 } from './marks.ts'
+import { rowsWithMark } from './marks-cache.ts'
 import type { RoomState } from './groups.ts'
 import { applyModelOverride } from './platform.ts'
 import { isRoutineInjection } from './routine-wake.ts'
@@ -142,32 +138,6 @@ export interface PromptResult {
   readonly messageId?: string
   readonly sessionId: string
   readonly unmatchedMentions?: boolean
-}
-
-function isWebUnreachable(error: unknown): boolean {
-  return error instanceof SessionWebUnreachableError
-    || (error instanceof SessionToolError && error.code === 'web-unreachable')
-}
-
-async function listViaPlatform(
-  platform: DshBotPlatform,
-  marked: readonly { readonly id: string; readonly tags: readonly string[] }[],
-): Promise<SessionToolListResult> {
-  const gateway = await platform.listSessions()
-  const byId = new Map(gateway.map(row => [row.sessionId, row]))
-  const sessions = []
-  for (const mark of marked) {
-    const gate = byId.get(mark.id)
-    if (gate === undefined) continue
-    sessions.push({
-      sessionId: SessionId(mark.id),
-      ...gate.title === undefined || gate.title === '' ? {} : { title: gate.title },
-      tags: [...mark.tags],
-      status: gate.running ? 'live' as const : 'idle' as const,
-      createdAt: gate.updatedAt > 0 ? gate.updatedAt : 0,
-    })
-  }
-  return { sessions }
 }
 
 function rethrow(error: unknown, sessionId?: string): never {
@@ -465,6 +435,7 @@ export async function createOwnedSession(
  * hiding a chat from Harness does not remove it from the Bot list.
  */
 export async function listOwnedSessions(
+  ctx: { get(name: string): unknown },
   sessionTool: SessionToolService,
   platform: DshBotPlatform,
   bots: BotsRuntime,
@@ -474,43 +445,21 @@ export async function listOwnedSessions(
   if (botId === '') throw new DshBotError('invalid-input', 'botId is required')
   await bots.getBot(botId)
   const includeHidden = request.includeHidden === true
-  const marked = await listByMark(botMark(botId))
-  let listed
-  try {
-    listed = await sessionTool.list(CLI_CALLER, {
-      scope: 'all',
-      includeHidden: true,
-    })
-  } catch (error) {
-    if (!isWebUnreachable(error)) rethrow(error)
-    listed = await listViaPlatform(platform, marked)
-  }
-  const byId = new Map(listed.sessions.map(row => [String(row.sessionId), row]))
-  let runningById = new Map<string, { running: boolean; updatedAt: number }>()
-  try {
-    const gateway = await platform.listSessions()
-    runningById = new Map(gateway.map(row => [row.sessionId, { running: row.running, updatedAt: row.updatedAt }]))
-  } catch {
-    runningById = new Map()
-  }
+  const joined = await listMarkedSessions(ctx, sessionTool, platform, CLI_CALLER, await rowsWithMark(botMark(botId)))
   const sessions: OwnedSessionRow[] = []
-  for (const mark of marked) {
-    const meta = byId.get(mark.id)
-    if (meta === undefined) continue
-    const tags = [...new Set([...meta.tags, ...mark.tags])]
-    const hidden = isAuxiliaryBotSession(tags, meta.title)
+  for (const meta of joined) {
+    const hidden = isAuxiliaryBotSession(meta.tags, meta.title)
     if (!includeHidden && hidden) continue
-    const gate = runningById.get(mark.id)
-    const routineId = parseRoutineMark(tags) ?? parseRoutineMark(mark.tags)
+    const routineId = parseRoutineMark(meta.tags)
     sessions.push({
-      sessionId: String(meta.sessionId),
+      sessionId: meta.sessionId,
       ...meta.title === undefined ? {} : { title: meta.title },
-      tags,
+      tags: [...meta.tags],
       status: meta.status,
       createdAt: meta.createdAt,
-      updatedAt: gate !== undefined && gate.updatedAt > 0 ? gate.updatedAt : meta.createdAt,
+      updatedAt: meta.updatedAt,
       hidden,
-      working: gate?.running === true,
+      working: meta.working,
       ...routineId === undefined ? {} : { routine: routineId },
     })
   }
@@ -533,7 +482,7 @@ export async function archiveOwnedSessions(
 ): Promise<{ archived: number }> {
   const trimmed = botId.trim()
   if (trimmed === '') throw new DshBotError('invalid-input', 'botId is required')
-  const marked = await listByMark(botMark(trimmed))
+  const marked = await rowsWithMark(botMark(trimmed))
   const results = await Promise.all(marked.map(async row => {
     try {
       await hideBotSession(sessionTool, platform, row.id, CLI_CALLER, { syncToArchived: true })

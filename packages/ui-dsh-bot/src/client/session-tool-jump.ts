@@ -4,7 +4,7 @@
  * Child rows and sessions still in the archive set are refused before
  * `prepareOfficialJump`, so an archived target is not unarchived and not
  * opened. A session that is not archived still goes through the existing
- * prepare step, then the same `executeJump` path as the iframe bridge.
+ * prepare step, then `executeJump`.
  * Never fall back to the removed `sessions.open`.
  */
 import { executeJump, isBlockedChildSession, JUMP_REASON_ARCHIVED, JUMP_REASON_SUBAGENT } from './session-jump.ts'

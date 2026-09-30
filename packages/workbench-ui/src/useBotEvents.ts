@@ -1,6 +1,7 @@
 /**
  * One EventSource on GET /dsh-bot/events. Ready stops the three named polls.
- * Parses assistant/chunk text-delta and approval/question cards.
+ * Parses assistant/chunk text-delta and approval/question cards. Text deltas
+ * repaint at most once per animation frame; lifecycle events flush at once.
  */
 import { useEffect, useRef, useState } from 'react'
 import type { HistoryValue, WorkbenchHistoryItem, WorkbenchBot } from './api.ts'
@@ -178,9 +179,25 @@ export function useBotEvents(): BotLiveState {
     let source: EventSource | undefined
     let timer: ReturnType<typeof setTimeout> | undefined
     let delay = 500
+    /** Sessions whose stream changed since the last paint, oldest first. */
+    const dirty = new Set<string>()
+    let frame: number | undefined
 
     const bump = (): void => { setEpoch(n => n + 1) }
-    const publish = (sessionId: string, next: LiveStream | null): void => {
+    const flush = (): void => {
+      if (frame !== undefined) cancelAnimationFrame(frame)
+      frame = undefined
+      if (dirty.size === 0) return
+      const changed = [...dirty].map(id => [id, streams.current.get(id) ?? null] as const)
+      dirty.clear()
+      // Same outcome as applying each publish in order: the last live session wins.
+      setStream(current => changed.reduce<LiveStream | null>(
+        (shown, [id, row]) => row ?? (shown?.sessionId === id ? null : shown),
+        current,
+      ))
+      setStreamRows([...streams.current.values()])
+    }
+    const publish = (sessionId: string, next: LiveStream | null, deferred = false): void => {
       if (next === null) streams.current.delete(sessionId)
       else streams.current.set(sessionId, next)
       // Keep active turns, but bound retained completed handoffs.
@@ -190,8 +207,10 @@ export function useBotEvents(): BotLiveState {
           if (row.complete) streams.current.delete(id)
         }
       }
-      setStream(current => next ?? (current?.sessionId === sessionId ? null : current))
-      setStreamRows([...streams.current.values()])
+      dirty.delete(sessionId)
+      dirty.add(sessionId)
+      if (!deferred) flush()
+      else if (frame === undefined) frame = requestAnimationFrame(flush)
     }
 
     const handle = (raw: string): void => {
@@ -240,7 +259,7 @@ export function useBotEvents(): BotLiveState {
           publish(sessionId, { sessionId, text: next,
             ...typeof event.seq === 'number' ? { seq: event.seq } : {},
             ...typeof frame.roomId === 'string' ? { roomId: frame.roomId } : {},
-          })
+          }, true)
           return
         }
         if (eventType === 'assistant/message' || eventType === 'turn/end' || eventType === 'user/message') {
@@ -292,6 +311,7 @@ export function useBotEvents(): BotLiveState {
     return () => {
       closed = true
       if (timer !== undefined) clearTimeout(timer)
+      if (frame !== undefined) cancelAnimationFrame(frame)
       source?.close()
     }
   }, [])

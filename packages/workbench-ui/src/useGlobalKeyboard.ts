@@ -5,9 +5,7 @@ import { useEffect } from 'react'
 
 export interface GlobalKeyboardOptions {
   readonly enabled?: boolean
-  readonly paletteOpen: boolean
   readonly onTogglePalette: () => void
-  readonly onClosePalette: () => void
   readonly onRosterIndex?: (index: number) => void
   readonly onRosterMove?: (delta: -1 | 1) => void
   readonly onToggleRoster?: () => void
@@ -21,11 +19,11 @@ export function isPaletteToggle(event: KeyboardEvent): boolean {
 
 /**
  * Cmd/Ctrl+K toggles the command palette from anywhere, including composer
- * focus. Escape closes the palette when it is open.
+ * focus. Escape belongs to `useEscapeLayer`, which closes the topmost layer.
  */
 export function useGlobalKeyboard(options: GlobalKeyboardOptions): void {
   const enabled = options.enabled !== false
-  const { paletteOpen, onTogglePalette, onClosePalette, onRosterIndex, onRosterMove, onToggleRoster } = options
+  const { onTogglePalette, onRosterIndex, onRosterMove, onToggleRoster } = options
 
   useEffect(() => {
     if (!enabled) return
@@ -34,11 +32,6 @@ export function useGlobalKeyboard(options: GlobalKeyboardOptions): void {
         event.preventDefault()
         event.stopPropagation()
         onTogglePalette()
-        return
-      }
-      if (event.key === 'Escape' && paletteOpen) {
-        event.preventDefault()
-        onClosePalette()
         return
       }
       const meta = event.metaKey || event.ctrlKey
@@ -62,5 +55,5 @@ export function useGlobalKeyboard(options: GlobalKeyboardOptions): void {
     }
     document.addEventListener('keydown', onKey, true)
     return () => document.removeEventListener('keydown', onKey, true)
-  }, [enabled, onClosePalette, onRosterIndex, onRosterMove, onTogglePalette, onToggleRoster, paletteOpen])
+  }, [enabled, onRosterIndex, onRosterMove, onTogglePalette, onToggleRoster])
 }

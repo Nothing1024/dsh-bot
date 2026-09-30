@@ -13,20 +13,51 @@ class Events {
     this.onmessage?.({ data: JSON.stringify({ type: 'session/event', sessionId, roomId: 'room', event: { type, data: { chunk: { type: 'text-delta', text } } } }) })
   }
 }
+/** Queued animation frames; `paint()` runs them like the browser's next frame. */
+let frames: FrameRequestCallback[] = []
+function paint(): void {
+  const queued = frames
+  frames = []
+  for (const run of queued) run(0)
+}
+function stubFrames(): void {
+  frames = []
+  vi.stubGlobal('requestAnimationFrame', (run: FrameRequestCallback) => frames.push(run))
+  vi.stubGlobal('cancelAnimationFrame', () => { frames = [] })
+}
 afterEach(() => { cleanup(); vi.unstubAllGlobals() })
 
 it('keeps the visible reply while history catches up after stream completion', () => {
   vi.stubGlobal('EventSource', Events)
+  stubFrames()
   const { result } = renderHook(() => useBotEvents())
   act(() => { Events.current.emit('member-a', 'assistant/chunk', '写完的回复') })
   act(() => { Events.current.emit('member-a', 'assistant/message'); Events.current.emit('member-a', 'turn/end') })
   expect(result.current.stream).toMatchObject({ text: '写完的回复', complete: true })
 })
 
+it('repaints streamed text once per frame, not once per delta', () => {
+  vi.stubGlobal('EventSource', Events)
+  stubFrames()
+  let renders = 0
+  const { result } = renderHook(() => { renders += 1; return useBotEvents() })
+  const before = renders
+  act(() => {
+    for (const piece of ['一', '二', '三', '四']) Events.current.emit('member-a', 'assistant/chunk', piece)
+  })
+  expect(renders).toBe(before)
+  expect(result.current.stream).toBeNull()
+  act(() => { paint() })
+  expect(result.current.stream?.text).toBe('一二三四')
+  expect(renders).toBe(before + 1)
+})
+
 it('keeps simultaneous session streams separate', () => {
   vi.stubGlobal('EventSource', Events)
+  stubFrames()
   const { result } = renderHook(() => useBotEvents())
   act(() => { Events.current.emit('member-a', 'assistant/chunk', '甲'); Events.current.emit('member-b', 'assistant/chunk', '乙') })
+  act(() => { paint() })
   expect(result.current.streams).toEqual(expect.arrayContaining([
     expect.objectContaining({ sessionId: 'member-a', text: '甲', roomId: 'room' }),
     expect.objectContaining({ sessionId: 'member-b', text: '乙', roomId: 'room' }),
@@ -57,10 +88,14 @@ it('keeps hidden prompt echoes out of the visible group stream', () => {
 
 it('does not concatenate text from retried or abandoned attempts', () => {
   vi.stubGlobal('EventSource', Events)
+  stubFrames()
   const { result } = renderHook(() => useBotEvents())
   act(() => { Events.current.emit('member-a', 'assistant/chunk', '废弃片段'); Events.current.emit('member-a', 'assistant/start'); Events.current.emit('member-a', 'assistant/chunk', '重试正文') })
+  act(() => { paint() })
   expect(result.current.stream?.text).toBe('重试正文')
-  act(() => { Events.current.emit('member-a', 'assistant/attempt') })
+  // A pending frame must not resurrect text the attempt event already cleared.
+  act(() => { Events.current.emit('member-a', 'assistant/chunk', '残片'); Events.current.emit('member-a', 'assistant/attempt') })
+  act(() => { paint() })
   expect(result.current.stream).toBeNull()
 })
 

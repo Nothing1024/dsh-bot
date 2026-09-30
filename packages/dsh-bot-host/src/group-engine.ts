@@ -10,7 +10,8 @@ export { parseMentions } from 'dsh-bot-shared'
 export type { MentionMember, MentionParse } from 'dsh-bot-shared'
 
 import { SessionId } from '@deepseek-ai/dsh-session'
-import { hasHiddenMark, listByMark } from 'session-marks'
+import { hasHiddenMark } from 'session-marks'
+import { rowsWithMark } from './marks-cache.ts'
 import type { SessionToolCaller, SessionToolService } from 'session-tool'
 import { extractAssistantAnswer, resolveOverride } from './ask.ts'
 import { forkChildId, readAssistant } from './fork-continuation.ts'
@@ -253,7 +254,7 @@ async function ensureMemberTurnSession(
     readonly bot: BotView
   },
 ): Promise<string> {
-  const marked = await listByMark(groupRoomMark(input.roomId))
+  const marked = await rowsWithMark(groupRoomMark(input.roomId))
   for (const row of marked) {
     if (parseBotMark(row.tags) === input.bot.id && hasHiddenMark(row.tags)) {
       return row.id

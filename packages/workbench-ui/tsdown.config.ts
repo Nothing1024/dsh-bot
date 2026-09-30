@@ -14,6 +14,7 @@ export default defineConfig({
   dts: false,
   clean: true,
   sourcemap: true,
+  minify: true,
   define: {
     'process.env.NODE_ENV': JSON.stringify('production'),
   },

@@ -17,7 +17,7 @@ import {
   listBotSessions,
   listGroups,
   listGroupSessions,
-  listSessionsModel,
+  fetchBotModel,
   readDraft,
   reconcile,
   routineList,
@@ -52,6 +52,7 @@ import { Roster } from './Roster.tsx'
 import type { RosterItem, RosterSession } from './Roster.tsx'
 import { useBotEvents } from './useBotEvents.ts'
 import { useGlobalKeyboard } from './useGlobalKeyboard.ts'
+import { usePoller } from './usePoller.ts'
 import { groupRosterItems } from './roster-sections.ts'
 import { formatWireError, readLastOwner, writeLastOwner, SELECT_GROUP_MESSAGE_TYPE } from 'dsh-bot-shared'
 import type { WorkbenchWireError } from 'dsh-bot-shared'
@@ -63,10 +64,12 @@ type FormMode =
   | { kind: 'create-group' }
   | { kind: 'edit-group'; group: WorkbenchGroup }
 
-const RECONCILE_MS = 30_000
-const BOT_POLL_IDLE_MS = 2000
-const BOT_POLL_SSE_MS = 15_000
-const GROUP_POLL_SSE_MS = 15_000
+/** Visible-only orphan-session labeling; SSE does not cover it. */
+const RECONCILE_MS = 60_000
+/** Roster polls without SSE. */
+const POLL_MS = 2000
+/** Roster safety polls once SSE is live; also the hidden-tab unread cadence for notifications. */
+const POLL_SSE_MS = 15_000
 
 function sameBot(a: WorkbenchBot, b: WorkbenchBot): boolean {
   return a.id === b.id
@@ -90,6 +93,17 @@ function sameBots(a: readonly WorkbenchBot[], b: readonly WorkbenchBot[]): boole
 }
 
 const GROUP_MEMBER_MIN = 2
+/** Collapsed roster categories survive reloads. */
+const FOLDED_SECTIONS_KEY = 'dsh-bot:workbench:folded-sections'
+
+function readFoldedSections(): ReadonlySet<string> {
+  try {
+    const parsed: unknown = JSON.parse(localStorage.getItem(FOLDED_SECTIONS_KEY) ?? '[]')
+    return new Set(Array.isArray(parsed) ? parsed.filter((id): id is string => typeof id === 'string') : [])
+  } catch {
+    return new Set()
+  }
+}
 
 function groupsAfterBotRemoved(
   rows: readonly WorkbenchGroup[],
@@ -145,7 +159,7 @@ export function App(props: AppProps = {}) {
   const [activeSessionId, setActiveSessionId] = useState<string | null>(null)
   const [paletteOpen, setPaletteOpen] = useState(false)
   const [rosterCollapsed, setRosterCollapsed] = useState(false)
-  const [foldedSections, setFoldedSections] = useState<ReadonlySet<string>>(() => new Set())
+  const [foldedSections, setFoldedSections] = useState<ReadonlySet<string>>(readFoldedSections)
   const [routineCountByBot, setRoutineCountByBot] = useState<Record<string, number>>({})
   const submitLock = useRef(false)
   const workingOverlay = useRef(new Map<string, boolean>())
@@ -175,22 +189,39 @@ export function App(props: AppProps = {}) {
   }, [])
 
 
-  const load = useCallback(async (): Promise<void> => {
-    setStatus('loading')
-    setError(null)
+  /** Newest listBots request; an older response must not overwrite a newer roster. */
+  const botsRequest = useRef(0)
+  /** Last unread count per bot the notifier has seen. */
+  const unreadSeen = useRef(new Map<string, number>())
+
+  /**
+   * `background` keeps the shell mounted (roster move/pin/hide/markRead);
+   * only the first load and 重试 show the loading screen.
+   */
+  const load = useCallback(async (background = false): Promise<void> => {
+    if (!background) {
+      setStatus('loading')
+      setError(null)
+    }
+    const request = ++botsRequest.current
     const [botsOutcome, groupsOutcome, modelOutcome, routinesOutcome] = await Promise.all([
       listBots(),
       listGroups(),
-      listSessionsModel(),
+      fetchBotModel(),
       routineList(),
     ])
     if (!botsOutcome.ok) {
-      setStatus('error')
-      setError(botsOutcome.error.message)
+      if (!background) {
+        setStatus('error')
+        setError(botsOutcome.error.message)
+      }
       return
     }
     const rows = botsOutcome.value.bots
-    setBots(rows)
+    if (request === botsRequest.current) {
+      for (const bot of rows) unreadSeen.current.set(bot.id, bot.unread ?? 0)
+      setBots(current => sameBots(current, rows) ? current : rows)
+    }
     const groupRows = groupsOutcome.ok && Array.isArray(groupsOutcome.value.groups)
       ? groupsOutcome.value.groups
       : []
@@ -216,30 +247,29 @@ export function App(props: AppProps = {}) {
     void load()
   }, [load])
 
-  useEffect(() => {
-    let cancelled = false
-    const prev = new Map<string, number>()
-    const tick = async (): Promise<void> => {
+  // Routine notifications only fire for a hidden tab, so unread keeps a slow
+  // poll there while the browser may still show them.
+  const notifyWhileHidden = typeof Notification !== 'undefined' && Notification.permission !== 'denied'
+  usePoller({
+    enabled: status === 'idle',
+    intervalMs: sseReady ? POLL_SSE_MS : POLL_MS,
+    ...notifyWhileHidden ? { hiddenIntervalMs: POLL_SSE_MS } : {},
+    run: async fresh => {
+      const request = ++botsRequest.current
       const outcome = await listBots()
-      if (!outcome.ok || cancelled) return
+      if (!fresh() || request !== botsRequest.current || !outcome.ok) return
       const rows = outcome.value.bots
       for (const bot of rows) {
         const unread = bot.unread ?? 0
-        const before = prev.get(bot.id) ?? 0
+        const before = unreadSeen.current.get(bot.id) ?? 0
         if (shouldNotifyRoutine(bot.muted, unread, before)) {
           notifyRoutineSpoke(bot.id, bot.name, `有 ${unread} 条未读例程消息`)
         }
-        prev.set(bot.id, unread)
+        unreadSeen.current.set(bot.id, unread)
       }
       setBots(current => sameBots(current, rows) ? current : rows)
-    }
-    void tick()
-    const timer = window.setInterval(() => { void tick() }, sseReady ? BOT_POLL_SSE_MS : BOT_POLL_IDLE_MS)
-    return () => {
-      cancelled = true
-      window.clearInterval(timer)
-    }
-  }, [sseReady])
+    },
+  })
 
 
   useEffect(() => {
@@ -270,32 +300,35 @@ export function App(props: AppProps = {}) {
     })
   }, [bots, groups])
 
-  useEffect(() => {
-    if (status !== 'idle') return
-    let cancelled = false
-    const run = async (): Promise<void> => {
+  usePoller({
+    enabled: status === 'idle',
+    intervalMs: RECONCILE_MS,
+    immediate: true,
+    run: async fresh => {
       const outcome = await reconcile()
-      if (cancelled || !outcome.ok) return
+      if (!fresh() || !outcome.ok) return
       if (outcome.value.labeled > 0) setRefreshEpoch(n => n + 1)
-    }
-    void run()
-    const timer = setInterval(() => { void run() }, RECONCILE_MS)
-    return () => {
-      cancelled = true
-      clearInterval(timer)
-    }
-  }, [status])
+    },
+  })
 
-  useEffect(() => {
-    if (status !== 'idle' || bots.length === 0) return
-    let cancelled = false
-    const tick = async (): Promise<void> => {
-      if (typeof document !== 'undefined' && document.hidden) return
+  const botsRef = useRef(bots)
+  botsRef.current = bots
+  const groupsRef = useRef(groups)
+  groupsRef.current = groups
+  // Membership changes (not unread/name churn) restart the roster poll with a fresh tick.
+  const ownerKey = `${bots.map(bot => bot.id).join(',')}|${groups.map(group => group.id).join(',')}`
+
+  usePoller({
+    enabled: status === 'idle' && bots.length > 0,
+    intervalMs: sseReady ? POLL_SSE_MS : POLL_MS,
+    immediate: true,
+    restartKey: ownerKey,
+    run: async fresh => {
       const next = new Set<string>()
       const times: Record<string, number> = {}
       const listed: Record<string, readonly WorkbenchSessionRow[]> = {}
       await Promise.all([
-        ...(sseReady ? [] : bots.map(async bot => {
+        ...(sseReady ? [] : botsRef.current.map(async bot => {
           const outcome = await listBotSessions(bot.id)
           if (!outcome.ok) return
           const sessions = outcome.value.sessions ?? []
@@ -308,7 +341,7 @@ export function App(props: AppProps = {}) {
           const selected = selectedIdRef.current
           if (bot.id !== selected || !conversationOwned.current.has(bot.id)) listed[bot.id] = sessions
         })),
-        ...groups.map(async group => {
+        ...groupsRef.current.map(async group => {
           const outcome = await listGroupSessions(group.id)
           if (!outcome.ok) return
           const rooms = outcome.value.rooms ?? []
@@ -316,7 +349,7 @@ export function App(props: AppProps = {}) {
             sessionId: row.roomId,
             title: groupRoomDisplayTitle(row.title, group.name, row.createdAt),
             tags: [],
-            status: 'idle',
+            status: row.working === true ? 'live' : 'idle',
             createdAt: row.createdAt,
             updatedAt: row.updatedAt,
             hidden: false,
@@ -335,8 +368,13 @@ export function App(props: AppProps = {}) {
       for (const [id, on] of workingOverlay.current) {
         if (on) next.add(id)
       }
-      if (cancelled) return
+      if (!fresh()) return
       setWorkingIds(current => {
+        // With SSE live, bot rows were not polled: their working state is the stream's.
+        if (sseReady) {
+          const groupIds = new Set(groupsRef.current.map(group => group.id))
+          for (const id of current) if (!groupIds.has(id)) next.add(id)
+        }
         if (current.size === next.size && [...next].every(id => current.has(id))) return current
         return next
       })
@@ -373,19 +411,8 @@ export function App(props: AppProps = {}) {
         }
         return same ? current : { ...current, ...listed }
       })
-    }
-    void tick()
-    const timer = setInterval(() => { void tick() }, sseReady ? GROUP_POLL_SSE_MS : BOT_POLL_IDLE_MS)
-    const onVis = (): void => {
-      if (typeof document !== 'undefined' && !document.hidden) void tick()
-    }
-    document.addEventListener('visibilitychange', onVis)
-    return () => {
-      cancelled = true
-      clearInterval(timer)
-      document.removeEventListener('visibilitychange', onVis)
-    }
-  }, [bots, groups, status, sseReady])
+    },
+  })
 
   useEffect(() => {
     if (live.status.length === 0) return
@@ -694,6 +721,19 @@ export function App(props: AppProps = {}) {
     })
   }
 
+  useEffect(() => {
+    try {
+      localStorage.setItem(FOLDED_SECTIONS_KEY, JSON.stringify([...foldedSections]))
+    } catch {
+      // blocked storage only loses persistence
+    }
+  }, [foldedSections])
+  const toggleSection = (id: string): void => setFoldedSections(current => {
+    const next = new Set(current)
+    if (next.has(id)) next.delete(id)
+    else next.add(id)
+    return next
+  })
   const closePalette = useCallback(() => setPaletteOpen(false), [])
   const togglePalette = useCallback(() => setPaletteOpen(open => !open), [])
   const visibleRosterIds = useMemo(() => {
@@ -705,9 +745,7 @@ export function App(props: AppProps = {}) {
 
   useGlobalKeyboard({
     enabled: status === 'idle',
-    paletteOpen,
     onTogglePalette: togglePalette,
-    onClosePalette: closePalette,
     onToggleRoster: () => setRosterCollapsed(open => !open),
     onRosterIndex: index => {
       const id = visibleRosterIds[index]
@@ -874,12 +912,7 @@ export function App(props: AppProps = {}) {
             onOpenGraph={() => setGraphOpen(true)}
             collapsed={rosterCollapsed}
             folded={foldedSections}
-            onToggleSection={id => setFoldedSections(current => {
-              const next = new Set(current)
-              if (next.has(id)) next.delete(id)
-              else next.add(id)
-              return next
-            })}
+            onToggleSection={toggleSection}
             onLayout={input => {
               void (async () => {
                 const outcome = await updateBotLayout(input)
@@ -888,13 +921,13 @@ export function App(props: AppProps = {}) {
                   return
                 }
                 setActionError(null)
-                await load()
+                await load(true)
               })()
             }}
             onMarkRead={id => {
               void (async () => {
                 await markRead(id)
-                await load()
+                await load(true)
               })()
             }}
             onCreate={() => {
@@ -954,12 +987,7 @@ export function App(props: AppProps = {}) {
             onOpenGraph={() => setGraphOpen(true)}
             collapsed={rosterCollapsed}
             folded={foldedSections}
-            onToggleSection={id => setFoldedSections(current => {
-              const next = new Set(current)
-              if (next.has(id)) next.delete(id)
-              else next.add(id)
-              return next
-            })}
+            onToggleSection={toggleSection}
             onLayout={input => {
               void (async () => {
                 const outcome = await updateBotLayout(input)
@@ -968,13 +996,13 @@ export function App(props: AppProps = {}) {
                   return
                 }
                 setActionError(null)
-                await load()
+                await load(true)
               })()
             }}
             onMarkRead={id => {
               void (async () => {
                 await markRead(id)
-                await load()
+                await load(true)
               })()
             }}
             onCreate={() => {

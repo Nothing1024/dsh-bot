@@ -230,6 +230,30 @@ describe('reconcileBotSessions', () => {
     expect(await get('session-std')).toBeUndefined()
   })
 
+  it('forgets a cached non-bot id once it leaves the gateway listing', async () => {
+    const platform = new StubPlatform()
+    platform.gatewayRows = [{ sessionId: 'session-std', running: false, updatedAt: 10, agentPreset: 'standard' }]
+    const { bot } = boot(platform)
+    await bot.reconcile()
+    platform.gatewayRows = []
+    await bot.reconcile()
+    platform.gatewayRows = [{ sessionId: 'session-std', running: false, updatedAt: 10, agentPreset: 'standard' }]
+    const back = await bot.reconcile()
+    expect(back.skippedCached).toBe(0)
+    expect(back.skippedNonBot).toBe(1)
+  })
+
+  it('shares one in-flight pass between concurrent callers', async () => {
+    const platform = new StubPlatform()
+    platform.gatewayRows = [{ sessionId: 'session-gui', running: false, updatedAt: 10, agentPreset: 'dsh-bot' }]
+    const { bot } = boot(platform)
+    const [a, b] = await Promise.all([bot.reconcile(), bot.reconcile()])
+    expect(platform.listCalls).toBe(1)
+    expect(b).toBe(a)
+    await bot.reconcile()
+    expect(platform.listCalls).toBe(2)
+  })
+
   it('is idempotent and does not delete extra marks', async () => {
     const platform = new StubPlatform()
     platform.gatewayRows = [

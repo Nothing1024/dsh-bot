@@ -6,10 +6,11 @@
  * @module dsh-bot-host/marks
  */
 
-import { expandRemoveAliases, expandWriteAliases, hasHiddenMark, isTitleHidden, listByMark } from 'session-marks'
+import { expandRemoveAliases, expandWriteAliases, hasHiddenMark, isTitleHidden } from 'session-marks'
 import type { SessionMarksRow } from 'session-marks'
+import { marksTable } from './marks-cache.ts'
 
-export { expandRemoveAliases, expandWriteAliases, hasHiddenMark, listByMark }
+export { expandRemoveAliases, expandWriteAliases, hasHiddenMark }
 
 /** Product inventory axis. New writes always include this. */
 export const DSH_BOT_APP = 'app:dsh-bot'
@@ -49,16 +50,13 @@ export function hasBotInventoryMark(tags: readonly string[] | undefined): boolea
  * Do not pass both tokens to `sessionTool.list({ tags })` — that is an intersection.
  */
 export async function listBotInventory(): Promise<SessionMarksRow[]> {
-  const [byApp, byKind] = await Promise.all([
-    listByMark(DSH_BOT_APP),
-    listByMark(DSH_BOT_KIND),
-  ])
-  const byId = new Map<string, SessionMarksRow>()
-  for (const row of byApp) byId.set(row.id, row)
-  for (const row of byKind) {
-    if (!byId.has(row.id)) byId.set(row.id, row)
+  const byApp: SessionMarksRow[] = []
+  const kindOnly: SessionMarksRow[] = []
+  for (const [id, tags] of await marksTable()) {
+    if (tags.includes(DSH_BOT_APP)) byApp.push({ id, tags })
+    else if (tags.includes(DSH_BOT_KIND)) kindOnly.push({ id, tags })
   }
-  return [...byId.values()]
+  return [...byApp, ...kindOnly]
 }
 
 export function isAuxiliaryBotSession(tags: readonly string[], title?: string): boolean {

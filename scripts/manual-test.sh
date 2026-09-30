@@ -306,9 +306,11 @@ say "本轮标题前缀：$PREFIX"
 say "说明：不要再 boot --profile gb。须本仓 DSH_HOME。先 who 再 RPC。"
 run_capture "who :${GW_PORT}" "$WHO" "$GW_PORT"
 check who-本仓 stdout_has "$DSH_HOME"
-GW=$(curl -s -o /dev/null -w '%{http_code}' --connect-timeout 2 "http://127.0.0.1:${GW_PORT}/" || true)
+# The official index (/) needs the browser cookie; probe this plugin's own RPC,
+# which admits local non-browser clients.
+GW=$(curl -s -o /dev/null -w '%{http_code}' --connect-timeout 2 -X POST -H 'Content-Type: application/json' -d '{}' "http://127.0.0.1:${GW_PORT}/dsh-bot/botModel" || true)
 if [ "$GW" != 200 ]; then
-  echo "网关 http://127.0.0.1:${GW_PORT} 身份对但 HTTP=${GW}。先：sh env/boot.sh" >&2
+  echo "网关 http://127.0.0.1:${GW_PORT} 身份对但 /dsh-bot/botModel HTTP=${GW}。先：sh env/boot.sh" >&2
   exit 1
 fi
 say "监听："

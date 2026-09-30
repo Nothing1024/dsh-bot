@@ -13,6 +13,8 @@ import type { Volatile } from '@deepseek-ai/cordis'
 import z from '@deepseek-ai/schemastery'
 import { type SessionToolCaller } from 'session-tool'
 import { get } from 'session-marks'
+import { marksOf } from './marks-cache.ts'
+import { marksAllowForward } from './bot-events.ts'
 import {
   askBot,
   createBotSession as createVisibleBotSession,
@@ -344,7 +346,7 @@ class DshBotService extends Service {
   private readonly lastHistorySeq = new Map<string, number>()
   private readonly extracting = new Set<string>()
   private readonly reconcileState = createReconcileState()
-  private reconcileGate: Promise<void> = Promise.resolve()
+  private reconcileRun: Promise<ReconcileResult> | undefined
 
   constructor(
     ctx: Context,
@@ -425,7 +427,7 @@ class DshBotService extends Service {
   }
 
   listSessions(request: ListBotSessionsRequest = {}): Promise<readonly DshBotSessionRow[]> {
-    return listMarkedBotSessions(this.ctx.sessionTool, request, this.platform)
+    return listMarkedBotSessions(this.ctx, this.ctx.sessionTool, this.platform, request)
   }
 
   currentBotModel(): DshBotModelInfo {
@@ -508,7 +510,7 @@ class DshBotService extends Service {
   }
 
   listBotSessions(input: ListOwnedSessionsRequest) {
-    return listOwnedSessions(this.ctx.sessionTool, this.platform, this.botsRuntime, input)
+    return listOwnedSessions(this.ctx, this.ctx.sessionTool, this.platform, this.botsRuntime, input)
   }
 
   async renameSession(input: { sessionId: string; title: string }): Promise<{ sessionId: string; title: string }> {
@@ -580,10 +582,10 @@ class DshBotService extends Service {
     return this.groupInbox.retryMember(input)
   }
 
-
   private async readHistory(input: HistoryRequest): Promise<HistoryResult> {
     const room = await this.groupsRuntime.peekRoom(input.sessionId)
     if (room === undefined) {
+      await this.requireBotSession(input.sessionId)
       const result = await readOwnedHistory(this.ctx, this.ctx.sessionTool, this.platform, input)
       this.lastHistorySeq.set(input.sessionId, maxItemSeq(result.items))
       this.queueExtract(input.sessionId, result)
@@ -619,6 +621,9 @@ class DshBotService extends Service {
   private async promptSession(input: PromptRequest): Promise<PromptResult> {
     const room = await this.groupsRuntime.peekRoom(input.sessionId)
     if (room === undefined) {
+      await this.requireBotSession(input.sessionId)
+      // Before wrapping: the voice envelope would make a blank prompt non-empty.
+      if (input.text.trim() === '') throw new DshBotError('empty-prompt', 'prompt requires a non-empty text')
       const text = await this.wrapForSession(input.sessionId, input.text)
       const result = await promptOwnedSession(this.ctx.sessionTool, { ...input, text }, this.platform)
       await this.notePrompt(input.sessionId, input.text)
@@ -802,8 +807,7 @@ class DshBotService extends Service {
 
   private async sessionVoice(sessionId: string): Promise<string | undefined> {
     try {
-      const tags = await get(sessionId)
-      const botId = parseBotMark(tags ?? [])
+      const botId = parseBotMark(await marksOf(sessionId) ?? [])
       if (botId === undefined) return undefined
       return await this.voiceFor(botId, sessionId)
     } catch (error) {
@@ -841,8 +845,7 @@ class DshBotService extends Service {
   private async wrapForSession(sessionId: string, text: string): Promise<string> {
     if (this.voicePreStep.active()) return text
     try {
-      const tags = await get(sessionId)
-      const botId = parseBotMark(tags ?? [])
+      const botId = parseBotMark(await marksOf(sessionId) ?? [])
       if (botId === undefined) return text
       return wrapPrompt(await this.voiceFor(botId, sessionId), text)
     } catch (error) {
@@ -854,8 +857,7 @@ class DshBotService extends Service {
   private async notePrompt(sessionId: string, text: string): Promise<void> {
     if (!this.memoryOn()) return
     try {
-      const tags = await get(sessionId)
-      const botId = parseBotMark(tags ?? [])
+      const botId = parseBotMark(await marksOf(sessionId) ?? [])
       if (botId === undefined) return
       this.pendingExtract.set(sessionId, {
         botId,
@@ -927,25 +929,28 @@ class DshBotService extends Service {
     if (await this.groupsRuntime.peekRoom(input.sessionId) !== undefined) {
       return this.groupInbox.cancel(input.sessionId)
     }
+    await this.requireBotSession(input.sessionId)
     if (this.platform.cancelSession === undefined) {
       throw new DshBotError('cancel-unavailable', 'sessions.cancel is unavailable')
     }
     return this.platform.cancelSession(input.sessionId)
   }
 
-  updateQueue(input: { sessionId: string; itemId: string; action: unknown }) {
+  async updateQueue(input: { sessionId: string; itemId: string; action: unknown }) {
+    await this.requireBotSession(input.sessionId)
     if (this.platform.updateQueue === undefined) {
       throw new DshBotError('update-queue-unavailable', 'sessions.updateQueue is unavailable')
     }
     return this.platform.updateQueue(input)
   }
 
-  approvalRespond(input: {
+  async approvalRespond(input: {
     rpcId: string
     sessionId: string
     approvalId: string
     outcome: 'allowed-once' | 'rejected'
   }) {
+    await this.requireBotSession(input.sessionId)
     if (this.platform.respond === undefined) {
       throw new DshBotError('respond-unavailable', 'apiProxy.respond is unavailable')
     }
@@ -959,7 +964,8 @@ class DshBotService extends Service {
     })
   }
 
-  questionRespond(input: { rpcId: string; sessionId: string; answer: unknown }) {
+  async questionRespond(input: { rpcId: string; sessionId: string; answer: unknown }) {
+    await this.requireBotSession(input.sessionId)
     if (this.platform.respond === undefined) {
       throw new DshBotError('respond-unavailable', 'apiProxy.respond is unavailable')
     }
@@ -967,6 +973,18 @@ class DshBotService extends Service {
       rpcId: input.rpcId,
       value: { sessionId: input.sessionId, answer: input.answer },
     })
+  }
+
+  /**
+   * The workbench HTTP face may only read or drive sessions this plugin owns
+   * (1:1 bot chats, delegations, group member turns), never an arbitrary
+   * Harness coding session reachable by id.
+   */
+  private async requireBotSession(sessionId: string): Promise<void> {
+    const tags = await marksOf(sessionId)
+    if (!hasBotInventoryMark(tags) && !marksAllowForward(tags)) {
+      throw new DshBotError('not-found', '只能访问 Bot 对话', { sessionId })
+    }
   }
 
   listBotStatus() {
@@ -998,7 +1016,7 @@ class DshBotService extends Service {
       now: () => Date.now(),
       getBot: id => this.botsRuntime.getBot(id),
       findPeerSession: async (toBot, fromBot) => {
-        const listed = await listOwnedSessions(this.ctx.sessionTool, this.platform, this.botsRuntime, { botId: toBot })
+        const listed = await listOwnedSessions(this.ctx, this.ctx.sessionTool, this.platform, this.botsRuntime, { botId: toBot })
         const mark = peerMark(fromBot)
         const hit = listed.sessions.find(row => row.hidden !== true && row.tags.includes(mark))
         return hit?.sessionId
@@ -1046,7 +1064,7 @@ class DshBotService extends Service {
         })
       },
       resolveFromSession: async (fromBot, hint) => {
-        const listed = await listOwnedSessions(this.ctx.sessionTool, this.platform, this.botsRuntime, { botId: fromBot })
+        const listed = await listOwnedSessions(this.ctx, this.ctx.sessionTool, this.platform, this.botsRuntime, { botId: fromBot })
         if (hint !== undefined && hint !== '') {
           const tags = await get(hint)
           if (parseBotMark(tags ?? []) !== fromBot) throw new DshBotError('invalid-input', 'reply target does not belong to the sender')
@@ -1120,9 +1138,8 @@ class DshBotService extends Service {
     return { ok: true as const, skipped, sections }
   }
 
-  async noteSessionRunning(sessionId: string, running: boolean) {
-    const tags = await get(sessionId)
-    const botId = parseBotMark(tags ?? [])
+  noteSessionRunning(sessionId: string, running: boolean, tags: readonly string[]) {
+    const botId = parseBotMark(tags)
     if (botId === undefined) return undefined
     if (running) this.sessionWorking.set(sessionId, botId)
     else this.sessionWorking.delete(sessionId)
@@ -1134,10 +1151,10 @@ class DshBotService extends Service {
   }
 
   reconcile(): Promise<ReconcileResult> {
-    const run = this.reconcileGate.then(() => (
-      reconcileBotSessions(this.platform, this.botsRuntime, this.reconcileState, this.ctx.sessionTool)
-    ))
-    this.reconcileGate = run.then(() => undefined, () => undefined)
+    if (this.reconcileRun !== undefined) return this.reconcileRun
+    const run = reconcileBotSessions(this.platform, this.botsRuntime, this.reconcileState, this.ctx.sessionTool)
+      .finally(() => { this.reconcileRun = undefined })
+    this.reconcileRun = run
     return run
   }
 }

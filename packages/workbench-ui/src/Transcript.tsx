@@ -3,7 +3,7 @@
  * outside the text-only message history.
  * Assistant markdown is DSH-shaped GFM. No large avatar beside 1:1 assistant (BR-205).
  */
-import { useEffect, useLayoutEffect, useRef, useState, type Ref, type UIEvent } from 'react'
+import { memo, useEffect, useLayoutEffect, useMemo, useRef, useState, type Ref, type UIEvent } from 'react'
 import { routineCreate, routineDecline } from './api.ts'
 import type { WorkbenchBot, WorkbenchHistoryItem } from './api.ts'
 import { hashAvatarColor } from './avatar.ts'
@@ -62,15 +62,19 @@ function sourceMissing(items: readonly WorkbenchHistoryItem[], seq: number): boo
  */
 export function Transcript(props: TranscriptProps) {
   const scroller = useRef<HTMLDivElement>(null)
+  const content = useRef<HTMLDivElement>(null)
   const stick = useRef(true)
   const [away, setAway] = useState(false)
   const [menuSeq, setMenuSeq] = useState<number | null>(null)
   const menuRef = useRef<HTMLDivElement>(null)
+  const latest = useRef(props)
+  latest.current = props
 
   const onScroll = (event: UIEvent<HTMLDivElement>): void => {
     const node = event.currentTarget
+    const wasStuck = stick.current
     stick.current = node.scrollHeight - node.scrollTop - node.clientHeight < 48
-    setAway(!stick.current)
+    if (stick.current !== wasStuck) setAway(!stick.current)
   }
 
   const toLatest = (): void => {
@@ -87,17 +91,19 @@ export function Transcript(props: TranscriptProps) {
     node.scrollTop = node.scrollHeight
   }, [props.items, props.pending, props.working])
 
-  // Images and the growing composer can change geometry without a new message.
+  // Images, streamed text and the growing composer change geometry without a
+  // new message: watch the viewport and the content column, once.
   useEffect(() => {
     const node = scroller.current
-    if (!node || typeof ResizeObserver === 'undefined') return
+    const column = content.current
+    if (!node || !column || typeof ResizeObserver === 'undefined') return
     const observer = new ResizeObserver(() => {
       if (stick.current) node.scrollTop = node.scrollHeight
     })
     observer.observe(node)
-    for (const child of node.children) observer.observe(child)
+    observer.observe(column)
     return () => observer.disconnect()
-  }, [props.items])
+  }, [])
 
   useEffect(() => {
     if (menuSeq === null) return
@@ -109,6 +115,24 @@ export function Transcript(props: TranscriptProps) {
     document.addEventListener('mousedown', onDoc)
     return () => document.removeEventListener('mousedown', onDoc)
   }, [menuSeq])
+
+  // Identity-stable row callbacks, so memoized rows repaint only when their own item changes.
+  const actions = useMemo<RowActions>(() => ({
+    openMenu: item => setMenuSeq(current => current === item.seq ? null : item.seq),
+    reply: item => {
+      setMenuSeq(null)
+      latest.current.onReplyTo?.(item)
+    },
+    remember: item => {
+      latest.current.onRemember?.(item)
+      if (latest.current.groupMode !== true) setMenuSeq(null)
+    },
+    pickMember: (botId, item) => {
+      setMenuSeq(null)
+      latest.current.onPickMember?.(botId, item)
+    },
+    retry: item => latest.current.onRetryMember?.(item),
+  }), [])
 
   const canReply = props.onReplyTo !== undefined
   const canRemember = props.onRemember !== undefined
@@ -126,60 +150,53 @@ export function Transcript(props: TranscriptProps) {
         ref={scroller}
         onScroll={onScroll}
       >
-        {messages.map(item => {
-          const mark = item.role === 'user' ? item.replyTo ?? markFor(item.text, props.replyMarks) : undefined
-          const retryBotId = item.author?.botId
-          const canRetry = props.onRetryMember !== undefined
-            && item.error !== undefined
-            && retryBotId !== undefined
-            && retryBotId !== ''
-            && !messages.some(other => other.seq > item.seq && other.author?.botId === retryBotId)
-          return (
-            <TranscriptRow
-              key={item.id}
-              item={item}
-              menuOpen={canMenu && menuSeq === item.seq}
-              {...menuSeq === item.seq ? { menuRef } : {}}
-              {...mark === undefined ? {} : { replyTo: mark, sourceGone: sourceMissing(props.items, mark.seq) }}
-              {...canMenu && item.pending !== true ? {
-                onOpenMenu: () => setMenuSeq(current => current === item.seq ? null : item.seq),
-              } : {}}
-              {...props.onReplyTo === undefined ? {} : {
-                onReply: () => {
-                  setMenuSeq(null)
-                  props.onReplyTo?.(item)
-                },
-              }}
-              {...props.onRemember === undefined || item.role !== 'assistant' ? {} : {
-                onRemember: () => {
-                  props.onRemember?.(item)
-                  if (props.groupMode !== true) setMenuSeq(null)
-                },
-                pinPick: props.pinPick === item.id,
-                members: props.members,
-                onPickMember: (botId: string) => {
-                  setMenuSeq(null)
-                  props.onPickMember?.(botId, item)
-                },
-              }}
-              {...props.onApproval === undefined ? {} : { onApproval: props.onApproval }}
-              {...props.onQuestion === undefined ? {} : { onQuestion: props.onQuestion }}
-              {...canRetry ? {
-                onRetryMember: () => props.onRetryMember?.(item),
-                retryDisabled: props.working,
-              } : {}}
-            />
-          )
-        })}
-        {props.working ? (
-          <TypingIndicator {...props.speaking === undefined ? {} : { speaking: props.speaking }} />
-        ) : null}
+        <div className="transcriptContent" ref={content}>
+          {messages.map(item => {
+            const mark = item.role === 'user' ? item.replyTo ?? markFor(item.text, props.replyMarks) : undefined
+            const retryBotId = item.author?.botId
+            const canRetry = props.onRetryMember !== undefined
+              && item.error !== undefined
+              && retryBotId !== undefined
+              && retryBotId !== ''
+              && !messages.some(other => other.seq > item.seq && other.author?.botId === retryBotId)
+            const pinPick = props.pinPick === item.id
+            return (
+              <TranscriptRow
+                key={item.id}
+                item={item}
+                menuOpen={canMenu && menuSeq === item.seq}
+                {...menuSeq === item.seq ? { menuRef } : {}}
+                {...mark === undefined ? {} : { replyTo: mark, sourceGone: sourceMissing(props.items, mark.seq) }}
+                {...canMenu && item.pending !== true ? { onOpenMenu: actions.openMenu } : {}}
+                {...canReply ? { onReply: actions.reply } : {}}
+                {...!canRemember || item.role !== 'assistant' ? {} : {
+                  onRemember: actions.remember,
+                  pinPick,
+                  ...pinPick && props.members !== undefined ? { members: props.members } : {},
+                  onPickMember: actions.pickMember,
+                }}
+                {...canRetry ? { onRetryMember: actions.retry, retryDisabled: props.working } : {}}
+              />
+            )
+          })}
+          {props.working ? (
+            <TypingIndicator {...props.speaking === undefined ? {} : { speaking: props.speaking }} />
+          ) : null}
+        </div>
       </div>
       {away ? <button type="button" className="jumpLatest" aria-label="回到最新消息" onClick={toLatest}>
         ↓ 最新消息
       </button> : null}
     </>
   )
+}
+
+interface RowActions {
+  readonly openMenu: (item: WorkbenchHistoryItem) => void
+  readonly reply: (item: WorkbenchHistoryItem) => void
+  readonly remember: (item: WorkbenchHistoryItem) => void
+  readonly pickMember: (botId: string, item: WorkbenchHistoryItem) => void
+  readonly retry: (item: WorkbenchHistoryItem) => void
 }
 
 function PendingActions(props: TranscriptProps) {
@@ -289,21 +306,19 @@ function ReplyCite(props: { seq: number; speaker: string; missing: boolean; text
   )
 }
 
-function TranscriptRow(props: {
+const TranscriptRow = memo(function TranscriptRow(props: {
   item: WorkbenchHistoryItem
   menuOpen?: boolean
   menuRef?: Ref<HTMLDivElement>
   replyTo?: TranscriptReplyTo
   sourceGone?: boolean
-  onOpenMenu?: () => void
-  onReply?: () => void
-  onRemember?: () => void
+  onOpenMenu?: (item: WorkbenchHistoryItem) => void
+  onReply?: (item: WorkbenchHistoryItem) => void
+  onRemember?: (item: WorkbenchHistoryItem) => void
   pinPick?: boolean
   members?: readonly WorkbenchBot[]
-  onPickMember?: (botId: string) => void
-  onApproval?: (item: WorkbenchHistoryItem, outcome: 'allowed-once' | 'rejected') => void
-  onQuestion?: (item: WorkbenchHistoryItem, answer: string) => void
-  onRetryMember?: () => void
+  onPickMember?: (botId: string, item: WorkbenchHistoryItem) => void
+  onRetryMember?: (item: WorkbenchHistoryItem) => void
   retryDisabled?: boolean
 }) {
   const item = props.item
@@ -332,7 +347,7 @@ function TranscriptRow(props: {
       onContextMenu={event => {
         if (!canMenu) return
         event.preventDefault()
-        props.onOpenMenu?.()
+        props.onOpenMenu?.(item)
       }}
     >
       {showAuthor ? (
@@ -375,7 +390,7 @@ function TranscriptRow(props: {
                 className="retry"
                 data-testid={`transcript-retry-${item.seq}`}
                 disabled={props.retryDisabled === true}
-                onClick={() => props.onRetryMember?.()}
+                onClick={() => props.onRetryMember?.(item)}
               >
                 {props.retryDisabled === true ? '重试中' : '重试该成员'}
               </button>
@@ -404,7 +419,7 @@ function TranscriptRow(props: {
             aria-label="消息菜单"
             onClick={event => {
               event.stopPropagation()
-              props.onOpenMenu?.()
+              props.onOpenMenu?.(item)
             }}
           >
             ⋯
@@ -415,7 +430,7 @@ function TranscriptRow(props: {
                 <button
                   type="button"
                   data-testid={`transcript-reply-${item.seq}`}
-                  onClick={() => props.onReply?.()}
+                  onClick={() => props.onReply?.(item)}
                 >
                   回复
                 </button>
@@ -433,7 +448,7 @@ function TranscriptRow(props: {
                 <button
                   type="button"
                   data-testid={`transcript-pin-${item.seq}`}
-                  onClick={() => props.onRemember?.()}
+                  onClick={() => props.onRemember?.(item)}
                 >
                   📌 记住这条
                 </button>
@@ -445,7 +460,7 @@ function TranscriptRow(props: {
                       key={member.id}
                       type="button"
                       data-testid={`transcript-pin-member-${member.id}`}
-                      onClick={() => props.onPickMember?.(member.id)}
+                      onClick={() => props.onPickMember?.(member.id, item)}
                     >
                       记到 {member.name}
                     </button>
@@ -458,7 +473,7 @@ function TranscriptRow(props: {
       ) : null}
     </div>
   )
-}
+})
 
 function ActionCard(props: {
   item: WorkbenchHistoryItem

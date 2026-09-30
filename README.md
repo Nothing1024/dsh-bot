@@ -61,7 +61,7 @@ bash scripts/manual-test.sh --no-write      # 只建会话 / 设 override / 查 
 - 小组「停止」取消当时正在执行和已经排队的请求，对这些消息保存并显示「已取消」；已完成回复保留，取消的请求不再作为后续轮次的新输入。旧版本未保存取消结果的消息不追溯补标。
 - Transcript 显示可折叠思考/工具卡，以及可点的审批/提问卡。
 - 兼容旧 `assistant/chunk` 和当前 DSH 的 `agent/assistant-stream`：正文按片段显示，思考片段不作为正文展示；完成时保留文字直到历史接替，重试与取消清理未完成片段。小组按房间、当前成员及本轮序号匹配，避免串到其他房间或重播上一轮。
-- SSE `ready` 后私聊停止定时拉历史；小组仍拉完整房间状态以识别成员切换与取消。切换对话后丢弃旧请求的迟到结果。
+- SSE `ready` 后私聊停止定时拉历史；小组改为每 5 秒拉一次完整房间状态以识别成员切换与取消。名册与小组房间列表 SSE 在线时 15 秒、断线时 2 秒；补标 `reconcile` 60 秒一次。标签页隐藏时全部暂停（浏览器允许通知时名册仍 15 秒一次，供例程通知），回到前台立即补拉一次。切换对话会中止旧请求，迟到结果丢弃。
 - 长文限制阅读宽度；输入框随草稿自动增高。向上阅读时不强制追到底部，可点「最新消息」回到末尾。小组中的例程提议显示为可读建议，需到成员私聊设置，不会自动建立例程。
 
 ## 日常使用
@@ -70,10 +70,12 @@ bash scripts/manual-test.sh --no-write      # 只建会话 / 设 override / 查 
 
 | 入口 | URL | 说明 |
 |---|---|---|
-| 浏览器直开 | http://127.0.0.1:3084/dsh-bot/ui | host `webServer` 静态页 + 同源 `POST /dsh-bot/<method>` |
+| 浏览器直开 | http://127.0.0.1:3084/dsh-bot/ui | host `webServer` 静态页 + 同源 `POST /dsh-bot/<method>`；需先用启动时打印的带 token 链接登录过一次（与官方 GUI 共用登录 Cookie） |
 | 官方 GUI | http://127.0.0.1:3084 → 顶栏「Bot」 | 左栏名册 + 中栏工作台。原来的官方会话走「在官方会话打开」或侧栏「会话协作」。官方「+ 新会话」不变。 |
 
 `dsh_bot_ask`、`dsh-bot.model` override、marks CLI 不变。官方 GUI「+ 新会话」跟随平台默认 preset，**不再**列出 DSH Bot。`gb` 不再装 `dsh-better-sidebar`（右栏文件 / 终端 / 侧边对话一并卸掉）。
+
+`/dsh-bot/*`（RPC 与 SSE）与官方 `/api` 同一道门：Host/Origin 校验 + 浏览器登录 Cookie（`ctx.connection`）。例外只有本机非浏览器客户端（socket 来自 loopback、Host 是 loopback、无 Origin / Fetch-Metadata），供 CLI 与 `scripts/manual-test.sh` 使用。请求体须为 `application/json`（≤ 8 MiB）。`history` / `prompt` / `cancel` / 审批与提问应答只接受带 Bot 标记（`app:` / `kind:dsh-bot`、`bot:`、`group-room:`）的会话。
 
 左栏是多人设 roster（头像 / 名字 / 预览 / 时间 / 工作中点），右侧是当前人设的对话面。首次打开会种子默认 bot（id `dsh-bot`，人设在 `bots.json`）。左栏也可以建**小组**（拼贴头像）：同一房间里多名成员按身份轮流回复。
 
@@ -126,7 +128,6 @@ bash scripts/manual-test.sh --no-write      # 只建会话 / 设 override / 查 
 - **编辑人设只对新会话生效**：创建会话时快照基础人设；进行中的旧对话不会换口吻。
 - **官方 GUI 直建不是 Bot**：官方「+ 新会话」走平台默认 preset。遗留的 `dsh-bot` / `dsh-bot--*` 会话打开工作台时仍可补标 `app:dsh-bot` / `kind:dsh-bot` + `bot:<id>`。v1 遗留只有库存标、没有 `bot:` 的会话归默认 bot。
 - **委托隐藏会话默认不显示**：`dsh_bot_ask` 委托会话走 `hide()`（标题以 `~` 开头）。工作台会话下拉默认不列出；需要时打开「包含隐藏」。v1 `listSessions` 默认同样不含隐藏行，`includeHidden: true` 才包含。
-- **iframe**：页签内与直开同源，`fetch /dsh-bot/*` 可用。剪贴板 / 焦点遵循浏览器 iframe 规则（同页粘贴可用；个别快捷键或系统剪贴板权限更严），功能面仍与直开等价。
 
 ## 运维：UF-004 标记查询
 

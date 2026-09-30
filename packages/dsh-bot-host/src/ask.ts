@@ -17,6 +17,7 @@ import type {
   SessionToolService,
   SessionToolWaitResult,
 } from 'session-tool'
+import type { SessionMarksRow } from 'session-marks'
 import { DshBotError } from './errors.ts'
 import type { DshBotErrorCode } from './errors.ts'
 import {
@@ -356,70 +357,101 @@ export async function createBotSession(
   }
 }
 
-/**
- * Intersection of inventory marks (`app:dsh-bot` ∪ `kind:dsh-bot`) and
- * sessionTool.list metadata. Marks whose session is gone are dropped.
- * Auxiliary rows are omitted unless `includeHidden`.
- */
 function isWebUnreachable(error: unknown): boolean {
   return error instanceof SessionWebUnreachableError
     || (error instanceof SessionToolError && error.code === 'web-unreachable')
 }
 
-async function listViaPlatform(
-  platform: DshBotPlatform,
-  marked: readonly { readonly id: string; readonly tags: readonly string[] }[],
-): Promise<{ sessions: Array<{
-  readonly sessionId: SessionId
+/** One marked session joined with its listing row. */
+export interface MarkedSessionRow {
+  readonly sessionId: string
   readonly title?: string
   readonly tags: readonly string[]
   readonly status: 'live' | 'idle'
   readonly createdAt: number
-}> }> {
-  const gateway = await platform.listSessions()
-  const byId = new Map(gateway.map(row => [row.sessionId, row]))
-  const sessions = []
-  for (const mark of marked) {
-    const gate = byId.get(mark.id)
-    if (gate === undefined) continue
-    sessions.push({
-      sessionId: SessionId(mark.id),
-      ...gate.title === undefined || gate.title === '' ? {} : { title: gate.title },
-      tags: [...mark.tags],
-      status: gate.running ? 'live' as const : 'idle' as const,
-      createdAt: gate.updatedAt > 0 ? gate.updatedAt : 0,
-    })
-  }
-  return { sessions }
+  readonly updatedAt: number
+  readonly working: boolean
 }
 
-export async function listBotSessions(
+/**
+ * Join mark rows with ONE session listing, in `marked` order; marks whose
+ * session is gone are dropped. Gateway `session.list` is the source; it
+ * answers `[]` only without a session controller (or on failure), and then
+ * sessionTool.list is the fallback. createdAt comes from the live session
+ * header when the store has it, else the gateway updatedAt.
+ */
+export async function listMarkedSessions(
+  ctx: { get(name: string): unknown },
   sessionTool: SessionToolService,
-  request: ListBotSessionsRequest = {},
-  platform?: DshBotPlatform,
-): Promise<readonly DshBotSessionRow[]> {
-  const includeHidden = request.includeHidden === true
-  const caller = request.caller ?? CLI_CALLER
-  const marked = await listBotInventory()
+  platform: DshBotPlatform,
+  caller: SessionToolCaller,
+  marked: readonly SessionMarksRow[],
+): Promise<MarkedSessionRow[]> {
+  const gateway = await platform.listSessions()
+  const rows: MarkedSessionRow[] = []
+  if (gateway.length > 0) {
+    const store = ctx.get('sessions') as {
+      get?(id: string): { header?: { createdAt?: number } } | undefined
+    } | undefined
+    const byId = new Map(gateway.map(row => [row.sessionId, row]))
+    for (const mark of marked) {
+      const gate = byId.get(mark.id)
+      if (gate === undefined) continue
+      const createdAt = store?.get?.(mark.id)?.header?.createdAt ?? gate.updatedAt
+      rows.push({
+        sessionId: mark.id,
+        ...gate.title === undefined || gate.title === '' ? {} : { title: gate.title },
+        tags: mark.tags,
+        status: gate.running ? 'live' : 'idle',
+        createdAt,
+        updatedAt: gate.updatedAt > 0 ? gate.updatedAt : createdAt,
+        working: gate.running,
+      })
+    }
+    return rows
+  }
   let listed
   try {
-    listed = await sessionTool.list(caller, {
-      scope: 'all',
-      includeHidden: true,
-    })
+    listed = await sessionTool.list(caller, { scope: 'all', includeHidden: true })
   } catch (error) {
-    if (!isWebUnreachable(error) || platform === undefined) rethrow(error)
-    listed = await listViaPlatform(platform, marked)
+    if (!isWebUnreachable(error)) rethrow(error)
+    return rows
   }
   const byId = new Map(listed.sessions.map(row => [String(row.sessionId), row]))
-  const rows: DshBotSessionRow[] = []
   for (const mark of marked) {
     const meta = byId.get(mark.id)
     if (meta === undefined) continue
+    rows.push({
+      sessionId: mark.id,
+      ...meta.title === undefined ? {} : { title: meta.title },
+      tags: [...new Set([...meta.tags, ...mark.tags])],
+      status: meta.status,
+      createdAt: meta.createdAt,
+      updatedAt: meta.createdAt,
+      working: false,
+    })
+  }
+  return rows
+}
+
+/**
+ * Inventory marks (`app:dsh-bot` ∪ `kind:dsh-bot`) joined with the session
+ * listing. Auxiliary rows are omitted unless `includeHidden`.
+ */
+export async function listBotSessions(
+  ctx: { get(name: string): unknown },
+  sessionTool: SessionToolService,
+  platform: DshBotPlatform,
+  request: ListBotSessionsRequest = {},
+): Promise<readonly DshBotSessionRow[]> {
+  const includeHidden = request.includeHidden === true
+  const joined = await listMarkedSessions(ctx, sessionTool, platform, request.caller ?? CLI_CALLER, await listBotInventory())
+  const rows: DshBotSessionRow[] = []
+  for (const meta of joined) {
     const hidden = isAuxiliaryBotSession(meta.tags, meta.title)
     if (!includeHidden && hidden) continue
     rows.push({
-      sessionId: String(meta.sessionId),
+      sessionId: meta.sessionId,
       ...meta.title === undefined ? {} : { title: meta.title },
       tags: [...meta.tags],
       status: meta.status,

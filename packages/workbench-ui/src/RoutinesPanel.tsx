@@ -93,7 +93,7 @@ export function RoutinesPanel(props: RoutinesPanelProps) {
     <div className="memoryPanel routinesPanel" data-testid="routines-panel">
       <header className="memoryPanelHead">
         <strong>例程 · {props.botName}</strong>
-        <button type="button" className="ghostBtn isTiny" data-testid="routines-close" onClick={props.onClose}>关闭</button>
+        <button type="button" className="ghostBtn isTiny" data-testid="routines-close" aria-label="关闭例程" onClick={props.onClose}>关闭</button>
       </header>
       {props.rows.length === 0 ? <p className="hint" data-testid="routines-empty">{ROUTINES_EMPTY}</p> : (
         <ul className="routinesList" data-testid="routines-list">

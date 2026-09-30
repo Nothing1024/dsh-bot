@@ -9,7 +9,8 @@ function Probe(props: {
   enabled: boolean
   sseReady?: boolean
   incremental?: boolean
-  load: (sessionId: string, sinceSeq?: number) => Promise<RpcResult<HistoryValue>>
+  sseIntervalMs?: number
+  load: (sessionId: string, sinceSeq: number | undefined, signal: AbortSignal) => Promise<RpcResult<HistoryValue>>
 }) {
   const state = useSessionPoll(props)
   return (
@@ -24,17 +25,47 @@ function Probe(props: {
 
 describe('useSessionPoll', () => {
   it('ignores a delayed history response after switching conversations', async () => {
-    let finishOld!: (value: RpcResult<HistoryValue>) => void
-    const load = async (id: string): Promise<RpcResult<HistoryValue>> => id === 'old'
-      ? await new Promise(resolve => { finishOld = resolve })
-      : { ok: true, value: { sessionId: id, working: false, items: [{ id: 'new-message', seq: 1, kind: 'message', role: 'user', text: 'new' }] } }
+    const oldPage = Promise.withResolvers<RpcResult<HistoryValue>>()
+    let oldSignal: AbortSignal | undefined
+    const load = async (id: string, _sinceSeq: number | undefined, signal: AbortSignal): Promise<RpcResult<HistoryValue>> => {
+      if (id !== 'old') return { ok: true, value: { sessionId: id, working: false, items: [{ id: 'new-message', seq: 1, kind: 'message', role: 'user', text: 'new' }] } }
+      oldSignal = signal
+      return await oldPage.promise
+    }
     const view = render(<Probe sessionId="old" enabled sseReady load={load} />)
     view.rerender(<Probe sessionId="new" enabled sseReady load={load} />)
     await act(async () => { await Promise.resolve() })
+    expect(oldSignal?.aborted).toBe(true)
     expect(screen.getByTestId('poll-ids').textContent).toBe('new-message')
-    await act(async () => { finishOld({ ok: true, value: { sessionId: 'old', working: true, items: [{ id: 'old-message', seq: 1, kind: 'message', role: 'user', text: 'old' }] } }) })
+    await act(async () => { oldPage.resolve({ ok: true, value: { sessionId: 'old', working: true, items: [{ id: 'old-message', seq: 1, kind: 'message', role: 'user', text: 'old' }] } }) })
     expect(screen.getByTestId('poll-ids').textContent).toBe('new-message')
     expect(screen.getByTestId('poll-working').textContent).toBe('false')
+  })
+
+  it('never surfaces the aborted result of a superseded refresh as an error', async () => {
+    const load = vi.fn(async (_id: string, _sinceSeq: number | undefined, signal: AbortSignal): Promise<RpcResult<HistoryValue>> => {
+      if (load.mock.calls.length === 1) {
+        const stalled = Promise.withResolvers<RpcResult<HistoryValue>>()
+        signal.addEventListener('abort', () => stalled.resolve({ ok: false, error: { code: 'aborted', message: 'history aborted' } }))
+        return await stalled.promise
+      }
+      return { ok: true, value: { sessionId: 's1', working: false, items: [{ id: 'm1', seq: 1, kind: 'message', role: 'user', text: 'hi' }] } }
+    })
+    function Refresher() {
+      const state = useSessionPoll({ sessionId: 's1', enabled: true, sseReady: true, load })
+      return (
+        <div>
+          <button type="button" onClick={state.refresh}>refresh</button>
+          <span data-testid="poll-error">{state.error?.code ?? ''}</span>
+          <span data-testid="poll-count">{state.items.length}</span>
+        </div>
+      )
+    }
+    render(<Refresher />)
+    await act(async () => { screen.getByRole('button', { name: 'refresh' }).click() })
+    expect(load).toHaveBeenCalledTimes(2)
+    expect(screen.getByTestId('poll-error').textContent).toBe('')
+    expect(screen.getByTestId('poll-count').textContent).toBe('1')
   })
 
   it('refreshes cancellation of older messages in non-incremental group history', async () => {
@@ -51,7 +82,7 @@ describe('useSessionPoll', () => {
     await act(async () => { await Promise.resolve() })
     cancelled = true
     await act(async () => { await vi.advanceTimersByTimeAsync(POLL_IDLE_MS) })
-    expect(load).toHaveBeenLastCalledWith('room', undefined)
+    expect(load.mock.lastCall?.slice(0, 2)).toEqual(['room', undefined])
     expect(screen.getByTestId('poll-cancelled').textContent).toBe('old')
   })
   afterEach(() => {
@@ -117,6 +148,13 @@ describe('useSessionPoll', () => {
       await vi.advanceTimersByTimeAsync(POLL_WORKING_MS * 3)
     })
     expect(load.mock.calls.length).toBe(pausedAt)
+
+    // Back to visible: one immediate refresh, then the regular cadence again.
+    Object.defineProperty(document, 'hidden', { configurable: true, value: false })
+    await act(async () => { document.dispatchEvent(new Event('visibilitychange')) })
+    expect(load.mock.calls.length).toBe(pausedAt + 1)
+    await act(async () => { await vi.advanceTimersByTimeAsync(POLL_WORKING_MS) })
+    expect(load.mock.calls.length).toBe(pausedAt + 2)
   })
 
   it('does not schedule further polls when sseReady', async () => {
@@ -134,6 +172,21 @@ describe('useSessionPoll', () => {
       await vi.advanceTimersByTimeAsync(POLL_IDLE_MS * 3)
     })
     expect(load).toHaveBeenCalledTimes(1)
+  })
+
+  it('keeps a slow safety poll while sseReady when sseIntervalMs is set', async () => {
+    vi.useFakeTimers()
+    const load = vi.fn(async (): Promise<RpcResult<HistoryValue>> => ({
+      ok: true,
+      value: { sessionId: 'room', working: true, items: [] },
+    }))
+    render(<Probe sessionId="room" enabled sseReady sseIntervalMs={5000} incremental={false} load={load} />)
+    await act(async () => { await Promise.resolve() })
+    expect(load).toHaveBeenCalledTimes(1)
+    await act(async () => { await vi.advanceTimersByTimeAsync(4999) })
+    expect(load).toHaveBeenCalledTimes(1)
+    await act(async () => { await vi.advanceTimersByTimeAsync(1) })
+    expect(load).toHaveBeenCalledTimes(2)
   })
 
   it('replaces the inclusive last seq instead of duplicating thinking/assistant rows', async () => {

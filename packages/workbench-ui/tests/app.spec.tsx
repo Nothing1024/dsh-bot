@@ -493,4 +493,65 @@ describe('App roster load', () => {
     })
     expect(screen.getByTestId('roster-row-trio')).toBeTruthy()
   })
+
+  it('marks a bot read without unmounting the open conversation', async () => {
+    const refresh = Promise.withResolvers<void>()
+    let held = false
+    let markedRead = false
+    vi.stubGlobal('fetch', vi.fn(async (url: string) => {
+      const path = String(url)
+      if (path.includes('markRead')) {
+        markedRead = true
+        return jsonOk({ ok: true, unread: 0 })
+      }
+      if (path.includes('listBots')) {
+        // Hold the refresh that follows markRead; a foreground load would show 加载中 now.
+        if (markedRead) {
+          held = true
+          await refresh.promise
+        }
+        return jsonOk({ bots: [SEED] })
+      }
+      return jsonOk({ sessions: [], botModel: { provider: '', model: '', source: 'global-default' } })
+    }))
+    render(<App />)
+    await screen.findByTestId('roster-row-dsh-bot')
+    fireEvent.click(screen.getByTestId('roster-menu-dsh-bot'))
+    fireEvent.click(screen.getByTestId('roster-read-dsh-bot'))
+    await vi.waitFor(() => { expect(held).toBe(true) })
+    expect(screen.queryByTestId('workbench-loading')).toBeNull()
+    expect(screen.getByTestId('conversation-identity').textContent).toMatch(/DSH Bot/)
+    refresh.resolve()
+  })
+
+  it('stops roster polling while the tab is hidden and refreshes once on return', async () => {
+    vi.useFakeTimers()
+    const calls: string[] = []
+    try {
+      vi.stubGlobal('fetch', vi.fn(async (url: string) => {
+        const path = String(url)
+        calls.push(path.slice(path.lastIndexOf('/') + 1))
+        if (path.includes('listBots')) return jsonOk({ bots: [SEED] })
+        return jsonOk({ sessions: [], botModel: { provider: '', model: '', source: 'global-default' } })
+      }))
+      render(<App />)
+      await vi.advanceTimersByTimeAsync(0)
+      expect(screen.getByTestId('roster-row-dsh-bot')).toBeTruthy()
+      // One listBots on start: load() only, the poller waits a full interval.
+      expect(calls.filter(name => name === 'listBots')).toHaveLength(1)
+      Object.defineProperty(document, 'hidden', { configurable: true, value: true })
+      await vi.advanceTimersByTimeAsync(2000)
+      const hiddenAt = calls.length
+      await vi.advanceTimersByTimeAsync(120_000)
+      // jsdom has no Notification, so nothing keeps polling for routine notices.
+      expect(calls.slice(hiddenAt)).toEqual([])
+      Object.defineProperty(document, 'hidden', { configurable: true, value: false })
+      document.dispatchEvent(new Event('visibilitychange'))
+      await vi.advanceTimersByTimeAsync(0)
+      expect(calls.slice(hiddenAt)).toEqual(expect.arrayContaining(['listBots', 'reconcile', 'listBotSessions']))
+    } finally {
+      Object.defineProperty(document, 'hidden', { configurable: true, value: false })
+      vi.useRealTimers()
+    }
+  })
 })

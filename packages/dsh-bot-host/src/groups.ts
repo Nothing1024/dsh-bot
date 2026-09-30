@@ -5,7 +5,7 @@
  */
 
 import { existsSync } from 'node:fs'
-import { mkdir, readFile, rename, rm, writeFile } from 'node:fs/promises'
+import { appendFile, mkdir, readFile, rename, rm, writeFile } from 'node:fs/promises'
 import { dirname, join } from 'node:path'
 import { randomUUID } from 'node:crypto'
 import { DshBotError } from './errors.ts'
@@ -646,8 +646,8 @@ export function createGroupsRuntime(options: GroupsRuntimeOptions): GroupsRuntim
       createdAt: nowOf(),
       ...metadata,
     }
-    const next: RoomState = { header: state.header, messages: [...state.messages, message] }
-    await atomicWriteText(roomFilePath(home, id), encodeRoom(next))
+    // One JSON line per message: append instead of rewriting the whole room.
+    await appendFile(roomFilePath(home, id), `${JSON.stringify(message)}\n`, 'utf8')
     const rooms = await loadRoomsIndex(home)
     const index = rooms.findIndex(row => row.roomId === id)
     if (index >= 0) {

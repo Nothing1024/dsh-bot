@@ -5,11 +5,12 @@
  * card per concern, muted 12px labels, a single right-aligned action row, and
  * errors rendered as a titled alert that keeps the host's own message.
  */
-import { useEffect, useRef, useState, type FormEvent } from 'react'
+import { useEffect, useId, useRef, useState, type FormEvent } from 'react'
 import { describeWireError, type WorkbenchWireError } from 'dsh-bot-shared'
 import { AVATAR_COLORS, hashAvatarColor } from './avatar.ts'
 import { Persona } from './Persona.tsx'
 import type { WorkbenchBot, WorkbenchBotModelInfo } from './api.ts'
+import { ESCAPE_PRIORITY, useEscapeLayer } from './interactions.tsx'
 
 export interface BotFormValues {
   readonly name: string
@@ -50,11 +51,20 @@ function valuesFrom(bot: WorkbenchBot | undefined): BotFormValues {
  * Shared create/edit panel with inline validation and a submit lock.
  */
 export function BotForm(props: BotFormProps) {
-  const [values, setValues] = useState<BotFormValues>(() => valuesFrom(props.initial))
+  const [initialValues] = useState<BotFormValues>(() => valuesFrom(props.initial))
+  const [values, setValues] = useState<BotFormValues>(initialValues)
   const [nameError, setNameError] = useState<string | null>(null)
   const [personaError, setPersonaError] = useState<string | null>(null)
   const [modelError, setModelError] = useState<string | null>(null)
   const submitLock = useRef(false)
+  const titleId = useId()
+  const nameRef = useRef<HTMLInputElement>(null)
+  const pristine = (Object.keys(initialValues) as (keyof BotFormValues)[]).every(key => values[key] === initialValues[key])
+  // Escape only discards an untouched form; edits need the explicit 取消 button.
+  useEscapeLayer(true, () => { if (pristine && !props.busy) props.onCancel() }, {
+    priority: ESCAPE_PRIORITY.dialog,
+    initialFocus: () => nameRef.current,
+  })
 
   useEffect(() => {
     if (!props.busy) submitLock.current = false
@@ -112,9 +122,9 @@ export function BotForm(props: BotFormProps) {
         if (event.target === event.currentTarget && !props.busy) props.onCancel()
       }}
     >
-    <form className="botForm botFormModal" data-testid="bot-form" data-mode={props.mode} onSubmit={submit}>
+    <form className="botForm botFormModal" data-testid="bot-form" data-mode={props.mode} role="dialog" aria-modal="true" aria-labelledby={titleId} onSubmit={submit}>
       <header className="botFormHead">
-        <h2>{props.mode === 'create' ? '新建人设' : '编辑人设'}</h2>
+        <h2 id={titleId}>{props.mode === 'create' ? '新建人设' : '编辑人设'}</h2>
         <p className="botFormSub">人设决定这个 Bot 的口吻与职责</p>
       </header>
 
@@ -123,6 +133,7 @@ export function BotForm(props: BotFormProps) {
         <label className="field">
           <span>名字</span>
           <input
+            ref={nameRef}
             data-testid="bot-form-name"
             value={values.name}
             maxLength={64}

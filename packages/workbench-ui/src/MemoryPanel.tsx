@@ -66,7 +66,7 @@ export function MemoryPanel(props: MemoryPanelProps) {
     <div className="memoryPanel" data-testid="memory-panel">
       <header className="memoryPanelHead">
         <strong>记忆 · {props.botName}</strong>
-        <button type="button" className="ghostBtn isTiny" data-testid="memory-close" onClick={props.onClose}>
+        <button type="button" className="ghostBtn isTiny" data-testid="memory-close" aria-label="关闭记忆" onClick={props.onClose}>
           关闭
         </button>
       </header>

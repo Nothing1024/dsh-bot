@@ -7,7 +7,8 @@
 
 import type { SessionToolService } from 'session-tool'
 import { hideBotSession } from './session-visibility.ts'
-import { get, patch } from 'session-marks'
+import { patch } from 'session-marks'
+import { invalidateMarks, marksTable } from './marks-cache.ts'
 import { SEED_BOT_ID } from './bots.ts'
 import type { BotsRuntime } from './bots.ts'
 import {
@@ -65,7 +66,11 @@ function missingOwnership(tags: readonly string[]): string[] {
 
 async function markAdd(sessionId: string, add: readonly string[]): Promise<void> {
   if (add.length === 0) return
-  await patch(sessionId, { add: expandWriteAliases(add) })
+  try {
+    await patch(sessionId, { add: expandWriteAliases(add) })
+  } finally {
+    invalidateMarks()
+  }
 }
 
 /**
@@ -85,6 +90,11 @@ export async function reconcileBotSessions(
   }
   const listed = await platform.listSessions()
   const archived = new Set((await sessionTool.workspaceList({ kind: 'cli' })).archivedSessionIds)
+  const marks = await marksTable()
+  const present = new Set(listed.map(row => row.sessionId.trim()))
+  for (const sessionId of state.skipNonBot) {
+    if (!present.has(sessionId)) state.skipNonBot.delete(sessionId)
+  }
   const assigned: ReconcileAssigned[] = []
   let alreadyLabeled = 0
   let skippedNonBot = 0
@@ -101,7 +111,7 @@ export async function reconcileBotSessions(
       continue
     }
 
-    const tags = (await get(sessionId)) ?? []
+    const tags = marks.get(sessionId) ?? []
     const existingBot = parseBotMark(tags)
     const hasInventory = hasBotInventoryMark(tags)
 

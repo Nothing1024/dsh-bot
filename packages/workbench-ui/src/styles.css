@@ -7,6 +7,9 @@
   --wb-muted: var(--dsw-alias-label-secondary, light-dark(#61666b, #cfd3d6));
   --wb-accent: var(--dsw-alias-brand-primary, light-dark(#0f1115, #f9fafb));
   --wb-danger: light-dark(#ec1313, #f25a5a);
+  /* Status text: both halves stay >= 4.5:1 on --wb-bg / --wb-panel. */
+  --wb-live: light-dark(#0f7b4a, #3dd68c);
+  --wb-warn: light-dark(#8a5a00, #f5b83d);
   --wb-hover: var(--dsw-alias-interactive-bg-hover, light-dark(#2631480f, #ffffff14));
   /* Field/card geometry shared by every form and panel surface. */
   --wb-radius: 10px;
@@ -46,22 +49,27 @@ body,
 }
 
 .rosterHead {
-  padding: 10px 12px;
-  font-size: 13px;
-  font-weight: 600;
-  letter-spacing: 0.01em;
-  border-bottom: 1px solid var(--wb-border);
-  display: flex;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
   align-items: center;
   justify-content: space-between;
-  gap: 8px;
+  gap: 11px 6px;
+  padding: 15px 14px 12px;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0;
+  border-bottom: 0;
 }
 
+.rosterHead > span:first-child {
+  white-space: nowrap;
+  font-size: 13px;
+  color: var(--wb-text);
+}
+
+/* Actions join the head grid: graph top-right, the two create buttons on row 2. */
 .rosterHeadActions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  justify-content: flex-end;
+  display: contents;
 }
 
 .newBot {
@@ -81,11 +89,45 @@ body,
   background: var(--wb-hover);
 }
 
+.rosterHeadActions .newBot {
+  padding: 4px 7px;
+  border-radius: 7px;
+  line-height: 22px;
+  text-align: center;
+  font-size: 12px;
+}
+
+.rosterHeadActions [data-testid="roster-new"] {
+  grid-column: 1;
+  grid-row: 2;
+  background: var(--wb-bg);
+}
+
+.rosterHeadActions [data-testid="roster-new-group"] {
+  grid-column: 2;
+  grid-row: 2;
+  background: var(--wb-bg);
+}
+
+.rosterHeadActions [data-testid="roster-graph"] {
+  grid-column: 2;
+  grid-row: 1;
+  justify-self: end;
+  border-color: transparent;
+  padding: 2px 8px;
+  min-height: 24px;
+  line-height: 20px;
+  color: var(--wb-muted);
+  text-align: right;
+  font-size: 11px;
+}
+
 .rosterBody {
   flex: 1;
   min-height: 0;
   overflow: auto;
-  padding: 8px;
+  display: block;
+  padding: 0 8px 18px;
 }
 
 .rosterList {
@@ -97,13 +139,20 @@ body,
   gap: 2px;
 }
 
+.rosterList > li {
+  display: block;
+  margin: 0;
+  padding: 0;
+}
+
 .rosterRow {
   display: grid;
-  grid-template-columns: 36px minmax(0, 1fr) auto;
-  gap: 8px;
+  grid-template-columns: 32px minmax(0, 1fr) auto;
+  gap: 7px;
   align-items: center;
-  padding: 8px;
-  border-radius: 8px;
+  padding: 6px 8px;
+  min-height: 48px;
+  border-radius: 7px;
   cursor: pointer;
   position: relative;
 }
@@ -114,6 +163,11 @@ body,
 
 .rosterRow.isSelected {
   background: var(--wb-hover);
+}
+
+.rosterRow:focus-visible {
+  outline: 2px solid var(--wb-accent);
+  outline-offset: -2px;
 }
 
 .rosterRow.isMuted {
@@ -128,19 +182,24 @@ body,
 }
 
 .rosterSection {
-  margin-bottom: 10px;
+  margin: 0 0 7px;
+  padding: 0;
 }
 
 .rosterSectionHead {
-  display: block;
+  display: flex;
+  align-items: center;
+  gap: 5px;
   width: 100%;
   text-align: left;
   background: transparent;
   border: 0;
   color: var(--wb-muted);
-  padding: 4px 6px;
+  padding: 5px 8px;
   cursor: pointer;
   font: inherit;
+  font-size: 11px;
+  line-height: 18px;
 }
 
 .rosterPreviewCard {
@@ -149,6 +208,7 @@ body,
   top: 0;
   z-index: 8;
   width: 220px;
+  max-width: 220px;
   padding: 8px 10px;
   background: var(--dsw-alias-bg-layer-1, light-dark(#ffffff, #232324));
   border: 1px solid var(--wb-border);
@@ -383,11 +443,12 @@ body,
   min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 1px;
 }
 
 .rosterName {
-  font-weight: 600;
+  font-weight: 500;
+  font-size: 13px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -395,18 +456,27 @@ body,
 
 .rosterPreview {
   color: var(--wb-muted);
-  font-size: 12px;
+  font-size: 11px;
+  line-height: 16px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
+/* Row 1: time + menu; row 2: unread + session count, menu spanning both. */
 .rosterMeta {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 4px;
+  display: grid;
+  grid-template-columns: auto auto 24px;
+  grid-template-rows: 16px 16px;
+  gap: 0 2px;
+  align-items: center;
+  align-self: center;
 }
+
+.rosterMeta > .rosterTime { grid-column: 1 / 3; grid-row: 1; justify-self: end; }
+.rosterMeta > .rowMenuBtn { grid-column: 3; grid-row: 1 / 3; align-self: center; }
+.rosterMeta > .unreadBadge { grid-column: 1; grid-row: 2; justify-self: end; }
+.rosterMeta > .sessionCount { grid-column: 2; grid-row: 2; justify-self: end; }
 
 .sessionCount {
   min-width: 16px;
@@ -421,8 +491,8 @@ body,
 }
 
 .rosterSessions {
-  margin: 0 8px 8px 36px;
-  padding: 4px 0 0;
+  margin: 0 8px 5px 40px;
+  padding: 0;
   border-left: 1px solid var(--wb-border);
 }
 
@@ -460,7 +530,9 @@ body,
   color: var(--wb-text);
   font: inherit;
   text-align: left;
-  padding: 6px 8px;
+  padding: 3px 7px;
+  min-height: 24px;
+  font-size: 11px;
   border-radius: 6px;
   cursor: pointer;
 }
@@ -479,7 +551,7 @@ body,
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  font-size: 12px;
+  font-size: 11px;
 }
 
 .rosterSessionMeta {
@@ -487,6 +559,10 @@ body,
   align-items: center;
   gap: 6px;
   flex: none;
+}
+
+.rosterSessionMeta .rosterTime {
+  display: none;
 }
 
 .rosterSessionsEmpty,
@@ -498,7 +574,6 @@ body,
 
 .rosterSessionNew {
   color: var(--wb-muted);
-  font-size: 12px;
 }
 
 .rosterTime {
@@ -512,9 +587,19 @@ body,
   background: transparent;
   color: var(--wb-muted);
   cursor: pointer;
+  min-width: 24px;
+  min-height: 24px;
+  border-radius: 5px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   padding: 0 4px;
   font-size: 16px;
   line-height: 1;
+}
+
+.rowMenuBtn:hover {
+  background: var(--wb-hover);
 }
 
 .rowMenu {
@@ -840,7 +925,7 @@ body,
 .sessionOptionWorking {
   flex: none;
   font-size: 10px;
-  color: #3dd68c;
+  color: var(--wb-live);
 }
 
 .sessionOptionTime {
@@ -905,8 +990,8 @@ body,
 .workingBadge {
   font-size: 11px;
   font-weight: 500;
-  color: #3dd68c;
-  border: 1px solid #3dd68c55;
+  color: var(--wb-live);
+  border: 1px solid color-mix(in srgb, var(--wb-live) 33%, transparent);
   border-radius: 999px;
   padding: 1px 8px;
   animation: wb-badge-pulse 1.6s ease-in-out infinite;
@@ -949,6 +1034,10 @@ body,
   font-size: 14px;
   line-height: 1.6;
   overflow-anchor: none;
+}
+
+/* One observed box for every geometry change (new rows, streamed text, images). */
+.transcriptContent {
   display: flex;
   flex-direction: column;
   gap: 12px;
@@ -976,7 +1065,6 @@ body,
   width: 100%;
 }
 
-.bubbleWrap.user,
 .bubbleWrap.user {
   justify-content: flex-end;
 }
@@ -997,7 +1085,8 @@ body,
 
 .bubble.user {
   background: var(--dsw-alias-button-primary-fill, var(--wb-accent));
-  color: var(--dsw-alias-label-primary-inverted, #fff);
+  /* Standalone page has no host tokens: --wb-accent flips with the scheme, so its label must too. */
+  color: var(--dsw-alias-label-primary-inverted, light-dark(#ffffff, #0f1115));
   border-bottom-right-radius: 4px;
 }
 
@@ -1257,20 +1346,6 @@ body,
   50% { transform: scale(1.06); }
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .bubbleWrap,
-  .dots i,
-  .workingDot,
-  .workingBadge,
-  .avatar.isLive,
-  .conversationPane,
-  .conversationStage.isReady,
-  .emptyChat.isReady,
-  .skeletonBubble {
-    animation: none;
-  }
-}
-
 .composer {
   position: relative;
   flex: none;
@@ -1294,18 +1369,6 @@ body,
 .composerRow:focus-within {
   border-color: color-mix(in srgb, var(--wb-accent) 55%, var(--wb-border));
   box-shadow: 0 0 0 2px var(--wb-ring);
-}
-
-.composerRow .composerInput {
-  min-height: 36px;
-  border: 0;
-  border-radius: 16px;
-  resize: none;
-  background: transparent;
-  padding: 7px 8px;
-  line-height: 22px;
-  font-size: 14px;
-  box-shadow: none;
 }
 
 .composerRow .composerEmojiBtn,
@@ -1342,8 +1405,18 @@ body,
   box-shadow: 0 0 0 3px var(--wb-ring);
 }
 
+/* The pill row owns the frame and focus ring, so its textarea stays bare in every state. */
+.composerRow .composerInput,
 .composerRow .composerInput:focus,
 .composerRow .composerInput:focus-visible {
+  min-height: 36px;
+  border: 0;
+  border-radius: 16px;
+  resize: none;
+  background: transparent;
+  padding: 7px 8px;
+  line-height: 22px;
+  font-size: 14px;
   outline: none;
   box-shadow: none;
 }
@@ -1794,7 +1867,7 @@ body,
 
 .primaryBtn {
   background: var(--wb-accent);
-  color: #fff;
+  color: var(--dsw-alias-label-primary-inverted, light-dark(#ffffff, #0f1115));
   align-self: flex-start;
 }
 
@@ -1991,6 +2064,8 @@ body,
 }
 
 .bubbleWrap:hover .msgMenu .rowMenuBtn,
+.bubbleWrap:focus-within .msgMenu .rowMenuBtn,
+.bubbleWrap .msgMenu .rowMenuBtn:focus-visible,
 .bubbleWrap.isMenuOpen .msgMenu .rowMenuBtn {
   opacity: 1;
 }
@@ -2149,13 +2224,13 @@ body,
 .proposeCard {
   margin: 8px 0;
   padding: 8px 10px;
-  border: 1px solid var(--border, var(--wb-border));
+  border: 1px solid var(--wb-border);
   border-radius: 8px;
-  background: var(--panel, #fff);
+  background: var(--wb-panel);
 }
 .routineTag {
   font-size: 11px;
-  color: #8a5a00;
+  color: var(--wb-warn);
   margin-right: 6px;
 }
 
@@ -2250,6 +2325,22 @@ body,
   box-shadow: 0 12px 32px rgb(0 0 0 / 0.4);
 }
 
+.graphEdgeGroup {
+  stroke: color-mix(in srgb, var(--wb-accent) 40%, transparent);
+}
+
+.graphEdgePeer {
+  stroke: var(--wb-muted);
+}
+
+.graphNode {
+  fill: var(--wb-accent);
+}
+
+.graphLabel {
+  fill: var(--wb-text);
+}
+
 .graphPulse {
   animation: graphPulse 1.2s ease-in-out infinite;
 }
@@ -2258,39 +2349,6 @@ body,
   50% { opacity: 0.45; }
 }
 
-
-.rosterHead{display:grid;grid-template-columns:1fr 1fr;padding:15px 14px 12px;gap:11px 6px;letter-spacing:0;border-bottom:0}
-.rosterHead>span:first-child{white-space:nowrap;font-size:13px;color:var(--wb-text)}
-.rosterHeadActions{display:contents}
-.rosterHeadActions .newBot{padding:4px 7px;border-radius:7px;line-height:22px;text-align:center;font-size:12px}
-.rosterHeadActions [data-testid="roster-new"]{grid-column:1;grid-row:2;background:var(--wb-bg)}
-.rosterHeadActions [data-testid="roster-new-group"]{grid-column:2;grid-row:2;background:var(--wb-bg)}
-.rosterHeadActions [data-testid="roster-graph"]{grid-column:2;grid-row:1;border-color:transparent;padding:2px 8px;min-height:24px;line-height:20px;color:var(--wb-muted);text-align:right;justify-self:end;font-size:11px}
-.rosterBody{padding:0 8px 18px;display:block}
-.rosterSection{margin:0 0 7px;padding:0}
-.rosterSectionHead{padding:5px 8px;color:var(--wb-muted);font-size:11px;line-height:18px}
-.rosterList{gap:2px}
-.rosterList>li{display:block;margin:0;padding:0}
-.rosterRow{grid-template-columns:32px minmax(0,1fr) auto;gap:7px;padding:6px 8px;min-height:48px;border-radius:7px}
-.rosterMain{gap:1px;min-width:0}
-.rosterName{font-weight:500;font-size:13px}
-.rosterPreview{font-size:11px;line-height:16px}
-.rosterMeta{display:grid;grid-template-columns:auto auto 24px;grid-template-rows:16px 16px;gap:0 2px;align-items:center;align-self:center}
-.rosterMeta>.rosterTime{grid-column:1/3;grid-row:1;justify-self:end}
-.rosterMeta>.rowMenuBtn{grid-column:3;grid-row:1/3;align-self:center}
-.rosterMeta>.unreadBadge{grid-column:1;grid-row:2;justify-self:end}
-.rosterMeta>.sessionCount{grid-column:2;grid-row:2;justify-self:end}
-.rosterTime{font-size:11px}
-.rowMenuBtn{min-width:24px;min-height:24px;border-radius:5px;display:inline-flex;align-items:center;justify-content:center}
-.rowMenuBtn:hover{background:var(--wb-hover)}
-.rosterSessions{margin:0 8px 5px 40px;padding-top:0}
-.rosterSession,.rosterSessionNew{padding:3px 7px;font-size:11px;min-height:24px}
-.rosterSessionMeta .rosterTime{display:none}
-.rosterSessionTitle{font-size:11px}
-.rosterPreviewCard{max-width:220px}
-
-
-.rosterSectionHead { display: flex; align-items: center; gap: 5px; width: 100%; }
 .categoryCount { margin-left: auto; font-size: 11px; opacity: .65; }
 .categoryEmpty { padding: 10px 8px; color: var(--wb-muted); font-size: 12px; }
 .categoryPicker { margin: 2px 8px 6px; padding-left: 8px; border-left: 1px solid var(--wb-border); }
@@ -2299,7 +2357,8 @@ body,
 .sessionRename label { display: grid; gap: 8px; font-size: 12px; }
 .sessionRename input { width: 100%; min-width: 0; padding: 8px; border: 1px solid var(--wb-border); border-radius: 6px; color: var(--wb-text); background: var(--wb-bg); }
 .sessionRename > div { display: flex; justify-content: flex-end; gap: 4px; margin-top: 8px; }
-@media (max-width: 600px) { .rosterSectionHead, .categoryCount { display: none; } .categoryEmpty { font-size: 11px; padding: 4px; overflow-wrap: anywhere; } .bubbleCol { max-width: 94%; } }
+/* Category headers stay visible on narrow screens: they are the only way to expand a folded category. */
+@media (max-width: 600px) { .categoryCount { display: none; } .categoryEmpty { font-size: 11px; padding: 4px; overflow-wrap: anywhere; } .bubbleCol { max-width: 94%; } }
 
 .conversationHead, .headActions, .memorySwitch { flex-wrap: wrap; }
 .memoryPill { white-space: nowrap; }
@@ -2309,4 +2368,21 @@ body,
   max-height: 35%;
   overflow: auto;
   padding: 8px 16px;
+}
+
+/* Last in the file so it out-ranks every animated rule above at equal specificity. */
+@media (prefers-reduced-motion: reduce) {
+  .bubbleWrap,
+  .dots i,
+  .workingDot,
+  .workingBadge,
+  .avatar.isLive,
+  .conversationPane,
+  .conversationStage.isReady,
+  .emptyChat.isReady,
+  .skeletonBubble,
+  .streamCursor,
+  .graphPulse {
+    animation: none;
+  }
 }

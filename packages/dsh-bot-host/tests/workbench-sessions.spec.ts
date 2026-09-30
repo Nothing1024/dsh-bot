@@ -15,7 +15,6 @@ import type {
   SessionToolMessageRow,
   SessionToolService,
 } from 'session-tool'
-import { SessionWebUnreachableError } from 'session-tool'
 import DshBotService from '../src/index.ts'
 import type { DshBotConfig } from '../src/index.ts'
 import { DshBotError } from '../src/errors.ts'
@@ -178,7 +177,10 @@ class StubPlatform implements DshBotPlatform {
     this.renameCalls.push({ sessionId, title })
   }
 
+  listCalls = 0
+
   async listSessions() {
+    this.listCalls += 1
     return this.gatewayRows
   }
 
@@ -386,7 +388,7 @@ describe('createBotSession / listBotSessions / history / prompt', () => {
     })
   })
 
-  it('lists bot:<id> intersection, drops hidden by default, newest first', async () => {
+  it('lists bot:<id> intersection from one gateway listing, drops hidden by default, newest first', async () => {
     const sessionTool = new StubSessionTool()
     const platform = new StubPlatform()
     await put('session-old', ['kind:dsh-bot', 'bot:dsh-bot'])
@@ -394,54 +396,22 @@ describe('createBotSession / listBotSessions / history / prompt', () => {
     await put('session-hidden', ['kind:dsh-bot', 'bot:dsh-bot', 'kind:hidden'])
     await put('session-group', ['kind:dsh-bot', 'bot:dsh-bot', 'kind:hidden', 'group:edit', 'group-room:room-1'])
     await put('session-other', ['kind:dsh-bot', 'bot:other'])
-    sessionTool.listResult = {
-      sessions: [
-        {
-          sessionId: SessionId('session-old'),
-          title: 'Old',
-          tags: ['kind:dsh-bot', 'bot:dsh-bot'],
-          status: 'idle',
-          createdAt: 10,
-        },
-        {
-          sessionId: SessionId('session-new'),
-          title: 'New',
-          tags: ['kind:dsh-bot', 'bot:dsh-bot'],
-          status: 'idle',
-          createdAt: 30,
-        },
-        {
-          sessionId: SessionId('session-hidden'),
-          title: '~dsh-bot: q',
-          tags: ['kind:dsh-bot', 'bot:dsh-bot', 'kind:hidden'],
-          status: 'idle',
-          createdAt: 40,
-        },
-        {
-          sessionId: SessionId('session-group'),
-          title: '~dsh-bot-group: 编辑室/DSH Bot',
-          tags: ['kind:dsh-bot', 'bot:dsh-bot', 'kind:hidden', 'group:edit', 'group-room:room-1'],
-          status: 'idle',
-          createdAt: 45,
-        },
-        {
-          sessionId: SessionId('session-other'),
-          title: 'Other',
-          tags: ['kind:dsh-bot', 'bot:other'],
-          status: 'idle',
-          createdAt: 50,
-        },
-      ],
-    }
+    sessionTool.listError = new Error('sessionTool.list must not be called when the gateway lists sessions')
     platform.gatewayRows = [
-      { sessionId: 'session-old', running: false, updatedAt: 10 },
-      { sessionId: 'session-new', running: true, updatedAt: 90 },
+      { sessionId: 'session-old', running: false, updatedAt: 10, title: 'Old' },
+      { sessionId: 'session-new', running: true, updatedAt: 90, title: 'New' },
+      { sessionId: 'session-hidden', running: false, updatedAt: 40, title: '~dsh-bot: q' },
+      { sessionId: 'session-group', running: false, updatedAt: 45, title: '~dsh-bot-group: 编辑室/DSH Bot' },
+      { sessionId: 'session-other', running: false, updatedAt: 50, title: 'Other' },
     ]
-    const { bot } = boot({ sessionTool, platform })
+    const { bot, ctx } = boot({ sessionTool, platform })
+    ctx.provide('sessions', { get: (id: string) => id === 'session-old' ? { header: { createdAt: 3 } } : undefined })
     await bot.listBots()
     const listed = await bot.listBotSessions({ botId: 'dsh-bot' })
+    expect(platform.listCalls).toBe(1)
     expect(listed.sessions.map(row => row.sessionId)).toEqual(['session-new', 'session-old'])
     expect(listed.sessions[0]?.working).toBe(true)
+    expect(listed.sessions[1]).toMatchObject({ title: 'Old', createdAt: 3, updatedAt: 10, status: 'idle' })
     const withHidden = await bot.listBotSessions({ botId: 'dsh-bot', includeHidden: true })
     expect(withHidden.sessions.map(row => row.sessionId)).toEqual([
       'session-new',
@@ -449,28 +419,27 @@ describe('createBotSession / listBotSessions / history / prompt', () => {
       'session-hidden',
       'session-old',
     ])
-    expect(withHidden.sessions.some(row => row.sessionId === 'session-group')).toBe(true)
   })
 
-  it('falls back to platform.listSessions when sessionTool.list is web-unreachable', async () => {
+  it('falls back to sessionTool.list when the gateway has no session controller', async () => {
     const sessionTool = new StubSessionTool()
-    sessionTool.listError = new SessionWebUnreachableError('web gateway unreachable for workspace/follow: HTTP 401')
     const platform = new StubPlatform()
     await put('session-old', ['kind:dsh-bot', 'bot:dsh-bot'])
     await put('session-new', ['kind:dsh-bot', 'bot:dsh-bot'])
     await put('session-hidden', ['kind:dsh-bot', 'bot:dsh-bot', 'kind:hidden'])
     await put('session-gone', ['kind:dsh-bot', 'bot:dsh-bot'])
-    platform.gatewayRows = [
-      { sessionId: 'session-old', running: false, updatedAt: 10, title: 'Old' },
-      { sessionId: 'session-new', running: true, updatedAt: 90, title: 'New' },
-      { sessionId: 'session-hidden', running: false, updatedAt: 40, title: '~dsh-bot: q' },
-    ]
+    sessionTool.listResult = {
+      sessions: [
+        { sessionId: SessionId('session-old'), title: 'Old', tags: ['kind:dsh-bot', 'bot:dsh-bot'], status: 'idle', createdAt: 10 },
+        { sessionId: SessionId('session-new'), title: 'New', tags: ['kind:dsh-bot', 'bot:dsh-bot'], status: 'live', createdAt: 30 },
+        { sessionId: SessionId('session-hidden'), title: '~dsh-bot: q', tags: ['kind:dsh-bot', 'bot:dsh-bot', 'kind:hidden'], status: 'idle', createdAt: 20 },
+      ],
+    }
     const { bot } = boot({ sessionTool, platform })
     await bot.listBots()
     const listed = await bot.listBotSessions({ botId: 'dsh-bot' })
     expect(listed.sessions.map(row => row.sessionId)).toEqual(['session-new', 'session-old'])
-    expect(listed.sessions[0]?.title).toBe('New')
-    expect(listed.sessions[0]?.working).toBe(true)
+    expect(listed.sessions[0]).toMatchObject({ title: 'New', status: 'live', createdAt: 30, updatedAt: 30 })
     const withHidden = await bot.listBotSessions({ botId: 'dsh-bot', includeHidden: true })
     expect(withHidden.sessions.map(row => row.sessionId)).toEqual([
       'session-new',
@@ -497,6 +466,7 @@ describe('createBotSession / listBotSessions / history / prompt', () => {
         ],
       }),
     })
+    await put('session-owned-1', ['kind:dsh-bot', 'bot:dsh-bot'])
     const history = await bot.history({ sessionId: 'session-owned-1' })
     expect(history.working).toBe(true)
     expect(history.items.some(item => item.kind === 'thinking' && item.text === 'think')).toBe(true)
@@ -506,6 +476,7 @@ describe('createBotSession / listBotSessions / history / prompt', () => {
 
   it('prompts via sessionTool.write with the CLI caller', async () => {
     const { bot, sessionTool } = boot()
+    await put('session-owned-1', ['app:dsh-bot'])
     const result = await bot.prompt({ sessionId: 'session-owned-1', text: '  你是谁?  ' })
     expect(result).toEqual({ sessionId: 'session-owned-1' })
     expect(sessionTool.writeCalls).toEqual([{ sessionId: 'session-owned-1', content: '你是谁?' }])
@@ -513,6 +484,7 @@ describe('createBotSession / listBotSessions / history / prompt', () => {
 
   it('prefers platform.promptSession when the duck accepts', async () => {
     const { bot, sessionTool, platform } = boot()
+    await put('session-owned-1', ['app:dsh-bot'])
     const calls: Array<{ sessionId: string; mode: string; text: string }> = []
     platform.promptSession = async (request) => {
       calls.push(request)
@@ -526,6 +498,7 @@ describe('createBotSession / listBotSessions / history / prompt', () => {
 
   it('falls back to sessionTool.write when promptSession is unavailable', async () => {
     const { bot, sessionTool, platform } = boot()
+    await put('session-owned-1', ['app:dsh-bot'])
     platform.promptSession = async () => ({ unavailable: true as const })
     await bot.prompt({ sessionId: 'session-owned-1', text: '回退写' })
     expect(sessionTool.writeCalls).toEqual([{ sessionId: 'session-owned-1', content: '回退写' }])
@@ -533,9 +506,31 @@ describe('createBotSession / listBotSessions / history / prompt', () => {
 
   it('rejects an empty prompt loud', async () => {
     const { bot } = boot()
+    await put('s1', ['kind:dsh-bot', 'bot:dsh-bot'])
     await expect(bot.prompt({ sessionId: 's1', text: '   ' })).rejects.toMatchObject({
       code: 'empty-prompt',
     })
+  })
+
+  it('refuses to read or drive a session this plugin does not own', async () => {
+    const { bot, sessionTool, platform: stub } = boot()
+    const platform = stub as StubPlatform & { cancelSession?: DshBotPlatform['cancelSession'] }
+    const cancelled: string[] = []
+    platform.cancelSession = async (sessionId: string) => {
+      cancelled.push(sessionId)
+      return { accepted: true as const }
+    }
+    await put('session-coding', ['app:session-tool'])
+    for (const call of [
+      () => bot.history({ sessionId: 'session-coding' }),
+      () => bot.prompt({ sessionId: 'session-coding', text: 'rm -rf' }),
+      () => bot.cancel({ sessionId: 'session-unmarked' }),
+    ]) {
+      await expect(call()).rejects.toMatchObject({ code: 'not-found' })
+    }
+    expect(sessionTool.readCalls).toEqual([])
+    expect(sessionTool.writeCalls).toEqual([])
+    expect(cancelled).toEqual([])
   })
 
   it('rejects an unknown botId', async () => {

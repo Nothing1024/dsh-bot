@@ -1,9 +1,0 @@
-.wakeTag {
-  display: inline-block;
-  margin-bottom: 6px;
-  padding: 1px 8px;
-  border-radius: 999px;
-  border: 1px solid color-mix(in srgb, hsl(38 85% 48%) 40%, transparent);
-  color: hsl(38 85% 42%);
-  font-size: 11px;
-}

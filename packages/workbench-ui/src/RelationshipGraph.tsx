@@ -1,6 +1,7 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useId, useMemo, useRef, useState } from 'react'
 import { listBots, listGroups, peerLog } from './api.ts'
 import type { PeerLogRow, WorkbenchBot, WorkbenchGroup } from './api.ts'
+import { ESCAPE_PRIORITY, useEscapeLayer } from './interactions.tsx'
 
 export interface RelationshipGraphProps {
   readonly open: boolean
@@ -17,6 +18,9 @@ export function RelationshipGraph(props: RelationshipGraphProps) {
   const [bots, setBots] = useState<readonly WorkbenchBot[]>([])
   const [groups, setGroups] = useState<readonly WorkbenchGroup[]>([])
   const [rows, setRows] = useState<readonly PeerLogRow[]>([])
+  const titleId = useId()
+  const closeRef = useRef<HTMLButtonElement>(null)
+  useEscapeLayer(props.open, props.onClose, { priority: ESCAPE_PRIORITY.graph, initialFocus: () => closeRef.current })
 
   useEffect(() => {
     if (!props.open) return
@@ -65,19 +69,19 @@ export function RelationshipGraph(props: RelationshipGraphProps) {
   const byId = new Map(layout.map(node => [node.id, node]))
   return (
     <div className="graphOverlay" data-testid="relationship-graph">
-      <div className="graphCard">
+      <div className="graphCard" role="dialog" aria-modal="true" aria-labelledby={titleId}>
         <div className="memoryHead">
-          <span>关系图</span>
-          <button type="button" className="retry" data-testid="graph-close" onClick={props.onClose}>关闭</button>
+          <span id={titleId}>关系图</span>
+          <button ref={closeRef} type="button" className="retry" data-testid="graph-close" aria-label="关闭关系图" onClick={props.onClose}>关闭</button>
         </div>
-        <svg viewBox="0 0 320 280" width="320" height="280">
+        <svg className="graphSvg" viewBox="0 0 320 280" width="320" height="280">
           {[...dashes].map(key => {
             const [a, b] = key.split('|')
             const na = byId.get(a!)
             const nb = byId.get(b!)
             if (na === undefined || nb === undefined) return null
             return (
-              <line key={`d-${key}`} x1={na.x} y1={na.y} x2={nb.x} y2={nb.y} stroke="#6b8cff66" strokeDasharray="4 3" />
+              <line key={`d-${key}`} className="graphEdgeGroup" x1={na.x} y1={na.y} x2={nb.x} y2={nb.y} strokeDasharray="4 3" />
             )
           })}
           {[...solids.entries()].map(([key, n]) => {
@@ -86,7 +90,7 @@ export function RelationshipGraph(props: RelationshipGraphProps) {
             const nb = byId.get(b!)
             if (na === undefined || nb === undefined) return null
             return (
-              <line key={`s-${key}`} x1={na.x} y1={na.y} x2={nb.x} y2={nb.y} stroke="#e8eaed" strokeWidth={Math.min(6, 1 + n)} />
+              <line key={`s-${key}`} className="graphEdgePeer" x1={na.x} y1={na.y} x2={nb.x} y2={nb.y} strokeWidth={Math.min(6, 1 + n)} />
             )
           })}
           {layout.map(node => (
@@ -97,8 +101,8 @@ export function RelationshipGraph(props: RelationshipGraphProps) {
               onClick={() => props.onSelect(node.id)}
               style={{ cursor: 'pointer' }}
             >
-              <circle cx={node.x} cy={node.y} r={14} fill="#6b8cff" className={props.workingIds?.has(node.id) === true ? 'graphPulse' : undefined} />
-              <text x={node.x} y={node.y + 28} textAnchor="middle" fill="#e8eaed" fontSize="11">{node.name}</text>
+              <circle cx={node.x} cy={node.y} r={14} className={`graphNode${props.workingIds?.has(node.id) === true ? ' graphPulse' : ''}`} />
+              <text x={node.x} y={node.y + 28} textAnchor="middle" className="graphLabel" fontSize="11">{node.name}</text>
             </g>
           ))}
         </svg>

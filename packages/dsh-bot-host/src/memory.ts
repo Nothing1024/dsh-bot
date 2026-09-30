@@ -3,7 +3,7 @@
  * profile.md is long-term facts; log.jsonl is dated log/note rows.
  */
 
-import { mkdir, readFile, rm, writeFile } from 'node:fs/promises'
+import { appendFile, mkdir, readFile, rm, writeFile } from 'node:fs/promises'
 import { join } from 'node:path'
 
 export const MEMORY_HEADING = '## 你记得的事'
@@ -137,8 +137,8 @@ export function createMemoryStore(
         ? {}
         : { sessionId: input.sessionId.trim() },
     }
-    const rows = await readLog(botId)
-    await writeLog(botId, [...rows, entry])
+    await ensureDir(dir(botId))
+    await appendFile(join(dir(botId), LOG_FILE), serializeLog([entry]), 'utf8')
     return entry
   }
 

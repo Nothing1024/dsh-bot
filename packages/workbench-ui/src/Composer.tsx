@@ -406,6 +406,7 @@ export function Composer(props: ComposerProps) {
             id="dsh-bot-composer"
             name="message"
             aria-label={placeholder}
+            data-escape-local={popup !== null || props.replyTo != null ? 'true' : undefined}
             placeholder={placeholder}
             value={text}
             rows={1}

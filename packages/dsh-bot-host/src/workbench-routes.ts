@@ -9,7 +9,7 @@
 import type { IncomingMessage, ServerResponse } from 'node:http'
 import { createRequire } from 'node:module'
 import { dirname, extname, join, relative, resolve as resolvePath, sep } from 'node:path'
-import { readFile } from 'node:fs/promises'
+import { readFile, stat } from 'node:fs/promises'
 import type { Context } from '@deepseek-ai/cordis'
 import type {
   BotView,
@@ -161,7 +161,9 @@ export function safeWorkbenchFile(pathname: string, root: string): string | unde
 
 /**
  * Serve one static workbench asset. Tests pass `root` so they do not need a
- * built workbench-ui package.
+ * built workbench-ui package. Assets keep stable names across builds, so the
+ * browser revalidates every load (`no-cache`) against an mtime+size ETag and
+ * a rebuilt bundle is picked up without a hard refresh.
  */
 export async function handleWorkbenchStatic(
   req: IncomingMessage,
@@ -184,6 +186,15 @@ export async function handleWorkbenchStatic(
     return
   }
   try {
+    const info = await stat(file)
+    const etag = `W/"${info.size.toString(36)}-${Math.trunc(info.mtimeMs).toString(36)}"`
+    res.setHeader('Cache-Control', 'no-cache')
+    res.setHeader('ETag', etag)
+    if (req.headers?.['if-none-match'] === etag) {
+      res.statusCode = 304
+      res.end()
+      return
+    }
     const body = await readFile(file)
     res.statusCode = 200
     res.setHeader('Content-Type', type)

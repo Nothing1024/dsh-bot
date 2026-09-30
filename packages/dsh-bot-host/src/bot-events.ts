@@ -5,7 +5,7 @@
  */
 
 import type { IncomingMessage, ServerResponse } from 'node:http'
-import { get } from 'session-marks'
+import { marksOf } from './marks-cache.ts'
 import { parseBotMark } from './marks.ts'
 
 /** Mux frame types forwarded to the workbench (BR-011). */
@@ -30,7 +30,7 @@ export interface BotStatusRow {
   readonly unread: number
 }
 
-export function marksAllowForward(tags: readonly string[] | undefined): boolean {
+export function marksAllowForward(tags: readonly string[] | undefined): tags is readonly string[] {
   if (tags === undefined) return false
   return tags.some(tag => tag.startsWith('bot:') || tag.startsWith('group-room:'))
 }
@@ -100,7 +100,7 @@ export interface BotEventsSource {
   subscribeMux?(signal: AbortSignal): AsyncIterable<unknown> | undefined
   subscribeHost?(signal: AbortSignal): AsyncIterable<unknown> | undefined
   listBotStatus?(): readonly BotStatusRow[]
-  noteSessionRunning?(sessionId: string, running: boolean): Promise<BotStatusRow | undefined>
+  noteSessionRunning?(sessionId: string, running: boolean, tags: readonly string[]): BotStatusRow | undefined
 }
 
 /**
@@ -176,16 +176,16 @@ export async function handleBotEventsHttp(
     if (!allowed.has(type)) return
     const sessionId = sessionIdOf(frame)
     if (sessionId === '') return
-    const tags = await get(sessionId)
+    const tags = await marksOf(sessionId)
     if (!marksAllowForward(tags)) return
     if (type === 'host/session-status' && source.noteSessionRunning !== undefined) {
-      const status = await source.noteSessionRunning(sessionId, frame.running === true)
+      const status = source.noteSessionRunning(sessionId, frame.running === true, tags)
       if (status !== undefined && !res.writableEnded) {
         res.write(encodeSse({ type: 'bot/status', ...status }))
       }
     }
     const out: Record<string, unknown> = { ...frame }
-    const roomMark = tags?.find(tag => tag.startsWith('group-room:'))
+    const roomMark = tags.find(tag => tag.startsWith('group-room:'))
     if (roomMark !== undefined) out.roomId = roomMark.slice('group-room:'.length)
     if (rpcId !== undefined) out.rpcId = rpcId
     if (!res.writableEnded) res.write(encodeSse(out))

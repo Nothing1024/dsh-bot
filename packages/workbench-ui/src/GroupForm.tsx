@@ -1,11 +1,12 @@
 /**
  * Create / edit group as a modal: name, 2–6 members, and discussion rounds.
  */
-import { useEffect, useRef, useState, type FormEvent } from 'react'
+import { useEffect, useId, useRef, useState, type FormEvent } from 'react'
 import { describeWireError, type WorkbenchWireError } from 'dsh-bot-shared'
 import type { WorkbenchBot, WorkbenchGroup } from './api.ts'
 import { hashAvatarColor } from './avatar.ts'
 import { Persona } from './Persona.tsx'
+import { ESCAPE_PRIORITY, useEscapeLayer } from './interactions.tsx'
 
 const MEMBER_MIN = 2
 const MEMBER_MAX = 6
@@ -35,6 +36,18 @@ export function GroupForm(props: GroupFormProps) {
   const [nameError, setNameError] = useState<string | null>(null)
   const [memberError, setMemberError] = useState<string | null>(null)
   const submitLock = useRef(false)
+  const titleId = useId()
+  const nameRef = useRef<HTMLInputElement>(null)
+  const initialMembers = props.initial?.memberIds ?? []
+  const pristine = name === (props.initial?.name ?? '')
+    && rounds === (props.initial?.rounds ?? 3)
+    && memberIds.length === initialMembers.length
+    && memberIds.every(id => initialMembers.includes(id))
+  // Escape only discards an untouched form; edits need the explicit 取消 button.
+  useEscapeLayer(true, () => { if (pristine && !props.busy) props.onCancel() }, {
+    priority: ESCAPE_PRIORITY.dialog,
+    initialFocus: () => nameRef.current,
+  })
 
   useEffect(() => {
     if (!props.busy) submitLock.current = false
@@ -78,9 +91,9 @@ export function GroupForm(props: GroupFormProps) {
         if (event.target === event.currentTarget && !props.busy) props.onCancel()
       }}
     >
-    <form className="botForm botFormModal" data-testid="group-form" data-mode={props.mode} onSubmit={submit}>
+    <form className="botForm botFormModal" data-testid="group-form" data-mode={props.mode} role="dialog" aria-modal="true" aria-labelledby={titleId} onSubmit={submit}>
       <header className="botFormHead">
-        <h2>{props.mode === 'create' ? '新建小组' : '编辑成员'}</h2>
+        <h2 id={titleId}>{props.mode === 'create' ? '新建小组' : '编辑成员'}</h2>
         <p className="botFormSub">成员按轮次依次回应；可设固定轮数或无限讨论</p>
       </header>
 
@@ -89,6 +102,7 @@ export function GroupForm(props: GroupFormProps) {
         <label className="field">
           <span>名字</span>
           <input
+            ref={nameRef}
             data-testid="group-form-name"
             value={name}
             maxLength={64}

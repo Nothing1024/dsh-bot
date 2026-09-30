@@ -13,10 +13,18 @@ import { attachDshBotHttp, defaultCreateCwd } from '../src/routes.ts'
 import type { DshBotHttpFace, DshBotModelInfo } from '../src/routes.ts'
 import type { CreateBotSessionResult, DshBotSessionRow } from '../src/ask.ts'
 
-function mockReq(method: string, url: string, body = ''): IncomingMessage {
+function mockReq(
+  method: string,
+  url: string,
+  body = '',
+  headers: Record<string, string> = {},
+  remoteAddress = '127.0.0.1',
+): IncomingMessage {
   const req = Readable.from([body]) as IncomingMessage
   req.method = method
   req.url = url
+  req.headers = { host: '127.0.0.1:3084', 'content-type': 'application/json', ...headers }
+  Object.defineProperty(req, 'socket', { value: { remoteAddress } })
   return req
 }
 
@@ -41,7 +49,7 @@ function mockRes(): { res: ServerResponse; chunks: string[]; headers: Record<str
   return { res, chunks, headers }
 }
 
-function attach(bot: DshBotHttpFace): {
+function attach(bot: DshBotHttpFace, connection?: { requestRejection(): 401 | 403 | undefined }): {
   handler: (req: IncomingMessage, res: ServerResponse) => void
 } {
   const ctx = new Context()
@@ -54,6 +62,7 @@ function attach(bot: DshBotHttpFace): {
       },
     },
   })
+  if (connection !== undefined) ctx.provide('connection', connection)
   attachDshBotHttp(ctx, bot)
   if (handler === undefined) throw new Error('handler not registered')
   return { handler }
@@ -160,12 +169,84 @@ async function post(
   handler: (req: IncomingMessage, res: ServerResponse) => void,
   path: string,
   body: unknown,
+  headers: Record<string, string> = {},
+  remoteAddress = '127.0.0.1',
 ): Promise<{ status: number; json: unknown }> {
   const { res, chunks } = mockRes()
-  handler(mockReq('POST', path, JSON.stringify(body)), res)
+  handler(mockReq('POST', path, JSON.stringify(body), headers, remoteAddress), res)
   await vi.waitFor(() => { expect(chunks.length).toBeGreaterThan(0) })
   return { status: res.statusCode, json: JSON.parse(chunks.join('')) as unknown }
 }
+
+describe('dsh-bot HTTP trust fence', () => {
+  const BROWSER = { origin: 'http://127.0.0.1:3084', 'sec-fetch-site': 'same-origin' }
+
+  it('refuses a browser request the gateway session does not authenticate', async () => {
+    const bot = stub()
+    const { handler } = attach(bot, { requestRejection: () => 401 })
+    const { status } = await post(handler, '/dsh-bot/deleteBot', { args: { id: 'x' } }, BROWSER)
+    expect(status).toBe(401)
+    expect(bot.deleteBot).not.toHaveBeenCalled()
+  })
+
+  it('refuses a LAN request without the browser session cookie', async () => {
+    const bot = stub()
+    const { handler } = attach(bot, { requestRejection: () => 401 })
+    const { status } = await post(handler, '/dsh-bot/listBots', { args: {} }, { host: '192.168.1.5:3084' }, '192.168.1.9')
+    expect(status).toBe(401)
+    expect(bot.listBots).not.toHaveBeenCalled()
+  })
+
+  it('refuses a header-only loopback claim from a remote socket', async () => {
+    const bot = stub()
+    const { handler } = attach(bot, { requestRejection: () => 401 })
+    const { status } = await post(handler, '/dsh-bot/listBots', { args: {} }, {}, '192.168.1.9')
+    expect(status).toBe(401)
+  })
+
+  it('keeps the gateway 403 for cross-site requests even from loopback', async () => {
+    const bot = stub()
+    const { handler } = attach(bot, { requestRejection: () => 403 })
+    const { status } = await post(handler, '/dsh-bot/listBots', { args: {} }, { origin: 'http://evil.example' })
+    expect(status).toBe(403)
+  })
+
+  it('admits an authenticated browser request', async () => {
+    const bot = stub()
+    const { handler } = attach(bot, { requestRejection: () => undefined })
+    const { status } = await post(handler, '/dsh-bot/listBots', { args: {} }, BROWSER)
+    expect(status).toBe(200)
+    expect(bot.listBots).toHaveBeenCalled()
+  })
+
+  it('admits a local non-browser client (CLI) without a cookie', async () => {
+    const bot = stub()
+    const { handler } = attach(bot, { requestRejection: () => 401 })
+    const { status } = await post(handler, '/dsh-bot/listBots', { args: {} })
+    expect(status).toBe(200)
+  })
+
+  it('refuses a cross-origin page when no Connection service is composed', async () => {
+    const bot = stub()
+    const { handler } = attach(bot)
+    const { status } = await post(handler, '/dsh-bot/listBots', { args: {} }, { origin: 'http://evil.example', 'sec-fetch-site': 'cross-site' })
+    expect(status).toBe(403)
+  })
+
+  it('rejects non-JSON bodies so simple cross-site forms cannot drive RPCs', async () => {
+    const bot = stub()
+    const { handler } = attach(bot)
+    const { status } = await post(handler, '/dsh-bot/deleteBot', { args: { id: 'x' } }, { 'content-type': 'text/plain' })
+    expect(status).toBe(415)
+    expect(bot.deleteBot).not.toHaveBeenCalled()
+  })
+
+  it('rejects bodies over the size cap', async () => {
+    const { handler } = attach(stub())
+    const { status } = await post(handler, '/dsh-bot/listBots', { args: {} }, { 'content-length': String(64 * 1024 * 1024) })
+    expect(status).toBe(413)
+  })
+})
 
 describe('dsh-bot HTTP face', () => {
   it('skips register when webServer is absent', () => {
@@ -190,6 +271,14 @@ describe('dsh-bot HTTP face', () => {
     const { handler } = attach(bot)
     await post(handler, '/dsh-bot/listSessions', { args: { includeHidden: true } })
     expect(bot.listSessions).toHaveBeenCalledWith({ includeHidden: true })
+  })
+
+  it('serves botModel without scanning sessions', async () => {
+    const bot = stub()
+    const { handler } = attach(bot)
+    const { json } = await post(handler, '/dsh-bot/botModel', { args: {} })
+    expect(json).toEqual({ ok: true, value: { botModel: MODEL } })
+    expect(bot.listSessions).not.toHaveBeenCalled()
   })
 
   it('creates a visible session via CLI caller with a workspace cwd', async () => {

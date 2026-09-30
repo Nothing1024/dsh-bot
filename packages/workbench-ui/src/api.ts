@@ -66,17 +66,28 @@ const RPC_TIMEOUT_MS = 20_000
  * never rejects on its own, and the workbench would sit in its sending state
  * forever. A stale page from before a gateway restart fails the same way,
  * except the gateway answers 401 — that one names itself instead of timing out.
+ *
+ * `signal` lets a caller drop a superseded request; that ends as code
+ * `aborted`, which callers discard rather than show.
  */
 export async function workbenchCall<T>(
   method: string,
   args: Record<string, unknown> = {},
+  signal?: AbortSignal,
 ): Promise<RpcResult<T>> {
+  if (signal?.aborted === true) return { ok: false, error: { code: 'aborted', message: `${method} aborted` } }
   const controller = new AbortController()
   let timedOut = false
+  let callerAborted = false
   const timer = setTimeout(() => {
     timedOut = true
     controller.abort()
   }, RPC_TIMEOUT_MS)
+  const onAbort = (): void => {
+    callerAborted = true
+    controller.abort()
+  }
+  signal?.addEventListener('abort', onAbort, { once: true })
   let response: Response
   try {
     response = await fetch(`/dsh-bot/${method}`, {
@@ -89,12 +100,13 @@ export async function workbenchCall<T>(
     return {
       ok: false,
       error: {
-        code: timedOut ? 'timeout' : 'unavailable',
+        code: timedOut ? 'timeout' : callerAborted ? 'aborted' : 'unavailable',
         message: error instanceof Error ? error.message : String(error),
       },
     }
   } finally {
     clearTimeout(timer)
+    signal?.removeEventListener('abort', onAbort)
   }
   if (response.status === 401 || response.status === 403) {
     return {
@@ -142,8 +154,9 @@ export function deleteBot(id: string): Promise<RpcResult<{ id: string; deleted: 
   return workbenchCall('deleteBot', { id })
 }
 
-export function listSessionsModel(): Promise<RpcResult<{ botModel: WorkbenchBotModelInfo }>> {
-  return workbenchCall('listSessions', {})
+/** Current global bot model only; `listSessions` also carries it but scans every session. */
+export function fetchBotModel(): Promise<RpcResult<{ botModel: WorkbenchBotModelInfo }>> {
+  return workbenchCall('botModel', {})
 }
 
 export interface PromptValue {
@@ -166,11 +179,11 @@ export function createBotSession(botId: string, title?: string): Promise<RpcResu
   })
 }
 
-export function history(sessionId: string, sinceSeq?: number): Promise<RpcResult<HistoryValue>> {
+export function history(sessionId: string, sinceSeq?: number, signal?: AbortSignal): Promise<RpcResult<HistoryValue>> {
   return workbenchCall<HistoryValue>('history', {
     sessionId,
     ...sinceSeq === undefined ? {} : { sinceSeq },
-  })
+  }, signal)
 }
 
 export function prompt(

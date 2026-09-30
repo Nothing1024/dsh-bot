@@ -6,6 +6,7 @@ import { hashAvatarColor, nameInitial, relativeTime } from './avatar.ts'
 import { Persona } from './Persona.tsx'
 import { DEFAULT_ROSTER_SECTIONS, groupRosterItems } from './roster-sections.ts'
 import type { RosterSection } from './roster-sections.ts'
+import { ESCAPE_PRIORITY, useEscapeLayer } from './interactions.tsx'
 
 export interface RosterMemberAvatar {
   readonly id: string
@@ -140,6 +141,9 @@ export function Roster(props: RosterProps) {
   const menuRef = useRef<HTMLDivElement>(null)
   const sections = props.sections ?? DEFAULT_ROSTER_SECTIONS
   const grouped = groupRosterItems(props.items, sections)
+  const listIdPrefix = useId()
+  useEscapeLayer(menuId !== null, () => setMenuId(null), { priority: ESCAPE_PRIORITY.menu })
+  useEscapeLayer(confirmId !== null, () => setConfirmId(null), { priority: ESCAPE_PRIORITY.dialog })
 
   const applyLayout = (input: NonNullable<RosterProps['onLayout']> extends (i: infer I) => void ? I : never): void => {
     props.onLayout?.(input)
@@ -211,6 +215,7 @@ export function Roster(props: RosterProps) {
         ) : (
           grouped.visible.map(bucket => {
             const collapsedSec = folded.has(bucket.section.id)
+            const listId = `${listIdPrefix}-${bucket.section.id}`
             return (
           <section
             key={bucket.section.id}
@@ -235,12 +240,16 @@ export function Roster(props: RosterProps) {
               type="button"
               className="rosterSectionHead"
               data-testid={`roster-section-toggle-${bucket.section.id}`}
+              aria-expanded={!collapsedSec}
+              aria-controls={listId}
               onClick={() => toggleSection(bucket.section.id)}
             >
               {bucket.section.name}
             </button>
-            {collapsedSec ? null : (
-          <ul className="rosterList">
+            {collapsedSec ? null : bucket.items.length === 0 ? (
+              <p id={listId} className="categoryEmpty" data-testid={`roster-section-empty-${bucket.section.id}`}>暂无</p>
+            ) : (
+          <ul id={listId} className="rosterList">
             {bucket.items.map(item => {
               const selected = item.selected
               const renaming = renameId === item.id
@@ -252,7 +261,14 @@ export function Roster(props: RosterProps) {
                     data-kind={item.kind === 'group' ? 'group' : 'bot'}
                     data-active={selected ? 'true' : 'false'}
                     aria-current={selected ? 'page' : undefined}
+                    tabIndex={0}
                     onClick={() => props.onSelect(item.id)}
+                    onKeyDown={(event: KeyboardEvent<HTMLDivElement>) => {
+                      // Only the row itself; the nested menu button and rename input keep their own keys.
+                      if (event.target !== event.currentTarget || (event.key !== 'Enter' && event.key !== ' ')) return
+                      event.preventDefault()
+                      props.onSelect(item.id)
+                    }}
                     onDoubleClick={(event: MouseEvent) => {
                       event.preventDefault()
                       openRename(item)
@@ -312,6 +328,7 @@ export function Roster(props: RosterProps) {
                           data-testid={`roster-rename-${item.id}`}
                           value={renameValue}
                           aria-label="改名"
+                          data-escape-local="true"
                           onChange={event => setRenameValue(event.target.value)}
                           onClick={event => event.stopPropagation()}
                           onBlur={() => commitRename(item.id)}

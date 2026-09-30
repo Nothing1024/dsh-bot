@@ -43,7 +43,7 @@ export function PeersPanel(props: PeersPanelProps) {
     <div className="memoryPanel" data-testid="peers-panel">
       <header className="memoryPanelHead">
         <span>同事 · {props.botName}</span>
-        <button type="button" className="ghostBtn isTiny" data-testid="peers-close" onClick={props.onClose}>关闭</button>
+        <button type="button" className="ghostBtn isTiny" data-testid="peers-close" aria-label="关闭同事" onClick={props.onClose}>关闭</button>
       </header>
       <div className="memoryPanelBody">
         {counts.size === 0 ? (

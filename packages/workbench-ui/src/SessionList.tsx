@@ -1,4 +1,4 @@
-import { SessionRename, useEscapeDismiss } from './interactions.tsx';
+import { ESCAPE_PRIORITY, moveMenuFocus, SessionRename, useEscapeLayer } from './interactions.tsx'
 /**
  * Bound-session rows: one bot/group owns many threads. Used in the
  * conversation header switcher. Official / leftover sessions jump via
@@ -11,8 +11,6 @@ import {
   CHILD_SESSION_JUMP_TOAST,
   performWorkbenchJump,
   SESSION_TOOL_BROWSE_LABEL,
-  sessionJumpLabel,
-  sessionJumpTitle,
 } from './jump.ts'
 
 export interface SessionChoice {
@@ -58,8 +56,9 @@ export function SessionJumpMenuItem(props: SessionJumpMenuItemProps) {
   return (
     <button
       type="button"
+      role="menuitem"
       data-testid={props.testId}
-      title={hosted ? sessionJumpTitle(false) : sessionJumpTitle()}
+      title={hosted ? '通过会话协作跳到官方对话' : '复制后可到会话协作打开原来的会话'}
       disabled={busy}
       aria-busy={busy}
       onClick={() => {
@@ -78,7 +77,7 @@ export function SessionJumpMenuItem(props: SessionJumpMenuItemProps) {
         })
       }}
     >
-      {hosted ? '在官方会话打开' : sessionJumpLabel()}
+      {hosted ? '在官方会话打开' : '复制会话 ID'}
     </button>
   )
 }
@@ -90,7 +89,10 @@ export function SessionList(props: SessionListProps) {
   const [menuId, setMenuId] = useState<string | null>(null)
   const menuRef = useRef<HTMLLIElement>(null)
   const toast = props.onToast ?? ((text: string) => { void text })
-  useEscapeDismiss(() => setMenuId(null))
+  useEscapeLayer(menuId !== null, () => setMenuId(null), {
+    priority: ESCAPE_PRIORITY.menu,
+    initialFocus: () => menuRef.current?.querySelector<HTMLElement>('.sessionRowMenu [role="menuitem"]'),
+  })
 
   useEffect(() => {
     if (menuId === null) return
@@ -110,12 +112,14 @@ export function SessionList(props: SessionListProps) {
           {props.emptyHint ?? '还没有对话'}
         </p>
       ) : (
-        <ul className="sessionListItems">
+        <ul className="sessionListItems" role="none">
           {props.items.map(item => (
-            <li key={item.sessionId} ref={menuId === item.sessionId ? menuRef : undefined}>
-              <div className="sessionRow">
+            <li key={item.sessionId} role="none" ref={menuId === item.sessionId ? menuRef : undefined}>
+              <div className="sessionRow" role="none">
                 <button
                   type="button"
+                  role="menuitemradio"
+                  aria-checked={item.selected}
                   className={`sessionOption${item.selected ? ' isSelected' : ''}`}
                   data-testid={`session-option-${item.sessionId}`}
                   data-selected={item.selected ? 'true' : 'false'}
@@ -134,9 +138,12 @@ export function SessionList(props: SessionListProps) {
                 </button>
                   <button
                     type="button"
+                    role="menuitem"
                     className="rowMenuBtn sessionRowMenuBtn"
                     data-testid={`session-menu-${item.sessionId}`}
-                    aria-label="会话操作"
+                    aria-label={`会话操作：${item.title}`}
+                    aria-haspopup="menu"
+                    aria-expanded={menuId === item.sessionId}
                     onClick={(event: MouseEvent) => {
                       event.stopPropagation()
                       setMenuId(current => current === item.sessionId ? null : item.sessionId)
@@ -146,7 +153,7 @@ export function SessionList(props: SessionListProps) {
                   </button>
               </div>
               {menuId === item.sessionId ? (
-                <div className="rowMenu sessionRowMenu" data-testid={`session-menu-panel-${item.sessionId}`}>
+                <div className="rowMenu sessionRowMenu" role="menu" aria-label="会话操作" data-testid={`session-menu-panel-${item.sessionId}`} onKeyDown={moveMenuFocus}>
                   <SessionJumpMenuItem
                     sessionId={item.sessionId}
                     testId={`session-jump-${item.sessionId}`}
@@ -171,6 +178,7 @@ export function SessionList(props: SessionListProps) {
       {props.onCreate !== undefined ? (
         <button
           type="button"
+          role="menuitem"
           className="sessionListNew"
           data-testid="session-list-new"
           onClick={props.onCreate}
@@ -182,6 +190,8 @@ export function SessionList(props: SessionListProps) {
         <label className="hiddenToggle sessionListHidden">
           <input
             type="checkbox"
+            role="menuitemcheckbox"
+            aria-checked={props.includeHidden === true}
             data-testid="include-hidden"
             checked={props.includeHidden === true}
             onChange={event => props.onIncludeHidden?.(event.target.checked)}
@@ -191,6 +201,7 @@ export function SessionList(props: SessionListProps) {
       ) : null}
       <button
         type="button"
+        role="menuitem"
         className="sessionListTool"
         data-testid="session-tool-browse"
         onClick={() => browseSessionTool(toast, props.onOpenSessionTool)}

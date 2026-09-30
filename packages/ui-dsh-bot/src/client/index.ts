@@ -1,6 +1,6 @@
 import { createElement } from 'react'
 import type { Context } from '@deepseek-ai/cordis'
-import { DshBotIcon } from './DshBotTab.tsx'
+import { DshBotIcon } from './DshBotIcon.tsx'
 import { en, NS, zh } from './locales.ts'
 import { bindBotRegion, hasSlots } from './region-registration.ts'
 import type { SlotsFace } from './region-registration.ts'
@@ -10,10 +10,6 @@ import { openOfficialSession, openSessionToolPanel } from './session-tool-jump.t
 import type { SessionToolJumpHost } from './session-tool-jump.ts'
 
 export { DEFAULT_ROSTER_SECTIONS } from 'dsh-bot-shared'
-export { DSH_BOT_SESSIONS_TAB_ID } from './tab-id.ts'
-export { jumpToSession } from './session-jump.ts'
-export type { DshBotTabProps } from './DshBotTab.tsx'
-export type { IDshBotClient, DshBotListState, DshBotSessionRow } from './rpc.ts'
 
 export const BOT_PANEL_ID = 'dsh-bot'
 export const inject = ['sessions', 'locale', 'slots', 'layout', 'workspaces', 'uiWorkspace']

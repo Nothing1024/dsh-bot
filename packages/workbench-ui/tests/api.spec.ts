@@ -52,6 +52,21 @@ describe('workbenchCall', () => {
     }
   })
 
+  it('reports a caller abort as aborted, distinct from a timeout', async () => {
+    vi.stubGlobal('fetch', vi.fn((_url: string, init?: { signal?: AbortSignal }) => {
+      const stalled = Promise.withResolvers<never>()
+      init?.signal?.addEventListener('abort', () => stalled.reject(new Error('The operation was aborted.')))
+      return stalled.promise
+    }))
+    const caller = new AbortController()
+    const pending = workbenchCall('history', { sessionId: 's1' }, caller.signal)
+    caller.abort()
+    const outcome = await pending
+    expect(outcome.ok).toBe(false)
+    if (outcome.ok) return
+    expect(outcome.error.code).toBe('aborted')
+  })
+
   it('names an expired credential instead of reporting a parse failure', async () => {
     vi.stubGlobal('fetch', vi.fn(async () => ({ status: 401, statusText: 'Unauthorized', json: async () => { throw new Error('not json') } })))
     const outcome = await workbenchCall('listBots', {})
