@@ -2,7 +2,7 @@
 
 每个 `dsh-bot-*/` 目录是一个 prd-workflow 任务包：`spec.md` 唯一事实源（§0 人话摘要 → §5 验收协议）、`tasks.csv` 或内嵌状态表、`evidence/` 证据、`spec-view.html` 只读投影、按需 `handoff.md`。看进度：`python3 ~/.claude/skills/prd-workflow/scripts/board.py docs/archive/<包>`；校验：`python3 ~/.claude/skills/prd-workflow/scripts/validate_package.py docs/archive/<包> --repo .`。
 
-**没有活跃包。** 全部任务包已移入 `archive/`（已验收 / 被后续决策取代 / 搁置），索引见 `archive/README.md`。原型与真实 GUI 调研仍在 `prototypes/`。2026-09-13 收口对照见 `remaining-prd-decision.md`。仓级现状调研见 `project-research.md`。2026-09-30 删除两个放弃包（interaction-master、native-surface），记录见 `archive/README.md`「已删除」。
+**活跃包：`dsh-bot-group-rounds-v2/`**（2026-09-30，Ready 0/17）：小组引用即点名、轮内排队可取消、继续讨论、删房间；取代 `archive/dsh-bot-group-rounds`。其余任务包已移入 `archive/`（已验收 / 被后续决策取代 / 搁置），索引见 `archive/README.md`。原型与真实 GUI 调研仍在 `prototypes/`。2026-09-13 收口对照见 `remaining-prd-decision.md`。仓级现状调研见 `project-research.md`。2026-09-30 删除两个放弃包（interaction-master、native-surface），记录见 `archive/README.md`「已删除」。
 
 ## 交付脉络（按 spec 首次入库日期）
 
@@ -24,7 +24,7 @@
 | `archive/dsh-bot-workbench` | 19/19 | iframe 工作台 `/dsh-bot/ui`。T18 UF-205 窗口被后续合同取消，2026-09-30 关单 |
 | `archive/dsh-bot-group-chat` | 17/17 | 小组广播对话、插件房间 jsonl |
 | `archive/dsh-bot-session-nav` | 14/14（收缩） | 跳转桥已交付；收纳/起题/归档/overview 2026-09-30 拍板不做 |
-| `archive/dsh-bot-group-rounds` | 0/15（板面未更新） | 代码已有多轮（默认 3 轮）/ 重试 / 房间标题 / working；2026-09-30 拍板补齐余项，见 `remaining-prd-decision.md` §5 |
+| `archive/dsh-bot-group-rounds` | 0/15（被取代） | 代码已有多轮（默认 3 轮）/ 重试 / 房间标题 / working；余项由活跃包 `dsh-bot-group-rounds-v2` 接手 |
 | `archive/dsh-bot-memory` | 13/13 | 三层记忆 + 自动抽取 + 注入 |
 | `archive/dsh-bot-routines` | 14/14 | 例程调度、主动来消息、未读 |
 | `archive/dsh-bot-living-master` | 5/5 | 母包：memory + routines 联合回放 |

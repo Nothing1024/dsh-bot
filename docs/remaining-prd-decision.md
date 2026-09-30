@@ -147,7 +147,7 @@ session-nav / group-rounds 是 09-01 写的，当时 1:1 还整页住在 iframe�
 | 放弃包 | 删 `interaction-master`、`native-surface` | 已 `git rm`，登记 `archive/README.md`「已删除」 |
 | 主面 | 认「官方壳内嵌工作台」 | left-tab 降为历史基线；`ui-feedback-triage.md` P0-1/2/3 按旧入口报，需按新入口重测 |
 | 小组默认轮数 | 保持 3 轮，改合同 | 取代 group-rounds 的 BR-508「默认 1 轮」；老小组无 `rounds` 字段也按 3 轮 |
-| 多轮缺口 | 全做：引用即点名、轮内排队可取消、继续讨论、删房间 | 待开新包（旧 group-rounds 板面不复用） |
+| 多轮缺口 | 全做：引用即点名、轮内排队可取消、继续讨论、删房间 | 新包 `docs/dsh-bot-group-rounds-v2/`（旧 group-rounds 板面不复用） |
 | session-nav T5–T14 | 关单（不做） | 板面标已完成 + 备注；spec Status → Done 收缩交付 |
 | workbench T18 | 关单（被取代） | 板面标已完成 + 备注；spec Status → Done 19/19 |
 
