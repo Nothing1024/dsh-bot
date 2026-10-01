@@ -6,7 +6,7 @@ import { useCallback, useEffect, useLayoutEffect, useRef, useState, type Keyboar
 import { describeWireError } from 'dsh-bot-shared'
 import { readDraft, writeDraft, draftStorageKey } from './api.ts'
 import { emojiQuery, filterEmoji } from './emoji.ts'
-import { mentionHandle, mentionQuery, parseMentions } from './mentions.ts'
+import { mentionHandle, mentionQuery, resolveResponders } from './mentions.ts'
 
 export interface ComposerMember {
   readonly id: string
@@ -17,6 +17,8 @@ export interface ComposerReplyTo {
   readonly seq: number
   readonly speaker: string
   readonly text: string
+  /** Quoted member; unset for the user's own line (BR-001 falls back to everyone). */
+  readonly botId?: string
 }
 
 export interface ComposerProps {
@@ -309,7 +311,7 @@ export function Composer(props: ComposerProps) {
   }
 
   const locked = props.sending
-  const recipients = props.members === undefined ? null : parseMentions(text, props.members)
+  const recipients = props.members === undefined ? null : resolveResponders(text, props.members, props.replyTo?.botId)
   const working = props.working === true
   const placeholder = `给 ${props.botName} 发消息`
   const replyTo = props.replyTo

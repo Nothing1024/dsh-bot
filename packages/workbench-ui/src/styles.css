@@ -2031,6 +2031,68 @@ body,
   margin: 0 0 2px;
 }
 
+.systemDivider {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 12px 0;
+  color: var(--wb-muted);
+  font-size: 12px;
+}
+
+.systemDivider::before,
+.systemDivider::after {
+  content: '';
+  flex: 1;
+  border-top: 1px solid var(--wb-border);
+}
+
+.queuedList {
+  list-style: none;
+  margin: 8px 0 0;
+  padding: 0;
+  display: grid;
+  gap: 4px;
+}
+
+.queuedRow {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  color: var(--wb-muted);
+  font-size: 12px;
+}
+
+.queuedText {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--wb-text);
+}
+
+.queuedCancel {
+  appearance: none;
+  border: 1px solid var(--wb-border);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--wb-text);
+  font: inherit;
+  min-height: 24px;
+  padding: 0 8px;
+  cursor: pointer;
+}
+
+.queuedCancel:disabled {
+  cursor: default;
+  opacity: 0.6;
+}
+
+.dangerItem {
+  color: var(--wb-danger);
+}
+
 .composerEmojiBtn {
   appearance: none;
   flex: none;

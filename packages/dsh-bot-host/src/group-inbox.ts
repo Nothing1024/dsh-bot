@@ -209,7 +209,7 @@ export class GroupInbox {
     }
     const quote = input.replyToSeq === undefined ? undefined : room.messages.find(row => row.seq === input.replyToSeq)
     if (input.replyToSeq !== undefined && (quote === undefined || quote.speaker.kind === 'error' || quote.speaker.kind === 'system')) {
-      throw new DshBotError('invalid-input', 'quoted message does not exist in this room')
+      throw new DshBotError('invalid-input', '引用的消息不存在')
     }
     const quotedBotId = quote?.speaker.kind === 'member' ? quote.speaker.botId : undefined
     const replyTo = quote === undefined ? undefined : {

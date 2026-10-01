@@ -874,3 +874,134 @@ describe('Conversation', () => {
     })
   })
 })
+
+describe('Conversation group rounds v2', () => {
+  const GROUP = { id: 'g', name: '编辑室', memberIds: [BOT.id], createdAt: 1, rounds: 3 }
+  const MEMBER_LINE = { id: 'a1', kind: 'message', seq: 1, role: 'assistant', text: '秋声', author: { botId: BOT.id, name: BOT.name, avatar: BOT.avatar } }
+
+  afterEach(() => {
+    cleanup()
+    vi.unstubAllGlobals()
+    localStorage.clear()
+    sessionStorage.clear()
+  })
+
+  type Reply = { json: () => Promise<unknown> }
+  function stubRoom(handlers: Record<string, (args: Record<string, unknown>) => Reply>, history: () => unknown) {
+    const calls: Array<[string, Record<string, unknown>]> = []
+    vi.stubGlobal('fetch', vi.fn(async (url: string, init?: { body?: string }) => {
+      const method = String(url).split('/').pop()!
+      const body: { args?: Record<string, unknown> } = JSON.parse(init?.body ?? '{}')
+      const args = body.args ?? {}
+      calls.push([method, args])
+      if (method === 'listGroupSessions') return jsonOk({ rooms: [{ roomId: 'room-a', groupId: 'g', title: 'A', createdAt: 2, updatedAt: 2 }, { roomId: 'room-b', groupId: 'g', title: 'B', createdAt: 1, updatedAt: 1 }] })
+      if (method === 'history') return jsonOk(history())
+      const handler = handlers[method]
+      return handler === undefined ? jsonOk({}) : handler(args)
+    }))
+    return calls
+  }
+
+  it('clears the composer when a busy room queues the prompt, and keeps the draft when the queue is full', async () => {
+    let queueFull = false
+    stubRoom({
+      prompt: () => queueFull ? jsonErr('queue-full', 'room queue is full (max 3)') : jsonOk({ sessionId: 'room-a', queued: true, queueId: 'q1' }),
+    }, () => ({ sessionId: 'room-a', working: true, items: [MEMBER_LINE], queued: [] }))
+    render(<Conversation group={GROUP} members={[BOT]} />)
+    const input = await screen.findByTestId('composer-input') as HTMLTextAreaElement
+    fireEvent.change(input, { target: { value: '再想想标题' } })
+    await act(async () => { fireEvent.keyDown(input, { key: 'Enter' }) })
+    await vi.waitFor(() => expect(input.value).toBe(''))
+    expect(screen.queryByTestId('transcript-pending')).toBeNull()
+    queueFull = true
+    fireEvent.change(input, { target: { value: '第四条' } })
+    await act(async () => { fireEvent.keyDown(input, { key: 'Enter' }) })
+    expect(await screen.findByText('排队已满（最多 3 条）')).toBeTruthy()
+    expect(input.value).toBe('第四条')
+    expect(screen.queryByTestId('transcript-pending')).toBeNull()
+  })
+
+  it('renders queued rows from history and cancels one through cancelQueued', async () => {
+    let queued = [{ queueId: 'q1', text: '再想想标题', createdAt: 1 }]
+    const calls = stubRoom({
+      cancelQueued: () => { queued = []; return jsonOk({ queueId: 'q1', cancelled: true }) },
+    }, () => ({ sessionId: 'room-a', working: true, items: [MEMBER_LINE], queued }))
+    render(<Conversation group={GROUP} members={[BOT]} />)
+    fireEvent.click(await screen.findByTestId('queued-cancel-q1'))
+    await vi.waitFor(() => expect(screen.queryByTestId('queued-row-q1')).toBeNull())
+    expect(calls).toContainEqual(['cancelQueued', { sessionId: 'room-a', queueId: 'q1' }])
+  })
+
+  it('explains a cancel that lost the race and reports dropped prompts on stop', async () => {
+    stubRoom({
+      cancelQueued: () => jsonErr('not-found', '这条已开始讨论，无法取消'),
+      cancel: () => jsonOk({ accepted: true, dropped: 2 }),
+    }, () => ({ sessionId: 'room-a', working: true, items: [MEMBER_LINE], queued: [{ queueId: 'q1', text: '再想想', createdAt: 1 }] }))
+    render(<Conversation group={GROUP} members={[BOT]} />)
+    fireEvent.click(await screen.findByTestId('queued-cancel-q1'))
+    expect((await screen.findByTestId('composer-toast')).textContent).toBe('这条已开始讨论，无法取消')
+    await act(async () => { fireEvent.click(screen.getByTestId('composer-send')) })
+    await vi.waitFor(() => expect(screen.getByTestId('composer-toast').textContent).toBe('已停止，排队的 2 条未发送'))
+  })
+
+  it('enables 让他们继续聊 only when idle with a member line, and calls continueDiscussion', async () => {
+    let state: { working: boolean; items: unknown[] } = { working: false, items: [{ id: 'u', kind: 'message', seq: 1, role: 'user', text: '只有我' }] }
+    const calls = stubRoom({ continueDiscussion: () => jsonOk({ sessionId: 'room-a', messageId: 'm-2' }) },
+      () => ({ sessionId: 'room-a', ...state, queued: [] }))
+    const view = render(<Conversation group={GROUP} members={[BOT]} />)
+    const button = await screen.findByTestId('group-continue') as HTMLButtonElement
+    await vi.waitFor(() => expect(button.title).toBe('先发一条消息开始讨论'))
+    expect(button.disabled).toBe(true)
+    state = { working: true, items: [MEMBER_LINE] }
+    view.rerender(<Conversation group={GROUP} members={[BOT]} live={{ epoch: 1, cards: [], stream: null }} />)
+    await vi.waitFor(() => expect(button.title).toBe('讨论进行中'))
+    expect(button.disabled).toBe(true)
+    state = { working: false, items: [MEMBER_LINE] }
+    view.rerender(<Conversation group={GROUP} members={[BOT]} live={{ epoch: 2, cards: [], stream: null }} />)
+    await vi.waitFor(() => expect(button.disabled).toBe(false))
+    await act(async () => { fireEvent.click(button) })
+    expect(calls).toContainEqual(['continueDiscussion', { sessionId: 'room-a' }])
+  })
+
+  it('deletes a room only after confirmation, keeps busy errors in the dialog, and selects the remaining room', async () => {
+    let busy = true
+    const calls = stubRoom({
+      deleteGroupSession: () => busy ? jsonErr('invalid-input', 'room is busy') : jsonOk({ roomId: 'room-a', deleted: true }),
+    }, () => ({ sessionId: 'room-a', working: false, items: [MEMBER_LINE], queued: [] }))
+    render(<Conversation group={GROUP} members={[BOT]} />)
+    await vi.waitFor(() => expect(screen.getByTestId('session-select').getAttribute('data-session-id')).toBe('room-a'))
+    const openDialog = async (): Promise<void> => {
+      fireEvent.click(screen.getByTestId('session-select'))
+      fireEvent.click(await screen.findByTestId('session-menu-room-a'))
+      fireEvent.click(screen.getByTestId('session-delete-room-a'))
+    }
+    await openDialog()
+    expect(screen.getByRole('dialog').textContent).toContain('删除房间「A」？')
+    fireEvent.click(screen.getByTestId('room-delete-cancel'))
+    expect(screen.queryByTestId('room-delete-confirm')).toBeNull()
+    expect(calls.some(([method]) => method === 'deleteGroupSession')).toBe(false)
+    await openDialog()
+    await act(async () => { fireEvent.click(screen.getByTestId('room-delete-ok')) })
+    expect(screen.getByTestId('room-delete-error').textContent).toBe('房间正在讨论，先停止再删除')
+    expect(screen.getByTestId('room-delete-confirm')).toBeTruthy()
+    busy = false
+    await act(async () => { fireEvent.click(screen.getByTestId('room-delete-ok')) })
+    await vi.waitFor(() => expect(screen.queryByTestId('room-delete-confirm')).toBeNull())
+    expect(screen.getByTestId('composer-toast').textContent).toBe('已删除房间')
+  })
+
+  it('shows no continue button, queue rows, or room delete in a 1:1 chat (INV-001)', async () => {
+    vi.stubGlobal('fetch', vi.fn(async (url: string) => {
+      if (String(url).endsWith('/listBotSessions')) return jsonOk({ sessions: [{ sessionId: 's1', title: '私聊', tags: [], status: 'idle', createdAt: 1, updatedAt: 1, hidden: false, working: false }] })
+      if (String(url).endsWith('/history')) return jsonOk({ sessionId: 's1', working: false, items: [{ id: 'a', kind: 'message', seq: 1, role: 'assistant', text: 'hi' }] })
+      return jsonOk({})
+    }))
+    render(<Conversation bot={BOT} />)
+    await screen.findByTestId('composer-input')
+    expect(screen.queryByTestId('group-continue')).toBeNull()
+    expect(screen.queryByTestId('queued-list')).toBeNull()
+    fireEvent.click(screen.getByTestId('session-select'))
+    fireEvent.click(await screen.findByTestId('session-menu-s1'))
+    expect(screen.queryByTestId('session-delete-s1')).toBeNull()
+  })
+})

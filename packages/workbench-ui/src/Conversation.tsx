@@ -24,6 +24,9 @@ import {
   routineDelete,
   approvalRespond,
   cancel,
+  cancelQueued,
+  continueDiscussion,
+  deleteGroupSession,
   prompt,
   questionRespond,
   retryMember,
@@ -36,7 +39,7 @@ import type {
   WorkbenchHistoryItem,
   WorkbenchSessionRow,
 } from './api.ts'
-import { parseMentions } from './mentions.ts'
+import { resolveResponders } from './mentions.ts'
 import { hashAvatarColor } from './avatar.ts'
 import { Persona } from './Persona.tsx'
 import { Composer } from './Composer.tsx'
@@ -176,6 +179,12 @@ export function Conversation(props: ConversationProps) {
   const [switcherOpen, setSwitcherOpen] = useState(false)
   const [currentMenuOpen, setCurrentMenuOpen] = useState(false)
   const [replyTo, setReplyTo] = useState<ComposerReplyTo | null>(null)
+  const [continuing, setContinuing] = useState(false)
+  const [deleteRoom, setDeleteRoom] = useState<{ sessionId: string; title: string } | null>(null)
+  const [deletingRoom, setDeletingRoom] = useState(false)
+  const [deleteRoomError, setDeleteRoomError] = useState<string | null>(null)
+  const deleteCancelRef = useRef<HTMLButtonElement>(null)
+  const deleteTitleId = useId()
   const retryRequest = useRef<{ sessionId: string; text: string; replyToSeq?: number; requestId: string } | null>(null)
   const switcherRef = useRef<HTMLDivElement>(null)
   const switcherMenuId = useId()
@@ -497,7 +506,7 @@ export function Conversation(props: ConversationProps) {
 
   const send = async (text: string): Promise<boolean> => {
     if (isGroup) {
-      const mention = parseMentions(text, members)
+      const mention = resolveResponders(text, members, replyTo?.botId)
       if (mention.unmatched) {
         setSendCode('invalid-mention')
         setSendError(`无法识别或存在重名：${mention.unmatchedHandles.join('、')}`)
@@ -549,9 +558,18 @@ export function Conversation(props: ConversationProps) {
       if (!outcome.ok) {
         setSendError(outcome.error.message)
         setSendCode(outcome.error.code ?? 'internal')
-        setPending({ text, sinceSeq, failed: true })
+        // queue-full: nothing was accepted; the draft (and reply card) stay in the composer.
+        setPending(outcome.error.code === 'queue-full' ? null : { text, sinceSeq, failed: true })
         setAwaitingTurn(false)
         return false
+      }
+      if (outcome.value.queued === true) {
+        // BR-002: nothing persisted yet; the queued row comes from history, not a pending bubble.
+        retryRequest.current = null
+        setReplyTo(null)
+        setPending(null)
+        poll.refresh()
+        return true
       }
       retryRequest.current = null
       setReplyTo(null)
@@ -588,7 +606,83 @@ export function Conversation(props: ConversationProps) {
       return
     }
     setAwaitingTurn(false)
+    const dropped = outcome.value.dropped ?? 0
+    if (dropped > 0) setToast(`已停止，排队的 ${dropped} 条未发送`)
     poll.refresh()
+  }
+
+  const hasMemberLine = poll.items.some(item => item.kind === 'message' && item.role === 'assistant'
+    && item.error === undefined && item.author !== undefined)
+  const continueBlocked = working || poll.queued.length > 0
+    ? '讨论进行中'
+    : hasMemberLine ? null : '先发一条消息开始讨论'
+
+  const startContinue = async (): Promise<void> => {
+    if (sessionId === null || continuing) return
+    setContinuing(true)
+    try {
+      const outcome = await continueDiscussion(sessionId)
+      if (!mounted.current) return
+      if (!outcome.ok) {
+        setToast(outcome.error.message === 'room is busy' ? '讨论进行中，稍后再继续' : formatWireError(outcome.error))
+        return
+      }
+      poll.refresh()
+    } finally {
+      if (mounted.current) setContinuing(false)
+    }
+  }
+
+  const cancelQueuedRow = async (queueId: string): Promise<void> => {
+    if (sessionId === null) return
+    const outcome = await cancelQueued(sessionId, queueId)
+    if (!mounted.current) return
+    if (!outcome.ok) {
+      setToast(outcome.error.code === 'not-found' ? '这条已开始讨论，无法取消' : formatWireError(outcome.error))
+    }
+    poll.refresh()
+  }
+
+  const openDeleteRoom = (id: string, title: string): void => {
+    setSwitcherOpen(false)
+    setDeleteRoomError(null)
+    setDeleteRoom({ sessionId: id, title })
+  }
+
+  const closeDeleteRoom = (): void => {
+    setDeleteRoom(null)
+    setDeleteRoomError(null)
+    switcherRef.current?.querySelector<HTMLElement>('.sessionSwitchBtn')?.focus()
+  }
+
+  useEscapeLayer(deleteRoom !== null, () => { if (!deletingRoom) closeDeleteRoom() }, {
+    priority: ESCAPE_PRIORITY.dialog,
+    initialFocus: () => deleteCancelRef.current,
+  })
+
+  const confirmDeleteRoom = async (): Promise<void> => {
+    const target = deleteRoom
+    if (target === null || deletingRoom) return
+    setDeletingRoom(true)
+    setDeleteRoomError(null)
+    const outcome = await deleteGroupSession(target.sessionId)
+    if (!mounted.current) return
+    setDeletingRoom(false)
+    const wasCurrent = sessionIdRef.current === target.sessionId
+    if (!outcome.ok && outcome.error.code !== 'group-not-found') {
+      setDeleteRoomError(outcome.error.message === 'room is busy' ? '房间正在讨论，先停止再删除' : formatWireError(outcome.error))
+      return
+    }
+    closeDeleteRoom()
+    setToast(outcome.ok ? '已删除房间' : '房间不存在')
+    if (wasCurrent) {
+      setPending(null)
+      setReplyTo(null)
+      setSendError(null)
+      setSendCode(null)
+    }
+    // Deleted current room: the newest remaining room (or a fresh empty one) takes over.
+    await loadSessions(wasCurrent ? null : sessionIdRef.current)
   }
 
   return (
@@ -782,6 +876,7 @@ export function Conversation(props: ConversationProps) {
                   }}
                   groupMode={isGroup}
                   onToast={setToast}
+                  {...isGroup ? { onDeleteRoom: openDeleteRoom } : {}}
                   {...props.onOpenOfficialSession === undefined ? {} : { onOpenOfficialSession: props.onOpenOfficialSession }}
                   {...props.onOpenSessionTool === undefined ? {} : { onOpenSessionTool: props.onOpenSessionTool }}
                   {...isGroup ? {} : {
@@ -829,6 +924,19 @@ export function Conversation(props: ConversationProps) {
               </div>
             ) : null}
           </div>
+          {isGroup && sessionId !== null ? (
+            <button
+              type="button"
+              className="retry"
+              data-testid="group-continue"
+              disabled={continuing || continueBlocked !== null}
+              aria-busy={continuing}
+              title={continueBlocked ?? '不发新消息，让成员接着刚才的话题再聊一场'}
+              onClick={() => { void startContinue() }}
+            >
+              {continuing ? '正在开始…' : '让他们继续聊'}
+            </button>
+          ) : null}
           <button
             type="button"
             className="retry"
@@ -946,11 +1054,16 @@ export function Conversation(props: ConversationProps) {
               setToast(result.ok ? '已记住' : '记住失败')
             },
             pendingReply: pending?.replyTo ?? null,
+            queued: poll.queued,
+            onCancelQueued: cancelQueuedRow,
             onReplyTo: (item: WorkbenchHistoryItem) => {
               setReplyTo({
                 seq: item.seq,
                 speaker: item.author?.name ?? (item.role === 'user' ? '你' : '成员'),
                 text: item.text ?? '',
+                // Only a member's own line narrows the responders (BR-001).
+                ...item.role === 'assistant' && item.error === undefined && item.author !== undefined
+                  ? { botId: item.author.botId } : {},
               })
             },
             onRetryMember: async (item: WorkbenchHistoryItem) => {
@@ -990,6 +1103,26 @@ export function Conversation(props: ConversationProps) {
         }}
         {...props.onDraft === undefined ? {} : { onDraft: props.onDraft }}
       />
+      ) : null}
+      {deleteRoom !== null ? (
+        <div className="confirmMask" data-testid="room-delete-confirm">
+          <div className="confirmBox" role="dialog" aria-modal="true" aria-labelledby={deleteTitleId} aria-describedby={`${deleteTitleId}-hint`}>
+            <p id={deleteTitleId} className="confirmTitle">删除房间「{deleteRoom.title}」？</p>
+            <p id={`${deleteTitleId}-hint`} className="hint">成员人设和他们的私聊都会保留。</p>
+            {deleteRoomError !== null ? (
+              <p className="formError" role="alert" data-testid="room-delete-error">{deleteRoomError}</p>
+            ) : null}
+            <div className="confirmActions">
+              <button ref={deleteCancelRef} type="button" className="retry" data-testid="room-delete-cancel" disabled={deletingRoom} onClick={closeDeleteRoom}>
+                取消
+              </button>
+              <button type="button" className="dangerBtn" data-testid="room-delete-ok" disabled={deletingRoom} aria-busy={deletingRoom}
+                onClick={() => { void confirmDeleteRoom() }}>
+                {deletingRoom ? '删除中…' : '删除'}
+              </button>
+            </div>
+          </div>
+        </div>
       ) : null}
     </div>
   )

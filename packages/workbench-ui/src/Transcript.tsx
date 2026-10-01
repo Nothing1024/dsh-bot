@@ -5,7 +5,7 @@
  */
 import { memo, useEffect, useLayoutEffect, useMemo, useRef, useState, type Ref, type UIEvent } from 'react'
 import { routineCreate, routineDecline } from './api.ts'
-import type { WorkbenchBot, WorkbenchHistoryItem } from './api.ts'
+import type { GroupQueuedItem, WorkbenchBot, WorkbenchHistoryItem } from './api.ts'
 import { hashAvatarColor } from './avatar.ts'
 import { Markdown } from './Markdown.tsx'
 import { Persona } from './Persona.tsx'
@@ -46,6 +46,9 @@ export interface TranscriptProps {
   readonly onApproval?: (item: WorkbenchHistoryItem, outcome: 'allowed-once' | 'rejected') => void
   readonly onQuestion?: (item: WorkbenchHistoryItem, answer: string) => void
   readonly onRetryMember?: (item: WorkbenchHistoryItem) => void
+  /** Group room only: prompts waiting for the running discussion (BR-002). Not message bubbles. */
+  readonly queued?: readonly GroupQueuedItem[]
+  readonly onCancelQueued?: (queueId: string) => Promise<void>
 }
 
 function markFor(text: string | undefined, marks: readonly TranscriptReplyMark[] | undefined): TranscriptReplyTo | undefined {
@@ -137,9 +140,12 @@ export function Transcript(props: TranscriptProps) {
   const canReply = props.onReplyTo !== undefined
   const canRemember = props.onRemember !== undefined
   const canMenu = canReply || canRemember
-  const messages = props.items.filter(item => item.kind === 'message'
-    && (item.role === 'user' || item.role === 'assistant')
-    && ((item.text ?? '').trim() !== '' || item.error !== undefined))
+  // System anchors (continue discussion) sit between messages as dividers, never as bubbles.
+  const rows = props.items.filter(item => (props.groupMode === true && item.kind === 'system')
+    || (item.kind === 'message'
+      && (item.role === 'user' || item.role === 'assistant')
+      && ((item.text ?? '').trim() !== '' || item.error !== undefined)))
+  const messages = rows.filter(item => item.kind === 'message')
 
   return (
     <>
@@ -151,7 +157,14 @@ export function Transcript(props: TranscriptProps) {
         onScroll={onScroll}
       >
         <div className="transcriptContent" ref={content}>
-          {messages.map(item => {
+          {rows.map(item => {
+            if (item.kind === 'system') {
+              return (
+                <div key={item.id} className="systemDivider" role="separator" aria-label={item.text} data-testid="system-divider">
+                  <span>{item.text}</span>
+                </div>
+              )
+            }
             const mark = item.role === 'user' ? item.replyTo ?? markFor(item.text, props.replyMarks) : undefined
             const retryBotId = item.author?.botId
             const canRetry = props.onRetryMember !== undefined
@@ -182,12 +195,48 @@ export function Transcript(props: TranscriptProps) {
           {props.working ? (
             <TypingIndicator {...props.speaking === undefined ? {} : { speaking: props.speaking }} />
           ) : null}
+          {props.groupMode === true && props.queued !== undefined && props.queued.length > 0 ? (
+            <ul className="queuedList" aria-label="排队中的消息" data-testid="queued-list">
+              {props.queued.map(row => (
+                <QueuedRow key={row.queueId} row={row} {...props.onCancelQueued === undefined ? {} : { onCancel: props.onCancelQueued }} />
+              ))}
+            </ul>
+          ) : null}
         </div>
       </div>
       {away ? <button type="button" className="jumpLatest" aria-label="回到最新消息" onClick={toLatest}>
         ↓ 最新消息
       </button> : null}
     </>
+  )
+}
+
+function QueuedRow(props: { row: GroupQueuedItem; onCancel?: (queueId: string) => Promise<void> }) {
+  const [busy, setBusy] = useState(false)
+  const { row } = props
+  return (
+    <li className="queuedRow" data-testid={`queued-row-${row.queueId}`}>
+      {row.replyTo !== undefined ? <span className="queuedCite">→ {row.replyTo.speaker}</span> : null}
+      <span className="queuedText">{row.text}</span>
+      <span className="queuedState" aria-hidden="true">· 排队中 ·</span>
+      <span className="visuallyHidden">排队中</span>
+      {props.onCancel !== undefined ? (
+        <button
+          type="button"
+          className="queuedCancel"
+          data-testid={`queued-cancel-${row.queueId}`}
+          aria-label={`取消排队：${row.text}`}
+          aria-busy={busy}
+          disabled={busy}
+          onClick={() => {
+            setBusy(true)
+            void props.onCancel!(row.queueId).finally(() => setBusy(false))
+          }}
+        >
+          {busy ? '取消中…' : '取消'}
+        </button>
+      ) : null}
+    </li>
   )
 }
 

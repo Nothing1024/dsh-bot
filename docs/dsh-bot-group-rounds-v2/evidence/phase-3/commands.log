@@ -1,0 +1,26 @@
+== Task 10-13 定向
+ Test Files  6 passed (6)
+      Tests  101 passed (101)
+== Task 14: pnpm test
+ Test Files  51 passed (51)
+      Tests  533 passed (533)
+== typecheck
+packages/workbench-ui/tests/conversation.spec.tsx(956,63): error TS2322: Type '{ epoch: number; cards: never[]; }' is not assignable to type 'Pick<BotLiveState, "stream" | "cards" | "epoch"> & Partial<Pick<BotLiveState, "streams">>'.
+  Property 'stream' is missing in type '{ epoch: number; cards: never[]; }' but required in type 'Pick<BotLiveState, "stream" | "cards" | "epoch">'.
+packages/workbench-ui/tests/conversation.spec.tsx(960,63): error TS2322: Type '{ epoch: number; cards: never[]; }' is not assignable to type 'Pick<BotLiveState, "stream" | "cards" | "epoch"> & Partial<Pick<BotLiveState, "streams">>'.
+  Property 'stream' is missing in type '{ epoch: number; cards: never[]; }' but required in type 'Pick<BotLiveState, "stream" | "cards" | "epoch">'.
+[ELIFECYCLE] Command failed with exit code 2.
+== build
+packages/dsh-bot-shared build: Done
+packages/workbench-ui build: Done
+packages/ui-dsh-bot build: Done
+packages/dsh-bot-host build: Done
+packages/tool-dsh-bot build: Done
+== typecheck（修正测试 live 类型后重跑）
+$ tsc -p tsconfig.json
+== conversation.spec 重跑
+ Test Files  1 passed (1)
+      Tests  36 passed (36)
+
+== 浏览器冒烟（重启网关后）
+小组「编辑室」房间 room-ee022847…：头部「让他们继续聊」可点（idle + 有成员发言），transcript 1 条 system-divider「继续讨论」；截图 smoke-room.png。UF-001~004 的逐步回放在 Task 16（5.2 矩阵）完成。

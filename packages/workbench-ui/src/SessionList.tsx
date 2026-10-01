@@ -33,6 +33,8 @@ export interface SessionListProps {
   readonly onIncludeHidden?: (next: boolean) => void
   readonly onToast?: (text: string) => void
   readonly groupMode?: boolean
+  /** Group rooms only (BR-004): opens the caller's confirm dialog; never deletes directly. */
+  readonly onDeleteRoom?: (sessionId: string, title: string) => void
   readonly onOpenOfficialSession?: (sessionId: string) => Promise<void> | void
   readonly onOpenSessionTool?: () => void
 }
@@ -169,6 +171,20 @@ export function SessionList(props: SessionListProps) {
                     onToast={toast}
                     onDone={() => setMenuId(null)}
                   />
+                  {props.groupMode === true && props.onDeleteRoom !== undefined ? (
+                    <button
+                      type="button"
+                      role="menuitem"
+                      className="dangerItem"
+                      data-testid={`session-delete-${item.sessionId}`}
+                      onClick={() => {
+                        setMenuId(null)
+                        props.onDeleteRoom?.(item.sessionId, item.title)
+                      }}
+                    >
+                      删除房间
+                    </button>
+                  ) : null}
                 </div>
               ) : null}
             </li>

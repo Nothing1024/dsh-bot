@@ -3,7 +3,9 @@
  * Once SSE is ready it stops, or slows to `sseIntervalMs` when set.
  */
 import { useCallback, useEffect, useRef, useState } from 'react'
-import type { HistoryValue, RpcResult, WorkbenchHistoryItem, WorkbenchWireError } from './api.ts'
+import type { GroupQueuedItem, HistoryValue, RpcResult, WorkbenchHistoryItem, WorkbenchWireError } from './api.ts'
+
+const NO_QUEUE: readonly GroupQueuedItem[] = []
 
 const IDLE_MS = 2000
 const WORKING_MS = 1000
@@ -16,6 +18,8 @@ export interface SessionPollState {
   readonly speaking: NonNullable<HistoryValue['speaking']> | null
   readonly round: number | null
   readonly rounds: number | null
+  /** Group room only: prompts waiting for the running discussion. */
+  readonly queued: readonly GroupQueuedItem[]
 }
 
 export interface UseSessionPollOptions {
@@ -89,6 +93,7 @@ export function useSessionPoll(options: UseSessionPollOptions): SessionPollState
   const [speaking, setSpeaking] = useState<SessionPollState['speaking']>(null)
   const [round, setRound] = useState<number | null>(null)
   const [rounds, setRounds] = useState<number | null>(null)
+  const [queued, setQueued] = useState<readonly GroupQueuedItem[]>(NO_QUEUE)
   const [ready, setReady] = useState(sessionId === null || !enabled)
   const itemsRef = useRef(items)
   itemsRef.current = items
@@ -137,6 +142,10 @@ export function useSessionPoll(options: UseSessionPollOptions): SessionPollState
     const nextRounds = typeof outcome.value.rounds === 'number' ? outcome.value.rounds : null
     setRound(current => current === nextRound ? current : nextRound)
     setRounds(current => current === nextRounds ? current : nextRounds)
+    const nextQueued = outcome.value.queued ?? NO_QUEUE
+    // Same ids in the same order: keep identity so the transcript does not re-render.
+    setQueued(current => current.length === nextQueued.length
+      && current.every((row, index) => row.queueId === nextQueued[index]!.queueId) ? current : nextQueued)
     const incoming = Array.isArray(outcome.value.items) ? outcome.value.items : []
     setItems(current => mergeHistoryItems(current, incoming, sinceSeq !== undefined))
     setReady(true)
@@ -154,6 +163,7 @@ export function useSessionPoll(options: UseSessionPollOptions): SessionPollState
     setSpeaking(null)
     setRound(null)
     setRounds(null)
+    setQueued(NO_QUEUE)
     setError(null)
     setReady(sessionId === null || !enabled)
     if (sessionId === null || !enabled) return
@@ -204,7 +214,7 @@ export function useSessionPoll(options: UseSessionPollOptions): SessionPollState
     }
   }, [enabled, pull, sessionId, sseReady, sseIntervalMs])
 
-  return { items, working, error, ready, speaking, round, rounds, refresh }
+  return { items, working, error, ready, speaking, round, rounds, queued, refresh }
 }
 
 export const POLL_IDLE_MS = IDLE_MS

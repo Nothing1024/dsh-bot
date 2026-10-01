@@ -355,4 +355,18 @@ describe('Composer', () => {
     )
     expect(screen.queryByTestId('mention-menu')).toBeNull()
   })
+
+  it('names the quoted member as the only responder until an @ overrides it (BR-001)', () => {
+    const members = [{ id: 'shiren-xiaobei', name: '诗人小北' }, { id: 'dsh-bot', name: 'DSH Bot' }]
+    const base = { botId: 'g', botName: '编辑室', disabled: false, sending: false, error: null, members, onSend: async () => true }
+    const { rerender } = render(<Composer {...base} replyTo={{ seq: 2, speaker: '诗人小北', text: '秋声', botId: 'shiren-xiaobei' }} />)
+    const input = screen.getByTestId('composer-input')
+    fireEvent.change(input, { target: { value: '这句改短一点' } })
+    expect(screen.getByTestId('composer-recipients').textContent).toBe('本次回应：诗人小北')
+    fireEvent.change(input, { target: { value: '@DSH Bot 你来改' } })
+    expect(screen.getByTestId('composer-recipients').textContent).toBe('本次回应：DSH Bot')
+    rerender(<Composer {...base} replyTo={{ seq: 1, speaker: '你', text: '起个标题' }} />)
+    fireEvent.change(input, { target: { value: '再想想' } })
+    expect(screen.getByTestId('composer-recipients').textContent).toBe('本次回应：诗人小北、DSH Bot')
+  })
 })

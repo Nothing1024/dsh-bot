@@ -339,5 +339,36 @@ describe('Transcript', () => {
     expect(screen.getByTestId('transcript-peer-2').textContent).toBe('来自 校对阿宁')
     expect(screen.getByTestId('transcript-peer-3').textContent).toBe('来自 诗人小北')
   })
+
+  it('renders a system line as a separator in group mode and never as a bubble', () => {
+    const rows: WorkbenchHistoryItem[] = [
+      { id: 'm-1', kind: 'message', seq: 1, role: 'assistant', text: '秋声', author: { botId: 'b', name: '诗人小北', avatar: { color: '#555' } } },
+      { id: 's-2', kind: 'system', seq: 2, text: '继续讨论' },
+    ]
+    const view = render(<Transcript items={rows} working={false} groupMode />)
+    const divider = screen.getByTestId('system-divider')
+    expect(divider.getAttribute('role')).toBe('separator')
+    expect(divider.textContent).toBe('继续讨论')
+    expect(screen.queryByTestId('transcript-msg-2')).toBeNull()
+    view.unmount()
+    render(<Transcript items={rows} working={false} />)
+    expect(screen.queryByTestId('system-divider')).toBeNull()
+  })
+
+  it('lists queued prompts below the messages and cancels one with a busy state', async () => {
+    let finish!: () => void
+    const onCancel = vi.fn(() => new Promise<void>(resolve => { finish = resolve }))
+    const queued = [{ queueId: 'q1', text: '再想想标题', createdAt: 1 }, { queueId: 'q2', text: '顺便起个副标题', createdAt: 2 }]
+    render(<Transcript items={items} working groupMode queued={queued} onCancelQueued={onCancel} />)
+    expect(screen.getByTestId('queued-row-q1').textContent).toContain('排队中')
+    expect(screen.getByTestId('queued-row-q2').textContent).toContain('顺便起个副标题')
+    const button = screen.getByTestId('queued-cancel-q2') as HTMLButtonElement
+    fireEvent.click(button)
+    expect(onCancel).toHaveBeenCalledWith('q2')
+    expect(button.disabled).toBe(true)
+    expect(button.textContent).toBe('取消中…')
+    finish()
+    await vi.waitFor(() => expect(button.disabled).toBe(false))
+  })
 })
 

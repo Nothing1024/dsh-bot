@@ -49,6 +49,22 @@ describe('SessionList actions', () => {
     expect(screen.queryByTestId('session-menu-panel-s-visible')).toBeNull()
   })
 
+  it('offers 删除房间 only for group rooms and hands off to the caller without any request', () => {
+    const fetch = vi.fn()
+    vi.stubGlobal('fetch', fetch)
+    const onDeleteRoom = vi.fn()
+    const view = render(<SessionList items={[row]} onSelect={vi.fn()} onDeleteRoom={onDeleteRoom} />)
+    fireEvent.click(screen.getByTestId('session-menu-s-visible'))
+    expect(screen.queryByTestId('session-delete-s-visible')).toBeNull()
+    view.unmount()
+    render(<SessionList items={[row]} groupMode onSelect={vi.fn()} onDeleteRoom={onDeleteRoom} />)
+    fireEvent.click(screen.getByTestId('session-menu-s-visible'))
+    fireEvent.click(screen.getByTestId('session-delete-s-visible'))
+    expect(onDeleteRoom).toHaveBeenCalledWith('s-visible', '可见会话')
+    expect(screen.queryByTestId('session-menu-panel-s-visible')).toBeNull()
+    expect(fetch).not.toHaveBeenCalled()
+  })
+
   it('opens session-tool from the browse footer', () => {
     const openTool = vi.fn()
     render(<SessionList items={[row]} onSelect={vi.fn()} onOpenSessionTool={openTool} />)

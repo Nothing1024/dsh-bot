@@ -19,6 +19,7 @@ function Probe(props: {
       <span data-testid="poll-count">{state.items.length}</span>
       <span data-testid="poll-ids">{state.items.map(item => item.id).join(',')}</span>
       <span data-testid="poll-cancelled">{state.items.filter(item => item.cancelledAt !== undefined).map(item => item.id).join(',')}</span>
+      <span data-testid="poll-queued">{state.queued.map(row => row.text).join(',')}</span>
     </div>
   )
 }
@@ -84,6 +85,20 @@ describe('useSessionPoll', () => {
     await act(async () => { await vi.advanceTimersByTimeAsync(POLL_IDLE_MS) })
     expect(load.mock.lastCall?.slice(0, 2)).toEqual(['room', undefined])
     expect(screen.getByTestId('poll-cancelled').textContent).toBe('old')
+  })
+
+  it('exposes the room queue and drops it once the history no longer lists it', async () => {
+    vi.useFakeTimers()
+    let queued = [{ queueId: 'q1', text: '再想想标题', createdAt: 1 }]
+    const load = vi.fn(async (): Promise<RpcResult<HistoryValue>> => ({ ok: true, value: {
+      sessionId: 'room', working: queued.length > 0, items: [], queued,
+    } }))
+    render(<Probe sessionId="room" enabled incremental={false} load={load} />)
+    await act(async () => { await Promise.resolve() })
+    expect(screen.getByTestId('poll-queued').textContent).toBe('再想想标题')
+    queued = []
+    await act(async () => { await vi.advanceTimersByTimeAsync(POLL_IDLE_MS) })
+    expect(screen.getByTestId('poll-queued').textContent).toBe('')
   })
   afterEach(() => {
     cleanup()

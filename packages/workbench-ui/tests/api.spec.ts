@@ -128,4 +128,21 @@ describe('workbenchCall', () => {
     vi.stubGlobal('fetch', fetchMock)
     expect((await reconcile()).ok).toBe(true)
   })
+
+  it('POSTs continueDiscussion / cancelQueued / deleteGroupSession with the room as sessionId', async () => {
+    const { cancelQueued, continueDiscussion, deleteGroupSession } = await import('../src/api.ts')
+    const bodies: Array<[string, string | undefined]> = []
+    vi.stubGlobal('fetch', vi.fn(async (url: string, init?: { body?: string }) => {
+      bodies.push([String(url), init?.body])
+      return { json: async () => ({ ok: true, value: {} }) }
+    }))
+    await continueDiscussion('room-1')
+    await cancelQueued('room-1', 'q-1')
+    await deleteGroupSession('room-1')
+    expect(bodies).toEqual([
+      ['/dsh-bot/continueDiscussion', JSON.stringify({ args: { sessionId: 'room-1' } })],
+      ['/dsh-bot/cancelQueued', JSON.stringify({ args: { sessionId: 'room-1', queueId: 'q-1' } })],
+      ['/dsh-bot/deleteGroupSession', JSON.stringify({ args: { sessionId: 'room-1' } })],
+    ])
+  })
 })

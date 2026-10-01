@@ -5,6 +5,7 @@
 export type {
   CreateBotArgs,
   CreateBotSessionValue,
+  GroupQueuedItem,
   GroupRoomRow,
   HistoryValue,
   ListBotSessionsValue,
@@ -203,7 +204,7 @@ export function prompt(
   })
 }
 
-export function cancel(sessionId: string): Promise<RpcResult<{ accepted: true }>> {
+export function cancel(sessionId: string): Promise<RpcResult<{ accepted: true; dropped?: number }>> {
   return workbenchCall('cancel', { sessionId })
 }
 
@@ -294,6 +295,21 @@ export function retryMember(
   errorSeq: number,
 ): Promise<RpcResult<{ roomId: string; botId: string; accepted: true }>> {
   return workbenchCall('retryMember', { roomId, botId, errorSeq })
+}
+
+/** BR-003: one more discussion without a new user line. */
+export function continueDiscussion(roomId: string): Promise<RpcResult<{ sessionId: string; messageId: string }>> {
+  return workbenchCall('continueDiscussion', { sessionId: roomId })
+}
+
+/** BR-002: drop one waiting prompt; `not-found` once it has already started. */
+export function cancelQueued(roomId: string, queueId: string): Promise<RpcResult<{ queueId: string; cancelled: true }>> {
+  return workbenchCall('cancelQueued', { sessionId: roomId, queueId })
+}
+
+/** BR-004: removes the room record only; member chats are kept. */
+export function deleteGroupSession(roomId: string): Promise<RpcResult<{ roomId: string; deleted: true }>> {
+  return workbenchCall('deleteGroupSession', { sessionId: roomId })
 }
 
 
