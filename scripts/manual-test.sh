@@ -489,7 +489,7 @@ if [ -n "$WB_BOT" ]; then
     say '工作台 --no-write：跳过 prompt / history 回复核'
   fi
 
-  say '=== 工作台小组：createGroup → listGroups → createGroupSession → deleteGroup ==='
+  say '=== 工作台小组：createGroup → listGroups → createGroupSession → deleteGroupSession → deleteGroup ==='
   WB_GROUP=$(node --input-type=module -e 'process.stdout.write(JSON.stringify({name:process.argv[1],memberIds:[process.argv[2],"dsh-bot"]}))' "mtx-group-${STAMP}" "$WB_BOT")
   run_http "WB createGroup" createGroup "$WB_GROUP"
   check WB-createGroup-ok rpc_ok
@@ -501,7 +501,13 @@ if [ -n "$WB_BOT" ]; then
     WB_GROOM=$(node --input-type=module -e 'process.stdout.write(JSON.stringify({groupId:process.argv[1]}))' "$WB_GID")
     run_http "WB createGroupSession" createGroupSession "$WB_GROOM"
     check WB-createGroupSession-ok rpc_ok
-    check WB-createGroupSession-有room nempty "$(rpc_value roomId)"
+    WB_ROOM=$(rpc_value roomId)
+    check WB-createGroupSession-有room nempty "$WB_ROOM"
+    WB_RDEL=$(node --input-type=module -e 'process.stdout.write(JSON.stringify({sessionId:process.argv[1]}))' "$WB_ROOM")
+    run_http "WB deleteGroupSession" deleteGroupSession "$WB_RDEL"
+    check WB-deleteGroupSession-ok rpc_ok
+    run_http "WB listGroupSessions（删房间后）" listGroupSessions "$WB_GROOM"
+    check WB-deleteGroupSession-零残留 stdout_lacks "$WB_ROOM"
     WB_GDEL=$(node --input-type=module -e 'process.stdout.write(JSON.stringify({id:process.argv[1]}))' "$WB_GID")
     run_http "WB deleteGroup" deleteGroup "$WB_GDEL"
     check WB-deleteGroup-ok rpc_ok

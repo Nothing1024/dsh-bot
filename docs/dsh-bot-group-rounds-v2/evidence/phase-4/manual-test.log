@@ -1,0 +1,63 @@
+== Task 15: bash scripts/manual-test.sh --no-write
+说明：本机缺 ~/.agents/skills/dsh-plugin-debug/scripts/{dsh-rpc-who.sh,dsh-rpc.sh}，脚本在入口处退出。
+为跑通工作台段，用临时 HOME 打桩这两个脚本（who 回显本仓 DSH_HOME，rpc 回显固定 JSON）。
+因此所有 run_rpc（官方 RPC：pluginInventory/session.*/settings.*）项必然失败，与本包无关；run_http（/dsh-bot/*）项为真实请求。
+
+核对 who-本仓：通过
+核对 库存-退出码：通过
+核对 库存-dsh-bot-host：失败
+核对 库存-tool-dsh-bot：失败
+核对 库存-ui-dsh-bot：失败
+核对 UF-001-退出码：通过
+核对 UF-001-rpc-ok：失败
+核对 UF-001-有id：失败
+核对 UF-001-preset：失败
+核对 UF-001-有全局模型：失败
+核对 UF-002-http-ok：通过
+核对 UF-002-有id：通过
+核对 UF-006-update-ok：失败
+核对 UF-006-list-ok：通过
+核对 UF-006-botModel-source：失败
+核对 UF-006-botModel-provider：失败
+核对 UF-006-botModel-model：失败
+核对 UF-006-on-ok：通过
+核对 UF-006-on-id：通过
+核对 UF-006-on-provider：通过
+核对 UF-006-on-model：通过
+核对 UF-006-gui-id：失败
+核对 UF-006-gui-provider：通过
+核对 UF-006-gui-model：通过
+核对 UF-006-clear-ok：失败
+核对 UF-006-off-source：通过
+核对 UF-006-off-id：通过
+核对 UF-006-off-provider：通过
+核对 UF-006-off-model：通过
+核对 UF-004-退出码：通过
+核对 UF-004-有插件会话：通过
+核对 UF-004-含kind：通过
+核对 UF-004-空-退出码：通过
+核对 UF-004-空提示：通过
+核对 WB-createBot-ok：通过
+核对 WB-createBot-有id：通过
+核对 WB-listBots-含新bot：通过
+核对 WB-createBotSession-ok：通过
+核对 WB-createBotSession-有id：通过
+核对 WB-createBotSession-botId：通过
+核对 WB-listBotSessions-含新会话：通过
+核对 WB-createGroup-ok：通过
+核对 WB-createGroup-有id：通过
+核对 WB-listGroups-含新组：通过
+核对 WB-createGroupSession-ok：通过
+核对 WB-createGroupSession-有room：通过
+核对 WB-deleteGroupSession-ok：通过
+核对 WB-deleteGroupSession-零残留：通过
+核对 WB-deleteGroup-ok：通过
+核对 WB-deleteGroup-零残留：通过
+核对 WB-deleteGroup-成员仍在：通过
+核对 WB-deleteBot-ok：通过
+核对 WB-deleteBot-deleted：通过
+核对 WB-deleteBot-零残留：通过
+核对 41 通过 / 13 失败
+
+== rg 一轮语义 README.md
+（无命中）
