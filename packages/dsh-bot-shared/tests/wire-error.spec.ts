@@ -22,6 +22,12 @@ describe('describeWireError', () => {
   it('reports a missing code as internal', () => {
     expect(describeWireError({ message: 'x' }).code).toBe('internal')
   })
+
+  it('tells the user how to free a full room queue', () => {
+    const copy = describeWireError({ code: 'queue-full', message: 'room queue is full' })
+    expect(copy.title).toBe('排队已满（最多 3 条）')
+    expect(copy.hint).toMatch(/取消一条/)
+  })
 })
 
 describe('formatWireError', () => {

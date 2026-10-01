@@ -82,6 +82,9 @@ export interface WorkbenchBotsFace {
   createGroupSession(input: { groupId: string }): Promise<GroupRoomRow>
   listGroupSessions(input: { groupId: string }): Promise<ListGroupRoomsResult>
   retryMember(input: { roomId: string; botId: string; errorSeq: number }): Promise<{ roomId: string; botId: string; accepted: true }>
+  continueDiscussion(input: { sessionId: string }): Promise<{ sessionId: string; messageId: string }>
+  cancelQueued(input: { sessionId: string; queueId: string }): Promise<{ queueId: string; cancelled: true }>
+  deleteGroupSession(input: { sessionId: string }): Promise<{ roomId: string; deleted: true }>
   memoryList(input: { botId: string }): Promise<unknown>
   memoryRemember(input: { botId: string; text: string; sessionId?: string }): Promise<unknown>
   memoryForget(input: { botId: string; id: string }): Promise<unknown>
@@ -281,6 +284,22 @@ export async function dispatchWorkbenchApi(
       const botId = asString(args.botId).trim()
       if (roomId === '' || botId === '') throw new DshBotError('invalid-input', 'roomId and botId are required')
       return await bot.retryMember({ roomId, botId, errorSeq: asSeq(args.errorSeq) })
+    }
+    case 'continueDiscussion': {
+      const sessionId = asString(args.sessionId).trim()
+      if (sessionId === '') throw new DshBotError('invalid-input', 'sessionId is required')
+      return await bot.continueDiscussion({ sessionId })
+    }
+    case 'cancelQueued': {
+      const sessionId = asString(args.sessionId).trim()
+      const queueId = asString(args.queueId).trim()
+      if (sessionId === '' || queueId === '') throw new DshBotError('invalid-input', 'sessionId and queueId are required')
+      return await bot.cancelQueued({ sessionId, queueId })
+    }
+    case 'deleteGroupSession': {
+      const sessionId = asString(args.sessionId).trim()
+      if (sessionId === '') throw new DshBotError('invalid-input', 'sessionId is required')
+      return await bot.deleteGroupSession({ sessionId })
     }
     case 'memoryList': {
       const botId = asString(args.botId).trim()

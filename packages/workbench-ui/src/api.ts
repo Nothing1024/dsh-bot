@@ -163,6 +163,9 @@ export interface PromptValue {
   readonly messageId?: string
   readonly sessionId: string
   readonly unmatchedMentions?: boolean
+  /** Group room was busy: the message waits in the room queue, nothing persisted yet. */
+  readonly queued?: boolean
+  readonly queueId?: string
 }
 
 export function listBotSessions(botId: string, includeHidden = false): Promise<RpcResult<ListBotSessionsValue>> {

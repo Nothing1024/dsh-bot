@@ -1,0 +1,12 @@
+== manual-test --no-write 阻塞：缺 ~/.agents/skills/dsh-plugin-debug/scripts/dsh-rpc-who.sh / dsh-rpc.sh（本机无此 skill）
+== 小组段等价回放（同 run_http：POST /dsh-bot/<method>）
+PASS WB-createBot-ok
+PASS WB-createGroup-ok
+PASS WB-listGroups-含新组
+PASS WB-createGroupSession-ok
+PASS WB-deleteGroupSession-ok
+PASS WB-deleteGroupSession-零残留
+PASS WB-deleteGroup-ok
+PASS WB-deleteGroup-零残留
+PASS WB-deleteGroup-成员仍在
+PASS WB-deleteBot-ok

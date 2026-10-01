@@ -1,4 +1,4 @@
-export { parseMentions, mentionHandle } from 'dsh-bot-shared'
+export { parseMentions, mentionHandle, resolveResponders } from 'dsh-bot-shared'
 export type { MentionMember, MentionParse } from 'dsh-bot-shared'
 
 export function mentionQuery(text: string, caret: number): { start: number; query: string } | null {

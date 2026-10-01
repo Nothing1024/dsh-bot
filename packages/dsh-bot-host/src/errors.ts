@@ -19,6 +19,7 @@ export type DshBotErrorCode =
   | 'empty-prompt'
   | 'invalid-input'
   | 'invalid-mention'
+  | 'queue-full'
   | 'not-found'
   | 'bot-not-found'
   | 'bot-protected'

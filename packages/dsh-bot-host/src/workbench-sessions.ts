@@ -27,6 +27,7 @@ import {
 } from './marks.ts'
 import { rowsWithMark } from './marks-cache.ts'
 import type { RoomState } from './groups.ts'
+import type { GroupQueuedItem } from 'dsh-bot-shared'
 import { applyModelOverride } from './platform.ts'
 import { isRoutineInjection } from './routine-wake.ts'
 import { isVoiceInjection, unwrapPrompt } from './session-voice.ts'
@@ -104,7 +105,7 @@ export interface WorkbenchHistoryItem {
   readonly cancelledAt?: number
   readonly replyTo?: { readonly seq: number; readonly speaker: string; readonly text: string }
   readonly id: string
-  readonly kind: 'message' | 'thinking' | 'tool' | 'propose-routine'
+  readonly kind: 'message' | 'thinking' | 'tool' | 'propose-routine' | 'system'
   readonly seq: number
   readonly role?: 'user' | 'assistant'
   readonly text?: string
@@ -124,6 +125,7 @@ export interface HistoryResult {
   readonly speaking?: { readonly botId: string; readonly name: string; readonly sessionId?: string; readonly afterSeq?: number; readonly afterSessionSeq?: number }
   readonly round?: number
   readonly rounds?: number
+  readonly queued?: readonly GroupQueuedItem[]
 }
 
 export interface PromptRequest {
@@ -138,6 +140,8 @@ export interface PromptResult {
   readonly messageId?: string
   readonly sessionId: string
   readonly unmatchedMentions?: boolean
+  readonly queued?: boolean
+  readonly queueId?: string
 }
 
 function rethrow(error: unknown, sessionId?: string): never {
@@ -305,6 +309,10 @@ export function projectRoomHistory(
         role: 'user',
         text: line.text,
       })
+      continue
+    }
+    if (line.speaker.kind === 'system') {
+      items.push({ id: line.id, kind: 'system', seq: line.seq, text: line.text })
       continue
     }
     const stored = members.get(line.speaker.botId)

@@ -282,3 +282,27 @@ describe('retryMember RPC dispatch', () => {
     expect(retryMember).toHaveBeenCalledWith({ roomId: 'r1', botId: 'dsh-bot', errorSeq: 3 })
   })
 })
+
+describe('group room RPC dispatch', () => {
+  it('routes continueDiscussion / cancelQueued / deleteGroupSession with trimmed ids', async () => {
+    const continueDiscussion = vi.fn(async () => ({ sessionId: 'r1', messageId: 'm-9' }))
+    const cancelQueued = vi.fn(async () => ({ queueId: 'q1', cancelled: true as const }))
+    const deleteGroupSession = vi.fn(async () => ({ roomId: 'r1', deleted: true as const }))
+    const bot = { continueDiscussion, cancelQueued, deleteGroupSession } as unknown as Parameters<typeof dispatchWorkbenchApi>[0]
+    await expect(dispatchWorkbenchApi(bot, 'continueDiscussion', { sessionId: ' r1 ' })).resolves.toEqual({ sessionId: 'r1', messageId: 'm-9' })
+    await expect(dispatchWorkbenchApi(bot, 'cancelQueued', { sessionId: 'r1', queueId: 'q1' })).resolves.toEqual({ queueId: 'q1', cancelled: true })
+    await expect(dispatchWorkbenchApi(bot, 'deleteGroupSession', { sessionId: 'r1' })).resolves.toEqual({ roomId: 'r1', deleted: true })
+    expect(continueDiscussion).toHaveBeenCalledWith({ sessionId: 'r1' })
+    expect(cancelQueued).toHaveBeenCalledWith({ sessionId: 'r1', queueId: 'q1' })
+    expect(deleteGroupSession).toHaveBeenCalledWith({ sessionId: 'r1' })
+  })
+
+  it('rejects missing ids before reaching the face', async () => {
+    const face = vi.fn()
+    const bot = { continueDiscussion: face, cancelQueued: face, deleteGroupSession: face } as unknown as Parameters<typeof dispatchWorkbenchApi>[0]
+    await expect(dispatchWorkbenchApi(bot, 'continueDiscussion', {})).rejects.toMatchObject({ code: 'invalid-input' })
+    await expect(dispatchWorkbenchApi(bot, 'cancelQueued', { sessionId: 'r1' })).rejects.toMatchObject({ code: 'invalid-input' })
+    await expect(dispatchWorkbenchApi(bot, 'deleteGroupSession', { sessionId: '  ' })).rejects.toMatchObject({ code: 'invalid-input' })
+    expect(face).not.toHaveBeenCalled()
+  })
+})

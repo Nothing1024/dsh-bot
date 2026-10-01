@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { mentionQuery, parseMentions } from '../src/mentions.ts'
+import { mentionQuery, parseMentions, resolveResponders } from '../src/mentions.ts'
 
 const members = [
   { id: 'shiren-xiaobei', name: '诗人小北' },
@@ -32,6 +32,31 @@ describe('parseMentions', () => {
 
   it('does not interpret an email address as a recipient', () => {
     expect(parseMentions('请核对 user@example.com', members).unmatched).toBe(false)
+  })
+})
+
+describe('resolveResponders', () => {
+  it('answers with only the quoted member when there is no @', () => {
+    expect(resolveResponders('这句改短一点', members, 'shiren-xiaobei').responderIds).toEqual(['shiren-xiaobei'])
+  })
+
+  it('lets an explicit @ override the quoted member', () => {
+    expect(resolveResponders('@DSH Bot 你来改', members, 'shiren-xiaobei').responderIds).toEqual(['dsh-bot'])
+  })
+
+  it('keeps @all as everyone even with a quote', () => {
+    expect(resolveResponders('@all 都看看', members, 'shiren-xiaobei').responderIds).toEqual(['shiren-xiaobei', 'dsh-bot'])
+  })
+
+  it('falls back to everyone when quoting yourself or a member who left', () => {
+    expect(resolveResponders('再想想', members).responderIds).toEqual(['shiren-xiaobei', 'dsh-bot'])
+    expect(resolveResponders('再想想', members, 'gone').responderIds).toEqual(['shiren-xiaobei', 'dsh-bot'])
+  })
+
+  it('still rejects an unmatched mention with a quote', () => {
+    const parsed = resolveResponders('@幽灵 你好', members, 'shiren-xiaobei')
+    expect(parsed.unmatched).toBe(true)
+    expect(parsed.responderIds).toEqual([])
   })
 })
 

@@ -23,6 +23,7 @@ import { createBotsRuntime } from '../src/bots.ts'
 import type { BotsRuntime } from '../src/bots.ts'
 import type { DshBotModelRef, DshBotPlatform } from '../src/platform.ts'
 import {
+  projectRoomHistory,
   projectWorkbenchHistory,
   turnIsOpen,
 } from '../src/workbench-sessions.ts'
@@ -683,6 +684,19 @@ describe('routine history projection', () => {
   })
 })
 
+describe('group room projection', () => {
+  it('projects a system line as a system item without an author', () => {
+    const items = projectRoomHistory({
+      header: { type: 'header', roomId: 'r', groupId: 'g', createdAt: 1 },
+      messages: [
+        { type: 'message', id: 'a', seq: 1, createdAt: 1, speaker: { kind: 'member', botId: 'b' }, text: '先说' },
+        { type: 'message', id: 's', seq: 2, createdAt: 2, speaker: { kind: 'system' }, text: '继续讨论' },
+      ],
+    }, new Map())
+    expect(items[1]).toEqual({ id: 's', kind: 'system', seq: 2, text: '继续讨论' })
+  })
+})
+
 describe('deleteBot cascade', () => {
   it('archives owned sessions and drops a two-member group', async () => {
     const { bot, sessionTool, platform } = boot()
@@ -719,5 +733,30 @@ describe('deleteBot cascade', () => {
       deleted: true,
     })
     expect((await bot.listBots()).bots.map(row => row.id)).not.toContain(poet.id)
+  })
+})
+
+describe('group room face (INV-001 / BR-004)', () => {
+  it('refuses group-only RPCs on a 1:1 session id', async () => {
+    const { bot } = boot()
+    await bot.listBots()
+    const chat = await bot.createBotSession({ botId: 'dsh-bot', title: '私聊' })
+    await expect(bot.continueDiscussion({ sessionId: chat.sessionId })).rejects.toMatchObject({ code: 'not-found' })
+    await expect(bot.cancelQueued({ sessionId: chat.sessionId, queueId: 'q' })).rejects.toMatchObject({ code: 'not-found' })
+    await expect(bot.deleteGroupSession({ sessionId: chat.sessionId })).rejects.toMatchObject({ code: 'group-not-found' })
+    expect((await bot.history({ sessionId: chat.sessionId })).queued).toBeUndefined()
+  })
+
+  it('history of a room carries an empty queue; delete removes only that room', async () => {
+    const { bot } = boot()
+    const poet = await bot.createBot({ name: '诗人小北', persona: '人设' })
+    const group = await bot.createGroup({ name: '编辑室', memberIds: [poet.id, 'dsh-bot'] })
+    const keep = await bot.createGroupSession({ groupId: group.id })
+    const gone = await bot.createGroupSession({ groupId: group.id })
+    expect((await bot.history({ sessionId: gone.roomId })).queued).toEqual([])
+    await expect(bot.deleteGroupSession({ sessionId: gone.roomId })).resolves.toEqual({ roomId: gone.roomId, deleted: true })
+    expect((await bot.listGroupSessions({ groupId: group.id })).rooms.map(row => row.roomId)).toEqual([keep.roomId])
+    expect((await bot.listBots()).bots.map(row => row.id)).toContain(poet.id)
+    await expect(bot.deleteGroupSession({ sessionId: gone.roomId })).rejects.toMatchObject({ code: 'group-not-found', message: '房间不存在' })
   })
 })

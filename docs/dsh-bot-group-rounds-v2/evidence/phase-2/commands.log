@@ -1,0 +1,22 @@
+
+ RUN  v4.1.11 /home/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin
+
+
+ Test Files  1 passed (1)
+      Tests  39 passed (39)
+   Start at  11:38:34
+   Duration  1.40s (transform 344ms, setup 0ms, import 530ms, tests 681ms, environment 0ms)
+
+== Task 6/7: group-engine.spec
+
+ Test Files  1 passed (1)
+      Tests  42 passed (42)
+   Start at  11:49:40
+   Duration  1.47s (transform 324ms, setup 0ms, import 492ms, tests 801ms, environment 0ms)
+
+== Task 8: routes + workbench-sessions
+ Test Files  3 passed (3)
+      Tests  73 passed (73)
+== Task 9: vitest packages/dsh-bot-host
+ Test Files  18 passed (18)
+      Tests  263 passed (263)

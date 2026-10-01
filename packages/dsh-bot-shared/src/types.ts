@@ -95,7 +95,7 @@ export interface WorkbenchHistoryItem {
   readonly roomId?: string
   readonly replyTo?: { readonly seq: number; readonly speaker: string; readonly text: string }
   readonly id: string
-  readonly kind: 'message' | 'thinking' | 'tool' | 'propose-routine' | 'approval' | 'question'
+  readonly kind: 'message' | 'thinking' | 'tool' | 'propose-routine' | 'approval' | 'question' | 'system'
   readonly sessionId?: string
   readonly rpcId?: string
   readonly approvalId?: string
@@ -120,6 +120,15 @@ export interface HistoryValue {
   readonly speaking?: { readonly botId: string; readonly name: string; readonly sessionId?: string; readonly afterSeq?: number; readonly afterSessionSeq?: number }
   readonly round?: number
   readonly rounds?: number
+  /** Group room only: submissions waiting for the current discussion (in-memory, ≤3). */
+  readonly queued?: readonly GroupQueuedItem[]
+}
+
+export interface GroupQueuedItem {
+  readonly queueId: string
+  readonly text: string
+  readonly replyTo?: { readonly seq: number; readonly speaker: string; readonly text: string }
+  readonly createdAt: number
 }
 export interface WorkbenchGroup {
   readonly id: string

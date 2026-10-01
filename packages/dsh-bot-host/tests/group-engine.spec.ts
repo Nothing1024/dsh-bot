@@ -434,16 +434,18 @@ describe('runGroupRound', () => {
     const inbox = new GroupInbox(() => deps)
     await inbox.submit({ sessionId: room.roomId, text: 'hello', requestId: 'cancel-me' })
     await vi.waitFor(() => expect(tool.writeCalls).toHaveLength(1))
-    await inbox.submit({ sessionId: room.roomId, text: 'queued', requestId: 'cancel-queued' })
-    await inbox.cancel(room.roomId)
+    expect(await inbox.submit({ sessionId: room.roomId, text: 'queued', requestId: 'cancel-queued' }))
+      .toMatchObject({ queued: true, queueId: expect.any(String) })
+    expect(await inbox.cancel(room.roomId)).toEqual({ accepted: true, dropped: 1 })
     await inbox.settled(room.roomId)
     expect(cancelSession).toHaveBeenCalledWith('session-owned-1')
     expect(tool.writeCalls).toHaveLength(1)
+    expect(inbox.queued(room.roomId)).toEqual([])
     const reloaded = createGroupsRuntime({ home: () => process.env.DSH_HOME!, listBotIds: async () => [DSH.id, POET.id] })
     const stopped = (await reloaded.peekRoom(room.roomId))!.messages.filter(row => row.speaker.kind === 'user')
+    // INV-002: the queued prompt was never persisted, so stop leaves only the running line, marked cancelled.
     expect(stopped).toEqual([
       expect.objectContaining({ requestId: 'cancel-me', cancelledAt: expect.any(Number) }),
-      expect.objectContaining({ requestId: 'cancel-queued', cancelledAt: expect.any(Number) }),
     ])
     await inbox.submit({ sessionId: room.roomId, text: '@DSH Bot fresh-question', requestId: 'fresh' })
     await inbox.settled(room.roomId)
@@ -453,7 +455,7 @@ describe('runGroupRound', () => {
     expect(fresh?.cancelledAt).toBeUndefined()
     await inbox.cancel(room.roomId)
     const state = (await reloaded.peekRoom(room.roomId))!
-    expect(projectRoomHistory(state, new Map()).filter(row => row.cancelledAt !== undefined)).toHaveLength(2)
+    expect(projectRoomHistory(state, new Map()).filter(row => row.cancelledAt !== undefined)).toHaveLength(1)
     expect(state.messages.find(row => row.requestId === 'fresh')?.cancelledAt).toBeUndefined()
   })
 
@@ -492,13 +494,86 @@ describe('runGroupRound', () => {
     const inbox = new GroupInbox(() => engineDeps(tool, new StubPlatform(), groups))
     await inbox.submit({ sessionId: room.roomId, text: '@诗人小北 first-question', requestId: 'first' })
     await vi.waitFor(() => expect(tool.writeCalls).toHaveLength(1))
-    await inbox.submit({ sessionId: room.roomId, text: '@诗人小北 second-question', requestId: 'second' })
+    const second = await inbox.submit({ sessionId: room.roomId, text: '@诗人小北 second-question', requestId: 'second' })
+    expect(second).toMatchObject({ queued: true, queueId: expect.any(String) })
+    expect(second.messageId).toBeUndefined()
+    // INV-002: still only the first user line on disk while it waits.
+    expect((await groups.peekRoom(room.roomId))!.messages.filter(row => row.speaker.kind === 'user').map(row => row.requestId)).toEqual(['first'])
+    expect(await inbox.submit({ sessionId: room.roomId, text: '@诗人小北 second-question', requestId: 'second' })).toEqual(second)
     release()
     await inbox.settled(room.roomId)
     expect(tool.writeCalls).toHaveLength(2)
     expect(tool.writeCalls[0]?.content).not.toContain('second-question')
     expect(tool.writeCalls[1]?.content).toContain('second-question')
+    expect((await groups.peekRoom(room.roomId))!.messages.filter(row => row.speaker.kind === 'user').map(row => row.requestId)).toEqual(['first', 'second'])
+    expect(inbox.queued(room.roomId)).toEqual([])
     await expect(inbox.submit({ sessionId: room.roomId, text: 'different', requestId: 'first' })).rejects.toThrow('requestId')
+  })
+
+  it('queues at most three, rejects the fourth, and cancelled items never reach the room (BR-002)', async () => {
+    const { groups, room } = await setupRoom()
+    const tool = new StubSessionTool()
+    let release!: () => void
+    const waiting = new Promise<void>(resolve => { release = resolve })
+    tool.wait = async (_caller, sessionId) => { await waiting; return { sessionId, status: 'idle' as const } }
+    const inbox = new GroupInbox(() => engineDeps(tool, new StubPlatform(), groups))
+    await inbox.submit({ sessionId: room.roomId, text: '@诗人小北 running' })
+    await vi.waitFor(() => expect(tool.writeCalls).toHaveLength(1))
+    const queued = []
+    for (const text of ['q1', 'q2', 'q3']) queued.push(await inbox.submit({ sessionId: room.roomId, text: `@诗人小北 ${text}` }))
+    await expect(inbox.submit({ sessionId: room.roomId, text: '@诗人小北 q4' })).rejects.toMatchObject({ code: 'queue-full' })
+    await expect(inbox.submit({ sessionId: room.roomId, text: '@幽灵 bad' })).rejects.toMatchObject({ code: 'invalid-mention' })
+    expect(inbox.queued(room.roomId).map(row => row.text)).toEqual(['@诗人小北 q1', '@诗人小北 q2', '@诗人小北 q3'])
+    expect(inbox.busy(room.roomId)).toBe(true)
+    await inbox.cancelQueued(room.roomId, queued[1]!.queueId!)
+    await expect(inbox.cancelQueued(room.roomId, queued[1]!.queueId!)).rejects.toMatchObject({ code: 'not-found', message: '这条已开始讨论，无法取消' })
+    release()
+    await inbox.settled(room.roomId)
+    const users = (await groups.peekRoom(room.roomId))!.messages.filter(row => row.speaker.kind === 'user').map(row => row.text)
+    expect(users).toEqual(['@诗人小北 running', '@诗人小北 q1', '@诗人小北 q3'])
+    expect(tool.writeCalls.map(call => call.content).some(content => content.includes('q2'))).toBe(false)
+    expect(inbox.busy(room.roomId)).toBe(false)
+  })
+
+  it('a queued quote keeps its quoted member when it is dequeued', async () => {
+    const { groups, room } = await setupRoom()
+    const quoted = await groups.appendRoomMessage(room.roomId, { kind: 'member', botId: POET.id }, '原句')
+    const tool = new StubSessionTool()
+    let release!: () => void
+    const waiting = new Promise<void>(resolve => { release = resolve })
+    tool.wait = async (_caller, sessionId) => { await waiting; return { sessionId, status: 'idle' as const } }
+    const inbox = new GroupInbox(() => engineDeps(tool, new StubPlatform(), groups))
+    await inbox.submit({ sessionId: room.roomId, text: '@DSH Bot running' })
+    await vi.waitFor(() => expect(tool.writeCalls).toHaveLength(1))
+    await inbox.submit({ sessionId: room.roomId, text: '改短一点', replyToSeq: quoted.seq })
+    expect(inbox.queued(room.roomId)[0]?.replyTo).toEqual({ seq: quoted.seq, speaker: '诗人小北', text: '原句' })
+    release()
+    await inbox.settled(room.roomId)
+    const second = tool.writeCalls.slice(1)
+    expect(second).toHaveLength(1)
+    expect(second[0]?.content).toContain('诗人小北，现在轮到你')
+  })
+
+  it('continueDiscussion refuses an empty or busy room and runs only when idle (BR-003)', async () => {
+    const { groups, room } = await setupRoom()
+    const tool = new StubSessionTool()
+    const inbox = new GroupInbox(() => engineDeps(tool, new StubPlatform(), groups))
+    await expect(inbox.continueDiscussion(room.roomId)).rejects.toMatchObject({ code: 'invalid-input', message: '先发一条消息开始讨论' })
+    await groups.appendRoomMessage(room.roomId, { kind: 'user' }, '起个标题')
+    await expect(inbox.continueDiscussion(room.roomId)).rejects.toMatchObject({ message: '先发一条消息开始讨论' })
+    await groups.appendRoomMessage(room.roomId, { kind: 'member', botId: POET.id }, '秋声')
+    let release!: () => void
+    const waiting = new Promise<void>(resolve => { release = resolve })
+    tool.wait = async (_caller, sessionId) => { await waiting; return { sessionId, status: 'idle' as const } }
+    const started = await inbox.continueDiscussion(room.roomId)
+    expect(started.messageId).toBeTruthy()
+    await vi.waitFor(() => expect(tool.writeCalls).toHaveLength(1))
+    await expect(inbox.continueDiscussion(room.roomId)).rejects.toMatchObject({ message: 'room is busy' })
+    release()
+    await inbox.settled(room.roomId)
+    const messages = (await groups.peekRoom(room.roomId))!.messages
+    expect(messages.filter(row => row.speaker.kind === 'user')).toHaveLength(1)
+    expect(messages.filter(row => row.speaker.kind === 'system')).toHaveLength(1)
   })
 
   it('persists the quoted message and includes it in the member prompt', async () => {
@@ -579,6 +654,46 @@ describe('runGroupRound', () => {
     expect(members).toHaveLength(1)
     expect(members[0]?.speaker).toEqual({ kind: 'member', botId: POET.id })
     expect(sessionTool.createCalls).toHaveLength(1)
+  })
+
+  it('a quote of a member wakes only that member (BR-001)', async () => {
+    const { groups, room } = await setupRoom()
+    const sessionTool = new StubSessionTool()
+    sessionTool.setReply('session-owned-1', assistantText('session-owned-1', '短一点：秋'))
+    await runGroupRound(engineDeps(sessionTool, new StubPlatform(), groups), { roomId: room.roomId, text: '这句改短一点', quotedBotId: POET.id })
+    const members = (await groups.peekRoom(room.roomId))?.messages.filter(row => row.speaker.kind === 'member') ?? []
+    expect(members.map(row => row.speaker)).toEqual([{ kind: 'member', botId: POET.id }])
+    expect(sessionTool.createCalls).toHaveLength(1)
+  })
+
+  it('an explicit @ overrides the quote, and a departed quoted member falls back to everyone', async () => {
+    const { groups, room } = await setupRoom()
+    const sessionTool = new StubSessionTool()
+    sessionTool.setReply('session-owned-1', assistantText('session-owned-1', 'DSH 来改'))
+    const deps = engineDeps(sessionTool, new StubPlatform(), groups)
+    await runGroupRound(deps, { roomId: room.roomId, text: '@DSH Bot 你来改', quotedBotId: POET.id })
+    expect((await groups.peekRoom(room.roomId))?.messages.filter(row => row.speaker.kind === 'member').map(row => row.speaker))
+      .toEqual([{ kind: 'member', botId: DSH.id }])
+    sessionTool.writeCalls.length = 0
+    await runGroupRound(deps, { roomId: room.roomId, text: '大家看看', quotedBotId: 'gone' })
+    expect(sessionTool.writeCalls.length).toBeGreaterThanOrEqual(2)
+  })
+
+  it('continuation anchors on a system line, adds no user line, and skips members with nothing new (BR-003)', async () => {
+    const { groups, room } = await setupRoom()
+    await groups.appendRoomMessage(room.roomId, { kind: 'user' }, '起个标题')
+    await groups.appendRoomMessage(room.roomId, { kind: 'member', botId: POET.id }, '秋声')
+    await groups.appendRoomMessage(room.roomId, { kind: 'member', botId: DSH.id }, '秋声赋')
+    const sessionTool = new StubSessionTool()
+    sessionTool.setReply('session-owned-1', assistantText('session-owned-1', '那就叫秋声赋吧'))
+    await runGroupRound(engineDeps(sessionTool, new StubPlatform(), groups), { roomId: room.roomId, text: '继续讨论', continuation: true })
+    const messages = (await groups.peekRoom(room.roomId))?.messages ?? []
+    expect(messages.filter(row => row.speaker.kind === 'user')).toHaveLength(1)
+    expect(messages[3]).toMatchObject({ speaker: { kind: 'system' }, text: '继续讨论' })
+    expect(messages[4]).toMatchObject({ speaker: { kind: 'member', botId: POET.id }, text: '那就叫秋声赋吧' })
+    expect(sessionTool.writeCalls[0]?.sessionId).toBe('session-owned-1')
+    expect(sessionTool.writeCalls[0]?.content).toContain('主持提示：请接着刚才的讨论继续。')
+    expect(sessionTool.writeCalls.every(call => !call.content.includes('用户: 继续讨论'))).toBe(true)
   })
 
   it('does not copy an echoed turn prompt into the room', async () => {

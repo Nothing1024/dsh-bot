@@ -5,7 +5,7 @@
  * @module dsh-bot-host/group-engine
  */
 
-import { parseMentions } from 'dsh-bot-shared'
+import { resolveResponders } from 'dsh-bot-shared'
 export { parseMentions } from 'dsh-bot-shared'
 export type { MentionMember, MentionParse } from 'dsh-bot-shared'
 
@@ -66,6 +66,10 @@ export interface RunGroupRoundRequest {
   readonly signal?: AbortSignal
   readonly roomId: string
   readonly text: string
+  /** Bot behind the quoted line; answers alone unless the text names someone (BR-001). */
+  readonly quotedBotId?: string
+  /** Continue discussion: everyone, anchored on a system line, no new user line (BR-003). */
+  readonly continuation?: boolean
 }
 
 export interface RunGroupRoundResult {
@@ -165,6 +169,7 @@ const OLD_TURN_CLOSE = '按你自己的身份接一句。没有要补充的可�
 function formatRoomLine(message: RoomMessage, names: Map<string, string>): string | undefined {
   if (message.speaker.kind === 'user') return `用户: ${message.text}`
   if (message.speaker.kind === 'error') return undefined
+  if (message.speaker.kind === 'system') return '主持提示：请接着刚才的讨论继续。'
   const name = names.get(message.speaker.botId) ?? message.speaker.botId
   return `${name}: ${message.text}`
 }
@@ -321,7 +326,9 @@ export async function runGroupRound(
       throw new DshBotError('invalid-input', `group ${JSON.stringify(group.id)} has no live members`)
     }
 
-    const mention = parseMentions(text, members.map(row => ({ id: row.id, name: row.name })))
+    const mention = request.continuation === true
+      ? { responderIds: members.map(row => row.id), unmatched: false, namedAll: true, unmatchedHandles: [] }
+      : resolveResponders(text, members.map(row => ({ id: row.id, name: row.name })), request.quotedBotId)
     if (mention.unmatched) throw new DshBotError('invalid-mention', `无法识别或存在重名：${mention.unmatchedHandles.join('、')}`)
     const snapshot = members.filter(row => mention.responderIds.includes(row.id))
     const responderIds = snapshot.map(row => row.id)
@@ -331,7 +338,8 @@ export async function runGroupRound(
     const maxRounds = unlimited ? Number.POSITIVE_INFINITY : configured
     deps.tracker.begin(roomId, configured)
     try {
-      const message = request.message ?? await deps.groups.appendRoomMessage(roomId, { kind: 'user' }, text)
+      const message = request.message ?? await deps.groups.appendRoomMessage(roomId,
+        request.continuation === true ? { kind: 'system' } : { kind: 'user' }, text)
       const names = new Map(members.map(row => [row.id, row.name]))
       let totalMessages = 0
       for (let round = 0; round < maxRounds; round += 1) {
@@ -348,7 +356,8 @@ export async function runGroupRound(
           const eligible = (latest?.messages ?? []).filter(row => row.speaker.kind !== 'user' || row.seq <= message.seq)
           const unread = messagesSinceMemberLastSpoke(eligible, bot.id).slice(-ROOM_TRANSCRIPT_MAX)
           const hasNew = unread.some(row => row.speaker.kind === 'user' || row.speaker.kind === 'member')
-          if (round > 0 && !hasNew) continue
+          // Continuation has no fresh user line: even round 0 only wakes members with something new.
+          if ((round > 0 || request.continuation === true) && !hasNew) continue
           const posted = await askMemberTurn(deps, {
             roomId,
             group,

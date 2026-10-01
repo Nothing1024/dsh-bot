@@ -201,6 +201,53 @@ describe('groups runtime', () => {
     expect(readFileSync(join(home, 'dsh-bot', 'bots.json'), 'utf8')).toContain('"bots"')
   })
 
+  it('round-trips a system line and does not title the room from it', async () => {
+    const { home, groups } = runtime()
+    const group = await groups.createGroup({ name: '编辑室', memberIds: ['dsh-bot', 'shiren-xiaobei'] })
+    const room = await groups.createGroupSession({ groupId: group.id })
+    await groups.appendRoomMessage(room.roomId, { kind: 'member', botId: 'dsh-bot' }, '先说一句')
+    await groups.appendRoomMessage(room.roomId, { kind: 'system' }, '继续讨论')
+    const reloaded = createGroupsRuntime({ listBotIds: async () => BOT_IDS, home: () => home })
+    expect((await reloaded.peekRoom(room.roomId))?.messages.map(row => row.speaker)).toEqual([
+      { kind: 'member', botId: 'dsh-bot' },
+      { kind: 'system' },
+    ])
+    expect((await reloaded.listGroupSessions({ groupId: group.id })).rooms[0]?.title).toBeUndefined()
+  })
+
+  it('reads a pre-v2 room file and skips unknown speaker kinds', async () => {
+    const { home, groups } = runtime()
+    const group = await groups.createGroup({ name: '编辑室', memberIds: ['dsh-bot', 'shiren-xiaobei'] })
+    const room = await groups.createGroupSession({ groupId: group.id })
+    const file = join(home, 'dsh-bot', 'rooms', `${room.roomId}.jsonl`)
+    const line = (seq: number, speaker: unknown) => JSON.stringify({ type: 'message', id: `m-${seq}`, seq, speaker, text: `t${seq}`, createdAt: 1 })
+    writeFileSync(file, `${readFileSync(file, 'utf8')}${line(1, { kind: 'user' })}\n${line(2, { kind: 'future' })}\n${line(3, { kind: 'member', botId: 'dsh-bot' })}\n`)
+    expect((await groups.peekRoom(room.roomId))?.messages.map(row => row.seq)).toEqual([1, 3])
+  })
+
+  it('deleteGroupSession removes only the target room file and index row', async () => {
+    const { home, groups } = runtime()
+    const group = await groups.createGroup({ name: '编辑室', memberIds: ['dsh-bot', 'shiren-xiaobei'] })
+    const target = await groups.createGroupSession({ groupId: group.id })
+    const sibling = await groups.createGroupSession({ groupId: group.id })
+    const registry = readFileSync(join(home, 'dsh-bot', 'groups.json'), 'utf8')
+    expect(await groups.deleteGroupSession({ roomId: target.roomId })).toEqual({ roomId: target.roomId, deleted: true })
+    expect(existsSync(join(home, 'dsh-bot', 'rooms', `${target.roomId}.jsonl`))).toBe(false)
+    expect(existsSync(join(home, 'dsh-bot', 'rooms', `${sibling.roomId}.jsonl`))).toBe(true)
+    expect((await groups.listGroupSessions({ groupId: group.id })).rooms.map(row => row.roomId)).toEqual([sibling.roomId])
+    expect(readFileSync(join(home, 'dsh-bot', 'groups.json'), 'utf8')).toBe(registry)
+  })
+
+  it('deleteGroupSession rejects ids not in the room index, including traversal', async () => {
+    const { home, groups } = runtime()
+    mkdirSync(join(home, 'dsh-bot'), { recursive: true })
+    writeFileSync(join(home, 'dsh-bot', 'bots.json'), '{"keep":true}\n')
+    for (const roomId of ['missing', '../bots', '']) {
+      await expect(groups.deleteGroupSession({ roomId })).rejects.toMatchObject({ code: 'group-not-found', message: '房间不存在' })
+    }
+    expect(readFileSync(join(home, 'dsh-bot', 'bots.json'), 'utf8')).toBe('{"keep":true}\n')
+  })
+
   it('fails loud on corrupt groups.json without rewriting bots.json', async () => {
     const { home, groups } = runtime()
     mkdirSync(join(home, 'dsh-bot'), { recursive: true })

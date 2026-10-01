@@ -15,6 +15,10 @@ const ALL_HANDLES = new Set(['all', 'everyone'])
 const boundary = (value: string): boolean => value === '' || /^[\s@,，。.!！?？:：;；、)）\]】]/u.test(value)
 
 export function parseMentions(text: string, members: readonly MentionMember[]): MentionParse {
+  return scanMentions(text, members).parse
+}
+
+function scanMentions(text: string, members: readonly MentionMember[]): { parse: MentionParse; named: number } {
   const wanted = new Set<string>()
   const unmatchedHandles: string[] = []
   let namedAll = false
@@ -45,11 +49,30 @@ export function parseMentions(text: string, members: readonly MentionMember[]): 
   }
   const unmatched = unmatchedHandles.length > 0
   return {
-    responderIds: unmatched ? [] : members.filter(row => count === 0 || namedAll || wanted.has(row.id)).map(row => row.id),
-    unmatched,
-    namedAll,
-    unmatchedHandles,
+    parse: {
+      responderIds: unmatched ? [] : members.filter(row => count === 0 || namedAll || wanted.has(row.id)).map(row => row.id),
+      unmatched,
+      namedAll,
+      unmatchedHandles,
+    },
+    named: wanted.size,
   }
+}
+
+/**
+ * Who answers a group message: explicit `@member` (not `@all`) > quoted
+ * member > everyone. A quote of the user, an error line, or a member who has
+ * left the group falls back to `parseMentions`. Server and composer share it.
+ */
+export function resolveResponders(
+  text: string,
+  members: readonly MentionMember[],
+  quotedBotId?: string,
+): MentionParse {
+  const { parse, named } = scanMentions(text, members)
+  if (parse.unmatched || parse.namedAll || named > 0) return parse
+  if (quotedBotId === undefined || !members.some(row => row.id === quotedBotId)) return parse
+  return { ...parse, responderIds: [quotedBotId] }
 }
 
 /** 重名及保留名用唯一 ID 插入，普通名字保留可读形式。 */

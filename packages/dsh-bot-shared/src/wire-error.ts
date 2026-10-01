@@ -40,6 +40,10 @@ const COPY: Record<string, Copy> = {
     title: '点名成员未确认，消息尚未发送',
     hint: '从 @ 候选列表重新选择；要让全员回应请使用 @all。',
   },
+  'queue-full': {
+    title: '排队已满（最多 3 条）',
+    hint: '等当前讨论结束或取消一条排队。',
+  },
   'invalid-input': {
     title: '输入不合法',
     hint: '检查名字、人设等字段后重试。',

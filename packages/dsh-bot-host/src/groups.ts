@@ -74,6 +74,8 @@ export type RoomSpeaker =
   | { readonly kind: 'user' }
   | { readonly kind: 'member'; readonly botId: string }
   | { readonly kind: 'error'; readonly botId: string; readonly code: string }
+  /** Host anchor line (continue discussion). Never shown to members as `用户:`. */
+  | { readonly kind: 'system' }
 
 export interface RoomMessage {
   readonly cancelledAt?: number
@@ -109,6 +111,7 @@ export interface GroupsRuntime {
   createGroupSession(input: { groupId: string }): Promise<GroupRoomRow>
   listGroupSessions(input: { groupId: string }): Promise<ListGroupRoomsResult>
   renameGroupSession(input: { sessionId: string; title: string }): Promise<GroupRoomRow>
+  deleteGroupSession(input: { roomId: string }): Promise<{ roomId: string; deleted: true }>
   peekRoom(roomId: string): Promise<RoomState | undefined>
   markRoomCancelled(roomId: string, messageIds: readonly string[]): Promise<void>
   appendRoomMessage(
@@ -392,6 +395,7 @@ function parseSpeaker(value: unknown): RoomSpeaker | undefined {
   if (typeof value !== 'object' || value === null || Array.isArray(value)) return undefined
   const rec = value as Record<string, unknown>
   if (rec.kind === 'user') return { kind: 'user' }
+  if (rec.kind === 'system') return { kind: 'system' }
   const botId = typeof rec.botId === 'string' ? rec.botId.trim() : ''
   if (botId === '') return undefined
   if (rec.kind === 'member') return { kind: 'member', botId }
@@ -570,6 +574,17 @@ export function createGroupsRuntime(options: GroupsRuntimeOptions): GroupsRuntim
     return row
   }
 
+  const deleteGroupSession = async (input: { roomId: string }): Promise<{ roomId: string; deleted: true }> => {
+    const home = homeOf()
+    const roomId = input.roomId.trim()
+    const rooms = await loadRoomsIndex(home)
+    // Only ids registered in rooms.json reach rm(): no path traversal through roomId.
+    if (roomId === '' || !rooms.some(row => row.roomId === roomId)) throw new DshBotError('group-not-found', '房间不存在')
+    await rm(roomFilePath(home, roomId), { force: true })
+    await saveRoomsIndex(home, rooms.filter(row => row.roomId !== roomId))
+    return { roomId, deleted: true }
+  }
+
   const createGroupSession = async (input: { groupId: string }): Promise<GroupRoomRow> => {
     const home = homeOf()
     const groupId = input.groupId.trim()
@@ -696,6 +711,7 @@ export function createGroupsRuntime(options: GroupsRuntimeOptions): GroupsRuntim
     createGroupSession: input => withLock(() => createGroupSession(input)),
     listGroupSessions: input => withLock(() => listGroupSessions(input)),
     renameGroupSession: input => withLock(() => renameGroupSession(input)),
+    deleteGroupSession: input => withLock(() => deleteGroupSession(input)),
     peekRoom: roomId => withLock(() => peekRoom(roomId)),
     markRoomCancelled: (roomId, messageIds) => withLock(() => markRoomCancelled(roomId, messageIds)),
     appendRoomMessage: (roomId, speaker, text, metadata) => withLock(() => appendRoomMessage(roomId, speaker, text, metadata)),

@@ -582,6 +582,27 @@ class DshBotService extends Service {
     return this.groupInbox.retryMember(input)
   }
 
+  async continueDiscussion(input: { sessionId: string }) {
+    await this.requireRoom(input.sessionId)
+    return this.groupInbox.continueDiscussion(input.sessionId)
+  }
+
+  async cancelQueued(input: { sessionId: string; queueId: string }) {
+    await this.requireRoom(input.sessionId)
+    return this.groupInbox.cancelQueued(input.sessionId, input.queueId)
+  }
+
+  /** BR-004: only the room jsonl and its index row; member hidden sessions stay. */
+  deleteGroupSession(input: { sessionId: string }) {
+    if (this.groupInbox.busy(input.sessionId)) throw new DshBotError('invalid-input', 'room is busy')
+    return this.groupsRuntime.deleteGroupSession({ roomId: input.sessionId })
+  }
+
+  /** INV-001: group-only RPCs never act on a 1:1 session id. */
+  private async requireRoom(sessionId: string): Promise<void> {
+    if (await this.groupsRuntime.peekRoom(sessionId) === undefined) throw new DshBotError('not-found', '房间不存在')
+  }
+
   private async readHistory(input: HistoryRequest): Promise<HistoryResult> {
     const room = await this.groupsRuntime.peekRoom(input.sessionId)
     if (room === undefined) {
@@ -615,6 +636,7 @@ class DshBotService extends Service {
       ...round?.speaking === undefined ? {} : { speaking: round.speaking },
       ...round?.round === undefined ? {} : { round: round.round },
       ...round?.rounds === undefined ? {} : { rounds: round.rounds },
+      queued: this.groupInbox.queued(room.header.roomId),
     }
   }
 
