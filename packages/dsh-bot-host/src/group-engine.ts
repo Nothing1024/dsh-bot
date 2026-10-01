@@ -257,6 +257,8 @@ async function ensureMemberTurnSession(
   const marked = await rowsWithMark(groupRoomMark(input.roomId))
   for (const row of marked) {
     if (parseBotMark(row.tags) === input.bot.id && hasHiddenMark(row.tags)) {
+      // 0.2.0-rc.1 rejects pre-step on archived sessions; older builds archived these.
+      await deps.platform.unarchiveSession(row.id)
       return row.id
     }
   }
@@ -271,7 +273,8 @@ async function ensureMemberTurnSession(
     cwd: deps.createCwd(),
   })
   const sessionId = created.sessionId
-  await hideBotSession(deps.sessionTool, deps.platform, sessionId, CLI_CALLER, { syncToArchived: true })
+  // Hidden mark + `~` title keep it off the rail; archiving would block every turn (rc.1 pre-step).
+  await hideBotSession(deps.sessionTool, deps.platform, sessionId, CLI_CALLER, { syncToArchived: false })
   const override = input.bot.modelOverride ?? resolveOverride(deps.config)
   if (override !== undefined) {
     await applyModelOverride(deps.platform, sessionId, override)

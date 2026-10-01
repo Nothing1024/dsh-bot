@@ -181,7 +181,10 @@ class StubPlatform implements DshBotPlatform {
     this.archiveCalls.push(sessionId)
   }
 
-  async unarchiveSession() {}
+  readonly unarchiveCalls: string[] = []
+  async unarchiveSession(sessionId: string) {
+    this.unarchiveCalls.push(sessionId)
+  }
 
   async selectModel() {}
 
@@ -779,6 +782,18 @@ describe('runGroupRound', () => {
     const state = await groups.peekRoom(room.roomId)
     const memberTexts = state?.messages.filter(row => row.speaker.kind === 'member').map(row => row.text) ?? []
     expect(memberTexts).toEqual(['第一轮小北', '第一轮 DSH', '第二轮小北', '第二轮 DSH'])
+  })
+
+  it('never archives member turn sessions and unarchives a reused one', async () => {
+    const { groups, room } = await setupRoom()
+    const sessionTool = new StubSessionTool()
+    const platform = new StubPlatform()
+    const deps = engineDeps(sessionTool, platform, groups)
+    await runGroupRound(deps, { roomId: room.roomId, text: '你们是谁?' })
+    expect(platform.archiveCalls).toEqual([])
+    await runGroupRound(deps, { roomId: room.roomId, text: '再介绍一次' })
+    expect(platform.archiveCalls).toEqual([])
+    expect(platform.unarchiveCalls).toEqual(expect.arrayContaining(['session-owned-1', 'session-owned-2']))
   })
 
   it('does not reuse an earlier answer when the next turn produces no text', async () => {

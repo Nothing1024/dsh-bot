@@ -23,6 +23,7 @@ import {
   hasHiddenMark,
   isAuxiliaryBotSession,
   parseBotMark,
+  parseGroupRoomMark,
 } from './marks.ts'
 import type { DshBotPlatform } from './platform.ts'
 
@@ -122,9 +123,11 @@ export async function reconcileBotSessions(
       }
       await markAdd(sessionId, add)
       const auxiliary = isAuxiliaryBotSession(tags, row.title)
-      if (!hasHiddenMark(tags) || (auxiliary && !archived.has(sessionId))) {
+      // Group member turns must stay unarchived: rc.1 rejects pre-step on archived sessions.
+      const archive = auxiliary && parseGroupRoomMark(tags) === undefined
+      if (!hasHiddenMark(tags) || (archive && !archived.has(sessionId))) {
         await hideBotSession(sessionTool, platform, sessionId, { kind: 'cli' }, {
-          syncToArchived: auxiliary,
+          syncToArchived: archive,
         })
       }
     }

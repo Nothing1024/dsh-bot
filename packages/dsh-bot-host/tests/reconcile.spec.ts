@@ -60,6 +60,7 @@ class StubSessionTool implements SessionToolService {
   }
   readonly archived: string[] = []
   readonly hideCalls: string[] = []
+  readonly hideSync: boolean[] = []
   async workspaceList() {
     return { workspaces: [], archivedSessionIds: this.archived }
   }
@@ -74,9 +75,10 @@ class StubSessionTool implements SessionToolService {
   async getVisibility() {
     return { hasHiddenMark: false, archived: false, isHidden: false }
   }
-  async hide(_caller: SessionToolCaller, sessionId: SessionId) {
+  async hide(_caller: SessionToolCaller, sessionId: SessionId, options?: { syncToArchived?: boolean }) {
     this.hideCalls.push(sessionId)
-    this.archived.push(sessionId)
+    this.hideSync.push(options?.syncToArchived !== false)
+    if (options?.syncToArchived !== false) this.archived.push(sessionId)
     await patch(sessionId, { add: expandWriteAliases(['hidden']) })
     return { hasHiddenMark: true, archived: true, isHidden: true }
   }
@@ -162,6 +164,17 @@ describe('reconcileBotSessions', () => {
     expect(await get('coding')).toBeUndefined()
     await bot.reconcile()
     expect(sessionTool.hideCalls).toEqual(['chat', 'aux'])
+  })
+
+  it('hides a group member turn session without archiving it', async () => {
+    const { bot, platform, sessionTool } = boot()
+    await put('member', ['app:dsh-bot', 'bot:dsh-bot', 'group:g', 'group-room:room-1'])
+    platform.gatewayRows = [{ sessionId: 'member', running: false, updatedAt: 1 }]
+    await bot.reconcile()
+    expect(sessionTool.hideCalls).toEqual(['member'])
+    expect(sessionTool.hideSync).toEqual([false])
+    await bot.reconcile()
+    expect(sessionTool.hideCalls).toEqual(['member'])
   })
 
   it('labels an unlabeled GUI session whose agentPreset is a registry bot', async () => {
