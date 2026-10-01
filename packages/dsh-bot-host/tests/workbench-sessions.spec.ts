@@ -759,4 +759,13 @@ describe('group room face (INV-001 / BR-004)', () => {
     expect((await bot.listBots()).bots.map(row => row.id)).toContain(poet.id)
     await expect(bot.deleteGroupSession({ sessionId: gone.roomId })).rejects.toMatchObject({ code: 'group-not-found', message: '房间不存在' })
   })
+
+  it('forwards a room id to the inbox rules for continue and cancelQueued', async () => {
+    const { bot } = boot()
+    const poet = await bot.createBot({ name: '诗人小北', persona: '人设' })
+    const group = await bot.createGroup({ name: '编辑室', memberIds: [poet.id, 'dsh-bot'] })
+    const room = await bot.createGroupSession({ groupId: group.id })
+    await expect(bot.continueDiscussion({ sessionId: room.roomId })).rejects.toMatchObject({ code: 'invalid-input', message: '先发一条消息开始讨论' })
+    await expect(bot.cancelQueued({ sessionId: room.roomId, queueId: 'q-gone' })).rejects.toMatchObject({ code: 'not-found', message: '这条已开始讨论，无法取消' })
+  })
 })
