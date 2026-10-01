@@ -1,0 +1,43 @@
+== git status --porcelain
+?? docs/dsh-bot-group-rounds-v2/evidence/phase-0/
+== pnpm test
+$ vitest run
+
+ RUN  v4.1.11 /home/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin
+
+ ❯ packages/tool-dsh-bot/tests/tools.spec.ts (0 test)
+
+⎯⎯⎯⎯⎯⎯ Failed Suites 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  packages/tool-dsh-bot/tests/tools.spec.ts [ packages/tool-dsh-bot/tests/tools.spec.ts ]
+Error: Failed to resolve entry for package "dsh-bot-host". The package may have incorrect main/module/exports specified in its package.json.
+ ❯ packages/tool-dsh-bot/tests/tools.spec.ts:6:1
+      4| import type { ToolDefinition } from '@deepseek-ai/dsh-tools'
+      5| import { SessionId } from '@deepseek-ai/dsh-session'
+      6| import { DshBotError } from 'dsh-bot-host'
+       | ^
+      7| import { apply } from '../src/index.ts'
+      8|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed | 50 passed (51)
+      Tests  491 passed (491)
+   Start at  00:03:39
+   Duration  4.29s (transform 31.23s, setup 0ms, import 45.06s, tests 8.85s, environment 19.26s)
+
+[ELIFECYCLE] Test failed. See above for more details.
+== pnpm run typecheck
+$ tsc -p tsconfig.json
+packages/tool-dsh-bot/src/index.ts(11,29): error TS2307: Cannot find module 'dsh-bot-host' or its corresponding type declarations.
+packages/tool-dsh-bot/src/index.ts(84,16): error TS18046: 'error' is of type 'unknown'.
+packages/tool-dsh-bot/src/index.ts(84,31): error TS18046: 'error' is of type 'unknown'.
+packages/tool-dsh-bot/src/index.ts(85,16): error TS18046: 'error' is of type 'unknown'.
+packages/tool-dsh-bot/src/index.ts(85,66): error TS18046: 'error' is of type 'unknown'.
+packages/tool-dsh-bot/src/index.ts(141,16): error TS18046: 'error' is of type 'unknown'.
+packages/tool-dsh-bot/src/index.ts(141,31): error TS18046: 'error' is of type 'unknown'.
+packages/tool-dsh-bot/src/index.ts(142,16): error TS18046: 'error' is of type 'unknown'.
+packages/tool-dsh-bot/src/index.ts(142,66): error TS18046: 'error' is of type 'unknown'.
+packages/tool-dsh-bot/tests/tools.spec.ts(6,29): error TS2307: Cannot find module 'dsh-bot-host' or its corresponding type declarations.
+[ELIFECYCLE] Command failed with exit code 2.

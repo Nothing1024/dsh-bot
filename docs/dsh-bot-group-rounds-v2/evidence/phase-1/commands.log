@@ -1,0 +1,32 @@
+
+ RUN  v4.1.11 /home/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin
+
+
+ Test Files  2 passed (2)
+      Tests  16 passed (16)
+   Start at  11:30:57
+   Duration  318ms (transform 128ms, setup 0ms, import 176ms, tests 16ms, environment 0ms)
+
+
+ RUN  v4.1.11 /home/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin
+
+
+ Test Files  2 passed (2)
+      Tests  52 passed (52)
+   Start at  11:34:37
+   Duration  1.09s (transform 552ms, setup 0ms, import 882ms, tests 379ms, environment 0ms)
+
+== Task 5: vitest host+shared+mentions
+ RUN  v4.1.11 /home/nothing/workspace/dsh/plugin/dsh-grok-bot/plugin
+
+
+ Test Files  23 passed (23)
+      Tests  286 passed (286)
+   Start at  11:35:21
+   Duration  1.98s (transform 6.98s, setup 0ms, import 10.34s, tests 3.00s, environment 579ms)
+
+== typecheck
+$ tsc -p tsconfig.json
+
+== 说明
+Task 1 基线的 tool-dsh-bot typecheck/test 失败源于 dsh-bot-host 未 build（lib/ 缺失）；pnpm run build 后两者均消失。失败集合 ⊆ 基线（空集）。
