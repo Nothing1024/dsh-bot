@@ -1,0 +1,40 @@
+== pnpm run build
+packages/dsh-bot-shared build: Done
+packages/workbench-ui build: Done
+packages/ui-dsh-bot build: Done
+packages/dsh-bot-host build: Done
+packages/tool-dsh-bot build: Done
+== pnpm test
+ Test Files  51 passed (51)
+      Tests  533 passed (533)
+== pnpm run typecheck
+$ tsc -p tsconfig.json
+exit=0
+== pnpm run standard:check
+✓ invalid/entry-outside-root.json → [entry-outside-root]
+
+== adapter 审计（上游触点基线） ==
+✓ 无未评审的新增上游触点
+
+结论：全部通过
+== rg -i 'anysphere|sand://' packages/
+（无命中）
+== git status --porcelain
+ M docs/dsh-bot-group-rounds-v2/tasks.csv
+?? docs/dsh-bot-group-rounds-v2/evidence/UF-001/
+?? docs/dsh-bot-group-rounds-v2/evidence/UF-002/
+?? docs/dsh-bot-group-rounds-v2/evidence/UF-003/
+?? docs/dsh-bot-group-rounds-v2/evidence/UF-004/
+?? docs/dsh-bot-group-rounds-v2/evidence/UF-005/
+?? docs/dsh-bot-group-rounds-v2/evidence/phase-final/
+== env/dsh-bot 入 git?
+（以上为空即未入 git）
+
+== 测试数据清理（按 id）
+["deleteGroup", "v2-test-10011232", true]
+["deleteGroup", "bianji-shi", true]
+["deleteBot", "shiren-xiaobei", true]
+["剩余小组", []]
+["剩余人设", ["dsh-bot"]]
+["rooms/ 剩余文件", []]
+1:1 校准会话 session-891c5fa4… 随 DSH Bot 保留（种子人设，不删）。

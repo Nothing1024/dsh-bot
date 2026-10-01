@@ -1,0 +1,22 @@
+# UF-004 rooms/ 前后对比
+## before
+room-20fe514e-291f-4aaa-be63-52f6b8a4629d.jsonl
+room-613043e6-9aef-456d-a2bf-b28e575a6499.jsonl
+room-a62d99ae-92f1-4374-b3b1-15c5b7b8aaf1.jsonl
+room-aa342157-982e-4500-9634-13bcae08b3fa.jsonl
+room-e23155ef-c329-4188-9507-96cd5e853068.jsonl
+room-ee022847-fb7e-466d-8b19-396b9b1866d1.jsonl
+
+## after
+room-20fe514e-291f-4aaa-be63-52f6b8a4629d.jsonl
+room-613043e6-9aef-456d-a2bf-b28e575a6499.jsonl
+room-aa342157-982e-4500-9634-13bcae08b3fa.jsonl
+room-e23155ef-c329-4188-9507-96cd5e853068.jsonl
+room-ee022847-fb7e-466d-8b19-396b9b1866d1.jsonl
+
+removed: ['room-a62d99ae-92f1-4374-b3b1-15c5b7b8aaf1.jsonl']
+added: []
+rooms.json 仍含被删 roomId: False
+groups.json 未变: True
+session-tool/marks.jsonl 未变: True
+被删房间成员隐藏会话标记仍在（group-room:room-a62d99ae-92f1-4374-b3b1-15c5b7b8aaf1）: 2 行

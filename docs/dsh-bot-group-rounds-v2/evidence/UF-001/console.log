@@ -1,0 +1,13 @@
+# UF-001 主路径 console（page console + pageerror 监听）
+发送前：composer-reply='回复: 诗人小北: 风把夏天最后一页翻过去…'，composer-recipients='本次回应：诗人小北'
+发送后 transcript：msg-3 用户行带「→ 诗人小北」引用条；msg-4 author=shiren-xiaobei；无 dsh-bot 发言
+刷新后：transcript-reply-cite-3 仍在
+console 消息：0 条；pageerror：0 条
+
+# 分支：显式 @ 覆盖
+引用小北 msg-4 + 输入 '@DSH Bot 你来改得更短' → composer-recipients='本次回应：DSH Bot'
+新增：msg-5 用户行（→ 诗人小北），msg-6 author=dsh-bot；小北未发言
+
+# 分支：引用自己的消息
+引用用户行 msg-5（卡片『回复: 你: …』）+ 输入不含 @ → composer-recipients='本次回应：诗人小北、DSH Bot'
+新增：msg-7 用户行（→ 你），msg-8/10 小北、msg-9/11 DSH Bot（全员多轮）
