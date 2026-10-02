@@ -14,6 +14,8 @@
 
 ---
 
+> **依赖插件：** [dsh-session-tool](https://github.com/Nothing1024/dsh-session-tool)（原 session-tool）。会话创建、标记和隐藏都走它。
+
 ## 为什么需要 DSH Bot
 
 DeepSeek Shell 本身提供强大的 agent 能力，但缺少「常驻助理」的概念。DSH Bot 填补了这个空白：
@@ -223,6 +225,8 @@ pnpm run standard:check
 
 ### 查询会话标记
 
+> **依赖插件：** [dsh-session-tool](https://github.com/Nothing1024/dsh-session-tool)（原 session-tool）。下面的路径是本机邻仓目录，仓库名已是 dsh-session-tool。
+
 ```bash
 DSH_HOME="$PWD/env" node ../../session-tool/plugin/packages/session-tool-cli/lib/bin.js marks list --mark app:dsh-bot
 ```
@@ -231,7 +235,7 @@ DSH_HOME="$PWD/env" node ../../session-tool/plugin/packages/session-tool-cli/lib
 
 ### 会话管理
 
-使用 [session-tool](https://github.com/Nothing1024/session-tool) 管理会话，标记为 `app:dsh-bot`（过渡期双写 `kind:dsh-bot`）。
+使用 [dsh-session-tool](https://github.com/Nothing1024/dsh-session-tool) 管理会话，标记为 `app:dsh-bot`（过渡期双写 `kind:dsh-bot`）。
 
 ### 工作台实时更新
 
