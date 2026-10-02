@@ -4,8 +4,7 @@ export type { RosterSection } from './types.ts'
 
 export const DEFAULT_ROSTER_SECTIONS: readonly RosterSection[] = [
   { id: 'pinned', name: '置顶', order: 0 },
-  { id: 'work', name: '工作', order: 1 },
-  { id: 'life', name: '生活', order: 2 },
+  { id: 'default', name: '全部', order: 1 },
 ]
 
 export interface Layoutish {
@@ -19,8 +18,7 @@ export interface Layoutish {
 
 export function sectionOf(item: Layoutish): string {
   if (item.pinned === true) return 'pinned'
-  const section = item.section?.trim()
-  return section === undefined || section === '' ? 'work' : section
+  return ''
 }
 
 export function groupRosterItems<T extends Layoutish>(
@@ -34,7 +32,11 @@ export function groupRosterItems<T extends Layoutish>(
     .map(section => ({
       section,
       items: vis
-        .filter(item => sectionOf(item) === section.id)
+        .filter(item => {
+          const sec = sectionOf(item)
+          if (section.id === 'default') return sec === '' || (sec !== 'pinned' && !sections.some(s => s.id === sec))
+          return sec === section.id
+        })
         .sort((a, b) => (a.order ?? a.updatedAt) - (b.order ?? b.updatedAt)),
     }))
   return { visible, hidden }

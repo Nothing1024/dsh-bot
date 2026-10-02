@@ -98,6 +98,8 @@ function stub(overrides: Partial<DshBotHttpFace> = {}): DshBotHttpFace {
   return {
     renameSession: async input => input,
     prepareOfficialJump: vi.fn(async input => input),
+    listRoomOfficialSessions: vi.fn(async () => ({ sessions: [] })),
+    listBotGroupOfficialSessions: vi.fn(async () => ({ sessions: [] })),
     listSessions: vi.fn(async () => [ROW]),
     createSession: vi.fn(async () => ({ sessionId: SessionId('session-new'), title: 'DSH Bot' } satisfies CreateBotSessionResult)),
     currentBotModel: () => MODEL,

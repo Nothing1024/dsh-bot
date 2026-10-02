@@ -1,7 +1,8 @@
 /**
  * Left roster (280px): avatar + name + preview + relative time + working dot.
  */
-import { useEffect, useId, useRef, useState, type KeyboardEvent, type MouseEvent } from 'react'
+import { useEffect, useId, useLayoutEffect, useRef, useState, type KeyboardEvent, type MouseEvent, type ReactNode } from 'react'
+import { createPortal } from 'react-dom'
 import { hashAvatarColor, nameInitial, relativeTime } from './avatar.ts'
 import { Persona } from './Persona.tsx'
 import { DEFAULT_ROSTER_SECTIONS, groupRosterItems } from './roster-sections.ts'
@@ -111,6 +112,50 @@ function MosaicAvatar(props: { id: string; members: readonly RosterMemberAvatar[
   )
 }
 
+const HOVER_CARD_WIDTH = 220
+const HOVER_CARD_GAP = 28
+
+function placeHoverCard(anchor: HTMLElement): { readonly top: number; readonly left: number } {
+  const rect = anchor.getBoundingClientRect()
+  let left = rect.right + HOVER_CARD_GAP
+  if (left + HOVER_CARD_WIDTH > window.innerWidth - 8) {
+    left = Math.max(8, rect.left - HOVER_CARD_WIDTH - HOVER_CARD_GAP)
+  }
+  const top = Math.max(8, Math.min(rect.top, window.innerHeight - 48))
+  return { top, left }
+}
+
+/**
+ * Hover summary. Portaled and fixed so the sidebar's overflow clip cannot
+ * turn the card's shadow into a band on the roster's right edge.
+ */
+function RosterHoverCard(props: {
+  readonly anchor: HTMLElement
+  readonly testId: string
+  readonly children: ReactNode
+}) {
+  const [place, setPlace] = useState(() => placeHoverCard(props.anchor))
+  useLayoutEffect(() => {
+    const sync = (): void => {
+      const next = placeHoverCard(props.anchor)
+      setPlace(current => current.top === next.top && current.left === next.left ? current : next)
+    }
+    sync()
+    window.addEventListener('resize', sync)
+    window.addEventListener('scroll', sync, true)
+    return () => {
+      window.removeEventListener('resize', sync)
+      window.removeEventListener('scroll', sync, true)
+    }
+  }, [props.anchor])
+  return createPortal(
+    <div className="rosterPreviewCard" data-testid={props.testId} style={{ top: place.top, left: place.left }}>
+      {props.children}
+    </div>,
+    document.body,
+  )
+}
+
 /**
  * Bot list plus the new-bot control and per-row menu.
  */
@@ -135,6 +180,7 @@ export function Roster(props: RosterProps) {
   }
   const [hiddenOpen, setHiddenOpen] = useState(false)
   const [previewId, setPreviewId] = useState<string | null>(null)
+  const previewAnchor = useRef<HTMLDivElement | null>(null)
   const hoverTimer = useRef<number | null>(null)
   const leaveTimer = useRef<number | null>(null)
   const renameRef = useRef<HTMLInputElement>(null)
@@ -281,9 +327,13 @@ export function Roster(props: RosterProps) {
                       setPreviewId(null)
                       setMenuId(null)
                     }}
-                    onMouseEnter={() => {
+                    onMouseEnter={(event) => {
+                      const anchor = event.currentTarget
                       clearHover()
-                      hoverTimer.current = window.setTimeout(() => setPreviewId(item.id), 500)
+                      hoverTimer.current = window.setTimeout(() => {
+                        previewAnchor.current = anchor
+                        setPreviewId(item.id)
+                      }, 500)
                     }}
                     onMouseLeave={() => {
                       clearHover()
@@ -296,13 +346,13 @@ export function Roster(props: RosterProps) {
                       setMenuId(item.id)
                     }}
                   >
-                    {previewId === item.id ? (
-                      <div className="rosterPreviewCard" data-testid={`roster-hover-${item.id}`}>
+                    {previewId === item.id && previewAnchor.current !== null ? (
+                      <RosterHoverCard anchor={previewAnchor.current} testId={`roster-hover-${item.id}`}>
                         <div>{item.modelLabel ?? '默认模型'}</div>
                         <div>例行 {item.routineCount ?? 0}</div>
                         <div>会话 {item.sessionCount ?? 0}</div>
                         <div>{item.preview.trim() === '' ? '还没聊过' : item.preview}</div>
-                      </div>
+                      </RosterHoverCard>
                     ) : null}
                     <span className={`avatarWrap${item.working ? ' isWorking' : ''}`}>
                       {item.kind === 'group' && item.members !== undefined && item.members.length >= 2 ? (
@@ -352,15 +402,6 @@ export function Roster(props: RosterProps) {
                       {item.unread !== undefined && item.unread > 0 ? (
                         <span className="unreadBadge" data-testid={`roster-unread-${item.id}`}>{item.unread}</span>
                       ) : null}
-                      {item.sessionCount !== undefined && item.sessionCount > 1 ? (
-                        <span
-                          className="sessionCount"
-                          data-testid={`roster-session-count-${item.id}`}
-                          title={`${item.sessionCount} 段对话`}
-                        >
-                          {item.sessionCount}
-                        </span>
-                      ) : null}
                       <span className="rosterTime">{relativeTime(item.updatedAt, props.nowMs)}</span>
                       <button
                         type="button"
@@ -383,23 +424,11 @@ export function Roster(props: RosterProps) {
                         data-testid={`roster-pin-${item.id}`}
                         onClick={() => {
                           setMenuId(null)
-                          if (item.kind === 'group') applyLayout({ groups: [{ id: item.id, section: item.section === 'pinned' ? 'work' : 'pinned' }] })
-                          else applyLayout({ bots: [{ id: item.id, pinned: item.pinned !== true, section: item.pinned === true ? 'work' : 'pinned' }] })
+                          if (item.kind === 'group') applyLayout({ groups: [{ id: item.id, section: item.section === 'pinned' ? '' : 'pinned' }] })
+                          else applyLayout({ bots: [{ id: item.id, pinned: item.pinned !== true, section: item.pinned === true ? '' : 'pinned' }] })
                         }}
                       >
                         {(item.kind === 'group' ? item.section === 'pinned' : item.pinned === true) ? '取消置顶' : '置顶'}
-                      </button>
-                      <button
-                        type="button"
-                        data-testid={`roster-move-${item.id}`}
-                        onClick={() => {
-                          setMenuId(null)
-                          const next = item.section === 'life' ? 'work' : 'life'
-                          if (item.kind === 'group') applyLayout({ groups: [{ id: item.id, section: next }] })
-                          else applyLayout({ bots: [{ id: item.id, section: next, pinned: false }] })
-                        }}
-                      >
-                        移组
                       </button>
                       <button
                         type="button"

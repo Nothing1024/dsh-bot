@@ -9,6 +9,7 @@ import {
   draftStorageKey,
   groupDraftStorageKey,
   history,
+  listBotGroupOfficialSessions,
   listBotSessions,
   listGroupSessions,
   memoryCount,
@@ -32,6 +33,7 @@ import {
   retryMember,
 } from './api.ts'
 import type {
+  BotGroupOfficialSession,
   MemoryListValue,
   RoutineRow,
   WorkbenchBot,
@@ -161,6 +163,7 @@ export function Conversation(props: ConversationProps) {
   const members = props.members ?? []
   const [sessionsLoaded, setSessionsLoaded] = useState(false)
   const [sessions, setSessions] = useState<readonly WorkbenchSessionRow[]>([])
+  const [groupOfficial, setGroupOfficial] = useState<readonly BotGroupOfficialSession[]>([])
   const [sessionId, setSessionId] = useState<string | null>(null)
   const [pending, setPending] = useState<{ text: string; sinceSeq: number; messageId?: string; replyTo?: ComposerReplyTo; failed?: boolean } | null>(null)
   const [sending, setSending] = useState(false)
@@ -170,6 +173,10 @@ export function Conversation(props: ConversationProps) {
   const [awaitingTurn, setAwaitingTurn] = useState(false)
   const [includeHidden, setIncludeHidden] = useState(false)
   const [toast, setToast] = useState<string | null>(null)
+  const [memberRetry, setMemberRetry] = useState<{ botId: string; name: string; seq: number } | null>(null)
+  const memberRetryRef = useRef(memberRetry)
+  memberRetryRef.current = memberRetry
+  const memberRetrySawWorking = useRef(false)
   const [panel, setPanel] = useState<'memory' | 'routines' | 'peers' | null>(null)
   const [memory, setMemory] = useState<MemoryListValue | null>(null)
   const [memoryUnavailable, setMemoryUnavailable] = useState(false)
@@ -187,6 +194,7 @@ export function Conversation(props: ConversationProps) {
   const deleteTitleId = useId()
   const retryRequest = useRef<{ sessionId: string; text: string; replyToSeq?: number; requestId: string } | null>(null)
   const switcherRef = useRef<HTMLDivElement>(null)
+  const [menuPosition, setMenuPosition] = useState<{ top: number; right: number } | null>(null)
   const switcherMenuId = useId()
   const sawWorkingRef = useRef(false)
   const sendSeqRef = useRef(-1)
@@ -236,6 +244,7 @@ export function Conversation(props: ConversationProps) {
       setListError(null)
       const rows = roomsToSessions(rooms, group.name)
       setSessions(rows)
+      setGroupOfficial([])
       onSessionsRef.current?.(rows)
       const keep = pickBoundSession(rows.map(row => row.sessionId), prefer, readLastSession(identityId))
       setSessionId(keep)
@@ -250,9 +259,15 @@ export function Conversation(props: ConversationProps) {
     }
     setListError(null)
     const rows = outcome.value.sessions ?? []
-    setSessions(rows)
-    onSessionsRef.current?.(rows)
-    const keep = pickBoundSession(rows.map(row => row.sessionId), prefer, readLastSession(identityId))
+    const official = await listBotGroupOfficialSessions(bot.id)
+    if (!current()) return sessionIdRef.current
+    const officialRows = official.ok ? official.value.sessions ?? [] : []
+    const officialIds = new Set(officialRows.map(row => row.sessionId))
+    const chats = rows.filter(row => !officialIds.has(row.sessionId))
+    setSessions(chats)
+    setGroupOfficial(officialRows)
+    onSessionsRef.current?.(chats)
+    const keep = pickBoundSession(chats.map(row => row.sessionId), prefer, readLastSession(identityId))
     setSessionId(keep)
     return keep
   }, [bot, group, identityId, includeHidden, isGroup])
@@ -373,6 +388,36 @@ export function Conversation(props: ConversationProps) {
   const showingLiveReply = liveItems.some(item => item.streaming === true
     || (item.role === 'assistant' && item.pending === true))
 
+  useEffect(() => {
+    memberRetryRef.current = null
+    setMemberRetry(null)
+    memberRetrySawWorking.current = false
+  }, [sessionId])
+
+  useEffect(() => {
+    if (memberRetry === null) {
+      memberRetrySawWorking.current = false
+      return
+    }
+    const followed = liveItems.some(item =>
+      item.kind === 'message'
+      && item.pending !== true
+      && item.streaming !== true
+      && item.seq > memberRetry.seq
+      && item.author?.botId === memberRetry.botId
+    )
+    if (followed) {
+      memberRetryRef.current = null
+      setMemberRetry(null)
+      return
+    }
+    if (poll.working) memberRetrySawWorking.current = true
+    else if (memberRetrySawWorking.current) {
+      memberRetryRef.current = null
+      setMemberRetry(null)
+    }
+  }, [memberRetry, liveItems, poll.working])
+
   const memoryBotId = bot?.id
   useEffect(() => {
     if (isGroup || memoryBotId === undefined) return
@@ -426,7 +471,7 @@ export function Conversation(props: ConversationProps) {
     return () => { cancelled = true }
   }, [botId, isGroup, props.refreshEpoch])
 
-  const working = poll.working || sending || awaitingTurn
+  const working = poll.working || sending || awaitingTurn || memberRetry !== null
   const onWorking = props.onWorking
   const onWorkingDetach = props.onWorkingDetach
   const onPreview = props.onPreview
@@ -591,8 +636,11 @@ export function Conversation(props: ConversationProps) {
     : '#5b8def'
   const empty = sessionsLoaded && poll.ready && poll.items.length === 0 && pending === null && !working && poll.error === null && listError === null
   const transcriptLoading = pending === null && (!sessionsLoaded || (sessionId !== null && !poll.ready))
-  const composerWorking = poll.working || awaitingTurn
-  const speaking = resolveSpeaking(poll.speaking, members)
+  const composerWorking = poll.working || awaitingTurn || memberRetry !== null
+  const speaking = resolveSpeaking(
+    poll.speaking ?? (memberRetry === null ? null : { botId: memberRetry.botId, name: memberRetry.name }),
+    members,
+  )
   const currentTitle = sessionId === null
     ? undefined
     : sessions.find(row => row.sessionId === sessionId)?.title
@@ -606,6 +654,9 @@ export function Conversation(props: ConversationProps) {
       return
     }
     setAwaitingTurn(false)
+    memberRetryRef.current = null
+    setMemberRetry(null)
+    memberRetrySawWorking.current = false
     const dropped = outcome.value.dropped ?? 0
     if (dropped > 0) setToast(`已停止，排队的 ${dropped} 条未发送`)
     poll.refresh()
@@ -695,11 +746,11 @@ export function Conversation(props: ConversationProps) {
               <span className="workingBadge" data-testid="conversation-working">
                 {poll.round !== null && poll.rounds !== null
                   ? poll.rounds === 0
-                    ? `第 ${poll.round} 轮${poll.speaking !== null ? ` · ${poll.speaking.name} 正在发言` : ''}`
+                    ? `第 ${poll.round} 轮${speaking !== null ? ` · ${speaking.name} 正在发言` : ''}`
                     : (poll.rounds > 1
-                      ? `第 ${poll.round}/${poll.rounds} 轮${poll.speaking !== null ? ` · ${poll.speaking.name} 正在发言` : ''}`
-                      : (poll.speaking !== null ? `${poll.speaking.name} 正在发言` : '工作中'))
-                  : (poll.speaking !== null ? `${poll.speaking.name} 正在发言` : '工作中')}
+                      ? `第 ${poll.round}/${poll.rounds} 轮${speaking !== null ? ` · ${speaking.name} 正在发言` : ''}`
+                      : (speaking !== null ? `${speaking.name} 正在发言` : '工作中'))
+                  : (speaking !== null ? `${speaking.name} 正在发言` : '工作中')}
               </span>
             ) : null}
           </div>
@@ -840,7 +891,19 @@ export function Conversation(props: ConversationProps) {
               title="切换这段对话"
               onClick={() => {
                 setCurrentMenuOpen(false)
-                setSwitcherOpen(open => !open)
+                setSwitcherOpen(open => {
+                  const next = !open
+                  if (next && switcherRef.current !== null) {
+                    const rect = switcherRef.current.getBoundingClientRect()
+                    setMenuPosition({
+                      top: rect.bottom + 6,
+                      right: window.innerWidth - rect.right,
+                    })
+                  } else {
+                    setMenuPosition(null)
+                  }
+                  return next
+                })
               }}
             >
               <span className="sessionSwitchLabel">{isGroup ? '房间' : '对话'}</span>
@@ -856,10 +919,31 @@ export function Conversation(props: ConversationProps) {
                   )}
               </span>
             </button>
-            {switcherOpen ? (
-              <div className="sessionSwitchMenu" id={switcherMenuId} role="menu" aria-label={isGroup ? '切换房间' : '切换对话'} onKeyDown={moveMenuFocus}>
+            {switcherOpen && menuPosition !== null ? (
+              <div
+                className="sessionSwitchMenu"
+                id={switcherMenuId}
+                role="menu"
+                aria-label={isGroup ? '切换房间' : '切换对话'}
+                onKeyDown={moveMenuFocus}
+                style={{ position: 'fixed', top: `${menuPosition.top}px`, right: `${menuPosition.right}px` }}
+              >
                 <SessionList
-                  items={toChoices(sessions, identityName, sessionId)}
+                  items={[
+                    ...toChoices(sessions, identityName, sessionId),
+                    ...isGroup ? [] : groupOfficial.map(row => ({
+                      sessionId: row.sessionId,
+                      title: row.roomTitle !== undefined && row.roomTitle.trim() !== ''
+                        ? `小组 · ${row.groupName} · ${row.roomTitle.trim()}`
+                        : `小组 · ${row.groupName}`,
+                      updatedAt: row.updatedAt,
+                      working: false,
+                      hidden: false,
+                      child: false,
+                      selected: false,
+                      jumpOnly: true,
+                    })),
+                  ]}
                   emptyHint="还没有绑定的对话"
                   onSelect={id => {
                     setSessionId(id)
@@ -883,10 +967,11 @@ export function Conversation(props: ConversationProps) {
                     includeHidden,
                     onIncludeHidden: (next: boolean) => setIncludeHidden(next),
                   }}
+                  onJumped={() => setSwitcherOpen(false)}
                 />
               </div>
             ) : null}
-            {!isGroup && sessionId !== null ? (
+            {sessionId !== null ? (
               <button
                 type="button"
                 className="rowMenuBtn sessionCurrentMenuBtn"
@@ -904,11 +989,12 @@ export function Conversation(props: ConversationProps) {
                 ⋯
               </button>
             ) : null}
-            {!isGroup && currentMenuOpen && sessionId !== null ? (
+            {currentMenuOpen && sessionId !== null ? (
               <div className="rowMenu sessionCurrentMenuPanel" id={`${switcherMenuId}-current`} role="menu" aria-label="当前会话" data-testid="session-current-menu-panel" onKeyDown={moveMenuFocus}>
                 <SessionJumpMenuItem
                   sessionId={sessionId}
                   testId="session-current-jump"
+                  groupRoom={isGroup}
                   child={sessions.some(row => row.sessionId === sessionId && isChildBotSession(row.tags))}
                   onToast={setToast}
                   onDone={() => setCurrentMenuOpen(false)}
@@ -955,16 +1041,16 @@ export function Conversation(props: ConversationProps) {
               <button
                 key={member.id}
                 type="button"
-                className={`memberChip${poll.speaking?.botId === member.id ? ' isSpeaking' : ''}`}
+                className={`memberChip${speaking?.botId === member.id ? ' isSpeaking' : ''}`}
                 data-testid={`group-chip-${member.id}`}
-                data-speaking={poll.speaking?.botId === member.id ? 'true' : undefined}
+                data-speaking={speaking?.botId === member.id ? 'true' : undefined}
                 onClick={() => props.onEditMembers?.()}
               >
                 <Persona
                   botId={member.id}
                   name={member.name}
                   size="sm"
-                  mood={poll.speaking?.botId === member.id ? 'working' : 'idle'}
+                  mood={speaking?.botId === member.id ? 'working' : 'idle'}
                   color={chipColor}
                   {...member.avatar.emoji === undefined || member.avatar.emoji === '' ? {} : { emoji: member.avatar.emoji }}
                 />
@@ -1068,11 +1154,21 @@ export function Conversation(props: ConversationProps) {
             },
             onRetryMember: async (item: WorkbenchHistoryItem) => {
               const botId = item.author?.botId
-              if (sessionId === null || botId === undefined || botId === '') return
+              if (sessionId === null || botId === undefined || botId === '' || memberRetryRef.current !== null) return
+              const next = { botId, name: item.author?.name ?? botId, seq: item.seq }
+              memberRetryRef.current = next
+              setMemberRetry(next)
               const result = await retryMember(sessionId, botId, item.seq)
-              setToast(result.ok ? '已开始重试该成员' : result.error.message)
+              if (!result.ok) {
+                memberRetryRef.current = null
+                setMemberRetry(null)
+                memberRetrySawWorking.current = false
+                setToast(result.error.message === 'room is busy' ? '讨论进行中，稍后再试' : result.error.message)
+                return
+              }
               poll.refresh()
             },
+            retryingSeq: memberRetry?.seq ?? null,
           } : {}}
         />
         </div>

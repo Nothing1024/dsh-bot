@@ -72,6 +72,21 @@ export interface WorkbenchBotsFace {
   listBotSessions(input: ListOwnedSessionsRequest): Promise<ListOwnedSessionsResult>
   renameSession(input: { sessionId: string; title: string }): Promise<{ sessionId: string; title: string }>
   prepareOfficialJump(input: { sessionId: string }): Promise<{ sessionId: string }>
+  listRoomOfficialSessions(input: { roomId: string }): Promise<{
+    sessions: readonly { botId: string; name: string; sessionId: string }[]
+  }>
+  listBotGroupOfficialSessions(input: { botId: string }): Promise<{
+    sessions: readonly {
+      botId: string
+      name: string
+      sessionId: string
+      roomId: string
+      groupId: string
+      groupName: string
+      roomTitle?: string
+      updatedAt: number
+    }[]
+  }>
   history(input: HistoryRequest): Promise<HistoryResult>
   prompt(input: PromptRequest): Promise<PromptResult>
   reconcile(): Promise<ReconcileResult>
@@ -273,6 +288,16 @@ export async function dispatchWorkbenchApi(
       const sessionId = asString(args.sessionId).trim()
       if (sessionId === '') throw new DshBotError('invalid-input', 'sessionId is required')
       return await bot.prepareOfficialJump({ sessionId })
+    }
+    case 'listRoomOfficialSessions': {
+      const roomId = asString(args.roomId).trim()
+      if (roomId === '') throw new DshBotError('invalid-input', 'roomId is required')
+      return await bot.listRoomOfficialSessions({ roomId })
+    }
+    case 'listBotGroupOfficialSessions': {
+      const botId = asString(args.botId).trim()
+      if (botId === '') throw new DshBotError('invalid-input', 'botId is required')
+      return await bot.listBotGroupOfficialSessions({ botId })
     }
     case 'listGroupSessions': {
       const groupId = asString(args.groupId).trim()

@@ -86,7 +86,6 @@ export function Composer(props: ComposerProps) {
     return props.storageKey !== undefined ? '' : readDraft(props.botId)
   })
   const [popup, setPopup] = useState<PopupKind>(null)
-  const [emojiMode, setEmojiMode] = useState<'colon' | 'button'>('colon')
   const [active, setActive] = useState(0)
   const botRef = useRef(props.botId)
   const keyRef = useRef(storageOf(props))
@@ -171,11 +170,10 @@ export function Composer(props: ComposerProps) {
     }
     if (emoji !== null) {
       setPopup('emoji')
-      setEmojiMode('colon')
       setActive(0)
       return
     }
-    setPopup(current => (current === 'emoji' && emojiMode === 'button' ? current : null))
+    setPopup(null)
   }
 
   const change = (value: string): void => {
@@ -241,7 +239,7 @@ export function Composer(props: ComposerProps) {
   const insertEmoji = (glyph: string): void => {
     const node = inputRef.current
     const caret = node?.selectionStart ?? text.length
-    const query = emojiMode === 'colon' ? emojiQuery(text, caret) : null
+    const query = emojiQuery(text, caret)
     const start = query?.start ?? caret
     const next = `${text.slice(0, start)}${glyph}${text.slice(caret)}`
     change(next)
@@ -255,7 +253,7 @@ export function Composer(props: ComposerProps) {
 
   const caret = inputRef.current?.selectionStart ?? text.length
   const mentionToken = popup === 'mention' ? mentionQuery(text, caret) : null
-  const emojiToken = popup === 'emoji' && emojiMode === 'colon' ? emojiQuery(text, caret) : null
+  const emojiToken = popup === 'emoji' ? emojiQuery(text, caret) : null
   const mentionChoices = (props.members ?? []).filter(row => {
     if (mentionToken === null) return false
     const needle = mentionToken.query.toLowerCase()
@@ -323,16 +321,6 @@ export function Composer(props: ComposerProps) {
         : { code: props.errorCode },
       message: props.error,
     })
-
-  const toggleEmojiButton = (): void => {
-    if (locked) return
-    setPopup(current => {
-      if (current === 'emoji' && emojiMode === 'button') return null
-      setEmojiMode('button')
-      setActive(0)
-      return 'emoji'
-    })
-  }
 
   return (
     <div className="composer" data-testid="composer">
@@ -458,19 +446,6 @@ export function Composer(props: ComposerProps) {
             </ul>
           ) : null}
         </div>
-        <button
-          type="button"
-          className="composerEmojiBtn"
-          data-testid="composer-emoji"
-          aria-label="表情"
-          disabled={locked}
-          onMouseDown={event => {
-            event.preventDefault()
-            toggleEmojiButton()
-          }}
-        >
-          😊
-        </button>
         <button
           type="button"
           className="primaryBtn composerSend"

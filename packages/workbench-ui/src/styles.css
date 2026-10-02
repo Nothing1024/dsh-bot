@@ -203,17 +203,17 @@ body,
 }
 
 .rosterPreviewCard {
-  position: absolute;
-  left: calc(100% + 8px);
-  top: 0;
-  z-index: 8;
+  position: fixed;
+  z-index: 30;
   width: 220px;
   max-width: 220px;
+  max-height: 220px;
+  overflow: auto;
   padding: 8px 10px;
   background: var(--dsw-alias-bg-layer-1, light-dark(#ffffff, #232324));
   border: 1px solid var(--wb-border);
   border-radius: 8px;
-  box-shadow: 0 8px 24px rgb(0 0 0 / 35%);
+  box-shadow: 0 4px 12px rgb(0 0 0 / 16%);
   color: var(--wb-text);
   pointer-events: none;
 }
@@ -463,32 +463,19 @@ body,
   white-space: nowrap;
 }
 
-/* Row 1: time + menu; row 2: unread + session count, menu spanning both. */
+/* Row 1: time + menu; row 2: unread, menu spanning both. */
 .rosterMeta {
   display: grid;
-  grid-template-columns: auto auto 24px;
+  grid-template-columns: auto 24px;
   grid-template-rows: 16px 16px;
   gap: 0 2px;
   align-items: center;
   align-self: center;
 }
 
-.rosterMeta > .rosterTime { grid-column: 1 / 3; grid-row: 1; justify-self: end; }
-.rosterMeta > .rowMenuBtn { grid-column: 3; grid-row: 1 / 3; align-self: center; }
+.rosterMeta > .rosterTime { grid-column: 1; grid-row: 1; justify-self: end; }
+.rosterMeta > .rowMenuBtn { grid-column: 2; grid-row: 1 / 3; align-self: center; }
 .rosterMeta > .unreadBadge { grid-column: 1; grid-row: 2; justify-self: end; }
-.rosterMeta > .sessionCount { grid-column: 2; grid-row: 2; justify-self: end; }
-
-.sessionCount {
-  min-width: 16px;
-  height: 16px;
-  padding: 0 5px;
-  border-radius: 999px;
-  background: var(--dsw-alias-interactive-bg-hover, light-dark(#2631480f, #ffffff14));
-  color: var(--wb-muted);
-  font-size: 10px;
-  line-height: 16px;
-  text-align: center;
-}
 
 .rosterSessions {
   margin: 0 8px 5px 40px;
@@ -822,9 +809,6 @@ body,
 }
 
 .sessionSwitchMenu {
-  position: absolute;
-  top: calc(100% + 6px);
-  right: 0;
   z-index: 5;
   width: min(280px, 70vw);
   border: 1px solid var(--wb-border);
@@ -1361,7 +1345,7 @@ body,
   align-items: flex-end;
   padding: 4px 6px;
   border: 1px solid var(--wb-border);
-  border-radius: 24px;
+  border-radius: 10px;
   background: var(--wb-field);
   box-shadow: 0 2px 8px rgb(0 0 0 / 3%);
 }
@@ -1371,11 +1355,10 @@ body,
   box-shadow: 0 0 0 2px var(--wb-ring);
 }
 
-.composerRow .composerEmojiBtn,
 .composerRow .composerSend {
   height: 34px;
   min-height: 34px;
-  border-radius: 999px;
+  border-radius: 12px;
   margin-bottom: 1px;
 }
 
@@ -1411,7 +1394,7 @@ body,
 .composerRow .composerInput:focus-visible {
   min-height: 36px;
   border: 0;
-  border-radius: 16px;
+  border-radius: 8px;
   resize: none;
   background: transparent;
   padding: 7px 8px;
@@ -1882,13 +1865,14 @@ body,
 }
 
 .confirmMask {
-  position: absolute;
+  position: fixed;
   inset: 0;
   background: rgba(0, 0, 0, 0.45);
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 16px;
+  z-index: 1000;
 }
 
 .confirmBox {
@@ -2091,24 +2075,6 @@ body,
 
 .dangerItem {
   color: var(--wb-danger);
-}
-
-.composerEmojiBtn {
-  appearance: none;
-  flex: none;
-  border: 1px solid var(--wb-border);
-  background: transparent;
-  color: var(--wb-text);
-  border-radius: 10px;
-  min-width: 36px;
-  min-height: 44px;
-  cursor: pointer;
-  font-size: 16px;
-}
-
-.composerEmojiBtn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
 }
 
 .emojiGlyph {

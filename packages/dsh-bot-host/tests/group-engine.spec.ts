@@ -23,6 +23,7 @@ import {
   buildMemberTurnPrompt,
   createRoundTracker,
   isSkipReply,
+  latestPublishableSpeech,
   orderRoundSpeakers,
   parseMentions,
   retryMemberTurn,
@@ -80,6 +81,9 @@ class StubSessionTool implements SessionToolService {
   readonly replies = new Map<string, readonly SessionToolMessageRow[]>()
   readonly queuedReplies = new Map<string, Array<readonly SessionToolMessageRow[]>>()
   waitStatus: 'idle' | 'failed' | 'timeout' = 'idle'
+  /** Statuses consumed before `waitStatus`. A leading `timeout` is a still-running turn. */
+  waitQueue: Array<'idle' | 'failed' | 'timeout'> = []
+  waitCount = 0
   failSessionIds = new Set<string>()
   listResult: SessionToolListResult = { sessions: [] }
   private next = 0
@@ -114,10 +118,12 @@ class StubSessionTool implements SessionToolService {
   }
 
   async wait(_caller: SessionToolCaller, sessionId: SessionId) {
+    this.waitCount += 1
     if (this.failSessionIds.has(String(sessionId))) {
       return { sessionId, status: 'failed' as const }
     }
-    return { sessionId, status: this.waitStatus }
+    const queued = this.waitQueue.shift()
+    return { sessionId, status: queued ?? this.waitStatus }
   }
 
   async read(_caller: SessionToolCaller, sessionId: SessionId) {
@@ -389,6 +395,16 @@ describe('toRoomSpeech', () => {
   it('skips pass and empty', () => {
     expect(toRoomSpeech('(pass)', prompt)).toBeUndefined()
     expect(toRoomSpeech('   ', prompt)).toBeUndefined()
+  })
+})
+
+describe('latestPublishableSpeech', () => {
+  it('keeps an earlier delivery when the tail is (pass)', () => {
+    const messages = [
+      { seq: 2, role: 'assistant', blocks: [{ type: 'text', text: '交活了' }] },
+      { seq: 3, role: 'assistant', blocks: [{ type: 'text', text: '(pass)' }] },
+    ] as SessionToolMessageRow[]
+    expect(latestPublishableSpeech(messages)).toBe('交活了')
   })
 })
 
@@ -759,7 +775,22 @@ describe('runGroupRound', () => {
     await runGroupRound(engineDeps(sessionTool, platform, groups), { roomId: room.roomId, text: '你们是谁?' })
     const state = await groups.peekRoom(room.roomId)
     expect(state?.messages.some(row => row.speaker.kind === 'member' && row.speaker.botId === POET.id)).toBe(true)
-    expect(state?.messages.some(row => row.speaker.kind === 'error' && row.speaker.botId === DSH.id)).toBe(true)
+    const error = state?.messages.find(row => row.speaker.kind === 'error' && row.speaker.botId === DSH.id)
+    expect(error?.text).toBe('DSH Bot failed to reply (status failed)')
+    expect(error?.speaker).toMatchObject({ kind: 'error', code: 'session-failed' })
+  })
+
+  it('keeps a member reply that arrives after askTimeoutMs while the session is still running', async () => {
+    const { groups, room } = await setupRoom()
+    const sessionTool = new StubSessionTool()
+    const platform = new StubPlatform()
+    sessionTool.setReply('session-owned-1', assistantText('session-owned-1', '写完了'))
+    sessionTool.waitQueue = ['timeout', 'timeout', 'idle']
+    await runGroupRound(engineDeps(sessionTool, platform, groups), { roomId: room.roomId, text: '@诗人小北 写长一点' })
+    const messages = (await groups.peekRoom(room.roomId))?.messages ?? []
+    expect(messages.some(row => row.speaker.kind === 'error')).toBe(false)
+    expect(messages.filter(row => row.speaker.kind === 'member').map(row => row.text)).toEqual(['写完了'])
+    expect(sessionTool.waitCount).toBe(3)
   })
 
   it('retries only the failed member without another user line', async () => {
@@ -785,6 +816,35 @@ describe('runGroupRound', () => {
     expect(users.map(row => row.text)).toEqual(['你们是谁?'])
     expect(poet.map(row => row.text)).toEqual(['我是诗人小北'])
     expect(dsh.map(row => row.text)).toEqual(['我是 DSH Bot'])
+  })
+
+  it('posts a hidden-session delivery that (pass) retries never copied into the room', async () => {
+    const { groups, room } = await setupRoom()
+    const sessionTool = new StubSessionTool()
+    const platform = new StubPlatform()
+    sessionTool.setReply('session-owned-1', assistantText('session-owned-1', '我是诗人小北'))
+    sessionTool.failSessionIds.add('session-owned-2')
+    sessionTool.setReply('session-owned-2', assistantText('session-owned-2', '交活了'))
+    const deps = engineDeps(sessionTool, platform, groups)
+    await runGroupRound(deps, { roomId: room.roomId, text: '你们是谁?' })
+    const failed = await groups.peekRoom(room.roomId)
+    const error = [...failed?.messages ?? []].reverse().find(row =>
+      row.speaker.kind === 'error' && row.speaker.botId === DSH.id,
+    )
+    expect(error).toBeDefined()
+    const saved = sessionTool.replies.get('session-owned-2') ?? []
+    const lastSeq = saved.reduce((max, row) => Math.max(max, row.seq), 0)
+    sessionTool.replies.set('session-owned-2', [
+      ...saved,
+      { seq: lastSeq + 1, role: 'assistant', blocks: [{ type: 'text', text: '(pass)' }] } as SessionToolMessageRow,
+    ])
+    sessionTool.failSessionIds.delete('session-owned-2')
+    const writes = sessionTool.writeCalls.length
+    await retryMemberTurn(deps, { roomId: room.roomId, botId: DSH.id, errorSeq: error!.seq })
+    const state = await groups.peekRoom(room.roomId)
+    const dsh = state?.messages.filter(row => row.speaker.kind === 'member' && row.speaker.botId === DSH.id) ?? []
+    expect(dsh.map(row => row.text)).toEqual(['交活了'])
+    expect(sessionTool.writeCalls).toHaveLength(writes)
   })
 
   it('admits retryMember before the member finishes', async () => {

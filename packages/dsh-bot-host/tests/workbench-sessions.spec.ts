@@ -561,6 +561,69 @@ describe('createBotSession / listBotSessions / history / prompt', () => {
     const { bot } = boot()
     await expect(bot.prepareOfficialJump({ sessionId: 'session-other' })).rejects.toMatchObject({ code: 'not-found' })
   })
+
+  it('lists the hidden member sessions for a group room, in member order', async () => {
+    const { bot } = boot()
+    const poet = await bot.createBot({ name: '诗人小北', persona: '你是诗人小北。' })
+    const group = await bot.createGroup({ name: '编辑室', memberIds: ['dsh-bot', poet.id] })
+    const room = await bot.createGroupSession({ groupId: group.id })
+    await put('session-poet', [
+      'app:dsh-bot', 'kind:dsh-bot', 'form:plugin', 'hidden', 'kind:hidden',
+      `bot:${poet.id}`, `group:${group.id}`, `group-room:${room.roomId}`,
+    ])
+    await put('session-host', [
+      'app:dsh-bot', 'kind:dsh-bot', 'form:plugin', 'hidden', 'kind:hidden',
+      'bot:dsh-bot', `group:${group.id}`, `group-room:${room.roomId}`,
+    ])
+    await put('session-other-room', [
+      'app:dsh-bot', 'kind:dsh-bot', 'form:plugin', 'hidden', 'kind:hidden',
+      'bot:dsh-bot', `group:${group.id}`, 'group-room:room-other',
+    ])
+    await put('session-chat', [
+      'app:dsh-bot', 'kind:dsh-bot', 'form:plugin', 'kind:dsh-bot-chat', 'hidden',
+      'bot:dsh-bot', `group-room:${room.roomId}`,
+    ])
+    const listed = await bot.listRoomOfficialSessions({ roomId: room.roomId })
+    expect(listed.sessions).toEqual([
+      { botId: 'dsh-bot', name: 'DSH Bot', sessionId: 'session-host' },
+      { botId: poet.id, name: '诗人小北', sessionId: 'session-poet' },
+    ])
+    await expect(bot.listRoomOfficialSessions({ roomId: 'room-missing' })).rejects.toMatchObject({ code: 'not-found' })
+    await bot.prepareOfficialJump({ sessionId: 'session-poet' })
+  })
+
+  it('lists one bot\'s group official session, not chats or missing rooms', async () => {
+    const { bot } = boot()
+    const poet = await bot.createBot({ name: '诗人小北', persona: '你是诗人小北。' })
+    const group = await bot.createGroup({ name: '编辑室', memberIds: ['dsh-bot', poet.id] })
+    const room = await bot.createGroupSession({ groupId: group.id })
+    await bot.renameSession({ sessionId: room.roomId, title: '夜谈' })
+    await put('session-poet', [
+      'app:dsh-bot', 'kind:dsh-bot', 'form:plugin', 'hidden', 'kind:hidden',
+      `bot:${poet.id}`, `group:${group.id}`, `group-room:${room.roomId}`,
+    ])
+    await put('session-chat', [
+      'app:dsh-bot', 'kind:dsh-bot', 'form:plugin', 'kind:dsh-bot-chat', 'hidden',
+      `bot:${poet.id}`, `group-room:${room.roomId}`,
+    ])
+    await put('session-gone', [
+      'app:dsh-bot', 'kind:dsh-bot', 'form:plugin', 'hidden', 'kind:hidden',
+      `bot:${poet.id}`, 'group-room:room-missing',
+    ])
+    const listed = await bot.listBotGroupOfficialSessions({ botId: poet.id })
+    expect(listed.sessions).toEqual([{
+      botId: poet.id,
+      name: '诗人小北',
+      sessionId: 'session-poet',
+      roomId: room.roomId,
+      groupId: group.id,
+      groupName: '编辑室',
+      roomTitle: '夜谈',
+      updatedAt: room.updatedAt,
+    }])
+    await expect(bot.listBotGroupOfficialSessions({ botId: 'missing' })).rejects.toMatchObject({ code: 'bot-not-found' })
+    await expect(bot.listBotGroupOfficialSessions({ botId: 'dsh-bot' })).resolves.toEqual({ sessions: [] })
+  })
 })
 
 describe('memory inject + extract hooks', () => {

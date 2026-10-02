@@ -36,10 +36,27 @@ nav > button:has([data-dsh-bot-nav="bot"]):has(> span + span) { justify-self: en
 .dsh-bot-roster-target .newBot {
   background-color: transparent;
 }
-.dsh-bot-roster-target .rowMenu,
-.dsh-bot-roster-target .rosterPreviewCard {
+.dsh-bot-roster-target .rowMenu {
   background-color: var(--dsw-alias-bg-layer-1, var(--dsw-specific-menu));
   color: var(--dsw-alias-label-primary);
+}
+/* The hover card is portaled to document.body, outside @scope (.dsh-bot-workbench), so the sidebar clip cannot turn its shadow into a band on the roster edge. */
+body > .rosterPreviewCard {
+  position: fixed;
+  z-index: 30;
+  box-sizing: border-box;
+  width: 220px;
+  max-width: 220px;
+  max-height: 220px;
+  overflow: auto;
+  padding: 8px 10px;
+  background: var(--dsw-alias-bg-layer-1, var(--dsw-specific-menu));
+  color: var(--dsw-alias-label-primary);
+  border: 1px solid var(--dsw-alias-border-l2);
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgb(0 0 0 / 16%);
+  font: 12px/1.45 "PingFang SC", "Hiragino Sans GB", "Noto Sans SC", "Microsoft YaHei", ui-sans-serif, system-ui, sans-serif;
+  pointer-events: none;
 }
 .dsh-bot-roster-target .rosterName,
 .dsh-bot-roster-target .rosterSession,

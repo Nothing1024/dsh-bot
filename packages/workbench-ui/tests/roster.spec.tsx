@@ -27,14 +27,10 @@ describe('Roster', () => {
 
   it('pins groups and offers explicit category destinations without changing on open', () => {
     const onLayout = vi.fn()
-    render(<Roster items={[item({ id: 'group', kind: 'group', section: 'work' })]} onSelect={vi.fn()} onCreate={vi.fn()} onEdit={vi.fn()} onDelete={vi.fn()} onRename={vi.fn()} onLayout={onLayout} />)
+    render(<Roster items={[item({ id: 'group', kind: 'group', section: '' })]} onSelect={vi.fn()} onCreate={vi.fn()} onEdit={vi.fn()} onDelete={vi.fn()} onRename={vi.fn()} onLayout={onLayout} />)
     fireEvent.click(screen.getByTestId('roster-menu-group'))
     fireEvent.click(screen.getByTestId('roster-pin-group'))
     expect(onLayout).toHaveBeenCalledWith({ groups: [{ id: 'group', section: 'pinned' }] })
-    onLayout.mockClear()
-    fireEvent.click(screen.getByTestId('roster-menu-group'))
-    fireEvent.click(screen.getByTestId('roster-move-group'))
-    expect(onLayout).toHaveBeenCalledWith({ groups: [{ id: 'group', section: 'life' }] })
   })
 
   it('renders avatar, name, preview, relative time, selected and working', () => {
@@ -193,8 +189,7 @@ describe('Roster', () => {
     fireEvent.click(screen.getByTestId('roster-graph'))
     expect(onOpenGraph).toHaveBeenCalledTimes(1)
     expect(screen.getByTestId('roster-section-pinned')).toBeTruthy()
-    expect(screen.getByTestId('roster-section-work')).toBeTruthy()
-    expect(screen.getByTestId('roster-section-life')).toBeTruthy()
+    expect(screen.getByTestId('roster-section-default')).toBeTruthy()
   })
 
   it('selects rows from the keyboard and folds categories with aria state while empty ones say so', () => {
@@ -219,8 +214,8 @@ describe('Roster', () => {
     // Keys on the nested menu button stay with the button.
     fireEvent.keyDown(screen.getByTestId('roster-menu-other'), { key: 'Enter' })
     expect(onSelect).toHaveBeenCalledTimes(2)
-    expect(screen.getByTestId('roster-section-empty-life').textContent).toBe('暂无')
-    const toggle = screen.getByTestId('roster-section-toggle-work')
+    expect(screen.getByTestId('roster-section-empty-pinned').textContent).toBe('暂无')
+    const toggle = screen.getByTestId('roster-section-toggle-default')
     expect(toggle.getAttribute('aria-expanded')).toBe('true')
     const list = document.getElementById(toggle.getAttribute('aria-controls') ?? '')
     expect(list?.contains(row)).toBe(true)
@@ -308,7 +303,7 @@ describe('Roster', () => {
     )
     expect(screen.queryByTestId('roster-session-s-new')).toBeNull()
     expect(screen.queryByTestId('roster-session-new-dsh-bot')).toBeNull()
-    expect(screen.getByTestId('roster-session-count-dsh-bot').textContent).toBe('2')
+    expect(screen.queryByTestId('roster-session-count-dsh-bot')).toBeNull()
   })
 
 })

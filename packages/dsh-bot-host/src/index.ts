@@ -13,7 +13,7 @@ import type { Volatile } from '@deepseek-ai/cordis'
 import z from '@deepseek-ai/schemastery'
 import { type SessionToolCaller } from 'session-tool'
 import { get } from 'session-marks'
-import { marksOf } from './marks-cache.ts'
+import { marksOf, rowsWithMark } from './marks-cache.ts'
 import { marksAllowForward } from './bot-events.ts'
 import {
   askBot,
@@ -45,7 +45,7 @@ import { composePersona, createMemoryStore, renderMemorySection, shouldExtract, 
 import type { MemoryStore } from './memory.ts'
 import { createExtractAsk, extractMemory } from './memory-extract.ts'
 import type { ExtractAsk } from './memory-extract.ts'
-import { hasBotInventoryMark, parseBotMark, peerMark, routineMark } from './marks.ts'
+import { DSH_BOT_CHAT_KIND, botMark, groupRoomMark, hasBotInventoryMark, hasHiddenMark, parseBotMark, parseGroupRoomMark, peerMark, routineMark } from './marks.ts'
 import { resolvePersonaPlaceholders, wrapPrompt } from './session-voice.ts'
 import { createSessionVoiceStore } from './session-voice-store.ts'
 import type { SessionVoiceStore } from './session-voice-store.ts'
@@ -97,6 +97,7 @@ import type {
 import { createGroupsRuntime } from './groups.ts'
 import type {
   CreateGroupInput,
+  GroupRoomRow,
   GroupsRuntime,
   UpdateGroupInput,
 } from './groups.ts'
@@ -298,6 +299,18 @@ declare module '@deepseek-ai/cordis' {
  * settings / webServer / workspaceRegistry / sessionController / agentDefaultModel
  * are optional and resolved per call.
  */
+/** One bot's hidden member-turn session for a group room that still exists. */
+export interface BotGroupOfficialSession {
+  readonly botId: string
+  readonly name: string
+  readonly sessionId: string
+  readonly roomId: string
+  readonly groupId: string
+  readonly groupName: string
+  readonly roomTitle?: string
+  readonly updatedAt: number
+}
+
 class DshBotService extends Service {
   static inject = ['sessionTool']
 
@@ -538,6 +551,101 @@ class DshBotService extends Service {
     }
     await this.platform.unarchiveSession(sessionId)
     return { sessionId }
+  }
+
+  /**
+   * Official sessions behind a group room: one hidden member-turn session per
+   * bot that has already spoken. The room id itself is not a session.
+   */
+  async listRoomOfficialSessions(input: { roomId: string }): Promise<{
+    sessions: readonly { botId: string; name: string; sessionId: string }[]
+  }> {
+    const roomId = input.roomId.trim()
+    if (roomId === '') throw new DshBotError('invalid-input', 'roomId is required')
+    const room = await this.groupsRuntime.peekRoom(roomId)
+    if (room === undefined) throw new DshBotError('not-found', '房间不存在', { roomId })
+    const group = await this.groupsRuntime.getGroup(room.header.groupId)
+    const byBot = new Map<string, string>()
+    for (const row of await rowsWithMark(groupRoomMark(roomId))) {
+      if (!hasHiddenMark(row.tags) || row.tags.includes(DSH_BOT_CHAT_KIND)) continue
+      const botId = parseBotMark(row.tags)
+      if (botId === undefined || byBot.has(botId) || !group.memberIds.includes(botId)) continue
+      byBot.set(botId, row.id)
+    }
+    const sessions: { botId: string; name: string; sessionId: string }[] = []
+    for (const botId of group.memberIds) {
+      const sessionId = byBot.get(botId)
+      if (sessionId === undefined) continue
+      let name = botId
+      try {
+        name = (await this.botsRuntime.getBot(botId)).name
+      } catch (error) {
+        if (!(error instanceof DshBotError) || error.code !== 'bot-not-found') throw error
+      }
+      sessions.push({ botId, name, sessionId })
+    }
+    return { sessions }
+  }
+
+  /**
+   * Hidden member-turn sessions owned by one bot. 1:1 chats stay on
+   * `listBotSessions`. Gone rooms and groups are left out.
+   */
+  async listBotGroupOfficialSessions(input: { botId: string }): Promise<{
+    sessions: readonly BotGroupOfficialSession[]
+  }> {
+    const botId = input.botId.trim()
+    if (botId === '') throw new DshBotError('invalid-input', 'botId is required')
+    const bot = await this.botsRuntime.getBot(botId)
+    const byRoom = new Map<string, string>()
+    for (const row of await rowsWithMark(botMark(botId))) {
+      if (!hasHiddenMark(row.tags) || row.tags.includes(DSH_BOT_CHAT_KIND)) continue
+      const roomId = parseGroupRoomMark(row.tags)
+      if (roomId === undefined || byRoom.has(roomId)) continue
+      byRoom.set(roomId, row.id)
+    }
+    const groups = new Map<string, { name: string; member: boolean; rooms: readonly GroupRoomRow[] } | null>()
+    const sessions: BotGroupOfficialSession[] = []
+    for (const [roomId, sessionId] of byRoom) {
+      const peeked = await this.groupsRuntime.peekRoom(roomId)
+      if (peeked === undefined) continue
+      const groupId = peeked.header.groupId
+      let cached = groups.get(groupId)
+      if (cached === undefined) {
+        try {
+          const group = await this.groupsRuntime.getGroup(groupId)
+          const listed = await this.groupsRuntime.listGroupSessions({ groupId })
+          cached = {
+            name: group.name,
+            member: group.memberIds.includes(botId),
+            rooms: listed.rooms,
+          }
+        } catch (error) {
+          if (!(error instanceof DshBotError) || error.code !== 'group-not-found') throw error
+          cached = null
+        }
+        groups.set(groupId, cached)
+      }
+      if (cached === null || !cached.member) continue
+      const room = cached.rooms.find(row => row.roomId === roomId)
+      if (room === undefined) continue
+      const roomTitle = room.title?.trim()
+      sessions.push({
+        botId,
+        name: bot.name,
+        sessionId,
+        roomId,
+        groupId,
+        groupName: cached.name,
+        ...roomTitle === undefined || roomTitle === '' ? {} : { roomTitle },
+        updatedAt: room.updatedAt,
+      })
+    }
+    sessions.sort((a, b) => {
+      if (b.updatedAt !== a.updatedAt) return b.updatedAt - a.updatedAt
+      return a.roomId < b.roomId ? -1 : a.roomId > b.roomId ? 1 : 0
+    })
+    return { sessions }
   }
 
   history(input: HistoryRequest): Promise<HistoryResult> {

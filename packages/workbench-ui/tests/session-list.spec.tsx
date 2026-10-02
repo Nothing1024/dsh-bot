@@ -72,6 +72,69 @@ describe('SessionList actions', () => {
     expect(openTool).toHaveBeenCalledTimes(1)
   })
 
+  it('opens a group room through the member official session, not the room id', async () => {
+    const openOfficial = vi.fn(async () => undefined)
+    const onToast = vi.fn()
+    vi.stubGlobal('fetch', vi.fn(async (url: string) => {
+      if (!String(url).includes('listRoomOfficialSessions')) {
+        return { json: async () => ({ ok: true, value: {} }) }
+      }
+      return {
+        json: async () => ({
+          ok: true,
+          value: {
+            sessions: [
+              { botId: 'bei', name: '诗人小北', sessionId: 'session-bei' },
+              { botId: 'ning', name: '校对阿宁', sessionId: 'session-ning' },
+            ],
+          },
+        }),
+      }
+    }))
+    render(<SessionList items={[row]} groupMode onSelect={vi.fn()} onToast={onToast} onOpenOfficialSession={openOfficial} />)
+    fireEvent.click(screen.getByTestId('session-menu-s-visible'))
+    fireEvent.click(screen.getByTestId('session-jump-s-visible'))
+    const poet = await screen.findByTestId('session-jump-s-visible-bei')
+    expect(poet.textContent).toBe('在官方会话打开 · 诗人小北')
+    fireEvent.click(poet)
+    await vi.waitFor(() => expect(openOfficial).toHaveBeenCalledWith('session-bei'))
+    expect(openOfficial).not.toHaveBeenCalledWith('s-visible')
+    expect(onToast).not.toHaveBeenCalled()
+  })
+
+  it('says when a group room has no official session yet', async () => {
+    const onToast = vi.fn()
+    vi.stubGlobal('fetch', vi.fn(async () => ({ json: async () => ({ ok: true, value: { sessions: [] } }) })))
+    render(<SessionList items={[row]} groupMode onSelect={vi.fn()} onToast={onToast} onOpenOfficialSession={vi.fn()} />)
+    fireEvent.click(screen.getByTestId('session-menu-s-visible'))
+    fireEvent.click(screen.getByTestId('session-jump-s-visible'))
+    await vi.waitFor(() => expect(onToast).toHaveBeenCalledWith('这个房间还没有官方会话'))
+  })
+
+  it('opens a bot group session without treating it as the current chat', async () => {
+    const openOfficial = vi.fn(async () => undefined)
+    const onSelect = vi.fn()
+    const onJumped = vi.fn()
+    const official: SessionChoice = {
+      sessionId: 'session-bei',
+      title: '小组 · 编辑室 · 夜谈',
+      updatedAt: 1,
+      working: false,
+      hidden: false,
+      child: false,
+      selected: false,
+      jumpOnly: true,
+    }
+    render(<SessionList items={[official]} onSelect={onSelect} onJumped={onJumped} onOpenOfficialSession={openOfficial} />)
+    fireEvent.click(screen.getByTestId('session-option-session-bei'))
+    await vi.waitFor(() => expect(openOfficial).toHaveBeenCalledWith('session-bei'))
+    expect(onSelect).not.toHaveBeenCalled()
+    expect(onJumped).toHaveBeenCalled()
+    fireEvent.click(screen.getByTestId('session-menu-session-bei'))
+    expect(screen.queryByTestId('session-rename-session-bei')).toBeNull()
+    expect(screen.getByTestId('session-jump-session-bei').textContent).toBe('在官方会话打开')
+  })
+
   it('jumps through the host opener from the row menu', async () => {
     const openOfficial = vi.fn(async () => undefined)
     const onDoneToast = vi.fn()

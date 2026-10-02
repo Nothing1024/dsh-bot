@@ -289,6 +289,37 @@ export function listGroupSessions(groupId: string): Promise<RpcResult<{ rooms: r
   return workbenchCall('listGroupSessions', { groupId })
 }
 
+export interface RoomOfficialSession {
+  readonly botId: string
+  readonly name: string
+  readonly sessionId: string
+}
+
+/** Hidden member-turn sessions for a group room. The room id is not a session. */
+export function listRoomOfficialSessions(
+  roomId: string,
+): Promise<RpcResult<{ sessions: readonly RoomOfficialSession[] }>> {
+  return workbenchCall('listRoomOfficialSessions', { roomId })
+}
+
+export interface BotGroupOfficialSession {
+  readonly botId: string
+  readonly name: string
+  readonly sessionId: string
+  readonly roomId: string
+  readonly groupId: string
+  readonly groupName: string
+  readonly roomTitle?: string
+  readonly updatedAt: number
+}
+
+/** Hidden member-turn sessions owned by one bot. Not the bot's 1:1 chats. */
+export function listBotGroupOfficialSessions(
+  botId: string,
+): Promise<RpcResult<{ sessions: readonly BotGroupOfficialSession[] }>> {
+  return workbenchCall('listBotGroupOfficialSessions', { botId })
+}
+
 export function retryMember(
   roomId: string,
   botId: string,

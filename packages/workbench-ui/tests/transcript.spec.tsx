@@ -320,7 +320,34 @@ describe('Transcript', () => {
       />,
     )
     expect((screen.getByTestId('transcript-retry-2') as HTMLButtonElement).disabled).toBe(true)
+    expect(screen.getByTestId('transcript-retry-2').textContent).toBe('重试该成员')
+    expect(screen.getByTestId('transcript-retry-2').getAttribute('title')).toBe('讨论进行中，稍后再试')
+    expect(screen.getByTestId('transcript-error-2').textContent).toContain('wait-timeout: timed out')
+    expect(screen.getByTestId('transcript-error-2').textContent).not.toContain('wait-timeout: wait-timeout')
+  })
+
+  it('labels only the row being retried as in progress', () => {
+    render(
+      <Transcript
+        items={[
+          {
+            id: 'm-2',
+            kind: 'message',
+            seq: 2,
+            role: 'assistant',
+            text: 'wait-timeout: timed out',
+            author: { botId: 'dsh-bot', name: 'DSH Bot', avatar: { color: '#3db88a' } },
+            error: { code: 'wait-timeout', message: 'wait-timeout: timed out' },
+          },
+        ]}
+        working
+        groupMode
+        retryingSeq={2}
+        onRetryMember={vi.fn()}
+      />,
+    )
     expect(screen.getByTestId('transcript-retry-2').textContent).toBe('重试中')
+    expect((screen.getByTestId('transcript-retry-2') as HTMLButtonElement).disabled).toBe(true)
   })
 
 

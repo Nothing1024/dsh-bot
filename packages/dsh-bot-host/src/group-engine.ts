@@ -12,7 +12,7 @@ export type { MentionMember, MentionParse } from 'dsh-bot-shared'
 import { SessionId } from '@deepseek-ai/dsh-session'
 import { hasHiddenMark } from 'session-marks'
 import { rowsWithMark } from './marks-cache.ts'
-import type { SessionToolCaller, SessionToolService } from 'session-tool'
+import type { SessionToolCaller, SessionToolMessageRow, SessionToolService } from 'session-tool'
 import { extractAssistantAnswer, resolveOverride } from './ask.ts'
 import { forkChildId, readAssistant } from './fork-continuation.ts'
 import type { DshBotRuntimeConfig } from './ask.ts'
@@ -161,6 +161,30 @@ export function isSkipReply(text: string): boolean {
   const trimmed = text.trim()
   if (trimmed === '') return true
   return /^(?:\(\s*)?pass(?:\s*\))?\s*\.?$/i.test(trimmed)
+}
+
+function assistantBlockText(row: SessionToolMessageRow): string {
+  return row.blocks.map(block => {
+    if (typeof block !== 'object' || block === null) return ''
+    const record = block as { type?: unknown; text?: unknown }
+    return record.type === 'text' && typeof record.text === 'string' ? record.text : ''
+  }).join('\n').trim()
+}
+
+/**
+ * Newest assistant text the room can show. A later `(pass)` does not hide
+ * an earlier delivery that never reached the room.
+ */
+export function latestPublishableSpeech(messages: readonly SessionToolMessageRow[]): string | undefined {
+  for (let index = messages.length - 1; index >= 0; index -= 1) {
+    const row = messages[index]
+    if (row === undefined || row.role !== 'assistant') continue
+    const text = assistantBlockText(row)
+    if (text === '') continue
+    const speech = toRoomSpeech(text)
+    if (speech !== undefined) return speech
+  }
+  return undefined
 }
 
 const LEAKED_BANNER = /^(?:【小组房间轮次】|\[SAND_HIDDEN_PROMPT\]|\[Group chat:[^\]]*\])\s*/i
@@ -486,6 +510,7 @@ export async function executeRetryMemberTurn(
         members,
         names,
         message: context,
+        recoverUnposted: true,
         ...signal === undefined ? {} : { signal },
       })
       return { roomId, botId, posted }
@@ -495,6 +520,56 @@ export async function executeRetryMemberTurn(
   })
 }
 
+
+/**
+ * Copy a finished hidden-session delivery into the room when an earlier
+ * wait gave up and later wakes only answered `(pass)`.
+ * Returns false when the session is still running, or has nothing new to show.
+ */
+async function postUnpostedSpeech(
+  deps: GroupEngineDeps,
+  roomId: string,
+  botId: string,
+  sessionId: string,
+): Promise<boolean> {
+  const read = await deps.sessionTool.read(CLI_CALLER, SessionId(sessionId), { maxBlocks: 500 })
+  const speech = latestPublishableSpeech(read.messages)
+  if (speech === undefined) return false
+  const room = await deps.groups.peekRoom(roomId)
+  const posted = (room?.messages ?? []).some(row =>
+    row.speaker.kind === 'member' && row.speaker.botId === botId && row.text.trim() === speech.trim(),
+  )
+  if (posted) return false
+  await deps.groups.appendRoomMessage(roomId, { kind: 'member', botId }, speech)
+  return true
+}
+
+/**
+ * Retry must not write a second wake while the hidden session is still in
+ * the turn that timed out — that aborts the live work. Wait it out, then
+ * post a delivery the room never received.
+ */
+async function recoverSettledSpeech(
+  deps: GroupEngineDeps,
+  input: { readonly signal?: AbortSignal },
+  roomId: string,
+  botId: string,
+  sessionId: string,
+): Promise<boolean> {
+  let waited = await deps.sessionTool.wait(CLI_CALLER, SessionId(sessionId), {
+    until: 'idle',
+    timeoutMs: 0,
+  })
+  while (waited.status === 'timeout') {
+    if (input.signal?.aborted) return false
+    waited = await deps.sessionTool.wait(CLI_CALLER, SessionId(sessionId), {
+      until: 'idle',
+      timeoutMs: deps.config.askTimeoutMs,
+    })
+  }
+  if (input.signal?.aborted) return false
+  return await postUnpostedSpeech(deps, roomId, botId, sessionId)
+}
 
 async function askMemberTurn(
   deps: GroupEngineDeps,
@@ -506,6 +581,8 @@ async function askMemberTurn(
     readonly names: Map<string, string>
     readonly message: RoomMessage
     readonly signal?: AbortSignal
+    /** Retry path: publish a finished hidden-session reply before waking again. */
+    readonly recoverUnposted?: boolean
   },
 ): Promise<boolean> {
   const { roomId, group, bot, members, names, message } = input
@@ -519,6 +596,10 @@ async function askMemberTurn(
       bot,
     })
     if (input.signal?.aborted) return false
+    if (input.recoverUnposted === true) {
+      const recovered = await recoverSettledSpeech(deps, input, roomId, bot.id, sessionId)
+      if (recovered) return true
+    }
     const latest = await deps.groups.peekRoom(roomId)
     const eligible = (latest?.messages ?? []).filter(row => row.speaker.kind !== 'user' || row.seq <= message.seq)
     const unread = messagesSinceMemberLastSpoke(eligible, bot.id).slice(-ROOM_TRANSCRIPT_MAX)
@@ -549,18 +630,20 @@ async function askMemberTurn(
       await deps.platform.cancelSession?.(sessionId)
       return false
     }
-    const waited = await deps.sessionTool.wait(CLI_CALLER, SessionId(sessionId), {
+    // `timeout` means the hidden session is still running. askTimeoutMs only
+    // slices the poll so a room cancel can land; it must not drop a live turn.
+    let waited = await deps.sessionTool.wait(CLI_CALLER, SessionId(sessionId), {
       until: 'idle',
       timeoutMs: deps.config.askTimeoutMs,
     })
-    if (input.signal?.aborted) return false
-    if (waited.status === 'timeout') {
-      throw new DshBotError(
-        'wait-timeout',
-        `${bot.name} timed out waiting for a reply`,
-        { sessionId },
-      )
+    while (waited.status === 'timeout') {
+      if (input.signal?.aborted) return false
+      waited = await deps.sessionTool.wait(CLI_CALLER, SessionId(sessionId), {
+        until: 'idle',
+        timeoutMs: deps.config.askTimeoutMs,
+      })
     }
+    if (input.signal?.aborted) return false
     if (waited.status === 'failed' || waited.status === 'aborted') {
       throw new DshBotError(
         'session-failed',
@@ -590,7 +673,7 @@ async function askMemberTurn(
     await deps.groups.appendRoomMessage(
       roomId,
       { kind: 'error', botId: bot.id, code },
-      `${code}: ${detail}`,
+      detail,
     )
     return false
   }

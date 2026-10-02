@@ -285,23 +285,6 @@ describe('Composer', () => {
     expect(screen.queryByTestId('emoji-menu')).toBeNull()
   })
 
-  it('toggles the emoji picker from the button without sending', () => {
-    render(
-      <Composer
-        botId="bot-a"
-        botName="甲"
-        disabled={false}
-        sending={false}
-        error={null}
-        onSend={async () => true}
-      />,
-    )
-    fireEvent.mouseDown(screen.getByTestId('composer-emoji'))
-    expect(screen.getByTestId('emoji-menu')).toBeTruthy()
-    fireEvent.mouseDown(screen.getByTestId('emoji-item-smile'))
-    expect((screen.getByTestId('composer-input') as HTMLTextAreaElement).value).toBe('😀')
-  })
-
   it('keeps Enter-to-send when the picker is closed and shows a reply card', async () => {
     const onSend = vi.fn(async () => true)
     const onClearReply = vi.fn()

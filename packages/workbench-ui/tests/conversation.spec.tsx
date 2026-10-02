@@ -566,13 +566,42 @@ describe('Conversation', () => {
     }))
     render(<Conversation group={group} members={[BOT]} />)
     const trigger = await screen.findByTestId('session-select')
-    expect(screen.queryByTestId('session-current-menu')).toBeNull()
+    expect(screen.getByTestId('session-current-menu')).toBeTruthy()
     fireEvent.click(trigger)
     expect(screen.getByTestId('session-option-room-1')).toBeTruthy()
     fireEvent.click(screen.getByTestId('session-menu-room-1'))
     expect(screen.getByTestId('session-jump-room-1').textContent).toBe('复制会话 ID')
     expect(screen.getByTestId('session-rename-room-1').textContent).toBe('重命名')
     expect(screen.getByTestId('session-tool-browse').textContent).toMatch(/会话协作/)
+  })
+
+  it('lists a member bot group official session and opens that session', async () => {
+    const openOfficial = vi.fn(async () => undefined)
+    vi.stubGlobal('fetch', vi.fn(async (url: string) => {
+      const path = String(url)
+      if (path.includes('listBotGroupOfficialSessions')) {
+        return jsonOk({
+          sessions: [{
+            botId: BOT.id,
+            name: BOT.name,
+            sessionId: 'session-group-bei',
+            roomId: 'room-1',
+            groupId: 'bianji-shi',
+            groupName: '编辑室',
+            roomTitle: '夜谈',
+            updatedAt: 1,
+          }],
+        })
+      }
+      if (path.includes('listBotSessions')) return jsonOk({ sessions: [] })
+      return jsonOk({})
+    }))
+    render(<Conversation bot={BOT} onOpenOfficialSession={openOfficial} />)
+    fireEvent.click(await screen.findByTestId('session-select'))
+    const row = await screen.findByTestId('session-option-session-group-bei')
+    expect(row.textContent).toContain('小组 · 编辑室 · 夜谈')
+    fireEvent.click(row)
+    await vi.waitFor(() => expect(openOfficial).toHaveBeenCalledWith('session-group-bei'))
   })
 
   it('labels untitled group rooms with the group clock, not a room id', async () => {
@@ -641,7 +670,13 @@ describe('Conversation', () => {
       expect(calls.some(path => path.includes('retryMember'))).toBe(true)
     })
     expect(calls.some(path => path.includes('/prompt'))).toBe(false)
-    expect((await screen.findByTestId('conversation-toast')).textContent).toBe('已开始重试该成员')
+    expect(screen.queryByText('已开始重试该成员')).toBeNull()
+    expect(screen.queryByTestId('conversation-toast')).toBeNull()
+    expect(screen.getByTestId('transcript-retry-2').textContent).toBe('重试中')
+    expect(screen.getByTestId('conversation-working').textContent).toContain('诗人小北')
+    expect(screen.getByTestId('conversation-working').textContent).toContain('正在发言')
+    expect(screen.getByTestId('transcript-working').getAttribute('data-author')).toBe(BOT.id)
+    expect(screen.getByTestId('transcript-typing-name').textContent).toBe(BOT.name)
   })
 
 

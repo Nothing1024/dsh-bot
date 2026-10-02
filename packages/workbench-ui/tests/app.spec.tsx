@@ -165,7 +165,7 @@ describe('App roster load', () => {
     await screen.findByTestId('roster-row-dsh-bot')
     expect(screen.queryByTestId('roster-session-s-new')).toBeNull()
     expect(screen.queryByTestId('roster-sessions-dsh-bot')).toBeNull()
-    expect(await screen.findByTestId('roster-session-count-dsh-bot')).toHaveProperty('textContent', '2')
+    expect(screen.queryByTestId('roster-session-count-dsh-bot')).toBeNull()
     fireEvent.click(screen.getByTestId('session-select'))
     expect(await screen.findByTestId('session-option-s-new')).toBeTruthy()
     expect(screen.getByTestId('session-option-s-new').textContent).toMatch(/论诗/)

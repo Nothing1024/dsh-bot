@@ -46,6 +46,8 @@ export interface TranscriptProps {
   readonly onApproval?: (item: WorkbenchHistoryItem, outcome: 'allowed-once' | 'rejected') => void
   readonly onQuestion?: (item: WorkbenchHistoryItem, answer: string) => void
   readonly onRetryMember?: (item: WorkbenchHistoryItem) => void
+  /** Error row whose member is being asked again. Other rows stay labeled as retry. */
+  readonly retryingSeq?: number | null
   /** Group room only: prompts waiting for the running discussion (BR-002). Not message bubbles. */
   readonly queued?: readonly GroupQueuedItem[]
   readonly onCancelQueued?: (queueId: string) => Promise<void>
@@ -188,7 +190,11 @@ export function Transcript(props: TranscriptProps) {
                   ...pinPick && props.members !== undefined ? { members: props.members } : {},
                   onPickMember: actions.pickMember,
                 }}
-                {...canRetry ? { onRetryMember: actions.retry, retryDisabled: props.working } : {}}
+                {...canRetry ? {
+                  onRetryMember: actions.retry,
+                  retryDisabled: props.working,
+                  retrying: props.retryingSeq === item.seq,
+                } : {}}
               />
             )
           })}
@@ -355,6 +361,13 @@ function ReplyCite(props: { seq: number; speaker: string; missing: boolean; text
   )
 }
 
+/** Host text sometimes already starts with the code; the bubble shows it once. */
+export function formatMemberError(code: string, message: string): string {
+  const prefix = `${code}: `
+  const detail = message.startsWith(prefix) ? message.slice(prefix.length) : message
+  return detail === '' ? code : `${code}: ${detail}`
+}
+
 const TranscriptRow = memo(function TranscriptRow(props: {
   item: WorkbenchHistoryItem
   menuOpen?: boolean
@@ -369,6 +382,7 @@ const TranscriptRow = memo(function TranscriptRow(props: {
   onPickMember?: (botId: string, item: WorkbenchHistoryItem) => void
   onRetryMember?: (item: WorkbenchHistoryItem) => void
   retryDisabled?: boolean
+  retrying?: boolean
 }) {
   const item = props.item
   const role = item.role === 'user' ? 'user' : 'assistant'
@@ -432,16 +446,20 @@ const TranscriptRow = memo(function TranscriptRow(props: {
         ) : null}
         {item.error !== undefined ? (
           <div className="memberError" data-testid={`transcript-error-${item.seq}`}>
-            <span>{item.error.code}: {item.error.message}</span>
+            <span>{formatMemberError(item.error.code, item.error.message)}</span>
             {props.onRetryMember !== undefined ? (
               <button
                 type="button"
                 className="retry"
                 data-testid={`transcript-retry-${item.seq}`}
-                disabled={props.retryDisabled === true}
+                disabled={props.retryDisabled === true || props.retrying === true}
+                aria-busy={props.retrying === true}
+                title={props.retrying === true
+                  ? undefined
+                  : props.retryDisabled === true ? '讨论进行中，稍后再试' : undefined}
                 onClick={() => props.onRetryMember?.(item)}
               >
-                {props.retryDisabled === true ? '重试中' : '重试该成员'}
+                {props.retrying === true ? '重试中' : '重试该成员'}
               </button>
             ) : null}
           </div>
